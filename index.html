@@ -2382,7 +2382,21 @@ const USASpendingAPI = {
         content.classList.toggle('hidden');
         toggle.classList.toggle('help-expanded');
       });
-
+const headerBtn = document.getElementById('headerSearchBtn');
+  const headerInput = document.getElementById('headerSearchKeywords');
+  
+  if (headerBtn) {
+    headerBtn.addEventListener('click', executeHeaderSearch);
+  }
+  
+  if (headerInput) {
+    headerInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        executeHeaderSearch();
+      }
+    });
+  }
       const shareBtn = document.getElementById('shareSearch');
       if (shareBtn) {
         shareBtn.addEventListener('click', ShareManager.copyToClipboard.bind(ShareManager));
