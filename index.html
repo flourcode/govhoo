@@ -1451,7 +1451,6 @@ body {
       agencies: new Map(),
       currentSort: { column: 'daysRemaining', direction: 'asc' },
       filters: { search: '', priority: '', competitor: '', agency: '' },
-      searchCache: new Map(),
       canUseHistory: window.location.protocol !== 'file:' && window.history && window.history.replaceState
     };
 
@@ -1695,72 +1694,55 @@ body {
       timeout: 10000,
       
       async searchContracts(searchParams) {
-        const searchKey = JSON.stringify(searchParams);
-        
-        // Quick cache check
-        if (AppState.searchCache.has(searchKey)) {
-          const cached = AppState.searchCache.get(searchKey);
-          if (Date.now() - cached.timestamp < 180000) { // 3 min cache
-            return cached.data;
-          }
-        }
+  const keywordsArray = searchParams.keywords ? 
+    searchParams.keywords
+      .split(/,|\bor\b|\||\;/i)
+      .map(k => k.trim().replace(/^["']|["']$/g, ''))
+      .filter(k => k.length > 0) : [];
 
-        const keywordsArray = searchParams.keywords ? 
-          searchParams.keywords
-            .split(/,|\bor\b|\||\;/i)
-            .map(k => k.trim().replace(/^["']|["']$/g, ''))
-            .filter(k => k.length > 0) : [];
-
-        const requestBody = {
-          filters: {
-            award_type_codes: ['A', 'B', 'C', 'D'],
-            keywords: keywordsArray.length > 0 ? keywordsArray : undefined,
-            award_amounts: searchParams.minValue ? [{ lower_bound: parseInt(searchParams.minValue) }] : undefined,
-            agencies: searchParams.agency ? [{ type: "awarding", tier: "toptier", name: searchParams.agency }] : undefined
-          },
-          fields: [
-            "Award ID", "Recipient Name", "Start Date", "End Date", 
-            "Award Amount", "Awarding Agency", "Awarding Sub Agency", 
-            "Description", "generated_internal_id"
-          ],
-          page: 1,
-          limit: 60,
-          sort: "Award Amount",
-          order: "desc"
-        };
-        
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), this.timeout);
-        
-        try {
-          const response = await fetch(this.baseURL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestBody),
-            signal: controller.signal
-          });
-          
-          clearTimeout(timeoutId);
-          
-          if (!response.ok) {
-            throw new Error(`API Error: ${response.status}`);
-          }
-          
-          const data = await response.json();
-          const opportunities = this.transformData(data);
-          
-          // Cache result
-          AppState.searchCache.set(searchKey, {
-            data: opportunities,
-            timestamp: Date.now()
-          });
-          
-          return opportunities;
-        } catch (error) {
-          clearTimeout(timeoutId);
-          throw error;
-        }
-      },
+  const requestBody = {
+    filters: {
+      award_type_codes: ['A', 'B', 'C', 'D'],
+      keywords: keywordsArray.length > 0 ? keywordsArray : undefined,
+      award_amounts: searchParams.minValue ? [{ lower_bound: parseInt(searchParams.minValue) }] : undefined,
+      agencies: searchParams.agency ? [{ type: "awarding", tier: "toptier", name: searchParams.agency }] : undefined
+    },
+    fields: [
+      "Award ID", "Recipient Name", "Start Date", "End Date", 
+      "Award Amount", "Awarding Agency", "Awarding Sub Agency", 
+      "Description", "generated_internal_id"
+    ],
+    page: 1,
+    limit: 60,
+    sort: "Award Amount",
+    order: "desc"
+  };
+  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+  
+  try {
+    const response = await fetch(this.baseURL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody),
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return this.transformData(data);
+    
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+},
 
       transformData(apiData) {
         if (!apiData.results || !Array.isArray(apiData.results)) {
