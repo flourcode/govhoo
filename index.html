@@ -1243,33 +1243,33 @@ body {
   </div>
   
   <div class="help-item">
+    <div class="help-label">Multiple companies</div>
+    <div class="help-example">cisco, amazon, microsoft</div>
+    <div class="help-description">Comma-separated terms search individually and combine results</div>
+  </div>
+  
+  <div class="help-item">
     <div class="help-label">Exact phrases</div>
-    <div class="help-example">"tactical radio"</div>
-    <div class="help-description">Use quotes for exact phrase matching</div>
+    <div class="help-example">"tactical radio systems"</div>
+    <div class="help-description">Use quotes for exact multi-word phrases</div>
   </div>
   
   <div class="help-item">
-    <div class="help-label">Multiple terms (OR)</div>
-    <div class="help-example">"cisco" or "amazon"</div>
-    <div class="help-description">Find contracts with either term</div>
+    <div class="help-label">Technology areas</div>
+    <div class="help-example">cloud security</div>
+    <div class="help-description">Multiple words are automatically AND'd together</div>
   </div>
   
   <div class="help-item">
-    <div class="help-label">All terms required (AND)</div>
-    <div class="help-example">"cloud security" and "microsoft"</div>
-    <div class="help-description">Find contracts containing both terms</div>
+    <div class="help-label">Competitor research</div>
+    <div class="help-example">sap, oracle, salesforce</div>
+    <div class="help-description">Find all contracts for competing vendors</div>
   </div>
   
   <div class="help-item">
-    <div class="help-label">Complex grouping</div>
-    <div class="help-example">("cisco" or "amazon") and "cloud"</div>
-    <div class="help-description">Use parentheses for advanced logic</div>
-  </div>
-  
-  <div class="help-item">
-    <div class="help-label">Agency search</div>
+    <div class="help-label">Agency names</div>
     <div class="help-example">"Office of Naval Research"</div>
-    <div class="help-description">Search within agency descriptions</div>
+    <div class="help-description">Use quotes for specific agency offices</div>
   </div>
 </div>
           </div>
@@ -1710,7 +1710,6 @@ body {
         return { level: 'low', label: 'LOW' };
       }
     };
-
 // Streamlined API - remove batching that was adding latency
 const USASpendingAPI = {
   baseURL: 'https://vt44ebi3jj.execute-api.us-east-1.amazonaws.com/default/award-search-proxy',
@@ -1718,14 +1717,14 @@ const USASpendingAPI = {
   
   async searchContracts(searchParams) {
     // Handle comma-separated terms by searching individually and combining results
-    if (searchParams.keywords && searchParams.keywords.includes(',') && !searchParams.keywords.includes('"')) {
+    if (searchParams.keywords && searchParams.keywords.includes(',')) {
       const terms = searchParams.keywords.split(',').map(term => term.trim()).filter(term => term.length > 0);
       if (terms.length > 1) {
         return this.searchMultipleTerms(terms, searchParams);
       }
     }
 
-    // Single term or advanced syntax search
+    // Single term search - API will split on spaces and AND them together
     let keywordsString = searchParams.keywords ? searchParams.keywords.trim() : '';
 
     const requestBody = {
@@ -1807,7 +1806,6 @@ const USASpendingAPI = {
       throw new Error('Invalid API response format');
     }
     
-    // Remove batching - process all at once for better performance
     const opportunities = apiData.results
       .map(record => {
         const popEndDate = record["End Date"];
@@ -1838,7 +1836,6 @@ const USASpendingAPI = {
       throw new Error('No contracts found with upcoming renewal dates');
     }
     
-    // Fast deduplication
     const seen = new Set();
     return opportunities.filter(opp => {
       if (seen.has(opp.id)) return false;
