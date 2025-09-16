@@ -1235,7 +1235,7 @@ body {
           </div>
           
           <div class="search-help-content hidden" id="searchHelpContent">
-            <div class="help-grid">
+           <div class="help-grid">
   <div class="help-item">
     <div class="help-label">Single keyword</div>
     <div class="help-example">cisco</div>
@@ -1244,32 +1244,32 @@ body {
   
   <div class="help-item">
     <div class="help-label">Exact phrases</div>
-    <div class="help-example">"department of defense"</div>
-    <div class="help-description">Search for exact phrase using quotes</div>
+    <div class="help-example">"tactical radio"</div>
+    <div class="help-description">Use quotes for exact phrase matching</div>
   </div>
   
   <div class="help-item">
-    <div class="help-label">Multiple keywords (OR)</div>
+    <div class="help-label">Multiple terms (OR)</div>
     <div class="help-example">"cisco" or "amazon"</div>
-    <div class="help-description">Find contracts with either company</div>
+    <div class="help-description">Find contracts with either term</div>
   </div>
   
   <div class="help-item">
-    <div class="help-label">Multiple keywords (AND)</div>
+    <div class="help-label">All terms required (AND)</div>
     <div class="help-example">"cloud security" and "microsoft"</div>
-    <div class="help-description">Find contracts with both terms</div>
-  </div>
-  
-  <div class="help-item">
-    <div class="help-label">Simple list (comma)</div>
-    <div class="help-example">cisco, amazon, microsoft</div>
-    <div class="help-description">Search multiple terms separately</div>
+    <div class="help-description">Find contracts containing both terms</div>
   </div>
   
   <div class="help-item">
     <div class="help-label">Complex grouping</div>
     <div class="help-example">("cisco" or "amazon") and "cloud"</div>
-    <div class="help-description">Advanced search with parentheses</div>
+    <div class="help-description">Use parentheses for advanced logic</div>
+  </div>
+  
+  <div class="help-item">
+    <div class="help-label">Agency search</div>
+    <div class="help-example">"Office of Naval Research"</div>
+    <div class="help-description">Search within agency descriptions</div>
   </div>
 </div>
           </div>
@@ -1717,67 +1717,53 @@ const USASpendingAPI = {
   timeout: 10000,
   
   async searchContracts(searchParams) {
-    // Improved keyword parsing that respects USASpending's advanced syntax
-    const keywordsArray = [];
-    if (searchParams.keywords) {
-      const trimmed = searchParams.keywords.trim();
-      // Check if user is using advanced syntax (quotes, and/or, parentheses)
-      if (/["'()]|\b(and|or)\b/i.test(trimmed)) {
-        // Send as single query to preserve advanced syntax
-        keywordsArray.push(trimmed);
-      } else {
-        // Simple comma/pipe splitting for basic searches
-        keywordsArray.push(...trimmed
-          .split(/,|\||\;/)
-          .map(k => k.trim())
-          .filter(k => k.length > 0));
-      }
-    }
+  // Simplified: Pass the user's raw search string directly to the API
+  const keywordsString = searchParams.keywords ? searchParams.keywords.trim() : '';
 
-    const requestBody = {
-      filters: {
-        award_type_codes: ['A', 'B', 'C', 'D'],
-        keywords: keywordsArray.length > 0 ? keywordsArray : undefined,
-        award_amounts: searchParams.minValue ? [{ lower_bound: parseInt(searchParams.minValue) }] : undefined,
-        agencies: searchParams.agency ? [{ type: "awarding", tier: "toptier", name: searchParams.agency }] : undefined
-      },
-      fields: [
-        "Award ID", "Recipient Name", "Start Date", "End Date", 
-        "Award Amount", "Awarding Agency", "Awarding Sub Agency", 
-        "Description", "generated_internal_id"
-      ],
-      page: 1,
-      limit: 60,
-      sort: "Award Amount",
-      order: "desc"
-    };
+  const requestBody = {
+    filters: {
+      award_type_codes: ['A', 'B', 'C', 'D'],
+      // Pass the entire string as a single element - let USASpending parse it
+      keywords: keywordsString ? [keywordsString] : undefined,
+      award_amounts: searchParams.minValue ? [{ lower_bound: parseInt(searchParams.minValue) }] : undefined,
+      agencies: searchParams.agency ? [{ type: "awarding", tier: "toptier", name: searchParams.agency }] : undefined
+    },
+    fields: [
+      "Award ID", "Recipient Name", "Start Date", "End Date", 
+      "Award Amount", "Awarding Agency", "Awarding Sub Agency", 
+      "Description", "generated_internal_id"
+    ],
+    page: 1,
+    limit: 60,
+    sort: "Award Amount",
+    order: "desc"
+  };
+  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+  
+  try {
+    const response = await fetch(this.baseURL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody),
+      signal: controller.signal
+    });
     
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+    clearTimeout(timeoutId);
     
-    try {
-      const response = await fetch(this.baseURL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody),
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
-      
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      return this.transformData(data);
-      
-    } catch (error) {
-      clearTimeout(timeoutId);
-      throw error;
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`);
     }
-  },
-
+    
+    const data = await response.json();
+    return this.transformData(data);
+    
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+},
   transformData(apiData) {
     if (!apiData.results || !Array.isArray(apiData.results)) {
       throw new Error('Invalid API response format');
