@@ -1250,26 +1250,14 @@ body {
   
   <div class="help-item">
     <div class="help-label">Exact phrases</div>
-    <div class="help-example">"tactical radio systems"</div>
-    <div class="help-description">Use quotes for exact multi-word phrases</div>
+    <div class="help-example">"sap software"</div>
+    <div class="help-description">Use quotes for exact phrase matching</div>
   </div>
   
   <div class="help-item">
-    <div class="help-label">Technology areas</div>
+    <div class="help-label">Related terms</div>
     <div class="help-example">cloud security</div>
-    <div class="help-description">Multiple words are automatically AND'd together</div>
-  </div>
-  
-  <div class="help-item">
-    <div class="help-label">Competitor research</div>
-    <div class="help-example">sap, oracle, salesforce</div>
-    <div class="help-description">Find all contracts for competing vendors</div>
-  </div>
-  
-  <div class="help-item">
-    <div class="help-label">Agency names</div>
-    <div class="help-example">"Office of Naval Research"</div>
-    <div class="help-description">Use quotes for specific agency offices</div>
+    <div class="help-description">Space-separated words must both appear in contracts</div>
   </div>
 </div>
           </div>
@@ -1717,14 +1705,14 @@ const USASpendingAPI = {
   
   async searchContracts(searchParams) {
     // Handle comma-separated terms by searching individually and combining results
-    if (searchParams.keywords && searchParams.keywords.includes(',')) {
+    if (searchParams.keywords && searchParams.keywords.includes(',') && !searchParams.keywords.includes('"')) {
       const terms = searchParams.keywords.split(',').map(term => term.trim()).filter(term => term.length > 0);
       if (terms.length > 1) {
         return this.searchMultipleTerms(terms, searchParams);
       }
     }
 
-    // Single term search - API will split on spaces and AND them together
+    // Single term, quoted phrase, or space-separated words search
     let keywordsString = searchParams.keywords ? searchParams.keywords.trim() : '';
 
     const requestBody = {
@@ -1777,10 +1765,13 @@ const USASpendingAPI = {
     
     for (const term of terms) {
       try {
-        const results = await this.searchContracts({
+        // Create a copy of searchParams with the single term and no commas
+        const singleTermParams = {
           ...searchParams,
-          keywords: term
-        });
+          keywords: term.trim()
+        };
+        
+        const results = await this.performSingleSearch(singleTermParams);
         
         results.forEach(result => {
           if (!seenIds.has(result.id)) {
@@ -1799,6 +1790,53 @@ const USASpendingAPI = {
     }
     
     return allResults;
+  },
+
+  async performSingleSearch(searchParams) {
+    const keywordsString = searchParams.keywords ? searchParams.keywords.trim() : '';
+
+    const requestBody = {
+      filters: {
+        award_type_codes: ['A', 'B', 'C', 'D'],
+        keywords: keywordsString ? [keywordsString] : undefined,
+        award_amounts: searchParams.minValue ? [{ lower_bound: parseInt(searchParams.minValue) }] : undefined,
+        agencies: searchParams.agency ? [{ type: "awarding", tier: "toptier", name: searchParams.agency }] : undefined
+      },
+      fields: [
+        "Award ID", "Recipient Name", "Start Date", "End Date", 
+        "Award Amount", "Awarding Agency", "Awarding Sub Agency", 
+        "Description", "generated_internal_id"
+      ],
+      page: 1,
+      limit: 60,
+      sort: "Award Amount",
+      order: "desc"
+    };
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+    
+    try {
+      const response = await fetch(this.baseURL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return this.transformData(data);
+      
+    } catch (error) {
+      clearTimeout(timeoutId);
+      throw error;
+    }
   },
 
   transformData(apiData) {
