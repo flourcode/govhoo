@@ -1717,58 +1717,96 @@ const USASpendingAPI = {
   timeout: 10000,
   
   async searchContracts(searchParams) {
-  // Simplified: Pass the user's raw search string directly to the API
-  const keywordsString = searchParams.keywords ? searchParams.keywords.trim() : '';
+    // Handle comma-separated terms by searching individually and combining results
+    if (searchParams.keywords && searchParams.keywords.includes(',') && !searchParams.keywords.includes('"')) {
+      const terms = searchParams.keywords.split(',').map(term => term.trim()).filter(term => term.length > 0);
+      if (terms.length > 1) {
+        return this.searchMultipleTerms(terms, searchParams);
+      }
+    }
 
-  const requestBody = {
-    filters: {
-      award_type_codes: ['A', 'B', 'C', 'D'],
-      // Pass the entire string as a single element - let USASpending parse it
-      keywords: keywordsString ? [keywordsString] : undefined,
-      award_amounts: searchParams.minValue ? [{ lower_bound: parseInt(searchParams.minValue) }] : undefined,
-      agencies: searchParams.agency ? [{ type: "awarding", tier: "toptier", name: searchParams.agency }] : undefined
-    },
-    fields: [
-      "Award ID", "Recipient Name", "Start Date", "End Date", 
-      "Award Amount", "Awarding Agency", "Awarding Sub Agency", 
-      "Description", "generated_internal_id"
-    ],
-    page: 1,
-    limit: 60,
-    sort: "Award Amount",
-    order: "desc"
-  };
-  
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), this.timeout);
-  
-  try {
-    const response = await fetch(this.baseURL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestBody),
-      signal: controller.signal
-    });
+    // Single term or advanced syntax search
+    let keywordsString = searchParams.keywords ? searchParams.keywords.trim() : '';
+
+    const requestBody = {
+      filters: {
+        award_type_codes: ['A', 'B', 'C', 'D'],
+        keywords: keywordsString ? [keywordsString] : undefined,
+        award_amounts: searchParams.minValue ? [{ lower_bound: parseInt(searchParams.minValue) }] : undefined,
+        agencies: searchParams.agency ? [{ type: "awarding", tier: "toptier", name: searchParams.agency }] : undefined
+      },
+      fields: [
+        "Award ID", "Recipient Name", "Start Date", "End Date", 
+        "Award Amount", "Awarding Agency", "Awarding Sub Agency", 
+        "Description", "generated_internal_id"
+      ],
+      page: 1,
+      limit: 60,
+      sort: "Award Amount",
+      order: "desc"
+    };
     
-    clearTimeout(timeoutId);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
     
-    if (!response.ok) {
-      throw new Error(`API Error: ${response.status}`);
+    try {
+      const response = await fetch(this.baseURL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return this.transformData(data);
+      
+    } catch (error) {
+      clearTimeout(timeoutId);
+      throw error;
+    }
+  },
+
+  async searchMultipleTerms(terms, searchParams) {
+    const allResults = [];
+    const seenIds = new Set();
+    
+    for (const term of terms) {
+      try {
+        const results = await this.searchContracts({
+          ...searchParams,
+          keywords: term
+        });
+        
+        results.forEach(result => {
+          if (!seenIds.has(result.id)) {
+            seenIds.add(result.id);
+            allResults.push(result);
+          }
+        });
+      } catch (error) {
+        // Continue with other terms if one fails
+        continue;
+      }
     }
     
-    const data = await response.json();
-    return this.transformData(data);
+    if (allResults.length === 0) {
+      throw new Error('No contracts found with upcoming renewal dates');
+    }
     
-  } catch (error) {
-    clearTimeout(timeoutId);
-    throw error;
-  }
-},
+    return allResults;
+  },
+
   transformData(apiData) {
     if (!apiData.results || !Array.isArray(apiData.results)) {
       throw new Error('Invalid API response format');
     }
-
+    
     // Remove batching - process all at once for better performance
     const opportunities = apiData.results
       .map(record => {
@@ -1777,7 +1815,7 @@ const USASpendingAPI = {
         
         const daysRemaining = Utils.getDaysUntilDate(popEndDate);
         if (daysRemaining === null || daysRemaining < -60 || daysRemaining > 730) return null;
-
+        
         return {
           id: record["Award ID"],
           internalId: record["generated_internal_id"],
@@ -1795,11 +1833,11 @@ const USASpendingAPI = {
         };
       })
       .filter(Boolean);
-
+      
     if (opportunities.length === 0) {
       throw new Error('No contracts found with upcoming renewal dates');
     }
-
+    
     // Fast deduplication
     const seen = new Set();
     return opportunities.filter(opp => {
@@ -1809,7 +1847,6 @@ const USASpendingAPI = {
     });
   }
 };
-
     // Keep existing UI, Filtering, Analysis, ExportData objects as they were...
     const UI = {
       showState(state) {
