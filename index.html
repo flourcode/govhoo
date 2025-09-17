@@ -1205,11 +1205,25 @@ body {
     margin: 0;
   }
   
-  /* Hide desktop filters completely */
-  .opportunities-header {
-    display: none !important;
-  }
-  
+  /* Show only the results summary, hide the filters */
+.opportunities-header .filters-container {
+  display: none !important;
+}
+
+.opportunities-header {
+  padding: 1rem;
+  border-bottom: none;
+  background: var(--bg-primary);
+}
+
+.search-results-summary {
+  margin-bottom: 0;
+  font-size: 1.2rem;
+  color: var(--text-primary);
+  line-height: 1.4;
+  text-align: left;
+}
+
   /* Mobile search row styling */
   .integrated-search-row {
     display: flex;
