@@ -1465,17 +1465,17 @@ body {
       canUseHistory: window.location.protocol !== 'file:' && window.history && window.history.replaceState
     };
 
-    // Simplified URL Manager - only essential operations
+    // Simplified URL Manager
     const URLManager = {
       generateShareableURL() {
         if (AppState.canUseHistory) {
           try {
             const params = new URLSearchParams();
-            const keywords = document.getElementById('headerSearchKeywords')?.value.trim() || 
+            const keywords = document.getElementById('headerSearchKeywords')?.value.trim() ||
                             document.getElementById('searchKeywords').value.trim();
-            const minValue = document.getElementById('headerMinValue')?.value || 
+            const minValue = document.getElementById('headerMinValue')?.value ||
                             document.getElementById('minValue').value;
-            const agency = document.getElementById('headerAgency')?.value || 
+            const agency = document.getElementById('headerAgency')?.value ||
                           document.getElementById('agencyName').value;
             
             if (keywords) params.set('q', keywords);
@@ -1525,30 +1525,8 @@ body {
         
         UI.showState('loading');
         try {
-          const opportunities = await USASpendingAPI.searchContracts({
-            keywords: searchData.keywords,
-            minValue: searchData.minValue,
-            agency: searchData.agency || undefined
-          });
-
-          AppState.opportunities = opportunities;
-          AppState.filteredOpportunities = [...opportunities];
-          Analysis.analyzeCompetitors();
-          UI.updateFilters();
-          
-          // Apply filters
-          Object.entries(searchData.filters).forEach(([key, value]) => {
-            if (value) {
-              const element = document.getElementById(key + 'Filter');
-              if (element) {
-                element.value = value;
-                AppState.filters[key] = value;
-              }
-            }
-          });
-          
-          Filtering.applyFilters();
-          UI.showState('results');
+          const searchBtn = document.getElementById('executeSearch'); // Faking the button for the function
+          await performSearch(searchData, searchBtn, true); // Pass a flag to indicate this is a URL load
         } catch (error) {
           UI.showError('Failed to load shared search');
           UI.showState('hero');
@@ -1618,7 +1596,7 @@ body {
       }
     };
 
-    // Optimized Utils - keep memoization for expensive operations only
+    // Optimized Utils
     const Utils = {
       debounce(func, delay) {
         let timeout;
@@ -1660,8 +1638,8 @@ body {
       getInitials(name) {
         if (!name) return '?';
         const parts = name.split(' ', 2);
-        return parts.length === 1 ? 
-          parts[0].charAt(0).toUpperCase() : 
+        return parts.length === 1 ?
+          parts[0].charAt(0).toUpperCase() :
           (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
       },
 
@@ -1698,212 +1676,152 @@ body {
         return { level: 'low', label: 'LOW' };
       }
     };
-const USASpendingAPI = {
-  baseURL: 'https://vt44ebi3jj.execute-api.us-east-1.amazonaws.com/default/award-search-proxy',
-  timeout: 10000,
+    
+    // Refactored API object with single-call logic
+    const USASpendingAPI = {
+      baseURL: 'https://vt44ebi3jj.execute-api.us-east-1.amazonaws.com/default/award-search-proxy',
+      timeout: 10000,
 
-  /**
-   * Parses the user's keyword string into an array, respecting quoted phrases.
-   * @param {string} keywords - The raw search string from the user.
-   * @returns {string[]} An array of keywords for the API.
-   * @example
-   * // "cisco, \"cloud security\"" -> ["cisco", "cloud security"]
-   */
-  parseSearchKeywords(keywords) {
-    if (!keywords || typeof keywords !== 'string') {
-      return [];
-    }
-    // This regex matches either a quoted phrase or a sequence of non-comma characters.
-    const keywordMatches = keywords.match(/"[^"]+"|[^,]+/g) || [];
-
-    // Clean up each matched term by trimming whitespace and removing quotes.
-    return keywordMatches.map(term => term.trim().replace(/^"|"$/g, ''));
-  },
-
-  async searchContracts(searchParams) {
-    // 1. Use the new robust parser on the input keywords.
-    const keywordsArray = this.parseSearchKeywords(searchParams.keywords);
-
-    const requestBody = {
-      filters: {
-        award_type_codes: ['A', 'B', 'C', 'D'],
-        keywords: keywordsArray.length > 0 ? keywordsArray : undefined,
-        award_amounts: searchParams.minValue ? [{ lower_bound: parseInt(searchParams.minValue) }] : undefined,
-        agencies: searchParams.agency ? [{ type: "awarding", tier: "toptier", name: searchParams.agency }] : undefined
+      parseSearchKeywords(keywords) {
+        if (!keywords || typeof keywords !== 'string') {
+          return [];
+        }
+        const keywordMatches = keywords.match(/"[^"]+"|[^,]+/g) || [];
+        return keywordMatches.map(term => term.trim().replace(/^"|"$/g, ''));
       },
-      fields: [
-        "Award ID", "Recipient Name", "Start Date", "End Date",
-        "Award Amount", "Awarding Agency", "Awarding Sub Agency",
-        "Description", "generated_internal_id"
-      ],
-      page: 1,
-      limit: 50,
-      sort: "Award Amount",
-      order: "desc"
-    };
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
-
-    try {
-      // 2. Make a single API call with the parsed keywords.
-      const response = await fetch(this.baseURL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody),
-        signal: controller.signal
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return this.transformData(data);
-
-    } catch (error) {
-      clearTimeout(timeoutId);
-      throw error;
-    }
-  },
-
-  // This function remains unchanged as its job is to process the API response.
-  transformData(apiData) {
-    if (!apiData.results || !Array.isArray(apiData.results)) {
-      throw new Error('Invalid API response format');
-    }
-
-    const opportunities = apiData.results
-      .map(record => {
-        const popEndDate = record["End Date"];
-        if (!popEndDate) return null;
-
-        const daysRemaining = Utils.getDaysUntilDate(popEndDate);
-        if (daysRemaining === null || daysRemaining < -60 || daysRemaining > 730) return null;
-
-        return {
-          id: record["Award ID"],
-          internalId: record["generated_internal_id"],
-          vendor: record["Recipient Name"] || 'Unknown Vendor',
-          agency: record["Awarding Agency"] || 'Unknown Agency',
-          office: record["Awarding Sub Agency"] || 'Unknown Office',
-          value: parseFloat(record["Award Amount"]) || 0,
-          description: record["Description"] || 'No description available',
-          awardLink: record["generated_internal_id"] ?
-            `https://www.usaspending.gov/award/${record["generated_internal_id"]}/` : null,
-          popEndDate: popEndDate,
-          daysRemaining: daysRemaining,
-          priority: Utils.getPriority(daysRemaining),
-          awardDate: record["Start Date"] || ''
+      async searchContracts(searchParams) {
+        const keywordsArray = this.parseSearchKeywords(searchParams.keywords);
+        const requestBody = {
+          filters: {
+            award_type_codes: ['A', 'B', 'C', 'D'],
+            keywords: keywordsArray.length > 0 ? keywordsArray : undefined,
+            award_amounts: searchParams.minValue ? [{ lower_bound: parseInt(searchParams.minValue) }] : undefined,
+            agencies: searchParams.agency ? [{ type: "awarding", tier: "toptier", name: searchParams.agency }] : undefined
+          },
+          fields: ["Award ID", "Recipient Name", "Start Date", "End Date", "Award Amount", "Awarding Agency", "Awarding Sub Agency", "Description", "generated_internal_id"],
+          page: 1,
+          limit: 100,
+          sort: "Award Amount",
+          order: "desc"
         };
-      })
-      .filter(Boolean);
-
-    if (opportunities.length === 0) {
-      throw new Error('No contracts found with upcoming renewal dates');
-    }
-
-    const seen = new Set();
-    return opportunities.filter(opp => {
-      if (seen.has(opp.id)) return false;
-      seen.add(opp.id);
-      return true;
-    });
-  }
-};
-    const UI = {
-      showState(state) {
-        const heroSection = document.getElementById('heroSection');
-        const loadingState = document.getElementById('loadingState');
-        const resultsSection = document.getElementById('resultsSection');
-        
-        heroSection.style.display = state === 'hero' ? 'flex' : 'none';
-        loadingState.classList.toggle('hidden', state !== 'loading');
-        resultsSection.classList.toggle('hidden', state !== 'results');
-        
-        if (state === 'results') {
-          resultsSection.classList.add('fade-in');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+        try {
+          const response = await fetch(this.baseURL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody),
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+          if (!response.ok) {
+            throw new Error(`API Error: ${response.status}`);
+          }
+          const data = await response.json();
+          return this.transformData(data);
+        } catch (error) {
+          clearTimeout(timeoutId);
+          throw error;
         }
       },
 
+      transformData(apiData) {
+        if (!apiData.results || !Array.isArray(apiData.results)) {
+          throw new Error('Invalid API response format');
+        }
+        const opportunities = apiData.results.map(record => {
+          const popEndDate = record["End Date"];
+          if (!popEndDate) return null;
+          const daysRemaining = Utils.getDaysUntilDate(popEndDate);
+          if (daysRemaining === null || daysRemaining < -60 || daysRemaining > 730) return null;
+          return {
+            id: record["Award ID"],
+            internalId: record["generated_internal_id"],
+            vendor: record["Recipient Name"] || 'Unknown Vendor',
+            agency: record["Awarding Agency"] || 'Unknown Agency',
+            office: record["Awarding Sub Agency"] || 'Unknown Office',
+            value: parseFloat(record["Award Amount"]) || 0,
+            description: record["Description"] || 'No description available',
+            awardLink: record["generated_internal_id"] ? `https://www.usaspending.gov/award/${record["generated_internal_id"]}/` : null,
+            popEndDate: popEndDate,
+            daysRemaining: daysRemaining,
+            priority: Utils.getPriority(daysRemaining),
+            awardDate: record["Start Date"] || ''
+          };
+        }).filter(Boolean);
+        if (opportunities.length === 0) {
+          throw new Error('No contracts found with upcoming renewal dates');
+        }
+        const seen = new Set();
+        return opportunities.filter(opp => {
+          if (seen.has(opp.id)) return false;
+          seen.add(opp.id);
+          return true;
+        });
+      }
+    };
+
+    // UI Management object
+    const UI = {
+      showState(state) {
+        document.getElementById('heroSection').style.display = state === 'hero' ? 'flex' : 'none';
+        document.getElementById('loadingState').classList.toggle('hidden', state !== 'loading');
+        document.getElementById('resultsSection').classList.toggle('hidden', state !== 'results');
+        if (state === 'results') {
+          document.getElementById('resultsSection').classList.add('fade-in');
+        }
+      },
       showError(message) {
         document.getElementById('errorText').textContent = message;
         document.getElementById('errorMessage').classList.remove('hidden');
       },
-
       hideError() {
         document.getElementById('errorMessage').classList.add('hidden');
       },
-
       updateSortIcons(column, direction) {
-        const sortIcons = document.querySelectorAll('.sort-icon');
-        const activeHeader = document.querySelector(`th[data-sort="${column}"]`);
-        
-        sortIcons.forEach(icon => {
+        document.querySelectorAll('.sort-icon').forEach(icon => {
           icon.className = 'fas fa-sort sort-icon';
           icon.parentElement.classList.remove('sort-active');
         });
-        
+        const activeHeader = document.querySelector(`th[data-sort="${column}"]`);
         if (activeHeader) {
           const activeIcon = activeHeader.querySelector('.sort-icon');
           activeIcon.className = `fas fa-sort-${direction === 'asc' ? 'up' : 'down'} sort-icon sort-active`;
           activeHeader.classList.add('sort-active');
         }
       },
-
       updateMetrics() {
         const opps = AppState.filteredOpportunities;
         const totalValue = opps.reduce((sum, opp) => sum + opp.value, 0);
-        
-        const heroKeywords = document.getElementById('searchKeywords').value.trim();
-        const headerKeywords = document.getElementById('headerSearchKeywords')?.value.trim();
-        const currentKeywords = headerKeywords || heroKeywords;
-        
+        const currentKeywords = document.getElementById('headerSearchKeywords')?.value.trim() || document.getElementById('searchKeywords').value.trim();
         let summary = `We found ${opps.length.toLocaleString()} expiring opportunities with a total value of ${Utils.formatMoney(totalValue)}`;
-        
         if (currentKeywords) {
           summary += ` for "${currentKeywords}"`;
         }
-        
         summary += '.';
-        
         document.getElementById('resultsSummary').textContent = summary;
       },
-
       updateOpportunitiesTable() {
         const tbody = document.getElementById('opportunitiesTableBody');
         const opportunities = AppState.filteredOpportunities;
-
         if (opportunities.length === 0) {
-          tbody.innerHTML = `
-            <tr>
-              <td colspan="7" style="text-align: center; padding: 3rem; color: var(--text-secondary);">
-                No opportunities found matching current filters
-              </td>
-            </tr>
-          `;
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 3rem; color: var(--text-secondary);">No opportunities found matching current filters</td></tr>`;
           return;
         }
-
         const fragment = document.createDocumentFragment();
-        
         opportunities.forEach(opp => {
           const tr = document.createElement('tr');
           tr.className = 'fade-in';
           tr.innerHTML = this.generateTableRow(opp);
           fragment.appendChild(tr);
         });
-        
         tbody.innerHTML = '';
         tbody.appendChild(fragment);
       },
-
       generateTableRow(opp) {
         const priorityClass = `priority-${opp.priority.level}`;
         const daysClass = `days-${opp.priority.level}`;
-        
         let daysDisplay, dateDisplay;
         if (opp.daysRemaining < 0) {
           const daysAgo = Math.abs(opp.daysRemaining);
@@ -1913,166 +1831,52 @@ const USASpendingAPI = {
           daysDisplay = `${opp.daysRemaining} days`;
           dateDisplay = `Expires ${Utils.formatDate(opp.popEndDate)}`;
         }
-        
-        return `
-          <td>
-            <span class="priority-badge ${priorityClass}">${opp.priority.label}</span>
-          </td>
-          <td>
-            <div class="days-remaining ${daysClass}">${daysDisplay}</div>
-            <div class="expiry-date">${dateDisplay}</div>
-          </td>
-          <td>
-            <div class="vendor-info">
-              <div class="vendor-avatar" style="background: ${Utils.getColorForVendor(opp.vendor)}">
-                ${Utils.getInitials(opp.vendor)}
-              </div>
-              <div>
-                <div class="vendor-name">${Utils.truncateText(opp.vendor, 30)}</div>
-                <div class="vendor-id">${Utils.truncateText(opp.id, 25)}</div>
-              </div>
-            </div>
-          </td>
-          <td>
-            <div class="contract-value">${Utils.formatMoney(opp.value)}</div>
-          </td>
-          <td>
-            <div class="agency-info">${Utils.truncateText(opp.agency, 25)}</div>
-            <div class="office-info">${Utils.truncateText(opp.office, 25)}</div>
-          </td>
-          <td>
-            <div class="description-text">${Utils.truncateText(opp.description, 120)}</div>
-          </td>
-          <td>
-            ${opp.awardLink ? `<a href="${opp.awardLink}" target="_blank" class="view-award-btn"><i class="fas fa-external-link-alt"></i> View</a>` : ''}
-          </td>
-        `;
+        return `<td><span class="priority-badge ${priorityClass}">${opp.priority.label}</span></td><td><div class="days-remaining ${daysClass}">${daysDisplay}</div><div class="expiry-date">${dateDisplay}</div></td><td><div class="vendor-info"><div class="vendor-avatar" style="background: ${Utils.getColorForVendor(opp.vendor)}">${Utils.getInitials(opp.vendor)}</div><div><div class="vendor-name">${Utils.truncateText(opp.vendor, 30)}</div><div class="vendor-id">${Utils.truncateText(opp.id, 25)}</div></div></div></td><td><div class="contract-value">${Utils.formatMoney(opp.value)}</div></td><td><div class="agency-info">${Utils.truncateText(opp.agency, 25)}</div><div class="office-info">${Utils.truncateText(opp.office, 25)}</div></td><td><div class="description-text">${Utils.truncateText(opp.description, 120)}</div></td><td>${opp.awardLink ? `<a href="${opp.awardLink}" target="_blank" class="view-award-btn"><i class="fas fa-external-link-alt"></i> View</a>` : ''}</td>`;
       },
-
       updateOpportunitiesGrid() {
         const grid = document.getElementById('opportunitiesGrid');
         const opportunities = AppState.filteredOpportunities;
-
         if (opportunities.length === 0) {
-          grid.innerHTML = `
-            <div style="text-align: center; padding: 3rem; color: var(--text-secondary); grid-column: 1 / -1;">
-              No opportunities found matching current filters
-            </div>
-          `;
+          grid.innerHTML = `<div style="text-align: center; padding: 3rem; color: var(--text-secondary); grid-column: 1 / -1;">No opportunities found matching current filters</div>`;
           return;
         }
-
         const fragment = document.createDocumentFragment();
-        
         opportunities.forEach(opp => {
           const cardDiv = document.createElement('div');
           cardDiv.className = `opportunity-card ${opp.priority.level} fade-in`;
           cardDiv.innerHTML = this.generateMobileCard(opp);
           fragment.appendChild(cardDiv);
         });
-        
         grid.innerHTML = '';
         grid.appendChild(fragment);
       },
-
       generateMobileCard(opp) {
         const daysClass = `days-${opp.priority.level}`;
         const descriptionPreview = Utils.truncateText(opp.description, 120);
-        
         const vendorTitle = (opp.vendor || '').replace(/"/g, '&quot;');
         const agencyTitle = (opp.agency || '').replace(/"/g, '&quot;');
         const officeTitle = (opp.office || '').replace(/"/g, '&quot;');
         const idTitle = (opp.id || '').replace(/"/g, '&quot;');
-        
-        return `
-          <div class="card-header">
-            <div class="card-primary-info">
-              <div class="card-vendor">
-                <div class="vendor-avatar" style="background: ${Utils.getColorForVendor(opp.vendor)}">
-                  ${Utils.getInitials(opp.vendor)}
-                </div>
-                <div class="vendor-name" title="${vendorTitle}">${Utils.truncateText(opp.vendor, 35)}</div>
-              </div>
-            </div>
-            <div class="card-value">${Utils.formatMoney(opp.value)}</div>
-          </div>
-          <div class="urgency-info">
-            <div class="days-remaining ${daysClass}">
-              ${opp.daysRemaining < 0 ? 
-                `${Math.abs(opp.daysRemaining)} day${Math.abs(opp.daysRemaining) === 1 ? '' : 's'} ago` : 
-                opp.daysRemaining
-              }
-            </div>
-            <div class="days-label">${opp.daysRemaining < 0 ? 'expired' : 'days left'}</div>
-          </div>
-          <div class="card-secondary">
-            <div class="info-item">
-              <div class="info-label">Agency</div>
-              <div class="info-value" title="${agencyTitle}">${Utils.truncateText(opp.agency, 40)}</div>
-            </div>
-            <div class="info-item">
-              <div class="info-label">Expires</div>
-              <div class="info-value">${Utils.formatDate(opp.popEndDate)}</div>
-            </div>
-            <div class="info-item">
-              <div class="info-label">Office</div>
-              <div class="info-value" title="${officeTitle}">${Utils.truncateText(opp.office, 40)}</div>
-            </div>
-            <div class="info-item">
-              <div class="info-label">Contract ID</div>
-              <div class="info-value contract-id" title="${idTitle}">${Utils.truncateText(opp.id, 15)}</div>
-            </div>
-          </div>
-          <div class="card-description">
-            <div class="description-preview">${descriptionPreview}</div>
-          </div>
-          <div class="card-actions">
-            ${opp.awardLink ? `
-              <a href="${opp.awardLink}" target="_blank" class="view-award-btn">
-                <i class="fas fa-external-link-alt"></i> View Award
-              </a>
-            ` : '<div></div>'}
-          </div>
-        `;
+        return `<div class="card-header"><div class="card-primary-info"><div class="card-vendor"><div class="vendor-avatar" style="background: ${Utils.getColorForVendor(opp.vendor)}">${Utils.getInitials(opp.vendor)}</div><div class="vendor-name" title="${vendorTitle}">${Utils.truncateText(opp.vendor, 35)}</div></div></div><div class="card-value">${Utils.formatMoney(opp.value)}</div></div><div class="urgency-info"><div class="days-remaining ${daysClass}">${opp.daysRemaining<0?`${Math.abs(opp.daysRemaining)} day${Math.abs(opp.daysRemaining)===1?'':'s'} ago`:opp.daysRemaining}</div><div class="days-label">${opp.daysRemaining<0?'expired':'days left'}</div></div><div class="card-secondary"><div class="info-item"><div class="info-label">Agency</div><div class="info-value" title="${agencyTitle}">${Utils.truncateText(opp.agency,40)}</div></div><div class="info-item"><div class="info-label">Expires</div><div class="info-value">${Utils.formatDate(opp.popEndDate)}</div></div><div class="info-item"><div class="info-label">Office</div><div class="info-value" title="${officeTitle}">${Utils.truncateText(opp.office,40)}</div></div><div class="info-item"><div class="info-label">Contract ID</div><div class="info-value contract-id" title="${idTitle}">${Utils.truncateText(opp.id,15)}</div></div></div><div class="card-description"><div class="description-preview">${descriptionPreview}</div></div><div class="card-actions">${opp.awardLink?`<a href="${opp.awardLink}" target="_blank" class="view-award-btn"><i class="fas fa-external-link-alt"></i> View Award</a>`:'<div></div>'}</div>`;
       },
-
       updateFilters() {
         const competitorSelect = document.getElementById('competitorFilter');
         const agencySelect = document.getElementById('agencyFilter');
-        
         const competitorFragment = document.createDocumentFragment();
         const agencyFragment = document.createDocumentFragment();
-        
         competitorFragment.appendChild(this.createOption('', 'All Vendors'));
         agencyFragment.appendChild(this.createOption('', 'All Agencies'));
-        
-        Array.from(AppState.competitors.values())
-          .sort((a, b) => a.name.localeCompare(b.name))
-          .forEach(competitor => {
-            const option = this.createOption(
-              competitor.name, 
-              `${Utils.truncateText(competitor.name, 30)} (${competitor.opportunities})`
-            );
-            competitorFragment.appendChild(option);
-          });
-        
-        Array.from(AppState.agencies.values())
-          .sort((a, b) => a.name.localeCompare(b.name))
-          .forEach(agency => {
-            const option = this.createOption(
-              agency.name,
-              `${Utils.truncateText(agency.name, 30)} (${agency.opportunities})`
-            );
-            agencyFragment.appendChild(option);
-          });
-        
+        Array.from(AppState.competitors.values()).sort((a, b) => a.name.localeCompare(b.name)).forEach(competitor => {
+          competitorFragment.appendChild(this.createOption(competitor.name, `${Utils.truncateText(competitor.name, 30)} (${competitor.opportunities})`));
+        });
+        Array.from(AppState.agencies.values()).sort((a, b) => a.name.localeCompare(b.name)).forEach(agency => {
+          agencyFragment.appendChild(this.createOption(agency.name, `${Utils.truncateText(agency.name, 30)} (${agency.opportunities})`));
+        });
         competitorSelect.innerHTML = '';
         competitorSelect.appendChild(competitorFragment);
-        
         agencySelect.innerHTML = '';
         agencySelect.appendChild(agencyFragment);
       },
-
       createOption(value, text) {
         const option = document.createElement('option');
         option.value = value;
@@ -2081,7 +1885,7 @@ const USASpendingAPI = {
       }
     };
 
-    // Keep existing Filtering, Analysis, ExportData, and main functions...
+    // Filtering and Sorting object
     const Filtering = {
       sortBy(column) {
         if (AppState.currentSort.column === column) {
@@ -2092,14 +1896,11 @@ const USASpendingAPI = {
         UI.updateSortIcons(AppState.currentSort.column, AppState.currentSort.direction);
         this.applyFilters();
       },
-
       applySorting() {
         const { column, direction } = AppState.currentSort;
         const multiplier = direction === 'asc' ? 1 : -1;
-
         AppState.filteredOpportunities.sort((a, b) => {
           let result;
-          
           switch (column) {
             case 'priority':
               const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3, expired: 4 };
@@ -2112,54 +1913,39 @@ const USASpendingAPI = {
               result = a.daysRemaining - b.daysRemaining;
               break;
             default:
-              const aVal = a[column] || '';
-              const bVal = b[column] || '';
-              result = aVal.toString().localeCompare(bVal.toString());
+              result = (a[column] || '').toString().localeCompare((b[column] || '').toString());
           }
-          
           return result * multiplier;
         });
       },
-      
       applyFilters() {
         let filtered = AppState.opportunities;
-        
         if (AppState.filters.priority) {
           filtered = filtered.filter(opp => opp.priority?.level === AppState.filters.priority);
         }
-        
         if (AppState.filters.competitor) {
           filtered = filtered.filter(opp => opp.vendor === AppState.filters.competitor);
         }
-        
         if (AppState.filters.agency) {
           filtered = filtered.filter(opp => opp.agency === AppState.filters.agency);
         }
-        
         if (AppState.filters.search) {
           const searchTerm = AppState.filters.search.toLowerCase();
-          filtered = filtered.filter(opp => 
-            (opp.vendor && opp.vendor.toLowerCase().includes(searchTerm)) ||
-            (opp.agency && opp.agency.toLowerCase().includes(searchTerm)) ||
-            (opp.description && opp.description.toLowerCase().includes(searchTerm)) ||
-            (opp.id && opp.id.toLowerCase().includes(searchTerm))
-          );
+          filtered = filtered.filter(opp => (opp.vendor && opp.vendor.toLowerCase().includes(searchTerm)) || (opp.agency && opp.agency.toLowerCase().includes(searchTerm)) || (opp.description && opp.description.toLowerCase().includes(searchTerm)) || (opp.id && opp.id.toLowerCase().includes(searchTerm)));
         }
-        
         AppState.filteredOpportunities = filtered;
         this.applySorting();
-        
         UI.updateMetrics();
         UI.updateOpportunitiesTable();
         UI.updateOpportunitiesGrid();
       }
     };
 
+    // Data Analysis object
     const Analysis = {
       analyzeCompetitors() {
         AppState.competitors.clear();
         AppState.agencies.clear();
-        
         AppState.opportunities.forEach(opp => {
           let competitor = AppState.competitors.get(opp.vendor);
           if (!competitor) {
@@ -2168,7 +1954,6 @@ const USASpendingAPI = {
           }
           competitor.opportunities++;
           competitor.totalValue += opp.value;
-          
           let agency = AppState.agencies.get(opp.agency);
           if (!agency) {
             agency = { name: opp.agency, opportunities: 0, totalValue: 0 };
@@ -2180,41 +1965,21 @@ const USASpendingAPI = {
       }
     };
 
+    // Export functionality
     const ExportData = {
       exportToCSV() {
-        const headers = [
-          'Priority', 'Days Remaining', 'Expiration Date', 'Current Vendor', 
-          'Contract Value', 'Agency', 'Office', 'Contract ID', 'Description', 
-          'Award Date', 'USASpending Link'
-        ];
-        
+        const headers = ['Priority', 'Days Remaining', 'Expiration Date', 'Current Vendor', 'Contract Value', 'Agency', 'Office', 'Contract ID', 'Description', 'Award Date', 'USASpending Link'];
         const rows = [headers.join(',')];
-        
         AppState.filteredOpportunities.forEach(opp => {
-          const row = [
-            opp.priority.label,
-            opp.daysRemaining,
-            Utils.formatDate(opp.popEndDate),
-            `"${(opp.vendor || '').replace(/"/g, '""')}"`,
-            opp.value,
-            `"${(opp.agency || '').replace(/"/g, '""')}"`,
-            `"${(opp.office || '').replace(/"/g, '""')}"`,
-            opp.id,
-            `"${(opp.description || '').replace(/"/g, '""')}"`,
-            Utils.formatDate(opp.awardDate),
-            opp.awardLink || ''
-          ];
+          const row = [opp.priority.label, opp.daysRemaining, Utils.formatDate(opp.popEndDate), `"${(opp.vendor||'').replace(/"/g,'""')}"`, opp.value, `"${(opp.agency||'').replace(/"/g,'""')}"`, `"${(opp.office||'').replace(/"/g,'""')}"`, opp.id, `"${(opp.description||'').replace(/"/g,'""')}"`, Utils.formatDate(opp.awardDate), opp.awardLink || ''];
           rows.push(row.join(','));
         });
-        
         const csvContent = rows.join('\n');
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
         link.download = `contract-opportunities-${new Date().toISOString().split('T')[0]}.csv`;
-        
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -2222,124 +1987,99 @@ const USASpendingAPI = {
       }
     };
 
-    // Main search functions - simplified for speed
-    async function executeUSASpendingSearch() {
-      const keywords = document.getElementById('searchKeywords').value.trim();
-      const minValue = document.getElementById('minValue').value;
-      const agencyName = document.getElementById('agencyName').value.trim();
-
-      if (!keywords) {
-        UI.showError('Please enter search keywords');
-        return;
-		}
-
-      const searchBtn = document.getElementById('executeSearch');
-      UI.hideError();
-      UI.showState('loading');
-      searchBtn.disabled = true;
+    // Generic, reusable search function
+    async function performSearch(searchParams, btn, isUrlLoad = false) {
+      const originalHTML = btn.innerHTML;
+      if (!isUrlLoad) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
+      }
 
       try {
-        const opportunities = await USASpendingAPI.searchContracts({
-          keywords,
-          minValue,
-          agency: agencyName || undefined
-        });
-
+        const opportunities = await USASpendingAPI.searchContracts(searchParams);
         if (opportunities.length === 0) {
-          throw new Error(`No renewal opportunities found for "${keywords}"`);
+          throw new Error('NO_RESULTS');
         }
-
+        
         AppState.opportunities = opportunities;
         AppState.filteredOpportunities = [...opportunities];
-        
         Analysis.analyzeCompetitors();
         UI.updateFilters();
-        Filtering.applyFilters();
-        UI.showState('results');
         
-        URLManager.updateURL();
-        
-      } catch (error) {
-        console.error('Search error:', error);
-        
-        if (error.message.includes('No contracts found')) {
-          UI.showError('No contracts found. Try broader search terms or different keywords.');
-        } else if (error.message.includes('timeout') || error.message.includes('Failed to fetch')) {
-          UI.showError('Connection failed. Check your internet and try again.');
+        if (isUrlLoad) {
+            const searchData = searchParams; // In URL loads, searchParams is the full searchData object
+            Object.entries(searchData.filters).forEach(([key, value]) => {
+                if (value) {
+                    const element = document.getElementById(key + 'Filter');
+                    if (element) {
+                        element.value = value;
+                        AppState.filters[key] = value;
+                    }
+                }
+            });
         } else {
-          UI.showError('Search failed. Please try different keywords.');
+            ['searchFilter', 'priorityFilter', 'competitorFilter', 'agencyFilter'].forEach(id => {
+              const el = document.getElementById(id);
+              if (el) el.value = '';
+            });
+            AppState.filters = { search: '', priority: '', competitor: '', agency: '' };
         }
-        
-        UI.showState('hero');
+
+        Filtering.applyFilters();
+        URLManager.updateURL();
+        UI.showState('results');
+
+      } catch (error) {
+        if (error.message.includes('No contracts found') || error.message === 'NO_RESULTS') {
+          UI.showError(`No contracts found for "${searchParams.keywords}". Try broader keywords.`);
+        } else {
+          UI.showError('Search failed. Please try again.');
+        }
+        if (btn.id === 'executeSearch') {
+          UI.showState('hero');
+        }
       } finally {
-        searchBtn.disabled = false;
+        if (!isUrlLoad) {
+            btn.disabled = false;
+            btn.innerHTML = originalHTML;
+        }
       }
     }
 
+    // Simplified wrapper for the hero section search
+    async function executeUSASpendingSearch() {
+      const searchParams = {
+        keywords: document.getElementById('searchKeywords').value.trim(),
+        minValue: document.getElementById('minValue').value,
+        agency: document.getElementById('agencyName').value.trim() || undefined
+      };
+      if (!searchParams.keywords) {
+        UI.showError('Please enter search keywords');
+        return;
+      }
+      UI.hideError();
+      const searchBtn = document.getElementById('executeSearch');
+      await performSearch(searchParams, searchBtn);
+    }
+
+    // Simplified wrapper for the header search
     async function executeHeaderSearch() {
-  const keywords = document.getElementById('headerSearchKeywords').value.trim();
-  const minValue = document.getElementById('headerMinValue').value;
-  const agencyName = document.getElementById('headerAgency').value.trim();
-
-  if (!keywords) {
-    document.getElementById('headerSearchKeywords').focus();
-    return;
-  }
-
-  const searchBtn = document.getElementById('headerSearchBtn');
-  const originalHTML = searchBtn.innerHTML;
-  searchBtn.disabled = true;
-  searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
-
-  try {
-    console.log('[DEBUG] 1. Starting API call...');
-    const opportunities = await USASpendingAPI.searchContracts({
-      keywords,
-      minValue,
-      agency: agencyName || undefined
-    });
-    console.log('[DEBUG] 2. API call finished. Found opportunities:', opportunities.length);
-
-    if (opportunities.length === 0) {
-      throw new Error('NO_RESULTS');
+      const searchParams = {
+        keywords: document.getElementById('headerSearchKeywords').value.trim(),
+        minValue: document.getElementById('headerMinValue').value,
+        agency: document.getElementById('headerAgency').value.trim() || undefined
+      };
+      if (!searchParams.keywords) {
+        document.getElementById('headerSearchKeywords').focus();
+        return;
+      }
+      const searchBtn = document.getElementById('headerSearchBtn');
+      await performSearch(searchParams, searchBtn);
     }
-
-    AppState.opportunities = opportunities;
-    AppState.filteredOpportunities = [...opportunities];
     
-    Analysis.analyzeCompetitors();
-    UI.updateFilters();
-    
-    // Reset filters quickly
-    ['searchFilter', 'priorityFilter', 'competitorFilter', 'agencyFilter'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.value = '';
-    });
-    AppState.filters = { search: '', priority: '', competitor: '', agency: '' };
-    
-    Filtering.applyFilters();
-    console.log('[DEBUG] 3. UI updated with results.');
-
-    URLManager.updateURL();
-    console.log('[DEBUG] 4. URL has been updated.');
-    
-  } catch (error) {
-    console.error('[DEBUG] An error occurred in the try block:', error);
-    
-    if (error.message === 'NO_RESULTS') {
-      UI.showError(`No contracts found for "${keywords}". Try broader keywords or different search terms.`);
-    } else {
-      UI.showError('Search failed. Please try again.');
-    }
-  } finally {
-    console.log('[DEBUG] 5. FINALLY block is executing. Resetting button.');
-    searchBtn.disabled = false;
-    searchBtn.innerHTML = originalHTML;
-  }
-}
-
+    // Resets the application to its initial state
     function resetToInitialState() {
-      ['searchKeywords', 'minValue', 'agencyName', 'headerSearchKeywords', 'headerMinValue', 'headerAgency', 
+      ['searchKeywords', 'minValue', 'agencyName', 'headerSearchKeywords', 'headerMinValue', 'headerAgency',
        'searchFilter', 'priorityFilter', 'competitorFilter', 'agencyFilter'].forEach(id => {
         const element = document.getElementById(id);
         if (element) element.value = '';
@@ -2359,6 +2099,7 @@ const USASpendingAPI = {
       UI.showState('hero');
     }
 
+    // Sets up all initial event handlers
     function setupEventHandlers() {
       document.getElementById('executeSearch').addEventListener('click', executeUSASpendingSearch);
       
@@ -2371,25 +2112,24 @@ const USASpendingAPI = {
       document.getElementById('searchHelpToggle').addEventListener('click', () => {
         const content = document.getElementById('searchHelpContent');
         const toggle = document.getElementById('searchHelpToggle');
-        
         content.classList.toggle('hidden');
         toggle.classList.toggle('help-expanded');
       });
-const headerBtn = document.getElementById('headerSearchBtn');
-  const headerInput = document.getElementById('headerSearchKeywords');
-  
-  if (headerBtn) {
-    headerBtn.addEventListener('click', executeHeaderSearch);
-  }
-  
-  if (headerInput) {
-    headerInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        executeHeaderSearch();
+
+      const headerBtn = document.getElementById('headerSearchBtn');
+      const headerInput = document.getElementById('headerSearchKeywords');
+      if (headerBtn) {
+        headerBtn.addEventListener('click', executeHeaderSearch);
       }
-    });
-  }
+      if (headerInput) {
+        headerInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            executeHeaderSearch();
+          }
+        });
+      }
+
       const shareBtn = document.getElementById('shareSearch');
       if (shareBtn) {
         shareBtn.addEventListener('click', ShareManager.copyToClipboard.bind(ShareManager));
@@ -2409,7 +2149,6 @@ const headerBtn = document.getElementById('headerSearchBtn');
       
       document.getElementById('searchKeywords').addEventListener('input', UI.hideError);
       
-      // Simplified URL update - less frequent
       const updateURLDebounced = Utils.debounce(() => URLManager.updateURL(), 2000);
       
       const searchFilter = document.getElementById('searchFilter');
@@ -2440,6 +2179,7 @@ const headerBtn = document.getElementById('headerSearchBtn');
       });
     }
 
+    // Initializes the application
     document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('input, select').forEach(input => {
         if (input.type !== 'button' && input.type !== 'submit') {
@@ -2460,6 +2200,6 @@ const headerBtn = document.getElementById('headerSearchBtn');
       link.href = '//api.usaspending.gov';
       document.head.appendChild(link);
     });
-  </script>
+</script>
 </body>
 </html>
