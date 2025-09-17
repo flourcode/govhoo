@@ -2186,7 +2186,7 @@ body {
   return `<div class="mobile-card-top">
 <span class="priority-badge priority-${opp.priority.level}">${opp.priority.label}</span>
 <div class="mobile-card-value">${Utils.formatMoney(opp.value)}</div>
-<div class="mobile-days-remaining ${daysClass}">${opp.daysRemaining<0?`${Math.abs(opp.daysRemaining)} day${Math.abs(opp.daysRemaining)===1?'':'s'} ago`:opp.daysRemaining} ${opp.daysRemaining<0?'expired':'days left'}</div>
+<div class="mobile-days-remaining ${daysClass}">${opp.daysRemaining<0?`${Math.abs(opp.daysRemaining)} day${Math.abs(opp.daysRemaining)===1?'':'s'} ago`:opp.daysRemaining} ${opp.daysRemaining<0?'':'days left'}</div>
 </div>
 <div class="mobile-vendor-name" title="${vendorTitle}">${vendorName}</div>
 <div class="mobile-agency-line">${agencyName} • ${officeName}</div>
