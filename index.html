@@ -1698,160 +1698,91 @@ body {
         return { level: 'low', label: 'LOW' };
       }
     };
-// Streamlined API - remove batching that was adding latency
 const USASpendingAPI = {
   baseURL: 'https://vt44ebi3jj.execute-api.us-east-1.amazonaws.com/default/award-search-proxy',
   timeout: 10000,
-  
+
+  /**
+   * Parses the user's keyword string into an array, respecting quoted phrases.
+   * @param {string} keywords - The raw search string from the user.
+   * @returns {string[]} An array of keywords for the API.
+   * @example
+   * // "cisco, \"cloud security\"" -> ["cisco", "cloud security"]
+   */
+  parseSearchKeywords(keywords) {
+    if (!keywords || typeof keywords !== 'string') {
+      return [];
+    }
+    // This regex matches either a quoted phrase or a sequence of non-comma characters.
+    const keywordMatches = keywords.match(/"[^"]+"|[^,]+/g) || [];
+
+    // Clean up each matched term by trimming whitespace and removing quotes.
+    return keywordMatches.map(term => term.trim().replace(/^"|"$/g, ''));
+  },
+
   async searchContracts(searchParams) {
-    // Handle comma-separated terms by searching individually and combining results
-    if (searchParams.keywords && searchParams.keywords.includes(',') && !searchParams.keywords.includes('"')) {
-      const terms = searchParams.keywords.split(',').map(term => term.trim()).filter(term => term.length > 0);
-      if (terms.length > 1) {
-        return this.searchMultipleTerms(terms, searchParams);
-      }
-    }
-
-    // Single term, quoted phrase, or space-separated words search
-    let keywordsString = searchParams.keywords ? searchParams.keywords.trim() : '';
+    // 1. Use the new robust parser on the input keywords.
+    const keywordsArray = this.parseSearchKeywords(searchParams.keywords);
 
     const requestBody = {
       filters: {
         award_type_codes: ['A', 'B', 'C', 'D'],
-        keywords: keywordsString ? [keywordsString] : undefined,
+        keywords: keywordsArray.length > 0 ? keywordsArray : undefined,
         award_amounts: searchParams.minValue ? [{ lower_bound: parseInt(searchParams.minValue) }] : undefined,
         agencies: searchParams.agency ? [{ type: "awarding", tier: "toptier", name: searchParams.agency }] : undefined
       },
       fields: [
-        "Award ID", "Recipient Name", "Start Date", "End Date", 
-        "Award Amount", "Awarding Agency", "Awarding Sub Agency", 
+        "Award ID", "Recipient Name", "Start Date", "End Date",
+        "Award Amount", "Awarding Agency", "Awarding Sub Agency",
         "Description", "generated_internal_id"
       ],
       page: 1,
-      limit: 60,
+      limit: 50,
       sort: "Award Amount",
       order: "desc"
     };
-    
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
-    
+
     try {
+      // 2. Make a single API call with the parsed keywords.
       const response = await fetch(this.baseURL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
         signal: controller.signal
       });
-      
+
       clearTimeout(timeoutId);
-      
+
       if (!response.ok) {
         throw new Error(`API Error: ${response.status}`);
       }
-      
+
       const data = await response.json();
       return this.transformData(data);
-      
+
     } catch (error) {
       clearTimeout(timeoutId);
       throw error;
     }
   },
 
-  async searchMultipleTerms(terms, searchParams) {
-    const allResults = [];
-    const seenIds = new Set();
-    
-    for (const term of terms) {
-      try {
-        // Create a copy of searchParams with the single term and no commas
-        const singleTermParams = {
-          ...searchParams,
-          keywords: term.trim()
-        };
-        
-        const results = await this.performSingleSearch(singleTermParams);
-        
-        results.forEach(result => {
-          if (!seenIds.has(result.id)) {
-            seenIds.add(result.id);
-            allResults.push(result);
-          }
-        });
-      } catch (error) {
-        // Continue with other terms if one fails
-        continue;
-      }
-    }
-    
-    if (allResults.length === 0) {
-      throw new Error('No contracts found with upcoming renewal dates');
-    }
-    
-    return allResults;
-  },
-
-  async performSingleSearch(searchParams) {
-    const keywordsString = searchParams.keywords ? searchParams.keywords.trim() : '';
-
-    const requestBody = {
-      filters: {
-        award_type_codes: ['A', 'B', 'C', 'D'],
-        keywords: keywordsString ? [keywordsString] : undefined,
-        award_amounts: searchParams.minValue ? [{ lower_bound: parseInt(searchParams.minValue) }] : undefined,
-        agencies: searchParams.agency ? [{ type: "awarding", tier: "toptier", name: searchParams.agency }] : undefined
-      },
-      fields: [
-        "Award ID", "Recipient Name", "Start Date", "End Date", 
-        "Award Amount", "Awarding Agency", "Awarding Sub Agency", 
-        "Description", "generated_internal_id"
-      ],
-      page: 1,
-      limit: 60,
-      sort: "Award Amount",
-      order: "desc"
-    };
-    
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
-    
-    try {
-      const response = await fetch(this.baseURL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody),
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
-      
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      return this.transformData(data);
-      
-    } catch (error) {
-      clearTimeout(timeoutId);
-      throw error;
-    }
-  },
-
+  // This function remains unchanged as its job is to process the API response.
   transformData(apiData) {
     if (!apiData.results || !Array.isArray(apiData.results)) {
       throw new Error('Invalid API response format');
     }
-    
+
     const opportunities = apiData.results
       .map(record => {
         const popEndDate = record["End Date"];
         if (!popEndDate) return null;
-        
+
         const daysRemaining = Utils.getDaysUntilDate(popEndDate);
         if (daysRemaining === null || daysRemaining < -60 || daysRemaining > 730) return null;
-        
+
         return {
           id: record["Award ID"],
           internalId: record["generated_internal_id"],
@@ -1860,7 +1791,7 @@ const USASpendingAPI = {
           office: record["Awarding Sub Agency"] || 'Unknown Office',
           value: parseFloat(record["Award Amount"]) || 0,
           description: record["Description"] || 'No description available',
-          awardLink: record["generated_internal_id"] ? 
+          awardLink: record["generated_internal_id"] ?
             `https://www.usaspending.gov/award/${record["generated_internal_id"]}/` : null,
           popEndDate: popEndDate,
           daysRemaining: daysRemaining,
@@ -1869,11 +1800,11 @@ const USASpendingAPI = {
         };
       })
       .filter(Boolean);
-      
+
     if (opportunities.length === 0) {
       throw new Error('No contracts found with upcoming renewal dates');
     }
-    
+
     const seen = new Set();
     return opportunities.filter(opp => {
       if (seen.has(opp.id)) return false;
@@ -1882,7 +1813,6 @@ const USASpendingAPI = {
     });
   }
 };
-    // Keep existing UI, Filtering, Analysis, ExportData objects as they were...
     const UI = {
       showState(state) {
         const heroSection = document.getElementById('heroSection');
@@ -2329,21 +2259,6 @@ const USASpendingAPI = {
         
         URLManager.updateURL();
         
-        setTimeout(() => {
-          const headerBtn = document.getElementById('headerSearchBtn');
-          const headerInput = document.getElementById('headerSearchKeywords');
-          
-          if (headerBtn && headerInput) {
-            headerBtn.onclick = executeHeaderSearch;
-            headerInput.onkeypress = (e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                executeHeaderSearch();
-              }
-            };
-          }
-        }, 50);
-        
       } catch (error) {
         console.error('Search error:', error);
         
@@ -2362,60 +2277,66 @@ const USASpendingAPI = {
     }
 
     async function executeHeaderSearch() {
-      const keywords = document.getElementById('headerSearchKeywords').value.trim();
-      const minValue = document.getElementById('headerMinValue').value;
-      const agencyName = document.getElementById('headerAgency').value.trim();
+  const keywords = document.getElementById('headerSearchKeywords').value.trim();
+  const minValue = document.getElementById('headerMinValue').value;
+  const agencyName = document.getElementById('headerAgency').value.trim();
 
-      if (!keywords) {
-        document.getElementById('headerSearchKeywords').focus();
-        return;
-      }
+  if (!keywords) {
+    document.getElementById('headerSearchKeywords').focus();
+    return;
+  }
 
-      const searchBtn = document.getElementById('headerSearchBtn');
-      const originalHTML = searchBtn.innerHTML;
-      searchBtn.disabled = true;
-      searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
+  const searchBtn = document.getElementById('headerSearchBtn');
+  const originalHTML = searchBtn.innerHTML;
+  searchBtn.disabled = true;
+  searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
 
-      try {
-        const opportunities = await USASpendingAPI.searchContracts({
-          keywords,
-          minValue,
-          agency: agencyName || undefined
-        });
+  try {
+    console.log('[DEBUG] 1. Starting API call...');
+    const opportunities = await USASpendingAPI.searchContracts({
+      keywords,
+      minValue,
+      agency: agencyName || undefined
+    });
+    console.log('[DEBUG] 2. API call finished. Found opportunities:', opportunities.length);
 
-        if (opportunities.length === 0) {
-          throw new Error('NO_RESULTS');
-        }
-
-        AppState.opportunities = opportunities;
-        AppState.filteredOpportunities = [...opportunities];
-        
-        Analysis.analyzeCompetitors();
-        UI.updateFilters();
-        
-        // Reset filters quickly
-        ['searchFilter', 'priorityFilter', 'competitorFilter', 'agencyFilter'].forEach(id => {
-          const el = document.getElementById(id);
-          if (el) el.value = '';
-        });
-        AppState.filters = { search: '', priority: '', competitor: '', agency: '' };
-        
-        Filtering.applyFilters();
-        URLManager.updateURL();
-        
-      } catch (error) {
-        console.error('Header search error:', error);
-        
-        if (error.message === 'NO_RESULTS') {
-          UI.showError(`No contracts found for "${keywords}". Try broader keywords or different search terms.`);
-        } else {
-          UI.showError('Search failed. Please try again.');
-        }
-      } finally {
-        searchBtn.disabled = false;
-        searchBtn.innerHTML = originalHTML;
-      }
+    if (opportunities.length === 0) {
+      throw new Error('NO_RESULTS');
     }
+
+    AppState.opportunities = opportunities;
+    AppState.filteredOpportunities = [...opportunities];
+    
+    Analysis.analyzeCompetitors();
+    UI.updateFilters();
+    
+    // Reset filters quickly
+    ['searchFilter', 'priorityFilter', 'competitorFilter', 'agencyFilter'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    AppState.filters = { search: '', priority: '', competitor: '', agency: '' };
+    
+    Filtering.applyFilters();
+    console.log('[DEBUG] 3. UI updated with results.');
+
+    URLManager.updateURL();
+    console.log('[DEBUG] 4. URL has been updated.');
+    
+  } catch (error) {
+    console.error('[DEBUG] An error occurred in the try block:', error);
+    
+    if (error.message === 'NO_RESULTS') {
+      UI.showError(`No contracts found for "${keywords}". Try broader keywords or different search terms.`);
+    } else {
+      UI.showError('Search failed. Please try again.');
+    }
+  } finally {
+    console.log('[DEBUG] 5. FINALLY block is executing. Resetting button.');
+    searchBtn.disabled = false;
+    searchBtn.innerHTML = originalHTML;
+  }
+}
 
     function resetToInitialState() {
       ['searchKeywords', 'minValue', 'agencyName', 'headerSearchKeywords', 'headerMinValue', 'headerAgency', 
