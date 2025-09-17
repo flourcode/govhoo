@@ -2072,42 +2072,43 @@ body {
       }
     };
 
-    // Main search function - streamlined for speed
     async function performSearch(searchParams, btn, isUrlLoad = false) {
-      if (AppState.isSearching) return;
-      AppState.isSearching = true;
-      
-      const originalHTML = btn.innerHTML;
-      if (!isUrlLoad) {
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
-      }
+  if (AppState.isSearching) return;
+  AppState.isSearching = true;
+  
+  const originalHTML = btn.innerHTML;
+  if (!isUrlLoad) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
+  }
 
-      try {
-        const opportunities = await USASpendingAPI.searchContracts(searchParams);
-        
-        if (!opportunities || opportunities.length === 0) {
-          throw new Error('NO_RESULTS');
-        }
-        
-        AppState.opportunities = opportunities;
-        AppState.filteredOpportunities = [...opportunities];
-        requestAnimationFrame(() => {
-  Analysis.analyzeCompetitors();
-  UI.updateFilters();
-});
-        
-        if (!isUrlLoad) {
-          ['searchFilter', 'priorityFilter', 'competitorFilter', 'agencyFilter'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.value = '';
-          });
-          AppState.filters = { search: '', priority: '', competitor: '', agency: '' };
-        }
+  try {
+    const opportunities = await USASpendingAPI.searchContracts(searchParams);
+    
+    if (!opportunities || opportunities.length === 0) {
+      throw new Error('NO_RESULTS');
+    }
+    
+    AppState.opportunities = opportunities;
+    AppState.filteredOpportunities = [...opportunities];
+    
+    if (!isUrlLoad) {
+      ['searchFilter', 'priorityFilter', 'competitorFilter', 'agencyFilter'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      AppState.filters = { search: '', priority: '', competitor: '', agency: '' };
+    }
 
-        Filtering.applyFilters();
-        URLManager.updateURL();
-        UI.showState('results');
+    Filtering.applyFilters();
+    URLManager.updateURL();
+    UI.showState('results');
+    
+    // Defer filter population until after results are rendered
+    requestAnimationFrame(() => {
+      Analysis.analyzeCompetitors();
+      UI.updateFilters();
+    });
 
       } catch (error) {
         if (error.name === 'AbortError') {
