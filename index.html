@@ -1332,15 +1332,78 @@ body {
     gap: 0.5rem;
   }
 }
+/* Hero Flag */
+.hero-flag {
+}
+
+.flag-image {
+  width: 45%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+.header-branding {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.results-flag {
+  margin-bottom: 0.25rem;
+  width: 100%;
+  text-align: left;
+}
+
+.results-flag-image {
+  width: 20%;
+  height: auto;
+  display: block;
+  margin: 0; /* Remove auto centering for desktop */
+}
+
+.brand-text-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+@media (max-width: 768px) {
+  .header-branding {
+    align-items: center;
+    text-align: center;
+  }
+  
+  .brand-text-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .results-flag {
+    margin-bottom: 0.25rem;
+    text-align: center; /* Center flag on mobile */
+  }
+  
+  .results-flag-image {
+    width: 20%;
+    margin: 0 auto; /* Center the image on mobile */
+  }
+}
 </style>
 </head>
 <body>
   <div class="app-container">
     <section class="hero-section" id="heroSection">
-      <div class="hero-logo">
-        <h1 class="hero-logo-text" id="heroLogoText">Govhoo.</h1>
-      </div>
-      <p class="hero-subtitle">Turn Expiring Federal Contracts into Pipeline</p>
+  <div class="hero-flag">
+    <img src="images/flag_us.png" alt="United States Flag" class="flag-image">
+  </div>
+  <div class="hero-logo">
+    <h1 class="hero-logo-text" id="heroLogoText">Govhoo.</h1>
+  </div>
+  <p class="hero-subtitle">Turn Expiring Federal Contracts into Pipeline</p>
       <div class="search-container">
 	  <div class="search-form">
           <div class="input-group">
@@ -1431,6 +1494,9 @@ body {
       <div class="results-header">
         <div class="header-top">
           <div class="header-branding">
+  <div class="results-flag">
+    <img src="images/flag_us.png" alt="United States Flag" class="results-flag-image">
+  </div>
   <div class="brand-text-container">
     <h1 class="header-brand-text">Govhoo.</h1>
     <p class="header-subtitle">Turn Expiring Federal Contracts into Pipeline</p>
