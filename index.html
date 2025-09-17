@@ -1466,6 +1466,71 @@ body {
       isSearching: false
     };
 
+    // Security utilities for XSS prevention
+    const Security = {
+      escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      },
+      
+      sanitizeSearchInput(input) {
+        if (!input || typeof input !== 'string') return '';
+        return input.trim().substring(0, 200); // Limit length
+      }
+    };
+
+    // Enhanced analytics for production monitoring
+    const Analytics = {
+      trackError(error, context = {}) {
+        console.error('Application Error:', error, context);
+        if (typeof gtag !== 'undefined') {
+          gtag('event', 'exception', {
+            description: error.message || 'Unknown error',
+            fatal: false,
+            custom_map: { 
+              context: JSON.stringify(context),
+              timestamp: new Date().toISOString()
+            }
+          });
+        }
+      },
+      
+      trackSearch(keywords, resultCount) {
+        if (typeof gtag !== 'undefined') {
+          gtag('event', 'search', {
+            search_term: keywords,
+            custom_map: { result_count: resultCount }
+          });
+        }
+      },
+
+      trackEvent(action, category, data = {}) {
+        if (typeof gtag !== 'undefined') {
+          gtag('event', action, {
+            event_category: category,
+            custom_map: data
+          });
+        }
+      }
+    };
+
+    // Rate limiting to prevent API abuse
+    const RateLimit = {
+      lastRequest: 0,
+      minInterval: 1000, // 1 second between requests
+      
+      canMakeRequest() {
+        const now = Date.now();
+        if (now - this.lastRequest < this.minInterval) {
+          return false;
+        }
+        this.lastRequest = now;
+        return true;
+      }
+    };
+
     // Simplified URL Manager
     const URLManager = {
       generateShareableURL() {
@@ -1489,6 +1554,7 @@ body {
             
             return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
           } catch (e) {
+            Analytics.trackError(e, { function: 'generateShareableURL' });
             return window.location.href;
           }
         }
@@ -1549,6 +1615,7 @@ body {
             Filtering.applyFilters();
           }
         } catch (error) {
+          Analytics.trackError(error, { function: 'applySearchFromURL' });
           UI.showError('Failed to load shared search');
           UI.showState('hero');
         }
@@ -1561,7 +1628,9 @@ body {
             if (newURL !== window.location.href) {
               window.history.replaceState({}, '', newURL);
             }
-          } catch (e) {}
+          } catch (e) {
+            Analytics.trackError(e, { function: 'updateURL' });
+          }
         }
       }
     };
@@ -1573,6 +1642,7 @@ body {
         try {
           await navigator.clipboard.writeText(shareURL);
           this.showNotification('Link copied to clipboard!', 'success');
+          Analytics.trackEvent('share', 'clipboard_copy');
         } catch {
           this.fallbackCopy(shareURL);
         }
@@ -1589,7 +1659,9 @@ body {
         try {
           document.execCommand('copy');
           this.showNotification('Link copied!', 'success');
-        } catch {
+          Analytics.trackEvent('share', 'fallback_copy');
+        } catch (error) {
+          Analytics.trackError(error, { function: 'fallbackCopy' });
           this.showNotification('Copy failed', 'error');
         }
         
@@ -1604,7 +1676,7 @@ body {
         notification.className = `share-notification ${type}`;
         notification.innerHTML = `
           <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
-          <span>${message}</span>
+          <span>${Security.escapeHtml(message)}</span>
         `;
         
         document.body.appendChild(notification);
@@ -1629,6 +1701,8 @@ body {
 
       formatMoney: (() => {
         const cache = new Map();
+        const MAX_CACHE_SIZE = 500; // Limit cache size
+        
         return (value) => {
           if (cache.has(value)) return cache.get(value);
           if (!value && value !== 0) return '$0';
@@ -1641,6 +1715,12 @@ body {
           else if (abs >= 1e6) result = `$${(num / 1e6).toFixed(1)}M`;
           else if (abs >= 1e3) result = `$${(num / 1e3).toFixed(1)}K`;
           else result = `$${num.toLocaleString()}`;
+          
+          // Clear oldest entries when cache gets too large
+          if (cache.size >= MAX_CACHE_SIZE) {
+            const firstKey = cache.keys().next().value;
+            cache.delete(firstKey);
+          }
           
           cache.set(value, result);
           return result;
@@ -1667,13 +1747,24 @@ body {
       getColorForVendor: (() => {
         const colors = ['#007AFF', '#34C759', '#FF9500', '#FF3B30', '#AF52DE', '#00D2FF'];
         const cache = new Map();
+        const MAX_CACHE_SIZE = 500;
+        
         return (vendor) => {
+          if (!vendor) return colors[0];
           if (cache.has(vendor)) return cache.get(vendor);
+          
           let hash = 0;
           for (let i = 0; i < vendor.length; i++) {
             hash = vendor.charCodeAt(i) + ((hash << 5) - hash);
           }
           const color = colors[Math.abs(hash) % colors.length];
+          
+          // Clear oldest entries when cache gets too large
+          if (cache.size >= MAX_CACHE_SIZE) {
+            const firstKey = cache.keys().next().value;
+            cache.delete(firstKey);
+          }
+          
           cache.set(vendor, color);
           return color;
         };
@@ -1682,6 +1773,7 @@ body {
       truncateText: (text, maxLength) => text && text.length > maxLength ? text.substring(0, maxLength) + '...' : text || '',
 
       getDaysUntilDate(dateString) {
+        if (!dateString) return null;
         const date = new Date(dateString);
         if (isNaN(date.getTime())) return null;
         const today = new Date();
@@ -1690,6 +1782,7 @@ body {
       },
 
       getPriority(daysRemaining) {
+        if (daysRemaining === null || daysRemaining === undefined) return { level: 'low', label: 'UNKNOWN' };
         if (daysRemaining < 0) return { level: 'expired', label: 'EXPIRED' };
         if (daysRemaining <= 30) return { level: 'urgent', label: 'URGENT' };
         if (daysRemaining <= 90) return { level: 'high', label: 'HIGH' };
@@ -1707,7 +1800,12 @@ body {
         if (!keywords || typeof keywords !== 'string') {
           return [];
         }
-        const keywordMatches = keywords.match(/"[^"]+"|[^,]+/g) || [];
+        
+        // Sanitize input
+        const sanitized = Security.sanitizeSearchInput(keywords);
+        if (!sanitized) return [];
+        
+        const keywordMatches = sanitized.match(/"[^"]+"|[^,]+/g) || [];
         return keywordMatches.map(term => term.trim().replace(/^"|"$/g, ''));
       },
 
@@ -1748,6 +1846,9 @@ body {
           return this.transformData(data);
         } catch (error) {
           clearTimeout(timeoutId);
+          if (error.name === 'AbortError') {
+            throw new Error('Request timed out');
+          }
           throw error;
         }
       },
@@ -1765,7 +1866,7 @@ body {
           if (daysRemaining === null || daysRemaining < -60 || daysRemaining > 730) return null;
           
           return {
-            id: record["Award ID"],
+            id: record["Award ID"] || 'Unknown ID',
             internalId: record["generated_internal_id"],
             vendor: record["Recipient Name"] || 'Unknown Vendor',
             agency: record["Awarding Agency"] || 'Unknown Agency',
@@ -1806,12 +1907,19 @@ body {
       },
       
       showError(message) {
-        document.getElementById('errorText').textContent = message;
-        document.getElementById('errorMessage').classList.remove('hidden');
+        const errorText = document.getElementById('errorText');
+        const errorMessage = document.getElementById('errorMessage');
+        if (errorText && errorMessage) {
+          errorText.textContent = message;
+          errorMessage.classList.remove('hidden');
+        }
       },
       
       hideError() {
-        document.getElementById('errorMessage').classList.add('hidden');
+        const errorMessage = document.getElementById('errorMessage');
+        if (errorMessage) {
+          errorMessage.classList.add('hidden');
+        }
       },
       
       updateSortIcons(column, direction) {
@@ -1822,8 +1930,10 @@ body {
         const activeHeader = document.querySelector(`th[data-sort="${column}"]`);
         if (activeHeader) {
           const activeIcon = activeHeader.querySelector('.sort-icon');
-          activeIcon.className = `fas fa-sort-${direction === 'asc' ? 'up' : 'down'} sort-icon sort-active`;
-          activeHeader.classList.add('sort-active');
+          if (activeIcon) {
+            activeIcon.className = `fas fa-sort-${direction === 'asc' ? 'up' : 'down'} sort-icon sort-active`;
+            activeHeader.classList.add('sort-active');
+          }
         }
       },
       
@@ -1836,13 +1946,18 @@ body {
           summary += ` for "${currentKeywords}"`;
         }
         summary += '.';
-        document.getElementById('resultsSummary').textContent = summary;
+        
+        const summaryElement = document.getElementById('resultsSummary');
+        if (summaryElement) {
+          summaryElement.textContent = summary;
+        }
       },
       
       updateOpportunitiesTable() {
         const tbody = document.getElementById('opportunitiesTableBody');
-        const opportunities = AppState.filteredOpportunities;
+        if (!tbody) return;
         
+        const opportunities = AppState.filteredOpportunities;
         if (opportunities.length === 0) {
           tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 3rem; color: var(--text-secondary);">No opportunities found matching current filters</td></tr>`;
           return;
@@ -1874,13 +1989,21 @@ body {
           dateDisplay = `Expires ${Utils.formatDate(opp.popEndDate)}`;
         }
         
-        return `<td><span class="priority-badge ${priorityClass}">${opp.priority.label}</span></td><td><div class="days-remaining ${daysClass}">${daysDisplay}</div><div class="expiry-date">${dateDisplay}</div></td><td><div class="vendor-info"><div class="vendor-avatar" style="background: ${Utils.getColorForVendor(opp.vendor)}">${Utils.getInitials(opp.vendor)}</div><div><div class="vendor-name">${Utils.truncateText(opp.vendor, 30)}</div><div class="vendor-id">${Utils.truncateText(opp.id, 25)}</div></div></div></td><td><div class="contract-value">${Utils.formatMoney(opp.value)}</div></td><td><div class="agency-info">${Utils.truncateText(opp.agency, 25)}</div><div class="office-info">${Utils.truncateText(opp.office, 25)}</div></td><td><div class="description-text">${Utils.truncateText(opp.description, 120)}</div></td><td>${opp.awardLink ? `<a href="${opp.awardLink}" target="_blank" class="view-award-btn"><i class="fas fa-external-link-alt"></i> View</a>` : ''}</td>`;
+        // Escape all user-controlled data
+        const vendorName = Security.escapeHtml(Utils.truncateText(opp.vendor, 30));
+        const vendorId = Security.escapeHtml(Utils.truncateText(opp.id, 25));
+        const agencyName = Security.escapeHtml(Utils.truncateText(opp.agency, 25));
+        const officeName = Security.escapeHtml(Utils.truncateText(opp.office, 25));
+        const description = Security.escapeHtml(Utils.truncateText(opp.description, 120));
+        
+        return `<td><span class="priority-badge ${priorityClass}">${opp.priority.label}</span></td><td><div class="days-remaining ${daysClass}">${daysDisplay}</div><div class="expiry-date">${dateDisplay}</div></td><td><div class="vendor-info"><div class="vendor-avatar" style="background: ${Utils.getColorForVendor(opp.vendor)}">${Utils.getInitials(opp.vendor)}</div><div><div class="vendor-name">${vendorName}</div><div class="vendor-id">${vendorId}</div></div></div></td><td><div class="contract-value">${Utils.formatMoney(opp.value)}</div></td><td><div class="agency-info">${agencyName}</div><div class="office-info">${officeName}</div></td><td><div class="description-text">${description}</div></td><td>${opp.awardLink ? `<a href="${Security.escapeHtml(opp.awardLink)}" target="_blank" class="view-award-btn"><i class="fas fa-external-link-alt"></i> View</a>` : ''}</td>`;
       },
       
       updateOpportunitiesGrid() {
         const grid = document.getElementById('opportunitiesGrid');
-        const opportunities = AppState.filteredOpportunities;
+        if (!grid) return;
         
+        const opportunities = AppState.filteredOpportunities;
         if (opportunities.length === 0) {
           grid.innerHTML = `<div style="text-align: center; padding: 3rem; color: var(--text-secondary); grid-column: 1 / -1;">No opportunities found matching current filters</div>`;
           return;
@@ -1900,18 +2023,23 @@ body {
       
       generateMobileCard(opp) {
         const daysClass = `days-${opp.priority.level}`;
-        const descriptionPreview = Utils.truncateText(opp.description, 120);
-        const vendorTitle = (opp.vendor || '').replace(/"/g, '&quot;');
-        const agencyTitle = (opp.agency || '').replace(/"/g, '&quot;');
-        const officeTitle = (opp.office || '').replace(/"/g, '&quot;');
-        const idTitle = (opp.id || '').replace(/"/g, '&quot;');
+        const descriptionPreview = Security.escapeHtml(Utils.truncateText(opp.description, 120));
+        const vendorTitle = Security.escapeHtml(opp.vendor || '');
+        const agencyTitle = Security.escapeHtml(opp.agency || '');
+        const officeTitle = Security.escapeHtml(opp.office || '');
+        const idTitle = Security.escapeHtml(opp.id || '');
+        const vendorName = Security.escapeHtml(Utils.truncateText(opp.vendor, 35));
+        const agencyName = Security.escapeHtml(Utils.truncateText(opp.agency, 40));
+        const officeName = Security.escapeHtml(Utils.truncateText(opp.office, 40));
+        const contractId = Security.escapeHtml(Utils.truncateText(opp.id, 15));
         
-        return `<div class="card-header"><div class="card-primary-info"><div class="card-vendor"><div class="vendor-avatar" style="background: ${Utils.getColorForVendor(opp.vendor)}">${Utils.getInitials(opp.vendor)}</div><div class="vendor-name" title="${vendorTitle}">${Utils.truncateText(opp.vendor, 35)}</div></div></div><div class="card-value">${Utils.formatMoney(opp.value)}</div></div><div class="urgency-info"><div class="days-remaining ${daysClass}">${opp.daysRemaining<0?`${Math.abs(opp.daysRemaining)} day${Math.abs(opp.daysRemaining)===1?'':'s'} ago`:opp.daysRemaining}</div><div class="days-label">${opp.daysRemaining<0?'expired':'days left'}</div></div><div class="card-secondary"><div class="info-item"><div class="info-label">Agency</div><div class="info-value" title="${agencyTitle}">${Utils.truncateText(opp.agency,40)}</div></div><div class="info-item"><div class="info-label">Expires</div><div class="info-value">${Utils.formatDate(opp.popEndDate)}</div></div><div class="info-item"><div class="info-label">Office</div><div class="info-value" title="${officeTitle}">${Utils.truncateText(opp.office,40)}</div></div><div class="info-item"><div class="info-label">Contract ID</div><div class="info-value contract-id" title="${idTitle}">${Utils.truncateText(opp.id,15)}</div></div></div><div class="card-description"><div class="description-preview">${descriptionPreview}</div></div><div class="card-actions">${opp.awardLink?`<a href="${opp.awardLink}" target="_blank" class="view-award-btn"><i class="fas fa-external-link-alt"></i> View Award</a>`:'<div></div>'}</div>`;
+        return `<div class="card-header"><div class="card-primary-info"><div class="card-vendor"><div class="vendor-avatar" style="background: ${Utils.getColorForVendor(opp.vendor)}">${Utils.getInitials(opp.vendor)}</div><div class="vendor-name" title="${vendorTitle}">${vendorName}</div></div></div><div class="card-value">${Utils.formatMoney(opp.value)}</div></div><div class="urgency-info"><div class="days-remaining ${daysClass}">${opp.daysRemaining<0?`${Math.abs(opp.daysRemaining)} day${Math.abs(opp.daysRemaining)===1?'':'s'} ago`:opp.daysRemaining}</div><div class="days-label">${opp.daysRemaining<0?'expired':'days left'}</div></div><div class="card-secondary"><div class="info-item"><div class="info-value" title="${agencyTitle}">${agencyName}</div></div><div class="info-item"><div class="info-value" title="${officeTitle}">${officeName}</div></div><div class="info-item"><div class="info-label">Contract ID</div><div class="info-value contract-id" title="${idTitle}">${contractId}</div></div></div><div class="card-description"><div class="description-preview">${descriptionPreview}</div></div><div class="card-actions">${opp.awardLink?`<a href="${Security.escapeHtml(opp.awardLink)}" target="_blank" class="view-award-btn"><i class="fas fa-external-link-alt"></i> View Award</a>`:'<div></div>'}</div>`;
       },
       
       updateFilters() {
         const competitorSelect = document.getElementById('competitorFilter');
         const agencySelect = document.getElementById('agencyFilter');
+        if (!competitorSelect || !agencySelect) return;
         
         const competitorFragment = document.createDocumentFragment();
         const agencyFragment = document.createDocumentFragment();
@@ -2039,82 +2167,106 @@ body {
     // Export functionality
     const ExportData = {
       exportToCSV() {
-        const headers = ['Priority', 'Days Remaining', 'Expiration Date', 'Current Vendor', 'Contract Value', 'Agency', 'Office', 'Contract ID', 'Description', 'Award Date', 'USASpending Link'];
-        const rows = [headers.join(',')];
-        
-        AppState.filteredOpportunities.forEach(opp => {
-          const row = [
-            opp.priority.label,
-            opp.daysRemaining,
-            Utils.formatDate(opp.popEndDate),
-            `"${(opp.vendor||'').replace(/"/g,'""')}"`,
-            opp.value,
-            `"${(opp.agency||'').replace(/"/g,'""')}"`,
-            `"${(opp.office||'').replace(/"/g,'""')}"`,
-            opp.id,
-            `"${(opp.description||'').replace(/"/g,'""')}"`,
-            Utils.formatDate(opp.awardDate),
-            opp.awardLink || ''
-          ];
-          rows.push(row.join(','));
-        });
-        
-        const csvContent = rows.join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `contract-opportunities-${new Date().toISOString().split('T')[0]}.csv`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        try {
+          const headers = ['Priority', 'Days Remaining', 'Expiration Date', 'Current Vendor', 'Contract Value', 'Agency', 'Office', 'Contract ID', 'Description', 'Award Date', 'USASpending Link'];
+          const rows = [headers.join(',')];
+          
+          AppState.filteredOpportunities.forEach(opp => {
+            const row = [
+              opp.priority.label,
+              opp.daysRemaining,
+              Utils.formatDate(opp.popEndDate),
+              `"${(opp.vendor||'').replace(/"/g,'""')}"`,
+              opp.value,
+              `"${(opp.agency||'').replace(/"/g,'""')}"`,
+              `"${(opp.office||'').replace(/"/g,'""')}"`,
+              opp.id,
+              `"${(opp.description||'').replace(/"/g,'""')}"`,
+              Utils.formatDate(opp.awardDate),
+              opp.awardLink || ''
+            ];
+            rows.push(row.join(','));
+          });
+          
+          const csvContent = rows.join('\n');
+          const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `contract-opportunities-${new Date().toISOString().split('T')[0]}.csv`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          // Clean up blob URL immediately
+          setTimeout(() => URL.revokeObjectURL(url), 100);
+          
+          Analytics.trackEvent('export', 'csv', { record_count: AppState.filteredOpportunities.length });
+        } catch (error) {
+          Analytics.trackError(error, { function: 'exportToCSV' });
+          UI.showError('Export failed. Please try again.');
+        }
       }
     };
 
+    // Main search function with enhanced error handling
     async function performSearch(searchParams, btn, isUrlLoad = false) {
-  if (AppState.isSearching) return;
-  AppState.isSearching = true;
-  
-  const originalHTML = btn.innerHTML;
-  if (!isUrlLoad) {
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
-  }
+      if (AppState.isSearching) return;
+      AppState.isSearching = true;
+      
+      const originalHTML = btn.innerHTML;
+      if (!isUrlLoad) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
+      }
 
-  try {
-    const opportunities = await USASpendingAPI.searchContracts(searchParams);
-    
-    if (!opportunities || opportunities.length === 0) {
-      throw new Error('NO_RESULTS');
-    }
-    
-    AppState.opportunities = opportunities;
-    AppState.filteredOpportunities = [...opportunities];
-    
-    if (!isUrlLoad) {
-      ['searchFilter', 'priorityFilter', 'competitorFilter', 'agencyFilter'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = '';
-      });
-      AppState.filters = { search: '', priority: '', competitor: '', agency: '' };
-    }
+      try {
+        const opportunities = await USASpendingAPI.searchContracts(searchParams);
+        
+        if (!opportunities || opportunities.length === 0) {
+          throw new Error('NO_RESULTS');
+        }
+        
+        AppState.opportunities = opportunities;
+        AppState.filteredOpportunities = [...opportunities];
 
-    Filtering.applyFilters();
-    URLManager.updateURL();
-    UI.showState('results');
-    
-    // Defer filter population until after results are rendered
-    requestAnimationFrame(() => {
-      Analysis.analyzeCompetitors();
-      UI.updateFilters();
-    });
+        // Track successful search
+        Analytics.trackSearch(searchParams.keywords, opportunities.length);
+        
+        if (!isUrlLoad) {
+          ['searchFilter', 'priorityFilter', 'competitorFilter', 'agencyFilter'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+          });
+          AppState.filters = { search: '', priority: '', competitor: '', agency: '' };
+        }
+
+        Filtering.applyFilters();
+        URLManager.updateURL();
+        UI.showState('results');
+        
+        // Defer filter population until after results are rendered
+        requestAnimationFrame(() => {
+          Analysis.analyzeCompetitors();
+          UI.updateFilters();
+        });
 
       } catch (error) {
+        // Enhanced error logging
+        Analytics.trackError(error, {
+          function: 'performSearch',
+          keywords: searchParams.keywords,
+          isUrlLoad
+        });
+        
         if (error.name === 'AbortError') {
           UI.showError('Search timed out. Please try again.');
         } else if (error.message === 'NO_RESULTS') {
           UI.showError(`No contracts found for "${searchParams.keywords}". Try broader keywords.`);
+        } else if (error.message.includes('API Error')) {
+          UI.showError('Service temporarily unavailable. Please try again in a moment.');
+        } else if (error.message.includes('Request timed out')) {
+          UI.showError('Search timed out. Please check your connection and try again.');
         } else {
           UI.showError('Search failed. Please try again.');
         }
@@ -2131,8 +2283,13 @@ body {
       }
     }
 
-    // Simplified search wrapper functions
+    // Search wrapper functions with rate limiting
     async function executeUSASpendingSearch() {
+      if (!RateLimit.canMakeRequest()) {
+        UI.showError('Please wait a moment between searches');
+        return;
+      }
+      
       const searchParams = {
         keywords: document.getElementById('searchKeywords').value.trim(),
         minValue: document.getElementById('minValue').value,
@@ -2150,6 +2307,11 @@ body {
     }
 
     async function executeHeaderSearch() {
+      if (!RateLimit.canMakeRequest()) {
+        UI.showError('Please wait a moment between searches');
+        return;
+      }
+      
       const searchParams = {
         keywords: document.getElementById('headerSearchKeywords').value.trim(),
         minValue: document.getElementById('headerMinValue').value,
@@ -2180,7 +2342,9 @@ body {
       if (AppState.canUseHistory) {
         try {
           window.history.replaceState({}, '', window.location.pathname);
-        } catch (e) {}
+        } catch (e) {
+          Analytics.trackError(e, { function: 'resetToInitialState' });
+        }
       }
       
       UI.hideError();
@@ -2189,20 +2353,32 @@ body {
 
     // Event handler setup
     function setupEventHandlers() {
-      document.getElementById('executeSearch').addEventListener('click', executeUSASpendingSearch);
+      const executeBtn = document.getElementById('executeSearch');
+      if (executeBtn) {
+        executeBtn.addEventListener('click', executeUSASpendingSearch);
+      }
       
-      document.getElementById('heroLogoText').addEventListener('click', resetToInitialState);
+      const heroLogo = document.getElementById('heroLogoText');
+      if (heroLogo) {
+        heroLogo.addEventListener('click', resetToInitialState);
+      }
+      
       const headerBrand = document.querySelector('.header-brand-text');
       if (headerBrand) {
         headerBrand.addEventListener('click', resetToInitialState);
       }
       
-      document.getElementById('searchHelpToggle').addEventListener('click', () => {
-        const content = document.getElementById('searchHelpContent');
-        const toggle = document.getElementById('searchHelpToggle');
-        content.classList.toggle('hidden');
-        toggle.classList.toggle('help-expanded');
-      });
+      const helpToggle = document.getElementById('searchHelpToggle');
+      if (helpToggle) {
+        helpToggle.addEventListener('click', () => {
+          const content = document.getElementById('searchHelpContent');
+          const toggle = document.getElementById('searchHelpToggle');
+          if (content && toggle) {
+            content.classList.toggle('hidden');
+            toggle.classList.toggle('help-expanded');
+          }
+        });
+      }
 
       const headerBtn = document.getElementById('headerSearchBtn');
       const headerInput = document.getElementById('headerSearchKeywords');
@@ -2228,14 +2404,16 @@ body {
         exportBtn.addEventListener('click', ExportData.exportToCSV);
       }
       
-      document.getElementById('searchKeywords').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          executeUSASpendingSearch();
-        }
-      });
-      
-      document.getElementById('searchKeywords').addEventListener('input', UI.hideError);
+      const searchInput = document.getElementById('searchKeywords');
+      if (searchInput) {
+        searchInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            executeUSASpendingSearch();
+          }
+        });
+        searchInput.addEventListener('input', UI.hideError);
+      }
       
       const updateURLDebounced = Utils.debounce(() => URLManager.updateURL(), 2000);
       
@@ -2269,24 +2447,35 @@ body {
 
     // Application initialization
     document.addEventListener('DOMContentLoaded', () => {
-      document.querySelectorAll('input, select').forEach(input => {
-        if (input.type !== 'button' && input.type !== 'submit') {
-          input.value = '';
+      try {
+        // Clear all form inputs on page load
+        document.querySelectorAll('input, select').forEach(input => {
+          if (input.type !== 'button' && input.type !== 'submit') {
+            input.value = '';
+          }
+        });
+        
+        // Setup event handlers
+        setupEventHandlers();
+        
+        // Try to load from URL parameters
+        const hasURLParams = URLManager.loadFromURL();
+        
+        // Show hero section if no URL params
+        if (!hasURLParams) {
+          UI.showState('hero');
         }
-      });
-      
-      setupEventHandlers();
-      
-      const hasURLParams = URLManager.loadFromURL();
-      
-      if (!hasURLParams) {
-        UI.showState('hero');
+        
+        // DNS prefetch for better performance
+        const link = document.createElement('link');
+        link.rel = 'dns-prefetch';
+        link.href = '//vt44ebi3jj.execute-api.us-east-1.amazonaws.com';
+        document.head.appendChild(link);
+        
+      } catch (error) {
+        Analytics.trackError(error, { function: 'DOMContentLoaded' });
+        console.error('Application initialization failed:', error);
       }
-      
-      const link = document.createElement('link');
-      link.rel = 'dns-prefetch';
-      link.href = '//vt44ebi3jj.execute-api.us-east-1.amazonaws.com';
-      document.head.appendChild(link);
     });
 </script>
 </body>
