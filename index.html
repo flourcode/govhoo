@@ -2038,37 +2038,37 @@ body {
     return [];
   }
   
-  // Sanitize input
   const sanitized = Security.sanitizeSearchInput(keywords);
   if (!sanitized) return [];
   
-  // Handle exact phrases in quotes first
   const exactPhrases = [];
   let remainingText = sanitized;
   
-  // Extract quoted phrases for exact matching
   const quotedMatches = sanitized.match(/"[^"]+"/g) || [];
   quotedMatches.forEach(match => {
-    exactPhrases.push(match); // Keep quotes for exact matching
+    exactPhrases.push(match);
     remainingText = remainingText.replace(match, '');
   });
   
-  // Smart keyword parsing for remaining text
-  const words = remainingText
-    .replace(/,/g, ' ') // Treat commas as spaces
-    .split(/\s+/)
-    .map(word => word.trim().toLowerCase())
-    .filter(word => word.length > 2);
-  
-  // If 3+ words, treat as compound search (more precise)
-  // If 1-2 words, split for broader OR search
-  if (words.length >= 3) {
-    // For multi-word searches like "defense health agency", keep as compound
-    const compoundPhrase = words.join(' ');
-    return [...exactPhrases, compoundPhrase];
+  if (remainingText.includes(',')) {
+    const commaSeparatedTerms = remainingText
+      .split(',')
+      .map(term => term.trim().toLowerCase())
+      .filter(term => term.length > 0);
+    return [...exactPhrases, ...commaSeparatedTerms];
   } else {
-    // For 1-2 words like "aws secure", split for OR logic
-    return [...exactPhrases, ...words];
+    const words = remainingText
+      .trim()
+      .split(/\s+/)
+      .map(word => word.trim().toLowerCase())
+      .filter(word => word.length > 2);
+    
+    if (words.length >= 3) {
+      const compoundPhrase = words.join(' ');
+      return [...exactPhrases, compoundPhrase];
+    } else {
+      return [...exactPhrases, ...words];
+    }
   }
 },
 
