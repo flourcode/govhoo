@@ -1475,27 +1475,27 @@ body {
           <div class="search-help-content hidden" id="searchHelpContent">
           <div class="help-grid">
   <div class="help-item">
-    <div class="help-label">Single keyword</div>
-    <div class="help-example">cisco</div>
-    <div class="help-description">Find contracts mentioning cisco</div>
+    <div class="help-label">Single keywords</div>
+    <div class="help-example">aws</div>
+    <div class="help-description">Find contracts mentioning AWS anywhere in descriptions, vendor names, or agencies</div>
   </div>
   
   <div class="help-item">
-    <div class="help-label">Multiple companies</div>
-    <div class="help-example">cisco, amazon, microsoft</div>
-    <div class="help-description">Find contracts matching any of the comma-separated terms (OR search).</div>
+    <div class="help-label">Two keywords (OR search)</div>
+    <div class="help-example">aws secure</div>
+    <div class="help-description">Find contracts containing AWS OR secure - broader results including "aws cloud" contracts</div>
+  </div>
+  
+  <div class="help-item">
+    <div class="help-label">Three+ keywords (precise search)</div>
+    <div class="help-example">defense health agency</div>
+    <div class="help-description">Search for the specific phrase "defense health agency" - more targeted results</div>
   </div>
   
   <div class="help-item">
     <div class="help-label">Exact phrases</div>
-    <div class="help-example">"sap software"</div>
-    <div class="help-description">Use quotes for exact phrase matching</div>
-  </div>
-  
-  <div class="help-item">
-    <div class="help-label">Related terms</div>
-    <div class="help-example">cloud security</div>
-    <div class="help-description">Space-separated words must both appear in contracts</div>
+    <div class="help-example">"amazon web services"</div>
+    <div class="help-description">Use quotes for exact company names or specific phrases regardless of length</div>
   </div>
 </div>
           </div>
@@ -2028,26 +2028,53 @@ body {
       }
     };
     
-    // Streamlined API
+    // Streamlined API with improved search
     const USASpendingAPI = {
       baseURL: 'https://vt44ebi3jj.execute-api.us-east-1.amazonaws.com/default/award-search-proxy',
       timeout: 10000,
 
       parseSearchKeywords(keywords) {
-        if (!keywords || typeof keywords !== 'string') {
-          return [];
-        }
-        
-        // Sanitize input
-        const sanitized = Security.sanitizeSearchInput(keywords);
-        if (!sanitized) return [];
-        
-        const keywordMatches = sanitized.match(/"[^"]+"|[^,]+/g) || [];
-        return keywordMatches.map(term => term.trim().replace(/^"|"$/g, ''));
-      },
+  if (!keywords || typeof keywords !== 'string') {
+    return [];
+  }
+  
+  // Sanitize input
+  const sanitized = Security.sanitizeSearchInput(keywords);
+  if (!sanitized) return [];
+  
+  // Handle exact phrases in quotes first
+  const exactPhrases = [];
+  let remainingText = sanitized;
+  
+  // Extract quoted phrases for exact matching
+  const quotedMatches = sanitized.match(/"[^"]+"/g) || [];
+  quotedMatches.forEach(match => {
+    exactPhrases.push(match); // Keep quotes for exact matching
+    remainingText = remainingText.replace(match, '');
+  });
+  
+  // Smart keyword parsing for remaining text
+  const words = remainingText
+    .replace(/,/g, ' ') // Treat commas as spaces
+    .split(/\s+/)
+    .map(word => word.trim().toLowerCase())
+    .filter(word => word.length > 2);
+  
+  // If 3+ words, treat as compound search (more precise)
+  // If 1-2 words, split for broader OR search
+  if (words.length >= 3) {
+    // For multi-word searches like "defense health agency", keep as compound
+    const compoundPhrase = words.join(' ');
+    return [...exactPhrases, compoundPhrase];
+  } else {
+    // For 1-2 words like "aws secure", split for OR logic
+    return [...exactPhrases, ...words];
+  }
+},
 
       async searchContracts(searchParams) {
         const keywordsArray = this.parseSearchKeywords(searchParams.keywords);
+        
         const requestBody = {
           filters: {
             award_type_codes: ['A', 'B', 'C', 'D'],
@@ -2057,7 +2084,7 @@ body {
           },
           fields: ["Award ID", "Recipient Name", "Start Date", "End Date", "Award Amount", "Awarding Agency", "Awarding Sub Agency", "Description", "generated_internal_id"],
           page: 1,
-          limit: 60,
+          limit: 100, // Increased for better coverage with OR logic
           sort: "Award Amount",
           order: "desc"
         };
@@ -2259,30 +2286,30 @@ body {
       },
       
       generateMobileCard(opp) {
-  const daysClass = `days-${opp.priority.level}`;
-  const descriptionPreview = Security.escapeHtml(Utils.truncateText(opp.description, 80));
-  const vendorTitle = Security.escapeHtml(opp.vendor || '');
-  const agencyTitle = Security.escapeHtml(opp.agency || '');
-  const officeTitle = Security.escapeHtml(opp.office || '');
-  const idTitle = Security.escapeHtml(opp.id || '');
-  const vendorName = Security.escapeHtml(Utils.truncateText(opp.vendor, 35));
-  const agencyName = Security.escapeHtml(Utils.truncateText(opp.agency, 25));
-  const officeName = Security.escapeHtml(Utils.truncateText(opp.office, 25));
-  const contractId = Security.escapeHtml(Utils.truncateText(opp.id, 15));
-  
-  return `<div class="mobile-card-top">
+        const daysClass = `days-${opp.priority.level}`;
+        const descriptionPreview = Security.escapeHtml(Utils.truncateText(opp.description, 80));
+        const vendorTitle = Security.escapeHtml(opp.vendor || '');
+        const agencyTitle = Security.escapeHtml(opp.agency || '');
+        const officeTitle = Security.escapeHtml(opp.office || '');
+        const idTitle = Security.escapeHtml(opp.id || '');
+        const vendorName = Security.escapeHtml(Utils.truncateText(opp.vendor, 35));
+        const agencyName = Security.escapeHtml(Utils.truncateText(opp.agency, 25));
+        const officeName = Security.escapeHtml(Utils.truncateText(opp.office, 25));
+        const contractId = Security.escapeHtml(Utils.truncateText(opp.id, 15));
+        
+        return `<div class="mobile-card-top">
 <span class="priority-badge priority-${opp.priority.level}">${opp.priority.label}</span>
 <div class="mobile-card-value">${Utils.formatMoney(opp.value)}</div>
 <div class="mobile-days-remaining ${daysClass}">${opp.daysRemaining<0?`${Math.abs(opp.daysRemaining)} day${Math.abs(opp.daysRemaining)===1?'':'s'} ago`:opp.daysRemaining} ${opp.daysRemaining<0?'':'days left'}</div>
 </div>
-<div class="mobile-agency-line">${officeName}</div>
 <div class="mobile-vendor-name" title="${vendorTitle}">${vendorName}</div>
+<div class="mobile-agency-line">${agencyName} • ${officeName}</div>
 <div class="mobile-contract-row">
 <span class="mobile-contract-id" title="${idTitle}">${contractId}</span>
 ${opp.awardLink?`<a href="${Security.escapeHtml(opp.awardLink)}" target="_blank" class="mobile-award-link"><i class="fas fa-external-link-alt"></i></a>`:''}
 </div>
 <div class="mobile-description">${descriptionPreview}</div>`;
-},
+      },
       
       updateFilters() {
         const competitorSelect = document.getElementById('competitorFilter');
@@ -2300,7 +2327,7 @@ ${opp.awardLink?`<a href="${Security.escapeHtml(opp.awardLink)}" target="_blank"
         });
         
         Array.from(AppState.agencies.values()).sort((a, b) => a.name.localeCompare(b.name)).forEach(agency => {
-          agencyFragment.appendChild(this.createOption(agency.name, `${Utils.truncateText(agency.name, 40)} (${agency.opportunities})`));
+          agencyFragment.appendChild(this.createOption(agency.name, `${Utils.truncateText(agency.name, 30)} (${agency.opportunities})`));
         });
         
         competitorSelect.innerHTML = '';
