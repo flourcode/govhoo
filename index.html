@@ -2,15 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta property="og:image" content="images/govhoo_social.png">
-  <link rel="icon" href="favicon.ico" sizes="any">
-  <title>Govhoo. — A Search Engine for Expiring Government Contracts</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>Govhoo — Expiring Federal Contracts</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
   <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-T343V4RFHV"></script>
   <script>
@@ -20,2738 +20,1565 @@
     gtag('config', 'G-T343V4RFHV');
   </script>
 <style>
-/* ===== CSS VARIABLES ===== */
 :root {
-  --primary: #007AFF;
-  --primary-dark: #0A65D1;
-  --success: #34C759;
-  --warning: #FF9500;
-  --danger: #FF3B30;
-  --text-primary: #FFFFFF;
-  --text-secondary: #8E8E93;
-  --text-tertiary: #48484A;
-  --bg-primary: #121212;
-  --bg-secondary: #1C1C1E;
-  --bg-tertiary: #2C2C2E;
-  --bg-card: #1C1C1E;
-  --border: #38383A;
-  --glass-bg: rgba(28, 28, 30, 0.8);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --radius: 12px;
-  --radius-lg: 20px;
-  --shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.3);
+  /* Light Mode (E-Ink) */
+  --paper: #fafaf8;
+  --ink: #1a1a1a;
+  --light-ink: #666666;
+  --lighter-ink: #999999;
+  --border: #e0e0de;
+  --accent-line: #d0d0ce;
+  --subtle-bg: #f4f4f2;
+  --hover-bg: #eeeeec;
 }
 
-/* ===== RESET & BASE STYLES ===== */
+[data-theme="dark"] {
+  /* Dark Mode (Inverted E-Ink) */
+  --paper: #1a1a1a;
+  --ink: #e8e8e8;
+  --light-ink: #a0a0a0;
+  --lighter-ink: #707070;
+  --border: #2a2a2a;
+  --accent-line: #353535;
+  --subtle-bg: #202020;
+  --hover-bg: #252525;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  font-family: 'Atkinson Hyperlegible', sans-serif;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  line-height: 1.5;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.6;
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
-  touch-action: manipulation;
 }
 
-.app-container {
-  min-height: 100vh;
-  position: relative;
+/* ===== THEME TOGGLE ===== */
+.theme-toggle {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  width: 40px;
+  height: 40px;
+  background: var(--ink);
+  color: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1000;
+  transition: all 0.2s ease;
+  font-size: 1rem;
 }
 
-/* ===== HERO SECTION ===== */
+.theme-toggle:hover {
+  transform: scale(1.1);
+}
+
+.theme-toggle:active {
+  transform: scale(0.95);
+}
+
+/* ===== HERO ===== */
 .hero-section {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding: 1rem;
+  padding: 2rem 1.5rem;
+  border-bottom: 1px solid var(--border);
 }
 
-.hero-logo {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+.hero-section.hidden {
+  display: none;
 }
 
 .hero-logo-text {
-  font-size: clamp(3rem, 8vw, 6rem);
-  font-weight: 700;
-  margin: 0;
-  cursor: pointer;
-  transition: opacity 0.2s ease;
-}
-
-.hero-logo-text:hover {
-  opacity: 0.8;
-}
-
-.hero-subtitle {
-  font-size: clamp(1.2rem, 3vw, 1.5rem);
-  font-weight: 300;
-  color: var(--text-secondary);
-  margin-bottom: 1rem;
-  max-width: 600px;
-  line-height: 1.4;
-}
-
-/* ===== SEARCH CONTAINER (HERO) ===== */
-.search-container {
-  width: 100%;
-  max-width: 800px;
-  background: var(--glass-bg);
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  padding: 2rem;
-  box-shadow: var(--shadow-lg);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.search-container:hover {
-  transform: translateY(-3px);
-}
-
-.search-form {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: nowrap;
-  align-items: stretch;
-  margin-bottom: 2rem;
-}
-
-.search-form .input-group:first-child {
-  flex: 3;
-}
-
-.search-form .input-group:not(:first-child) {
-  flex: 1.5;
-}
-
-/* ===== FORM CONTROLS ===== */
-.form-input,
-.form-select,
-.filter-input,
-.filter-select,
-.header-search-input,
-.header-search-select {
-  width: 100%;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1rem;
-  font-size: 1rem;
-  color: var(--text-primary);
-  font-family: inherit;
-  transition: border-color 0.2s ease;
-  min-height: 56px;
-  touch-action: manipulation;
-}
-
-.form-input:focus,
-.form-select:focus,
-.filter-input:focus,
-.filter-select:focus,
-.header-search-input:focus,
-.header-search-select:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
-}
-
-.form-input::placeholder,
-.header-search-input::placeholder,
-.filter-input::placeholder {
-  color: var(--text-secondary);
-}
-
-/* ===== BUTTONS ===== */
-.search-btn,
-.action-btn,
-.export-btn,
-.header-search-btn,
-.share-btn {
-  border: none;
-  border-radius: var(--radius);
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  min-height: 56px;
-  font-family: inherit;
-  touch-action: manipulation;
-}
-
-.search-btn,
-.header-search-btn {
-  background: var(--primary);
-  color: white;
-  padding: 1rem 2rem;
-  margin-top: 1rem;
-  width: 100%;
-  white-space: nowrap;
-}
-
-.search-btn:hover,
-.header-search-btn:hover {
-  background: var(--primary-dark);
-  transform: translateY(-2px);
-}
-
-.search-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.share-btn {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-  padding: 0.75rem 1.5rem;
-  font-size: 0.9rem;
-  flex-shrink: 0;
-}
-
-.share-btn:hover {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: white;
-  transform: translateY(-1px);
-}
-
-.export-btn {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-  padding: 0.75rem 1.5rem;
-  flex-shrink: 0;
-  margin-left: auto;
-}
-
-.export-btn:hover {
-  background: var(--bg-secondary);
-  border-color: var(--primary);
-}
-
-/* ===== LOADING STATE ===== */
-.loading-state {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.9);
-  backdrop-filter: blur(10px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.loading-spinner {
-  width: 3rem;
-  height: 3rem;
-  border: 3px solid var(--bg-tertiary);
-  border-top: 3px solid var(--primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 2rem;
-}
-
-.loading-text {
-  font-size: 1.2rem;
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-}
-
-.loading-subtext {
-  color: var(--text-secondary);
-  font-size: 1rem;
-}
-
-/* ===== RESULTS SECTION ===== */
-.results-section {
-  min-height: 100vh;
-  padding: 2rem;
-  background: var(--bg-primary);
-}
-
-.results-header {
-  max-width: 1400px;
-  margin: 0 auto 0;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  padding: 1.5rem;
-}
-
-.header-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.header-branding {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.brand-text-container {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.header-brand-text {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-  cursor: pointer;
-  transition: opacity 0.2s ease;
-}
-
-.header-brand-text:hover {
-  opacity: 0.8;
-}
-
-.header-subtitle {
-  font-size: 0.9rem;
-  font-weight: 300;
-  color: var(--text-secondary);
-  margin: 0;
-  line-height: 1.2;
-}
-
-.integrated-search-row {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--border);
-}
-
-.search-inputs {
-  display: flex;
-  gap: 0.75rem;
-  flex: 1;
-}
-
-.header-search-input {
-  flex: 2;
-  background: var(--bg-tertiary);
-  font-size: 0.9rem;
-  padding: 0.75rem;
-}
-
-.header-search-select {
-  flex: 1;
-  background: var(--bg-tertiary);
-  font-size: 0.9rem;
-  padding: 0.75rem;
-}
-
-.header-search-btn {
-  padding: 0.75rem 1.5rem;
-  font-size: 0.9rem;
-  white-space: nowrap;
-  margin-top: 0;
-  width: auto;
-}
-
-/* ===== OPPORTUNITIES CONTAINER ===== */
-.opportunities-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-top: none;
-  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-  overflow: hidden;
-}
-
-.opportunities-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.search-results-summary {
-  margin-bottom: 1.5rem;
-  font-size: 1.1rem;
-  color: var(--text-primary);
-  line-height: 1.4;
-}
-
-.filters-container {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: nowrap;
-  align-items: center;
-}
-
-.filter-input {
-  flex: 2;
-}
-
-.filter-select {
-  flex: 1;
-}
-
-/* ===== TABLE STYLES ===== */
-.opportunities-table-container {
-  background: var(--bg-card);
-  overflow-x: auto;
-}
-
-.opportunities-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.opportunities-table th {
-  background: var(--bg-secondary);
-  padding: 1rem 2rem 1rem 1rem;
-  text-align: left;
+  font-size: clamp(2rem, 10vw, 4rem);
   font-weight: 600;
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 1px solid var(--border);
-  user-select: none;
-  position: relative;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: opacity 0.2s ease;
+  user-select: none;
 }
 
-.opportunities-table th:hover {
-  color: var(--text-primary);
-}
-
-.sort-icon {
-  position: absolute;
-  right: 0.5rem;
-  top: 50%;
-  transform: translateY(-50%);
+.hero-logo-text:active {
   opacity: 0.5;
 }
 
-.sort-active {
-  opacity: 1;
-  color: var(--primary);
+.hero-subtitle {
+  font-size: clamp(0.875rem, 3vw, 1rem);
+  font-weight: 400;
+  color: var(--light-ink);
+  margin-bottom: 3rem;
+  max-width: 90%;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
 }
 
-.opportunities-table td {
-  padding: 1.2rem 1rem;
-  border-bottom: 1px solid var(--border);
-  vertical-align: top;
-  font-size: 0.9rem;
+.search-container {
+  width: 100%;
+  max-width: 540px;
+  padding: 0;
 }
 
-.opportunities-table tbody tr {
-  transition: background-color 0.2s ease;
+.form-input {
+  width: 100%;
+  background: var(--paper);
+  border: none;
+  border-bottom: 2px solid var(--ink);
+  border-radius: 0;
+  padding: 0.875rem 0;
+  font-size: 1rem;
+  color: var(--ink);
+  font-family: inherit;
+  margin-bottom: 2rem;
+  transition: border-color 0.2s ease;
+  font-weight: 400;
 }
 
-.opportunities-table tbody tr:hover {
-  background: rgba(0, 122, 255, 0.05);
+.form-input:focus {
+  outline: none;
+  border-bottom-color: var(--ink);
 }
 
-/* ===== PRIORITY BADGES ===== */
-.priority-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.4rem 0.8rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.form-input::placeholder {
+  color: var(--lighter-ink);
+  font-weight: 300;
 }
 
-.priority-urgent {
-  background: rgba(255, 59, 48, 0.2);
-  color: var(--danger);
-  border: 1px solid rgba(255, 59, 48, 0.3);
-}
-
-.priority-high {
-  background: rgba(255, 149, 0, 0.2);
-  color: var(--warning);
-  border: 1px solid rgba(255, 149, 0, 0.3);
-}
-
-.priority-medium {
-  background: rgba(0, 122, 255, 0.2);
-  color: var(--primary);
-  border: 1px solid rgba(0, 122, 255, 0.3);
-}
-
-.priority-low {
-  background: rgba(142, 142, 147, 0.2);
-  color: var(--text-secondary);
-  border: 1px solid rgba(142, 142, 147, 0.3);
-}
-
-.priority-expired {
-  background: rgba(128, 128, 128, 0.2);
-  color: #808080;
-  border: 1px solid rgba(128, 128, 128, 0.3);
-}
-
-/* ===== VENDOR AND CONTENT STYLES ===== */
-.vendor-info {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.vendor-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--primary);
-  color: white;
+.search-btn {
+  width: 100%;
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  border-radius: 0;
+  padding: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
-  font-size: 0.8rem;
-  flex-shrink: 0;
-}
-
-.vendor-name {
-  font-weight: 500;
-  font-size: 0.9rem;
-}
-
-.vendor-id {
-  color: var(--text-secondary);
-  font-size: 0.8rem;
-  margin-top: 0.25rem;
-}
-
-.contract-value {
-  font-weight: 600;
-  font-size: 1.1rem;
-}
-
-.days-remaining {
-  font-weight: 600;
-  font-size: 1.1rem;
-}
-
-.days-urgent { color: var(--danger); }
-.days-high { color: var(--warning); }
-.days-medium { color: var(--primary); }
-.days-low { color: var(--text-secondary); }
-.days-expired { color: #808080; }
-
-.expiry-date {
-  color: var(--text-secondary);
-  font-size: 0.8rem;
-  margin-top: 0.25rem;
-}
-
-.agency-info {
-  font-weight: 500;
-}
-
-.office-info {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  margin-top: 0.25rem;
-}
-
-.description-text {
-  line-height: 1.4;
-  max-width: 300px;
-}
-
-.view-award-btn {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 0.5rem 1rem;
-  font-size: 0.8rem;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
   gap: 0.5rem;
-  transition: all 0.2s ease;
+  transition: opacity 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  touch-action: manipulation;
 }
 
-.view-award-btn:hover {
-  background: var(--primary);
-  border-color: var(--primary);
-  transform: translateY(-1px);
+.search-btn:active:not(:disabled) {
+  opacity: 0.7;
 }
 
-/* ===== MOBILE CARDS (DESKTOP) ===== */
-.opportunities-grid {
+.search-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ===== RESULTS ===== */
+.results-section {
   display: none;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.results-section.active {
+  display: block;
+}
+
+.results-header {
+  background: var(--paper);
+  border-bottom: 1px solid var(--border);
   padding: 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--accent-line);
+}
+
+.header-brand-text {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  user-select: none;
+}
+
+.header-brand-text:active {
+  opacity: 0.5;
+}
+
+.header-actions-desktop {
+  display: none;
   gap: 0.75rem;
-  grid-template-columns: 1fr;
 }
 
-.opportunity-card {
-  background: var(--bg-secondary);
+.action-btn-desktop {
+  background: transparent;
+  color: var(--ink);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1.5rem;
+  border-radius: 0;
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
   transition: all 0.2s ease;
-  position: relative;
-  overflow: hidden;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.opportunity-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--primary);
-  box-shadow: var(--shadow);
+.action-btn-desktop:hover {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+.header-search-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.header-search-input {
+  flex: 1;
+  background: var(--paper);
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  padding: 0.625rem 0;
+  font-size: 0.875rem;
+  color: var(--ink);
+  font-family: inherit;
+  font-weight: 400;
+}
+
+.header-search-input:focus {
+  outline: none;
+  border-bottom-color: var(--ink);
+}
+
+.header-search-btn {
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  border-radius: 0;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: opacity 0.2s ease;
+  touch-action: manipulation;
+}
+
+.header-search-btn:active {
+  opacity: 0.7;
+}
+
+/* ===== SUMMARY ===== */
+.summary-bar {
+  padding: 1rem;
+  background: var(--subtle-bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.summary-text {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--light-ink);
+  font-weight: 400;
+}
+
+.summary-text strong {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* ===== FILTERS ===== */
+.filters-bar {
+  padding: 1rem;
+  background: var(--paper);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.filter-input,
+.filter-select {
+  width: 100%;
+  background: var(--paper);
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  padding: 0.625rem 0;
+  font-size: 0.8125rem;
+  color: var(--ink);
+  font-family: inherit;
+  font-weight: 400;
+}
+
+.filter-input:focus,
+.filter-select:focus {
+  outline: none;
+  border-bottom-color: var(--ink);
+}
+
+.filter-input::placeholder {
+  color: var(--lighter-ink);
+}
+
+/* ===== TABLE / CARDS ===== */
+.results-list {
+  padding-bottom: 5rem;
+}
+
+.result-card {
+  background: var(--paper);
+  border-bottom: 1px solid var(--border);
+  padding: 1.25rem 1rem;
+  transition: background 0.2s ease;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.result-card:active {
+  background: var(--hover-bg);
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1rem;
   gap: 1rem;
+  margin-bottom: 0.875rem;
 }
 
-.card-vendor {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.5rem;
-}
-
-.card-value {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--primary);
-  text-align: right;
-  white-space: nowrap;
-}
-
-.urgency-info {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 0.5rem;
-  margin-bottom: 0.3rem;
-  padding: 0.75rem;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: var(--radius);
-}
-
-.days-label {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  margin-left: 0;
-}
-
-.card-secondary {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border);
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.info-label {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
+.priority-badge {
+  display: inline-block;
+  padding: 0.25rem 0.625rem;
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  font-size: 0.625rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: 600;
-}
-
-.info-value {
-  font-size: 0.9rem;
-  color: var(--text-primary);
-  font-weight: 500;
-}
-
-.card-description {
-  margin-bottom: 1rem;
-}
-
-.description-preview {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  line-height: 1.4;
-}
-
-.card-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.contract-id {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  font-family: 'Atkinson Hyperlegible', sans-serif;
-}
-
-/* ===== SEARCH HELP ===== */
-.search-help {
-  max-width: 800px;
-  margin: 1rem auto 0;
-}
-
-.search-help-toggle {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  background: rgba(142, 142, 147, 0.1);
-  border: 1px solid rgba(142, 142, 147, 0.2);
-  border-radius: var(--radius);
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  justify-content: center;
-}
-
-.search-help-toggle:hover {
-  background: rgba(142, 142, 147, 0.15);
-  color: var(--text-primary);
-}
-
-.search-help-content {
-  margin-top: 1rem;
-  padding: 1.5rem;
-  background: var(--glass-bg);
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius);
-}
-
-.help-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-}
-
-.help-item {
-  padding: 1rem;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: var(--radius);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.help-label {
-  font-weight: 600;
-  color: var(--text-primary);
-  font-size: 0.85rem;
-  margin-bottom: 0.5rem;
-}
-
-.help-example {
-  font-family: 'Atkinson Hyperlegible', sans-serif;
-  background: rgba(0, 122, 255, 0.1);
-  color: var(--primary);
-  padding: 0.4rem 0.6rem;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  margin-bottom: 0.5rem;
-  border: 1px solid rgba(0, 122, 255, 0.2);
-}
-
-.help-description {
-  color: var(--text-secondary);
-  font-size: 0.8rem;
-  line-height: 1.4;
-}
-
-#helpChevron {
-  margin-left: auto;
-  transition: transform 0.2s ease;
-}
-
-.help-expanded #helpChevron {
-  transform: rotate(180deg);
-}
-
-/* ===== ERROR MESSAGE ===== */
-.error-message {
-  background: rgba(255, 59, 48, 0.1);
-  border: 1px solid rgba(255, 59, 48, 0.3);
-  border-radius: var(--radius);
-  padding: 1rem;
-  margin-top: 1rem;
-  color: var(--danger);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* ===== SHARE NOTIFICATION ===== */
-.share-notification {
-  position: fixed;
-  top: 2rem;
-  right: 2rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1rem 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  box-shadow: var(--shadow-lg);
-  z-index: 10000;
-  opacity: 1;
-  transition: opacity 0.3s ease;
-  backdrop-filter: blur(20px);
-  max-width: 300px;
-  word-wrap: break-word;
-}
-
-.share-notification.success {
-  border-color: var(--success);
-  color: var(--success);
-}
-
-.share-notification.error {
-  border-color: var(--danger);
-  color: var(--danger);
-}
-
-.share-notification i {
-  font-size: 1.2rem;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
   flex-shrink: 0;
 }
 
-.share-notification span {
-  font-size: 0.9rem;
+.priority-urgent {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+.priority-high {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--ink);
+}
+
+.priority-medium {
+  background: transparent;
+  color: var(--light-ink);
+  border-color: var(--light-ink);
+}
+
+.priority-low {
+  background: transparent;
+  color: var(--lighter-ink);
+  border-color: var(--lighter-ink);
+}
+
+.priority-expired {
+  background: transparent;
+  color: var(--lighter-ink);
+  border-color: var(--accent-line);
+}
+
+.contract-value {
   font-weight: 500;
+  font-size: 1.125rem;
+  color: var(--ink);
+  text-align: right;
+  flex-shrink: 0;
+  letter-spacing: -0.01em;
 }
 
-/* ===== FOOTER ===== */
-.footer-section {
-  background: var(--bg-primary);
-  padding: 4rem 0 2rem;
+.card-days {
+  display: none;
 }
 
-.footer-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 2rem;
-}
-
-.footer-content {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
-  margin-bottom: 3rem;
-}
-
-.footer-column {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 2rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.footer-column:hover {
-  transform: translateY(-2px);
-  border-color: var(--primary);
-  box-shadow: var(--shadow);
-}
-
-.footer-brand {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.footer-heading {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.footer-column-header {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.footer-column-content p {
-  color: var(--text-secondary);
-  margin-bottom: 1.5rem;
-  font-size: 0.95rem;
-  line-height: 1.6;
-}
-
-.footer-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.footer-list li {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
+.days-info {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
   margin-bottom: 0.75rem;
-  padding-left: 1.5rem;
-  position: relative;
+  flex-wrap: wrap;
 }
 
-.footer-list li::before {
-  content: '→';
-  position: absolute;
-  left: 0;
-  color: var(--primary);
-  font-weight: 600;
+.days-remaining {
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--ink);
 }
 
-.footer-link {
+.days-urgent { color: var(--ink); }
+.days-high { color: var(--ink); }
+.days-medium { color: var(--light-ink); }
+.days-low { color: var(--lighter-ink); }
+.days-expired { color: var(--lighter-ink); }
+
+.expiry-date {
+  color: var(--lighter-ink);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.vendor-info {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-bottom: 0.625rem;
+}
+
+.vendor-avatar {
+  display: none;
+}
+
+.vendor-name {
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+.agency-name {
+  font-size: 0.8125rem;
+  color: var(--light-ink);
+  margin-bottom: 0.625rem;
+  font-weight: 400;
+}
+
+.description-text {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--light-ink);
+  margin-bottom: 0.75rem;
+  font-weight: 400;
+}
+
+.view-link {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  color: var(--primary);
-  text-decoration: none;
-  font-size: 0.9rem;
+  gap: 0.375rem;
+  color: var(--ink);
+  font-size: 0.75rem;
   font-weight: 500;
-  transition: all 0.2s ease;
-  padding: 0.5rem 0;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 1px;
+  transition: opacity 0.2s ease;
 }
 
-.footer-link:hover {
-  color: var(--primary-dark);
-  transform: translateX(2px);
+.view-link:active {
+  opacity: 0.5;
 }
 
-.footer-bottom {
+/* ===== BOTTOM ACTIONS ===== */
+.bottom-actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--paper);
   border-top: 1px solid var(--border);
-  padding-top: 2rem;
+  padding: 0.875rem 1rem;
+  display: flex;
+  gap: 0.625rem;
+  z-index: 90;
 }
 
-.footer-bottom-content {
+.action-btn {
+  flex: 1;
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: 0;
+  padding: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
+  justify-content: center;
+  gap: 0.375rem;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  touch-action: manipulation;
 }
 
-.footer-copyright {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  margin: 0;
+.action-btn:active {
+  background: var(--ink);
+  color: var(--paper);
 }
 
-.connect-card-compact {
-  padding: 0;
-  overflow: auto;
-  margin-top: 1rem;
+/* ===== LOADING ===== */
+.loading-state {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(250, 250, 248, 0.95);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }
 
-.connect-avatar {
-  float: left;
-  margin-right: 1rem;
-  margin-bottom: 0.5rem;
-}
-
-.connect-avatar img {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid var(--border);
-  display: block;
-}
-
-.connect-info h4 {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
-}
-
-.connect-info p {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  margin-bottom: 1rem;
-  line-height: 1.5;
-}
-
-.connect-buttons {
+.loading-state.active {
   display: flex;
-  gap: 0.75rem;
-  clear: both;
 }
 
-/* ===== UTILITY CLASSES ===== */
-.hidden {
-  display: none !important;
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--border);
+  border-top: 2px solid var(--ink);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1.5rem;
 }
 
-.fade-in {
-  opacity: 0;
-  animation: fadeIn 0.6s ease forwards;
-}
-
-/* ===== ANIMATIONS ===== */
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  to { transform: rotate(360deg); }
 }
 
-@keyframes fadeIn {
-  to { opacity: 1; }
+.loading-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
-/* ===== MOBILE RESPONSIVE STYLES ===== */
-@media (max-width: 768px) {
-  /* Force 16px font size to prevent zoom on iOS */
-  input, select, textarea {
-    font-size: 16px !important;
-  }
+.loading-subtext {
+  color: var(--light-ink);
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
 
-  /* Hero Section Mobile */
-  .hero-section {
-    padding: 1rem;
-  }
-  
-  .hero-subtitle {
-    font-size: 1rem;
-    line-height: 1.3;
-  }
-  
-  .search-container {
-    padding: 1.5rem;
-  }
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  padding: 4rem 1.5rem;
+  text-align: center;
+}
 
-  .search-form {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .search-form .input-group:first-child,
-  .search-form .input-group:not(:first-child) {
-    flex: none;
-  }
-  
-  .search-btn {
-    margin-top: 0.5rem;
-  }
+.empty-icon {
+  font-size: 3rem;
+  color: var(--border);
+  margin-bottom: 1rem;
+}
 
-  /* Results Section Mobile - Cohesive App Design */
-  .results-section {
-    background: var(--bg-primary);
-    padding: 0;
-    min-height: 100vh;
+.empty-text {
+  font-size: 0.875rem;
+  color: var(--light-ink);
+  font-weight: 400;
+}
+
+/* ===== DESKTOP ===== */
+@media (min-width: 1024px) {
+  .theme-toggle {
+    bottom: 1.5rem;
+    right: 1.5rem;
   }
   
   .results-header {
-    background: var(--bg-primary);
-    border: none;
-    border-radius: 0;
-    margin: 0;
-    padding: 1rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem;
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
   }
   
-  .opportunities-container {
-    background: var(--bg-primary);
-    border: none;
-    border-radius: 0;
-    margin: 0;
+  .header-brand {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
   }
-
-  /* Header Mobile Styles */
-  .header-top {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 1rem;
+  
+  .header-brand-text {
+    font-size: 1.5rem;
   }
-
-  .header-subtitle {
-    font-size: 0.8rem;
-  }
-
-  /* Mobile Search Row */
-  .integrated-search-row {
+  
+  .header-actions-desktop {
     display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border);
-    width: 100%;
   }
   
-  .search-inputs {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    width: 100%;
+  .summary-bar {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem;
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
   }
   
-  .header-search-input {
-    width: 100%;
-    font-size: 16px !important;
-    box-sizing: border-box;
-  }
-  
-  /* Hide dropdowns on mobile */
-  .header-search-select {
-    display: none;
-  }
-  
-  /* Mobile Button Styling */
-  .header-search-btn,
-  .share-btn {
-    width: 100%;
-    padding: 0.75rem;
-    font-size: 0.9rem;
-    border-radius: var(--radius);
-    margin-top: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-  }
-  
-  .share-btn {
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
-    border: 1px solid var(--border);
-    margin-top: 0.5rem;
-  }
-  
-  .share-btn:hover {
-    background: var(--primary);
-    border-color: var(--primary);
-    color: white;
-  }
-
-  /* Opportunities Header Mobile */
-  .opportunities-header .filters-container {
-    display: none !important;
-  }
-
-  .opportunities-header {
-    padding: 1rem;
-    border-bottom: none;
-    background: var(--bg-primary);
-  }
-
-  .search-results-summary {
-    margin-bottom: 0;
-    font-size: 1rem;
-    color: var(--text-primary);
-    line-height: 1.4;
-    text-align: left;
-  }
-
-  /* Hide Desktop Table, Show Mobile Cards */
-  .opportunities-table-container {
-    display: none;
-  }
-  
-  .opportunities-grid {
-    display: grid;
-    padding: 1rem;
-    gap: 0.75rem;
-    background: var(--bg-primary);
-  }
-  
-  /* Mobile Card Styles */
-  .opportunity-card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1rem;
-    transition: all 0.2s ease;
-  }
-  
-  .opportunity-card:hover {
-    transform: translateY(-1px);
-    border-color: var(--primary);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  }
-  
-  /* Mobile Card Layout */
-  .mobile-card-top {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    margin-bottom: 0.75rem;
-    flex-wrap: wrap;
-  }
-  
-  .mobile-card-top .priority-badge {
-    font-size: 0.65rem;
-    padding: 0.25rem 0.5rem;
-    border-radius: 12px;
-    flex-shrink: 0;
-  }
-  
-  .mobile-card-value {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--primary);
-    margin-left: auto;
-    flex-shrink: 0;
-  }
-  
-  .mobile-days-remaining {
-    font-size: 0.8rem;
-    font-weight: 600;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  
-  .mobile-vendor-name {
-    font-size: 0.8rem;
-    font-weight: 400;
-    color: var(--text-primary);
-    margin-bottom: 0.4rem;
-    line-height: 1.3;
-  }
-  
-  .mobile-agency-line {
-    font-size: 1rem;
-	font-weight: 600;
-	text-transform: uppercase;
-    color: var(--text-primary);
-    margin-bottom: 0.4rem;
-    line-height: 1.3;
-  }
-  
-  .mobile-contract-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.6rem;
-  }
-  
-  .mobile-contract-id {
-    font-size: 0.7rem;
-    color: var(--text-secondary);
-    font-family: 'Atkinson Hyperlegible', sans-serif;
-    background: rgba(255, 255, 255, 0.05);
-    padding: 0.2rem 0.4rem;
-    border-radius: 4px;
-  }
-  
-  .mobile-award-link {
-    color: var(--primary);
-    text-decoration: none;
-    font-size: 0.85rem;
-    padding: 0.25rem;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-  }
-  
-  .mobile-award-link:hover {
-    background: rgba(0, 122, 255, 0.1);
-    transform: scale(1.1);
-  }
-  
-  .mobile-description {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    line-height: 1.4;
-  }
-
-  /* Share Notification Mobile */
-  .share-notification {
-    top: 1rem;
-    right: 1rem;
-    left: 1rem;
-    max-width: none;
-  }
-
-  /* Footer Mobile */
-  .footer-content {
-    grid-template-columns: 1fr;
+  .filters-bar {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem;
+    flex-direction: row;
     gap: 1.5rem;
-    margin-bottom: 2rem;
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
   }
   
-  .footer-column {
-    padding: 1.5rem;
+  /* Desktop Table View */
+  .results-list {
+    max-width: 1400px;
+    margin: 0 auto;
+    background: var(--paper);
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
   }
   
-  .footer-bottom-content {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  /* Legacy Card Styles (for compatibility) */
-  .card-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.75rem;
+  .table-header {
+    display: none;
+    grid-template-columns: 80px 200px 2.5fr 1.5fr 110px 90px;
+    gap: 1.5rem;
+    padding: 0.875rem 2rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--subtle-bg);
   }
   
-  .card-value {
-    text-align: left;
-    font-size: 1.2rem;
+  .table-header.show {
+    display: grid;
   }
   
-  .card-secondary {
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
-  }
-}
-/* Hero Flag */
-.hero-flag {
-}
-
-.flag-image {
-  width: 45%;
-  height: auto;
-  display: block;
-  margin: 0 auto;
-}
-.header-branding {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0;
-}
-
-.results-flag {
-  margin-bottom: 0.25rem;
-  width: 100%;
-  text-align: left;
-}
-
-.results-flag-image {
-  width: 20%;
-  height: auto;
-  display: block;
-  margin: 0; /* Remove auto centering for desktop */
-}
-
-.brand-text-container {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
-}
-
-@media (max-width: 768px) {
-  .header-branding {
+  .table-header-cell {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--light-ink);
+    cursor: pointer;
+    user-select: none;
+    display: flex;
     align-items: center;
-    text-align: center;
+    gap: 0.25rem;
+    transition: color 0.2s ease;
   }
   
-  .brand-text-container {
+  .table-header-cell:hover {
+    color: var(--ink);
+  }
+  
+  .table-header-cell.active {
+    color: var(--ink);
+  }
+  
+  .sort-icon {
+    font-size: 0.625rem;
+    opacity: 0.3;
+    transition: opacity 0.2s ease;
+  }
+  
+  .table-header-cell.active .sort-icon {
+    opacity: 1;
+  }
+  
+  .result-card {
+    display: grid;
+    grid-template-columns: 80px 200px 2.5fr 1.5fr 110px 90px;
+    gap: 1.5rem;
+    align-items: center;
+    padding: 1.25rem 2rem;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  
+  .result-card:hover {
+    background: var(--hover-bg);
+  }
+  
+  .result-card:last-child {
+    border-bottom: none;
+  }
+  
+  /* Column 1: Priority + Days */
+  .card-header {
+    grid-column: 1;
+    margin: 0;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    text-align: center;
+    gap: 0.5rem;
+    align-items: flex-start;
   }
   
-  .results-flag {
-    margin-bottom: 0.25rem;
-    text-align: center; /* Center flag on mobile */
+  .priority-badge {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.625rem;
   }
   
-  .results-flag-image {
-    width: 20%;
-    margin: 0 auto; /* Center the image on mobile */
-  }
-  .flag-image {
-  width: 30%;
-  height: auto;
-  display: block;
-  margin: 0 auto;
-}
-
-/* Footer Mobile */
-  .footer-section {
-    padding: 2rem 1rem;
+  .card-days {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    white-space: nowrap;
   }
   
-  .footer-content {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-    margin-bottom: 2rem;
-  }
-  
-  .footer-column {
-    padding: 1rem;
+  /* Column 2: Vendor */
+  .vendor-info {
+    grid-column: 2;
     margin: 0;
   }
- }
-   .footer-container {
-    padding: 0;
+  
+  .vendor-avatar {
+    display: none;
   }
+  
+  .vendor-name {
+    font-size: 0.875rem;
+  }
+  
+  /* Column 3: Description */
+  .description-text {
+    grid-column: 3;
+    margin: 0;
+    font-size: 0.8125rem;
+  }
+  
+  /* Column 4: Agency */
+  .agency-name {
+    grid-column: 4;
+    margin: 0;
+    font-size: 0.8125rem;
+  }
+  
+  /* Column 5: Value */
+  .contract-value {
+    grid-column: 5;
+    text-align: right;
+    font-size: 1rem;
+  }
+  
+  /* Column 6: View Link */
+  .view-link {
+    grid-column: 6;
+    justify-content: flex-end;
+    font-size: 0.6875rem;
+    border: 1px solid var(--border);
+    border-radius: 0;
+    padding: 0.5rem 0.875rem;
+    text-align: center;
+    border-bottom-width: 1px;
+  }
+  
+  .view-link:hover {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+  
+  /* Hide mobile elements */
+  .days-info,
+  .card-header .contract-value {
+    display: none;
+  }
+  
+  .bottom-actions {
+    display: none;
+  }
+}
+
+/* Tablet */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .results-header {
+    padding: 1.5rem 2rem;
+  }
+  
+  .header-brand-text {
+    font-size: 1.375rem;
+  }
+  
+  .summary-bar {
+    padding: 1.5rem 2rem;
+  }
+  
+  .filters-bar {
+    padding: 1.5rem 2rem;
+    flex-direction: row;
+  }
+  
+  .result-card {
+    padding: 1.5rem 2rem;
+  }
+}
+
+.hidden {
+  display: none !important;
+}
 </style>
 </head>
 <body>
-  <div class="app-container">
-    <section class="hero-section" id="heroSection">
-  <div class="hero-logo">
-    <h1 class="hero-logo-text" id="heroLogoText">Govhoo.</h1>
+
+<!-- Hero Section -->
+<section id="heroSection" class="hero-section">
+  <h1 id="heroLogo" class="hero-logo-text">Govhoo?</h1>
+  <p class="hero-subtitle">Search Expiring Federal Contracts</p>
+  
+  <div class="search-container">
+    <input 
+      type="text" 
+      id="searchKeywords" 
+      class="form-input" 
+      placeholder="amazon vs oracle"
+      autocomplete="off"
+      autocapitalize="off"
+      autocorrect="off"
+    >
+    <button id="executeSearch" class="search-btn">
+      Search
+    </button>
   </div>
-  <p class="hero-subtitle">Turn Expiring Federal Contracts into Pipeline</p>
-      <div class="search-container">
-	  <div class="search-form">
-          <div class="input-group">
-            <input type="search" id="searchKeywords" class="form-input" 
-                   placeholder="Try company name, competitor, or technology keywords like 'cloud security' or 'data analytics'" />
-          </div>
-          <div class="input-group">
-            <select id="minValue" class="form-select">
-              <option value="">Any Value</option>
-              <option value="100000">$100K+</option>
-              <option value="500000">$500K+</option>
-              <option value="1000000">$1M+</option>
-              <option value="5000000">$5M+</option>
-            </select>
-          </div>
-          <div class="input-group">
-            <select id="agencyName" class="form-select">
-              <option value="">All Agencies</option>
-              <option value="Department of Defense">Defense</option>
-              <option value="Department of Veterans Affairs">Veterans Affairs</option>
-              <option value="Department of Homeland Security">Homeland Security</option>
-              <option value="General Services Administration">GSA</option>
-              <option value="Department of Health and Human Services">Health & Human Services</option>
-              <option value="Department of Energy">Energy</option>
-              <option value="National Aeronautics and Space Administration">NASA</option>
-              <option value="Department of Justice">Justice</option>
-              <option value="Department of State">State</option>
-              <option value="Department of Agriculture">Agriculture</option>
-            </select>
-          </div>
-        </div>
-        
-        <button id="executeSearch" class="search-btn">
-          <i class="fas fa-search"></i>
-          Find Opportunities
+</section>
+
+<!-- Results Section -->
+<section id="resultsSection" class="results-section">
+  <!-- Header -->
+  <div class="results-header">
+    <div class="header-brand">
+      <h2 id="headerBrand" class="header-brand-text">Govhoo?</h2>
+      <div class="header-actions-desktop">
+        <button id="exportCSVDesktop" class="action-btn-desktop">
+          <i class="fas fa-download"></i>
+          Export
         </button>
-
-        <div class="search-help">
-          <div class="search-help-toggle" id="searchHelpToggle">
-            <i class="fas fa-question-circle"></i>
-            How to search
-            <i class="fas fa-chevron-down" id="helpChevron"></i>
-          </div>
-          
-          <div class="search-help-content hidden" id="searchHelpContent">
-          <div class="help-grid">
-  <div class="help-item">
-    <div class="help-label">Single keywords</div>
-    <div class="help-example">aws</div>
-    <div class="help-description">Find contracts mentioning AWS anywhere in descriptions, vendor names, or agencies</div>
-  </div>
-  
-  <div class="help-item">
-    <div class="help-label">Two keywords (OR search)</div>
-    <div class="help-example">aws secure</div>
-    <div class="help-description">Find contracts containing AWS OR secure - broader results including "aws cloud" contracts</div>
-  </div>
-  
-  <div class="help-item">
-    <div class="help-label">Three+ keywords (precise search)</div>
-    <div class="help-example">defense health agency</div>
-    <div class="help-description">Search for the specific phrase "defense health agency" - more targeted results</div>
-  </div>
-  
-  <div class="help-item">
-    <div class="help-label">Exact phrases</div>
-    <div class="help-example">"amazon web services"</div>
-    <div class="help-description">Use quotes for exact company names or specific phrases regardless of length</div>
-  </div>
-</div>
-          </div>
-        </div>
-
-        <div id="errorMessage" class="error-message hidden">
-          <i class="fas fa-exclamation-circle"></i>
-          <span id="errorText"></span>
-        </div>
+        <button id="shareSearchDesktop" class="action-btn-desktop">
+          <i class="fas fa-share-alt"></i>
+          Share
+        </button>
       </div>
-    </section>
-
-    <div id="loadingState" class="loading-state hidden">
-      <div class="loading-spinner"></div>
-      <div class="loading-text">Searching for opportunities...</div>
-      <div class="loading-subtext">Searching USASpending...</div>
     </div>
-
-    <section class="results-section hidden" id="resultsSection">
-      <div class="results-header">
-        <div class="header-top">
-          <div class="header-branding">
-  <div class="brand-text-container">
-    <h1 class="header-brand-text">Govhoo.</h1>
-    <p class="header-subtitle">Turn Expiring Federal Contracts into Pipeline</p>
+    
+    <div class="header-search-row">
+      <input 
+        type="text" 
+        id="headerSearchKeywords" 
+        class="header-search-input" 
+        placeholder="Search..."
+        autocomplete="off"
+        autocapitalize="off"
+        autocorrect="off"
+      >
+      <button id="headerSearchBtn" class="header-search-btn">
+        Search
+      </button>
+    </div>
   </div>
-</div>
-        </div>
-        
-        <div class="integrated-search-row">
-          <div class="search-inputs">
-            <input type="search" id="headerSearchKeywords" class="header-search-input" 
-                   placeholder="Search companies, technologies, or use quotes for exact phrases..." />
-            <select id="headerMinValue" class="header-search-select">
-              <option value="">Any Value</option>
-              <option value="100000">$100K+</option>
-              <option value="500000">$500K+</option>
-              <option value="1000000">$1M+</option>
-              <option value="5000000">$5M+</option>
-            </select>
-            <select id="headerAgency" class="header-search-select">
-              <option value="">All Agencies</option>
-              <option value="Department of Defense">Defense</option>
-              <option value="Department of Veterans Affairs">Veterans Affairs</option>
-              <option value="Department of Homeland Security">Homeland Security</option>
-              <option value="General Services Administration">GSA</option>
-              <option value="Department of Health and Human Services">Health & Human Services</option>
-              <option value="Department of Energy">Energy</option>
-              <option value="National Aeronautics and Space Administration">NASA</option>
-              <option value="Department of Justice">Justice</option>
-              <option value="Department of State">State</option>
-              <option value="Department of Agriculture">Agriculture</option>
-            </select>
-          </div>
-          <button id="headerSearchBtn" class="header-search-btn">
-            <i class="fas fa-search"></i>
-            Search
-          </button>
-		  <button id="shareSearch" class="share-btn">
-    <i class="fas fa-share-alt"></i>
-    Share
-  </button>
-        </div>
-      </div>
-
-      <div class="opportunities-container">
-        <div class="opportunities-header">
-          <div class="search-results-summary">
-            <span id="resultsSummary">Loading...</span>
-          </div>
-          
-          <!-- Update your filters-container to include the share button -->
-<div class="filters-container">
-  <input type="text" id="searchFilter" class="filter-input" 
-         placeholder="Filter by vendor, agency, description, or contract ID...">
-  <select id="priorityFilter" class="filter-select">
-    <option value="">All Priorities</option>
-    <option value="urgent">Urgent (≤30 days)</option>
-    <option value="high">High (31-90 days)</option>
-    <option value="medium">Medium (3-6 months)</option>
-    <option value="low">Low (6+ months)</option>
-  </select>
-  <select id="agencyFilter" class="filter-select">
-    <option value="">All Agencies</option>
-  </select>
-  <select id="competitorFilter" class="filter-select">
-    <option value="">All Vendors</option>
-  </select>
   
-  <button id="exportCSV" class="export-btn">
-    <i class="fas fa-download"></i>
-    Export CSV
-  </button>
-</div>
-        </div>
-        
-        <div class="opportunities-table-container">
-          <table class="opportunities-table">
-            <thead>
-              <tr>
-                <th data-sort="priority">Priority <i class="fas fa-sort sort-icon"></i></th>
-                <th data-sort="daysRemaining">Days Left <i class="fas fa-sort sort-icon"></i></th>
-                <th data-sort="vendor">Current Vendor <i class="fas fa-sort sort-icon"></i></th>
-                <th data-sort="value">Value <i class="fas fa-sort sort-icon"></i></th>
-                <th data-sort="agency">Agency <i class="fas fa-sort sort-icon"></i></th>
-                <th>Description</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody id="opportunitiesTableBody">
-            </tbody>
-          </table>
-        </div>
-        
-        <div class="opportunities-grid" id="opportunitiesGrid">
-        </div>
-      </div>
-    </section>
-
-    <footer class="footer-section">
-      <div class="footer-container">
-        <div class="footer-content">
-          <div class="footer-column">
-            <div class="footer-column-header">
-              <h3 class="footer-brand">About Govhoo.</h3>
-            </div>
-            <div class="footer-column-content">
-              <div class="connect-card-compact">
-                <div class="connect-avatar">
-                  <img src="images/oldmark.jpg" alt="Mark's profile picture">
-                </div>
-                <div class="connect-info">
-                  <p>Hi, I'm Mark. I built my sales career at AWS, F5, and Red Hat and before that, I was a DISA COTR and Marine. Along the way I learned the biggest wins often hide in your competitor's expiring contracts and renewal cycles, not RFP chases.</p>
-                  <p>That's why I created <strong>Govhoo</strong>. It surfaces expiring and expired federal contracts, showing you contract IDs, values, and timelines so you can:</p>
-                  <ul>
-                    <li><strong>Defend</strong> your renewals</li>
-                    <li><strong>Attack</strong> competitor strongholds</li>
-                    <li><strong>Expand</strong> into new territories</li>
-                  </ul>
-                  <p>Need help? Schedule a free chat or DM me on LinkedIn.</p>
-
-                  <div class="connect-buttons">
-                    <a href="https://www.linkedin.com/in/markflournoy/" class="footer-link" target="_blank" rel="noopener">
-                      <i class="fab fa-linkedin"></i> Connect
-                    </a>
-                    <a href="https://calendly.com/markflournoy/intro" class="footer-link" target="_blank" rel="noopener">
-                      <i class="fas fa-calendar"></i> Chat
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="footer-column">
-            <div class="footer-column-header">
-              <h4 class="footer-heading">How to Use</h4>
-            </div>
-            <div class="footer-column-content">
-              <p>Run a quick search and turn data into action:</p>
-              <ul class="footer-list">
-                <li>Enter keywords, company names, or technologies</li>
-                <li>Filter by contract value or agency</li>
-                <li>Review expiration dates and priorities</li>
-                <li>Export results to CSV and share with your team</li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="footer-column">
-            <div class="footer-column-header">
-              <h4 class="footer-heading">Who It's For</h4>
-            </div>
-            <div class="footer-column-content">
-              <p>Sales teams, business development professionals, and capture managers who need actionable intelligence on federal contract renewals and competitive opportunities.</p>
-              <ul class="footer-list">
-                <li><strong>Defend</strong>: Protect your renewal base</li>
-                <li><strong>Attack</strong>: Target competitor contracts</li>
-                <li><strong>Expand</strong>: Find new agency white space</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div class="footer-bottom">
-          <div class="footer-bottom-content">
-            <p class="footer-copyright">
-              © 2025 Govhoo. Data sourced from USASpending.gov
-            </p>
-          </div>
-        </div>
-      </div>
-    </footer>
+  <!-- Summary -->
+  <div class="summary-bar">
+    <div id="searchResultsSummary" class="summary-text"></div>
   </div>
+  
+  <!-- Filters -->
+  <div class="filters-bar">
+    <input 
+      type="text" 
+      id="searchFilter" 
+      class="filter-input" 
+      placeholder="Filter results..."
+    >
+    <select id="priorityFilter" class="filter-select">
+      <option value="">All Priorities</option>
+      <option value="urgent">Urgent</option>
+      <option value="high">High</option>
+      <option value="medium">Medium</option>
+      <option value="low">Low</option>
+      <option value="expired">Expired</option>
+    </select>
+  </div>
+  
+  <!-- Results List -->
+  <div id="resultsList" class="results-list">
+    <div class="table-header" id="tableHeader">
+      <div class="table-header-cell" data-sort="priority">
+        Priority
+        <i class="fas fa-sort sort-icon"></i>
+      </div>
+      <div class="table-header-cell" data-sort="vendor">
+        Vendor
+        <i class="fas fa-sort sort-icon"></i>
+      </div>
+      <div class="table-header-cell" data-sort="description">
+        Description
+        <i class="fas fa-sort sort-icon"></i>
+      </div>
+      <div class="table-header-cell" data-sort="agency">
+        Agency
+        <i class="fas fa-sort sort-icon"></i>
+      </div>
+      <div class="table-header-cell" data-sort="value">
+        Value
+        <i class="fas fa-sort sort-icon"></i>
+      </div>
+      <div class="table-header-cell">
+        Action
+      </div>
+    </div>
+  </div>
+  
+  <!-- Bottom Actions -->
+  <div class="bottom-actions">
+    <button id="exportCSV" class="action-btn">
+      <i class="fas fa-download"></i>
+      Export
+    </button>
+    <button id="shareSearch" class="action-btn">
+      <i class="fas fa-share-alt"></i>
+      Share
+    </button>
+  </div>
+</section>
+
+<!-- Loading -->
+<div id="loadingState" class="loading-state">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Searching</div>
+  <div class="loading-subtext">Finding expiring contracts</div>
+</div>
+
+<!-- Theme Toggle -->
+<button id="themeToggle" class="theme-toggle" title="Toggle theme">
+  <i class="fas fa-moon"></i>
+</button>
+
 <script>
-    // Streamlined Application State
-    const AppState = {
-      opportunities: [],
-      filteredOpportunities: [],
-      competitors: new Map(),
-      agencies: new Map(),
-      currentSort: { column: 'daysRemaining', direction: 'asc' },
-      filters: { search: '', priority: '', competitor: '', agency: '' },
-      canUseHistory: window.location.protocol !== 'file:' && window.history && window.history.replaceState,
-      isSearching: false
-    };
+// ===== STATE =====
+const AppState = {
+  opportunities: [],
+  filteredOpportunities: [],
+  currentKeywords: '',
+  currentSort: { field: 'priority', direction: 'asc' }
+};
 
-    // Security utilities for XSS prevention
-    const Security = {
-      escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-      },
-      
-      sanitizeSearchInput(input) {
-        if (!input || typeof input !== 'string') return '';
-        return input.trim().substring(0, 200); // Limit length
+// ===== UTILS =====
+const Utils = {
+  formatMoney(value) {
+    if (!value) return '$0';
+    const abs = Math.abs(value);
+    if (abs >= 1e9) return `$${(value / 1e9).toFixed(1)}B`;
+    if (abs >= 1e6) return `$${(value / 1e6).toFixed(1)}M`;
+    if (abs >= 1e3) return `$${(value / 1e3).toFixed(1)}K`;
+    return `$${value.toLocaleString()}`;
+  },
+  
+  formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  },
+  
+  getDaysUntilDate(dateString) {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return Math.ceil((date.getTime() - today.getTime()) / 86400000);
+  },
+  
+  getPriority(daysRemaining) {
+    if (daysRemaining === null) return { level: 'low', label: 'LOW' };
+    if (daysRemaining < 0) return { level: 'expired', label: 'EXPIRED' };
+    if (daysRemaining <= 30) return { level: 'urgent', label: 'URGENT' };
+    if (daysRemaining <= 90) return { level: 'high', label: 'HIGH' };
+    if (daysRemaining <= 180) return { level: 'medium', label: 'MEDIUM' };
+    return { level: 'low', label: 'LOW' };
+  },
+  
+  truncate(text, length) {
+    if (!text || text.length <= length) return text || '';
+    return text.substring(0, length) + '...';
+  },
+  
+  escape(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+};
+
+// ===== API =====
+const API = {
+  async searchContracts(keywords) {
+    const isComparison = keywords.includes(' vs ') || keywords.includes(',');
+    
+    if (isComparison) {
+      return await this.searchComparison(keywords);
+    }
+    
+    return await this.searchSingle(keywords);
+  },
+  
+  async searchComparison(keywords) {
+    let terms = [];
+    if (keywords.includes(' vs ')) {
+      terms = keywords.split(' vs ').map(t => t.trim());
+    } else {
+      terms = keywords.split(',').map(t => t.trim());
+    }
+    
+    terms = terms.filter(t => t.length > 0);
+    
+    if (terms.length < 2) {
+      return await this.searchSingle(keywords);
+    }
+    
+    const allResults = [];
+    for (const term of terms) {
+      try {
+        const results = await this.searchSingle(term);
+        results.forEach(r => r.searchTerm = term);
+        allResults.push(...results);
+      } catch (error) {
+        console.error(`Failed to search for ${term}:`, error);
       }
-    };
-
-    // Enhanced analytics for production monitoring
-    const Analytics = {
-      trackError(error, context = {}) {
-        console.error('Application Error:', error, context);
-        if (typeof gtag !== 'undefined') {
-          gtag('event', 'exception', {
-            description: error.message || 'Unknown error',
-            fatal: false,
-            custom_map: { 
-              context: JSON.stringify(context),
-              timestamp: new Date().toISOString()
-            }
-          });
-        }
+    }
+    
+    if (allResults.length === 0) {
+      throw new Error('No contracts found for any search terms');
+    }
+    
+    return allResults;
+  },
+  
+  async searchSingle(keywords) {
+    const apiUrl = 'https://api.usaspending.gov/api/v2/search/spending_by_award/';
+    
+    const requestBody = {
+      filters: {
+        keywords: [keywords],
+        award_type_codes: ['A', 'B', 'C', 'D']
       },
-      
-      trackSearch(keywords, resultCount) {
-        if (typeof gtag !== 'undefined') {
-          gtag('event', 'search', {
-            search_term: keywords,
-            custom_map: { result_count: resultCount }
-          });
-        }
-      },
-
-      trackEvent(action, category, data = {}) {
-        if (typeof gtag !== 'undefined') {
-          gtag('event', action, {
-            event_category: category,
-            custom_map: data
-          });
-        }
-      }
-    };
-
-    // Rate limiting to prevent API abuse
-    const RateLimit = {
-      lastRequest: 0,
-      minInterval: 1000, // 1 second between requests
-      
-      canMakeRequest() {
-        const now = Date.now();
-        if (now - this.lastRequest < this.minInterval) {
-          return false;
-        }
-        this.lastRequest = now;
-        return true;
-      }
-    };
-
-    // Simplified URL Manager
-    const URLManager = {
-      generateShareableURL() {
-        if (AppState.canUseHistory) {
-          try {
-            const params = new URLSearchParams();
-            const keywords = document.getElementById('headerSearchKeywords')?.value.trim() ||
-                            document.getElementById('searchKeywords').value.trim();
-            const minValue = document.getElementById('headerMinValue')?.value ||
-                            document.getElementById('minValue').value;
-            const agency = document.getElementById('headerAgency')?.value ||
-                          document.getElementById('agencyName').value;
-            
-            if (keywords) params.set('q', keywords);
-            if (minValue) params.set('min', minValue);
-            if (agency) params.set('agency', agency);
-            if (AppState.filters.priority) params.set('priority', AppState.filters.priority);
-            if (AppState.filters.competitor) params.set('vendor', AppState.filters.competitor);
-            if (AppState.filters.agency) params.set('filter_agency', AppState.filters.agency);
-            if (AppState.filters.search) params.set('filter', AppState.filters.search);
-            
-            return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
-          } catch (e) {
-            Analytics.trackError(e, { function: 'generateShareableURL' });
-            return window.location.href;
-          }
-        }
-        return window.location.href;
-      },
-
-      loadFromURL() {
-        if (!AppState.canUseHistory) return false;
-        const params = new URLSearchParams(window.location.search);
-        if (params.size === 0) return false;
-        
-        const searchData = {
-          keywords: params.get('q') || '',
-          minValue: params.get('min') || '',
-          agency: params.get('agency') || '',
-          filters: {
-            priority: params.get('priority') || '',
-            competitor: params.get('vendor') || '',
-            agency: params.get('filter_agency') || '',
-            search: params.get('filter') || ''
-          }
-        };
-        
-        if (searchData.keywords) {
-          this.applySearchFromURL(searchData);
-          return true;
-        }
-        return false;
-      },
-
-      async applySearchFromURL(searchData) {
-        document.getElementById('searchKeywords').value = searchData.keywords;
-        document.getElementById('minValue').value = searchData.minValue;
-        document.getElementById('agencyName').value = searchData.agency;
-        
-        UI.showState('loading');
-        try {
-          const searchParams = {
-            keywords: searchData.keywords,
-            minValue: searchData.minValue,
-            agency: searchData.agency
-          };
-          
-          const searchBtn = document.getElementById('executeSearch');
-          await performSearch(searchParams, searchBtn, true);
-          
-          // Apply filters after search
-          if (searchData.filters) {
-            Object.entries(searchData.filters).forEach(([key, value]) => {
-              if (value) {
-                const element = document.getElementById(key + 'Filter');
-                if (element) {
-                  element.value = value;
-                  AppState.filters[key] = value;
-                }
-              }
-            });
-            Filtering.applyFilters();
-          }
-        } catch (error) {
-          Analytics.trackError(error, { function: 'applySearchFromURL' });
-          UI.showError('Failed to load shared search');
-          UI.showState('hero');
-        }
-      },
-
-      updateURL() {
-        if (AppState.canUseHistory) {
-          try {
-            const newURL = this.generateShareableURL();
-            if (newURL !== window.location.href) {
-              window.history.replaceState({}, '', newURL);
-            }
-          } catch (e) {
-            Analytics.trackError(e, { function: 'updateURL' });
-          }
-        }
-      }
-    };
-
-    // Simplified Share Manager
-    const ShareManager = {
-      async copyToClipboard() {
-        const shareURL = URLManager.generateShareableURL();
-        try {
-          await navigator.clipboard.writeText(shareURL);
-          this.showNotification('Link copied to clipboard!', 'success');
-          Analytics.trackEvent('share', 'clipboard_copy');
-        } catch {
-          this.fallbackCopy(shareURL);
-        }
-      },
-
-      fallbackCopy(text) {
-        const textArea = document.createElement("textarea");
-        textArea.value = text;
-        textArea.style.position = "fixed";
-        textArea.style.left = "-999px";
-        document.body.appendChild(textArea);
-        textArea.select();
-        
-        try {
-          document.execCommand('copy');
-          this.showNotification('Link copied!', 'success');
-          Analytics.trackEvent('share', 'fallback_copy');
-        } catch (error) {
-          Analytics.trackError(error, { function: 'fallbackCopy' });
-          this.showNotification('Copy failed', 'error');
-        }
-        
-        document.body.removeChild(textArea);
-      },
-
-      showNotification(message, type) {
-        const existing = document.querySelector('.share-notification');
-        if (existing) existing.remove();
-        
-        const notification = document.createElement('div');
-        notification.className = `share-notification ${type}`;
-        notification.innerHTML = `
-          <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
-          <span>${Security.escapeHtml(message)}</span>
-        `;
-        
-        document.body.appendChild(notification);
-        setTimeout(() => {
-          if (notification.parentNode) {
-            notification.style.opacity = '0';
-            setTimeout(() => notification.remove(), 300);
-          }
-        }, 3000);
-      }
-    };
-
-    // Optimized Utils
-    const Utils = {
-      debounce(func, delay) {
-        let timeout;
-        return function(...args) {
-          clearTimeout(timeout);
-          timeout = setTimeout(() => func.apply(this, args), delay);
-        };
-      },
-
-      formatMoney: (() => {
-        const cache = new Map();
-        const MAX_CACHE_SIZE = 500; // Limit cache size
-        
-        return (value) => {
-          if (cache.has(value)) return cache.get(value);
-          if (!value && value !== 0) return '$0';
-          const num = parseFloat(value);
-          if (isNaN(num)) return '$0';
-          
-          const abs = Math.abs(num);
-          let result;
-          if (abs >= 1e9) result = `$${(num / 1e9).toFixed(1)}B`;
-          else if (abs >= 1e6) result = `$${(num / 1e6).toFixed(1)}M`;
-          else if (abs >= 1e3) result = `$${(num / 1e3).toFixed(1)}K`;
-          else result = `$${num.toLocaleString()}`;
-          
-          // Clear oldest entries when cache gets too large
-          if (cache.size >= MAX_CACHE_SIZE) {
-            const firstKey = cache.keys().next().value;
-            cache.delete(firstKey);
-          }
-          
-          cache.set(value, result);
-          return result;
-        };
-      })(),
-
-      formatDate: (() => {
-        const formatter = new Intl.DateTimeFormat('en-US');
-        return (dateString) => {
-          if (!dateString) return 'N/A';
-          const date = new Date(dateString);
-          return isNaN(date.getTime()) ? 'N/A' : formatter.format(date);
-        };
-      })(),
-
-      getInitials(name) {
-        if (!name) return '?';
-        const parts = name.split(' ', 2);
-        return parts.length === 1 ?
-          parts[0].charAt(0).toUpperCase() :
-          (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
-      },
-
-      getColorForVendor: (() => {
-        const colors = ['#007AFF', '#34C759', '#FF9500', '#FF3B30', '#AF52DE', '#00D2FF'];
-        const cache = new Map();
-        const MAX_CACHE_SIZE = 500;
-        
-        return (vendor) => {
-          if (!vendor) return colors[0];
-          if (cache.has(vendor)) return cache.get(vendor);
-          
-          let hash = 0;
-          for (let i = 0; i < vendor.length; i++) {
-            hash = vendor.charCodeAt(i) + ((hash << 5) - hash);
-          }
-          const color = colors[Math.abs(hash) % colors.length];
-          
-          // Clear oldest entries when cache gets too large
-          if (cache.size >= MAX_CACHE_SIZE) {
-            const firstKey = cache.keys().next().value;
-            cache.delete(firstKey);
-          }
-          
-          cache.set(vendor, color);
-          return color;
-        };
-      })(),
-
-      truncateText: (text, maxLength) => text && text.length > maxLength ? text.substring(0, maxLength) + '...' : text || '',
-
-      getDaysUntilDate(dateString) {
-        if (!dateString) return null;
-        const date = new Date(dateString);
-        if (isNaN(date.getTime())) return null;
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        return Math.ceil((date.getTime() - today.getTime()) / 86400000);
-      },
-
-      getPriority(daysRemaining) {
-        if (daysRemaining === null || daysRemaining === undefined) return { level: 'low', label: 'UNKNOWN' };
-        if (daysRemaining < 0) return { level: 'expired', label: 'EXPIRED' };
-        if (daysRemaining <= 30) return { level: 'urgent', label: 'URGENT' };
-        if (daysRemaining <= 90) return { level: 'high', label: 'HIGH' };
-        if (daysRemaining <= 180) return { level: 'medium', label: 'MEDIUM' };
-        return { level: 'low', label: 'LOW' };
-      }
+      fields: [
+        'Award ID',
+        'Recipient Name',
+        'Start Date',
+        'End Date',
+        'Award Amount',
+        'Awarding Agency',
+        'Awarding Sub Agency',
+        'Description',
+        'generated_internal_id'
+      ],
+      page: 1,
+      limit: 100,
+      sort: 'Award Amount',
+      order: 'desc'
     };
     
-    // Streamlined API with improved search
-    const USASpendingAPI = {
-      baseURL: 'https://vt44ebi3jj.execute-api.us-east-1.amazonaws.com/default/award-search-proxy',
-      timeout: 10000,
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody)
+    });
+    
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return this.transformData(data);
+  },
+  
+  transformData(apiData) {
+    if (!apiData.results || !Array.isArray(apiData.results)) {
+      throw new Error('Invalid API response');
+    }
+    
+    const opportunities = apiData.results
+      .map(record => {
+        const endDate = record["End Date"];
+        if (!endDate) return null;
+        
+        const daysRemaining = Utils.getDaysUntilDate(endDate);
+        if (daysRemaining === null || daysRemaining < -60 || daysRemaining > 730) return null;
+        
+        return {
+          id: record["Award ID"] || 'Unknown',
+          internalId: record["generated_internal_id"],
+          vendor: record["Recipient Name"] || 'Unknown Vendor',
+          agency: record["Awarding Agency"] || 'Unknown Agency',
+          office: record["Awarding Sub Agency"] || '',
+          value: parseFloat(record["Award Amount"]) || 0,
+          description: record["Description"] || 'No description',
+          endDate: endDate,
+          daysRemaining: daysRemaining,
+          priority: Utils.getPriority(daysRemaining)
+        };
+      })
+      .filter(Boolean);
+    
+    if (opportunities.length === 0) {
+      throw new Error('No contracts found with upcoming renewal dates');
+    }
+    
+    const seen = new Set();
+    return opportunities.filter(opp => {
+      if (seen.has(opp.id)) return false;
+      seen.add(opp.id);
+      return true;
+    });
+  }
+};
 
-      parseSearchKeywords(keywords) {
-  if (!keywords || typeof keywords !== 'string') {
-    return [];
+// ===== UI =====
+const UI = {
+  showLoading(show) {
+    document.getElementById('loadingState').classList.toggle('active', show);
+  },
+  
+  showResults() {
+    document.getElementById('heroSection').classList.add('hidden');
+    document.getElementById('resultsSection').classList.add('active');
+  },
+  
+  showHero() {
+    document.getElementById('heroSection').classList.remove('hidden');
+    document.getElementById('resultsSection').classList.remove('active');
+  },
+  
+  updateSummary() {
+    const total = AppState.filteredOpportunities.length;
+    const totalValue = AppState.filteredOpportunities.reduce((sum, o) => sum + o.value, 0);
+    
+    const searchTerms = [...new Set(AppState.opportunities.map(o => o.searchTerm).filter(Boolean))];
+    let summary;
+    
+    if (searchTerms.length > 1) {
+      const breakdown = searchTerms.map(term => {
+        const count = AppState.filteredOpportunities.filter(o => o.searchTerm === term).length;
+        return `<strong>${count}</strong> for "${term}"`;
+      }).join(', ');
+      summary = `Found ${breakdown} (<strong>${total.toLocaleString()}</strong> total) totaling <strong>${Utils.formatMoney(totalValue)}</strong>`;
+    } else {
+      summary = `Found <strong>${total.toLocaleString()}</strong> expiring contracts for <strong>"${AppState.currentKeywords}"</strong> totaling <strong>${Utils.formatMoney(totalValue)}</strong>`;
+    }
+    
+    document.getElementById('searchResultsSummary').innerHTML = summary;
+  },
+  
+  renderResults() {
+    const container = document.getElementById('resultsList');
+    const tableHeader = document.getElementById('tableHeader');
+    
+    // Show table header on desktop
+    if (window.innerWidth >= 1024) {
+      tableHeader.classList.add('show');
+    }
+    
+    // Clear existing cards but keep header
+    const existingCards = container.querySelectorAll('.result-card, .empty-state');
+    existingCards.forEach(card => card.remove());
+    
+    if (AppState.filteredOpportunities.length === 0) {
+      const emptyState = document.createElement('div');
+      emptyState.className = 'empty-state';
+      emptyState.innerHTML = `
+        <div class="empty-icon"><i class="fas fa-filter"></i></div>
+        <div class="empty-text">No contracts match your filters</div>
+      `;
+      container.appendChild(emptyState);
+      return;
+    }
+    
+    const fragment = document.createDocumentFragment();
+    
+    AppState.filteredOpportunities.forEach(opp => {
+      let daysDisplay;
+      
+      if (opp.daysRemaining < 0) {
+        const daysAgo = Math.abs(opp.daysRemaining);
+        daysDisplay = `${daysAgo}d ago`;
+      } else {
+        daysDisplay = `${opp.daysRemaining}d`;
+      }
+      
+      const card = document.createElement('div');
+      card.className = 'result-card';
+      card.onclick = () => window.open(`https://www.usaspending.gov/award/${opp.internalId}`, '_blank');
+      card.innerHTML = `
+        <div class="card-header">
+          <span class="priority-badge priority-${opp.priority.level}">
+            ${opp.priority.label}
+          </span>
+          <div class="card-days days-${opp.priority.level}">${daysDisplay}</div>
+        </div>
+        
+        <div class="vendor-info">
+          <div class="vendor-name">${Utils.escape(Utils.truncate(opp.vendor, 35))}</div>
+        </div>
+        
+        <div class="description-text">${Utils.escape(Utils.truncate(opp.description, 100))}</div>
+        
+        <div class="agency-name">${Utils.escape(Utils.truncate(opp.agency, 40))}</div>
+        
+        <div class="contract-value">${Utils.formatMoney(opp.value)}</div>
+        
+        <a href="https://www.usaspending.gov/award/${opp.internalId}" 
+           target="_blank" 
+           class="view-link"
+           onclick="event.stopPropagation()">
+          View
+        </a>
+        
+        <div class="days-info">
+          <div class="days-remaining days-${opp.priority.level}">${opp.daysRemaining < 0 ? `${Math.abs(opp.daysRemaining)} day${Math.abs(opp.daysRemaining) === 1 ? '' : 's'} ago` : `${opp.daysRemaining} day${opp.daysRemaining === 1 ? '' : 's'}`}</div>
+          <div class="expiry-date">• ${opp.daysRemaining < 0 ? `Expired ${Utils.formatDate(opp.endDate)}` : `Expires ${Utils.formatDate(opp.endDate)}`}</div>
+        </div>
+      `;
+      
+      fragment.appendChild(card);
+    });
+    
+    container.appendChild(fragment);
+  }
+};
+
+// ===== SEARCH =====
+async function performSearch(keywords, btn) {
+  if (!keywords) {
+    return;
   }
   
-  const sanitized = Security.sanitizeSearchInput(keywords);
-  if (!sanitized) return [];
+  AppState.currentKeywords = keywords;
   
-  const exactPhrases = [];
-  let remainingText = sanitized;
+  const originalText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
   
-  const quotedMatches = sanitized.match(/"[^"]+"/g) || [];
-  quotedMatches.forEach(match => {
-    exactPhrases.push(match);
-    remainingText = remainingText.replace(match, '');
+  UI.showLoading(true);
+  
+  try {
+    const results = await API.searchContracts(keywords);
+    
+    AppState.opportunities = results;
+    AppState.filteredOpportunities = [...results].sort((a, b) => {
+      const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3, expired: 4 };
+      return priorityOrder[a.priority.level] - priorityOrder[b.priority.level];
+    });
+    
+    UI.updateSummary();
+    UI.renderResults();
+    UI.showResults();
+    
+    document.getElementById('headerSearchKeywords').value = keywords;
+    
+    const params = new URLSearchParams({ q: keywords });
+    window.history.replaceState({}, '', `?${params.toString()}`);
+    
+  } catch (error) {
+    console.error('Search error:', error);
+    alert(error.message || 'Search failed. Please try again.');
+  } finally {
+    UI.showLoading(false);
+    btn.disabled = false;
+    btn.innerHTML = originalText;
+  }
+}
+
+// ===== FILTERING =====
+function applyFilters() {
+  const searchTerm = document.getElementById('searchFilter').value.toLowerCase();
+  const priority = document.getElementById('priorityFilter').value;
+  
+  AppState.filteredOpportunities = AppState.opportunities.filter(opp => {
+    if (searchTerm) {
+      const matches = 
+        opp.vendor.toLowerCase().includes(searchTerm) ||
+        opp.agency.toLowerCase().includes(searchTerm) ||
+        opp.description.toLowerCase().includes(searchTerm) ||
+        opp.id.toLowerCase().includes(searchTerm);
+      if (!matches) return false;
+    }
+    
+    if (priority && opp.priority.level !== priority) return false;
+    
+    return true;
   });
   
-  if (remainingText.includes(',')) {
-    const commaSeparatedTerms = remainingText
-      .split(',')
-      .map(term => term.trim().toLowerCase())
-      .filter(term => term.length > 0);
-    return [...exactPhrases, ...commaSeparatedTerms];
-  } else {
-    const words = remainingText
-      .trim()
-      .split(/\s+/)
-      .map(word => word.trim().toLowerCase())
-      .filter(word => word.length > 2);
+  sortOpportunities(AppState.currentSort.field, AppState.currentSort.direction);
+  UI.updateSummary();
+  UI.renderResults();
+}
+
+// ===== SORTING =====
+function sortOpportunities(field, direction) {
+  AppState.filteredOpportunities.sort((a, b) => {
+    let valA, valB;
     
-    if (words.length >= 3) {
-      const compoundPhrase = words.join(' ');
-      return [...exactPhrases, compoundPhrase];
+    switch(field) {
+      case 'priority':
+        const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3, expired: 4 };
+        valA = priorityOrder[a.priority.level];
+        valB = priorityOrder[b.priority.level];
+        break;
+      case 'vendor':
+        valA = a.vendor.toLowerCase();
+        valB = b.vendor.toLowerCase();
+        break;
+      case 'value':
+        valA = a.value;
+        valB = b.value;
+        break;
+      case 'agency':
+        valA = a.agency.toLowerCase();
+        valB = b.agency.toLowerCase();
+        break;
+      case 'description':
+        valA = a.description.toLowerCase();
+        valB = b.description.toLowerCase();
+        break;
+      default:
+        return 0;
+    }
+    
+    if (valA < valB) return direction === 'asc' ? -1 : 1;
+    if (valA > valB) return direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+  
+  AppState.currentSort = { field, direction };
+  updateSortIcons(field, direction);
+}
+
+function updateSortIcons(field, direction) {
+  const headers = document.querySelectorAll('.table-header-cell');
+  headers.forEach(header => {
+    const sortField = header.dataset.sort;
+    const icon = header.querySelector('.sort-icon');
+    
+    if (!sortField || !icon) return;
+    
+    if (sortField === field) {
+      header.classList.add('active');
+      icon.className = `fas fa-sort-${direction === 'asc' ? 'up' : 'down'} sort-icon`;
     } else {
-      return [...exactPhrases, ...words];
+      header.classList.remove('active');
+      icon.className = 'fas fa-sort sort-icon';
     }
+  });
+}
+
+// ===== EXPORT =====
+function exportToCSV() {
+  if (AppState.filteredOpportunities.length === 0) {
+    return;
   }
-},
+  
+  const headers = ['Priority', 'Days Left', 'Vendor', 'Agency', 'Value', 'Expires', 'Description'];
+  const rows = AppState.filteredOpportunities.map(o => [
+    o.priority.label,
+    o.daysRemaining,
+    o.vendor,
+    o.agency,
+    o.value,
+    o.endDate,
+    o.description
+  ]);
+  
+  let csv = headers.join(',') + '\n';
+  rows.forEach(row => {
+    csv += row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',') + '\n';
+  });
+  
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `govhoo-${AppState.currentKeywords}-${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
-      async searchContracts(searchParams) {
-        const keywordsArray = this.parseSearchKeywords(searchParams.keywords);
-        
-        const requestBody = {
-          filters: {
-            award_type_codes: ['A', 'B', 'C', 'D'],
-            keywords: keywordsArray.length > 0 ? keywordsArray : undefined,
-            award_amounts: searchParams.minValue ? [{ lower_bound: parseInt(searchParams.minValue) }] : undefined,
-            agencies: searchParams.agency ? [{ type: "awarding", tier: "toptier", name: searchParams.agency }] : undefined
-          },
-          fields: ["Award ID", "Recipient Name", "Start Date", "End Date", "Award Amount", "Awarding Agency", "Awarding Sub Agency", "Description", "generated_internal_id"],
-          page: 1,
-          limit: 100, // Increased for better coverage with OR logic
-          sort: "Award Amount",
-          order: "desc"
-        };
-        
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), this.timeout);
-        
-        try {
-          const response = await fetch(this.baseURL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestBody),
-            signal: controller.signal
-          });
-          
-          clearTimeout(timeoutId);
-          
-          if (!response.ok) {
-            throw new Error(`API Error: ${response.status}`);
-          }
-          
-          const data = await response.json();
-          return this.transformData(data);
-        } catch (error) {
-          clearTimeout(timeoutId);
-          if (error.name === 'AbortError') {
-            throw new Error('Request timed out');
-          }
-          throw error;
-        }
-      },
-
-      transformData(apiData) {
-        if (!apiData.results || !Array.isArray(apiData.results)) {
-          throw new Error('Invalid API response format');
-        }
-        
-        const opportunities = apiData.results.map(record => {
-          const popEndDate = record["End Date"];
-          if (!popEndDate) return null;
-          
-          const daysRemaining = Utils.getDaysUntilDate(popEndDate);
-          if (daysRemaining === null || daysRemaining < -60 || daysRemaining > 730) return null;
-          
-          return {
-            id: record["Award ID"] || 'Unknown ID',
-            internalId: record["generated_internal_id"],
-            vendor: record["Recipient Name"] || 'Unknown Vendor',
-            agency: record["Awarding Agency"] || 'Unknown Agency',
-            office: record["Awarding Sub Agency"] || 'Unknown Office',
-            value: parseFloat(record["Award Amount"]) || 0,
-            description: record["Description"] || 'No description available',
-            awardLink: record["generated_internal_id"] ? `https://www.usaspending.gov/award/${record["generated_internal_id"]}/` : null,
-            popEndDate: popEndDate,
-            daysRemaining: daysRemaining,
-            priority: Utils.getPriority(daysRemaining),
-            awardDate: record["Start Date"] || ''
-          };
-        }).filter(Boolean);
-        
-        if (opportunities.length === 0) {
-          throw new Error('No contracts found with upcoming renewal dates');
-        }
-        
-        // Remove duplicates
-        const seen = new Set();
-        return opportunities.filter(opp => {
-          if (seen.has(opp.id)) return false;
-          seen.add(opp.id);
-          return true;
-        });
-      }
-    };
-
-    // Streamlined UI Management
-    const UI = {
-      showState(state) {
-        document.getElementById('heroSection').style.display = state === 'hero' ? 'flex' : 'none';
-        document.getElementById('loadingState').classList.toggle('hidden', state !== 'loading');
-        document.getElementById('resultsSection').classList.toggle('hidden', state !== 'results');
-        if (state === 'results') {
-          document.getElementById('resultsSection').classList.add('fade-in');
-        }
-      },
-      
-      showError(message) {
-        const errorText = document.getElementById('errorText');
-        const errorMessage = document.getElementById('errorMessage');
-        if (errorText && errorMessage) {
-          errorText.textContent = message;
-          errorMessage.classList.remove('hidden');
-        }
-      },
-      
-      hideError() {
-        const errorMessage = document.getElementById('errorMessage');
-        if (errorMessage) {
-          errorMessage.classList.add('hidden');
-        }
-      },
-      
-      updateSortIcons(column, direction) {
-        document.querySelectorAll('.sort-icon').forEach(icon => {
-          icon.className = 'fas fa-sort sort-icon';
-          icon.parentElement.classList.remove('sort-active');
-        });
-        const activeHeader = document.querySelector(`th[data-sort="${column}"]`);
-        if (activeHeader) {
-          const activeIcon = activeHeader.querySelector('.sort-icon');
-          if (activeIcon) {
-            activeIcon.className = `fas fa-sort-${direction === 'asc' ? 'up' : 'down'} sort-icon sort-active`;
-            activeHeader.classList.add('sort-active');
-          }
-        }
-      },
-      
-      updateMetrics() {
-        const opps = AppState.filteredOpportunities;
-        const totalValue = opps.reduce((sum, opp) => sum + opp.value, 0);
-        const currentKeywords = document.getElementById('headerSearchKeywords')?.value.trim() || document.getElementById('searchKeywords').value.trim();
-        let summary = `We found ${opps.length.toLocaleString()} expiring opportunities with a total value of ${Utils.formatMoney(totalValue)}`;
-        if (currentKeywords) {
-          summary += ` for "${currentKeywords}"`;
-        }
-        summary += '.';
-        
-        const summaryElement = document.getElementById('resultsSummary');
-        if (summaryElement) {
-          summaryElement.textContent = summary;
-        }
-      },
-      
-      updateOpportunitiesTable() {
-        const tbody = document.getElementById('opportunitiesTableBody');
-        if (!tbody) return;
-        
-        const opportunities = AppState.filteredOpportunities;
-        if (opportunities.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 3rem; color: var(--text-secondary);">No opportunities found matching current filters</td></tr>`;
-          return;
-        }
-        
-        const fragment = document.createDocumentFragment();
-        opportunities.forEach(opp => {
-          const tr = document.createElement('tr');
-          tr.className = 'fade-in';
-          tr.innerHTML = this.generateTableRow(opp);
-          fragment.appendChild(tr);
-        });
-        
-        tbody.innerHTML = '';
-        tbody.appendChild(fragment);
-      },
-      
-      generateTableRow(opp) {
-        const priorityClass = `priority-${opp.priority.level}`;
-        const daysClass = `days-${opp.priority.level}`;
-        let daysDisplay, dateDisplay;
-        
-        if (opp.daysRemaining < 0) {
-          const daysAgo = Math.abs(opp.daysRemaining);
-          daysDisplay = `${daysAgo} day${daysAgo === 1 ? '' : 's'} ago`;
-          dateDisplay = `Expired ${Utils.formatDate(opp.popEndDate)}`;
-        } else {
-          daysDisplay = `${opp.daysRemaining} days`;
-          dateDisplay = `Expires ${Utils.formatDate(opp.popEndDate)}`;
-        }
-        
-        // Escape all user-controlled data
-        const vendorName = Security.escapeHtml(Utils.truncateText(opp.vendor, 30));
-        const vendorId = Security.escapeHtml(Utils.truncateText(opp.id, 25));
-        const agencyName = Security.escapeHtml(Utils.truncateText(opp.agency, 25));
-        const officeName = Security.escapeHtml(Utils.truncateText(opp.office, 25));
-        const description = Security.escapeHtml(Utils.truncateText(opp.description, 120));
-        
-        return `<td><span class="priority-badge ${priorityClass}">${opp.priority.label}</span></td><td><div class="days-remaining ${daysClass}">${daysDisplay}</div><div class="expiry-date">${dateDisplay}</div></td><td><div class="vendor-info"><div class="vendor-avatar" style="background: ${Utils.getColorForVendor(opp.vendor)}">${Utils.getInitials(opp.vendor)}</div><div><div class="vendor-name">${vendorName}</div><div class="vendor-id">${vendorId}</div></div></div></td><td><div class="contract-value">${Utils.formatMoney(opp.value)}</div></td><td><div class="agency-info">${agencyName}</div><div class="office-info">${officeName}</div></td><td><div class="description-text">${description}</div></td><td>${opp.awardLink ? `<a href="${Security.escapeHtml(opp.awardLink)}" target="_blank" class="view-award-btn"><i class="fas fa-external-link-alt"></i> View</a>` : ''}</td>`;
-      },
-      
-      updateOpportunitiesGrid() {
-        const grid = document.getElementById('opportunitiesGrid');
-        if (!grid) return;
-        
-        const opportunities = AppState.filteredOpportunities;
-        if (opportunities.length === 0) {
-          grid.innerHTML = `<div style="text-align: center; padding: 3rem; color: var(--text-secondary); grid-column: 1 / -1;">No opportunities found matching current filters</div>`;
-          return;
-        }
-        
-        const fragment = document.createDocumentFragment();
-        opportunities.forEach(opp => {
-          const cardDiv = document.createElement('div');
-          cardDiv.className = `opportunity-card ${opp.priority.level} fade-in`;
-          cardDiv.innerHTML = this.generateMobileCard(opp);
-          fragment.appendChild(cardDiv);
-        });
-        
-        grid.innerHTML = '';
-        grid.appendChild(fragment);
-      },
-      
-      generateMobileCard(opp) {
-        const daysClass = `days-${opp.priority.level}`;
-        const descriptionPreview = Security.escapeHtml(Utils.truncateText(opp.description, 80));
-        const vendorTitle = Security.escapeHtml(opp.vendor || '');
-        const agencyTitle = Security.escapeHtml(opp.agency || '');
-        const officeTitle = Security.escapeHtml(opp.office || '');
-        const idTitle = Security.escapeHtml(opp.id || '');
-        const vendorName = Security.escapeHtml(Utils.truncateText(opp.vendor, 35));
-        const agencyName = Security.escapeHtml(Utils.truncateText(opp.agency, 25));
-        const officeName = Security.escapeHtml(Utils.truncateText(opp.office, 25));
-        const contractId = Security.escapeHtml(Utils.truncateText(opp.id, 15));
-        
-        return `<div class="mobile-card-top">
-<span class="priority-badge priority-${opp.priority.level}">${opp.priority.label}</span>
-<div class="mobile-card-value">${Utils.formatMoney(opp.value)}</div>
-<div class="mobile-days-remaining ${daysClass}">${opp.daysRemaining<0?`${Math.abs(opp.daysRemaining)} day${Math.abs(opp.daysRemaining)===1?'':'s'} ago`:opp.daysRemaining} ${opp.daysRemaining<0?'':'days left'}</div>
-</div>
-<div class="mobile-vendor-name" title="${vendorTitle}">${vendorName}</div>
-<div class="mobile-agency-line">${agencyName} • ${officeName}</div>
-<div class="mobile-contract-row">
-<span class="mobile-contract-id" title="${idTitle}">${contractId}</span>
-${opp.awardLink?`<a href="${Security.escapeHtml(opp.awardLink)}" target="_blank" class="mobile-award-link"><i class="fas fa-external-link-alt"></i></a>`:''}
-</div>
-<div class="mobile-description">${descriptionPreview}</div>`;
-      },
-      
-      updateFilters() {
-        const competitorSelect = document.getElementById('competitorFilter');
-        const agencySelect = document.getElementById('agencyFilter');
-        if (!competitorSelect || !agencySelect) return;
-        
-        const competitorFragment = document.createDocumentFragment();
-        const agencyFragment = document.createDocumentFragment();
-        
-        competitorFragment.appendChild(this.createOption('', 'All Vendors'));
-        agencyFragment.appendChild(this.createOption('', 'All Agencies'));
-        
-        Array.from(AppState.competitors.values()).sort((a, b) => a.name.localeCompare(b.name)).forEach(competitor => {
-          competitorFragment.appendChild(this.createOption(competitor.name, `${Utils.truncateText(competitor.name, 30)} (${competitor.opportunities})`));
-        });
-        
-        Array.from(AppState.agencies.values()).sort((a, b) => a.name.localeCompare(b.name)).forEach(agency => {
-          agencyFragment.appendChild(this.createOption(agency.name, `${Utils.truncateText(agency.name, 30)} (${agency.opportunities})`));
-        });
-        
-        competitorSelect.innerHTML = '';
-        competitorSelect.appendChild(competitorFragment);
-        agencySelect.innerHTML = '';
-        agencySelect.appendChild(agencyFragment);
-      },
-      
-      createOption(value, text) {
-        const option = document.createElement('option');
-        option.value = value;
-        option.textContent = text;
-        return option;
-      }
-    };
-
-    // Filtering and Sorting
-    const Filtering = {
-      sortBy(column) {
-        if (AppState.currentSort.column === column) {
-          AppState.currentSort.direction = AppState.currentSort.direction === 'asc' ? 'desc' : 'asc';
-        } else {
-          AppState.currentSort = { column, direction: 'asc' };
-        }
-        UI.updateSortIcons(AppState.currentSort.column, AppState.currentSort.direction);
-        this.applyFilters();
-      },
-      
-      applySorting() {
-        const { column, direction } = AppState.currentSort;
-        const multiplier = direction === 'asc' ? 1 : -1;
-        
-        AppState.filteredOpportunities.sort((a, b) => {
-          let result;
-          switch (column) {
-            case 'priority':
-              const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3, expired: 4 };
-              result = (priorityOrder[a.priority.level] || 999) - (priorityOrder[b.priority.level] || 999);
-              break;
-            case 'value':
-              result = a.value - b.value;
-              break;
-            case 'daysRemaining':
-              result = a.daysRemaining - b.daysRemaining;
-              break;
-            default:
-              result = (a[column] || '').toString().localeCompare((b[column] || '').toString());
-          }
-          return result * multiplier;
-        });
-      },
-      
-      applyFilters() {
-        let filtered = AppState.opportunities;
-        
-        if (AppState.filters.priority) {
-          filtered = filtered.filter(opp => opp.priority?.level === AppState.filters.priority);
-        }
-        
-        if (AppState.filters.competitor) {
-          filtered = filtered.filter(opp => opp.vendor === AppState.filters.competitor);
-        }
-        
-        if (AppState.filters.agency) {
-          filtered = filtered.filter(opp => opp.agency === AppState.filters.agency);
-        }
-        
-        if (AppState.filters.search) {
-          const searchTerm = AppState.filters.search.toLowerCase();
-          filtered = filtered.filter(opp => 
-            (opp.vendor && opp.vendor.toLowerCase().includes(searchTerm)) || 
-            (opp.agency && opp.agency.toLowerCase().includes(searchTerm)) || 
-            (opp.description && opp.description.toLowerCase().includes(searchTerm)) || 
-            (opp.id && opp.id.toLowerCase().includes(searchTerm))
-          );
-        }
-        
-        AppState.filteredOpportunities = filtered;
-        this.applySorting();
-        UI.updateMetrics();
-        UI.updateOpportunitiesTable();
-        UI.updateOpportunitiesGrid();
-      }
-    };
-
-    // Data Analysis
-    const Analysis = {
-      analyzeCompetitors() {
-        AppState.competitors.clear();
-        AppState.agencies.clear();
-        
-        AppState.opportunities.forEach(opp => {
-          let competitor = AppState.competitors.get(opp.vendor);
-          if (!competitor) {
-            competitor = { name: opp.vendor, opportunities: 0, totalValue: 0 };
-            AppState.competitors.set(opp.vendor, competitor);
-          }
-          competitor.opportunities++;
-          competitor.totalValue += opp.value;
-          
-          let agency = AppState.agencies.get(opp.agency);
-          if (!agency) {
-            agency = { name: opp.agency, opportunities: 0, totalValue: 0 };
-            AppState.agencies.set(opp.agency, agency);
-          }
-          agency.opportunities++;
-          agency.totalValue += opp.value;
-        });
-      }
-    };
-
-    // Export functionality
-    const ExportData = {
-      exportToCSV() {
-        try {
-          const headers = ['Priority', 'Days Remaining', 'Expiration Date', 'Current Vendor', 'Contract Value', 'Agency', 'Office', 'Contract ID', 'Description', 'Award Date', 'USASpending Link'];
-          const rows = [headers.join(',')];
-          
-          AppState.filteredOpportunities.forEach(opp => {
-            const row = [
-              opp.priority.label,
-              opp.daysRemaining,
-              Utils.formatDate(opp.popEndDate),
-              `"${(opp.vendor||'').replace(/"/g,'""')}"`,
-              opp.value,
-              `"${(opp.agency||'').replace(/"/g,'""')}"`,
-              `"${(opp.office||'').replace(/"/g,'""')}"`,
-              opp.id,
-              `"${(opp.description||'').replace(/"/g,'""')}"`,
-              Utils.formatDate(opp.awardDate),
-              opp.awardLink || ''
-            ];
-            rows.push(row.join(','));
-          });
-          
-          const csvContent = rows.join('\n');
-          const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `contract-opportunities-${new Date().toISOString().split('T')[0]}.csv`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          
-          // Clean up blob URL immediately
-          setTimeout(() => URL.revokeObjectURL(url), 100);
-          
-          Analytics.trackEvent('export', 'csv', { record_count: AppState.filteredOpportunities.length });
-        } catch (error) {
-          Analytics.trackError(error, { function: 'exportToCSV' });
-          UI.showError('Export failed. Please try again.');
-        }
-      }
-    };
-
-    // Main search function with enhanced error handling
-    async function performSearch(searchParams, btn, isUrlLoad = false) {
-      if (AppState.isSearching) return;
-      AppState.isSearching = true;
-      
-      const originalHTML = btn.innerHTML;
-      if (!isUrlLoad) {
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
-      }
-
-      try {
-        const opportunities = await USASpendingAPI.searchContracts(searchParams);
-        
-        if (!opportunities || opportunities.length === 0) {
-          throw new Error('NO_RESULTS');
-        }
-        
-        AppState.opportunities = opportunities;
-        AppState.filteredOpportunities = [...opportunities];
-
-        // Track successful search
-        Analytics.trackSearch(searchParams.keywords, opportunities.length);
-        
-        if (!isUrlLoad) {
-          ['searchFilter', 'priorityFilter', 'competitorFilter', 'agencyFilter'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.value = '';
-          });
-          AppState.filters = { search: '', priority: '', competitor: '', agency: '' };
-        }
-
-        Filtering.applyFilters();
-        URLManager.updateURL();
-        UI.showState('results');
-        
-        // Defer filter population until after results are rendered
-        requestAnimationFrame(() => {
-          Analysis.analyzeCompetitors();
-          UI.updateFilters();
-        });
-
-      } catch (error) {
-        // Enhanced error logging
-        Analytics.trackError(error, {
-          function: 'performSearch',
-          keywords: searchParams.keywords,
-          isUrlLoad
-        });
-        
-        if (error.name === 'AbortError') {
-          UI.showError('Search timed out. Please try again.');
-        } else if (error.message === 'NO_RESULTS') {
-          UI.showError(`No contracts found for "${searchParams.keywords}". Try broader keywords.`);
-        } else if (error.message.includes('API Error')) {
-          UI.showError('Service temporarily unavailable. Please try again in a moment.');
-        } else if (error.message.includes('Request timed out')) {
-          UI.showError('Search timed out. Please check your connection and try again.');
-        } else {
-          UI.showError('Search failed. Please try again.');
-        }
-        
-        if (btn.id === 'executeSearch') {
-          UI.showState('hero');
-        }
-      } finally {
-        AppState.isSearching = false;
-        if (!isUrlLoad) {
-          btn.disabled = false;
-          btn.innerHTML = originalHTML;
-        }
-      }
-    }
-
-    // Search wrapper functions with rate limiting
-    async function executeUSASpendingSearch() {
-      if (!RateLimit.canMakeRequest()) {
-        UI.showError('Please wait a moment between searches');
-        return;
-      }
-      
-      const searchParams = {
-        keywords: document.getElementById('searchKeywords').value.trim(),
-        minValue: document.getElementById('minValue').value,
-        agency: document.getElementById('agencyName').value.trim() || undefined
-      };
-      
-      if (!searchParams.keywords) {
-        UI.showError('Please enter search keywords');
-        return;
-      }
-      
-      UI.hideError();
-      const searchBtn = document.getElementById('executeSearch');
-      await performSearch(searchParams, searchBtn);
-    }
-
-    async function executeHeaderSearch() {
-      if (!RateLimit.canMakeRequest()) {
-        UI.showError('Please wait a moment between searches');
-        return;
-      }
-      
-      const searchParams = {
-        keywords: document.getElementById('headerSearchKeywords').value.trim(),
-        minValue: document.getElementById('headerMinValue').value,
-        agency: document.getElementById('headerAgency').value.trim() || undefined
-      };
-      
-      if (!searchParams.keywords) {
-        document.getElementById('headerSearchKeywords').focus();
-        return;
-      }
-      
-      const searchBtn = document.getElementById('headerSearchBtn');
-      await performSearch(searchParams, searchBtn);
-    }
-    
-    // Reset function
-    function resetToInitialState() {
-      ['searchKeywords', 'minValue', 'agencyName', 'headerSearchKeywords', 'headerMinValue', 'headerAgency',
-       'searchFilter', 'priorityFilter', 'competitorFilter', 'agencyFilter'].forEach(id => {
-        const element = document.getElementById(id);
-        if (element) element.value = '';
-      });
-      
-      AppState.filters = { search: '', priority: '', competitor: '', agency: '' };
-      AppState.opportunities = [];
-      AppState.filteredOpportunities = [];
-      
-      if (AppState.canUseHistory) {
-        try {
-          window.history.replaceState({}, '', window.location.pathname);
-        } catch (e) {
-          Analytics.trackError(e, { function: 'resetToInitialState' });
-        }
-      }
-      
-      UI.hideError();
-      UI.showState('hero');
-    }
-
-    // Event handler setup
-    function setupEventHandlers() {
-      const executeBtn = document.getElementById('executeSearch');
-      if (executeBtn) {
-        executeBtn.addEventListener('click', executeUSASpendingSearch);
-      }
-      
-      const heroLogo = document.getElementById('heroLogoText');
-      if (heroLogo) {
-        heroLogo.addEventListener('click', resetToInitialState);
-      }
-      
-      const headerBrand = document.querySelector('.header-brand-text');
-      if (headerBrand) {
-        headerBrand.addEventListener('click', resetToInitialState);
-      }
-      
-      const helpToggle = document.getElementById('searchHelpToggle');
-      if (helpToggle) {
-        helpToggle.addEventListener('click', () => {
-          const content = document.getElementById('searchHelpContent');
-          const toggle = document.getElementById('searchHelpToggle');
-          if (content && toggle) {
-            content.classList.toggle('hidden');
-            toggle.classList.toggle('help-expanded');
-          }
-        });
-      }
-
-      const headerBtn = document.getElementById('headerSearchBtn');
-      const headerInput = document.getElementById('headerSearchKeywords');
-      if (headerBtn) {
-        headerBtn.addEventListener('click', executeHeaderSearch);
-      }
-      if (headerInput) {
-        headerInput.addEventListener('keypress', (e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            executeHeaderSearch();
-          }
-        });
-      }
-
-      const shareBtn = document.getElementById('shareSearch');
-      if (shareBtn) {
-        shareBtn.addEventListener('click', ShareManager.copyToClipboard.bind(ShareManager));
-      }
-
-      const exportBtn = document.getElementById('exportCSV');
-      if (exportBtn) {
-        exportBtn.addEventListener('click', ExportData.exportToCSV);
-      }
-      
-      const searchInput = document.getElementById('searchKeywords');
-      if (searchInput) {
-        searchInput.addEventListener('keypress', (e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            executeUSASpendingSearch();
-          }
-        });
-        searchInput.addEventListener('input', UI.hideError);
-      }
-      
-      const updateURLDebounced = Utils.debounce(() => URLManager.updateURL(), 2000);
-      
-      const searchFilter = document.getElementById('searchFilter');
-      if (searchFilter) {
-        searchFilter.addEventListener('input', Utils.debounce((e) => {
-          AppState.filters.search = e.target.value;
-          Filtering.applyFilters();
-          updateURLDebounced();
-        }, 300));
-      }
-      
-      ['priorityFilter', 'competitorFilter', 'agencyFilter'].forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-          element.addEventListener('change', (e) => {
-            const filterKey = id.replace('Filter', '');
-            AppState.filters[filterKey] = e.target.value;
-            Filtering.applyFilters();
-            updateURLDebounced();
-          });
-        }
-      });
-
-      document.querySelectorAll('th[data-sort]').forEach(th => {
-        th.addEventListener('click', () => {
-          Filtering.sortBy(th.dataset.sort);
-        });
-      });
-    }
-
-    // Application initialization
-    document.addEventListener('DOMContentLoaded', () => {
-      try {
-        // Clear all form inputs on page load
-        document.querySelectorAll('input, select').forEach(input => {
-          if (input.type !== 'button' && input.type !== 'submit') {
-            input.value = '';
-          }
-        });
-        
-        // Setup event handlers
-        setupEventHandlers();
-        
-        // Try to load from URL parameters
-        const hasURLParams = URLManager.loadFromURL();
-        
-        // Show hero section if no URL params
-        if (!hasURLParams) {
-          UI.showState('hero');
-        }
-        
-        // DNS prefetch for better performance
-        const link = document.createElement('link');
-        link.rel = 'dns-prefetch';
-        link.href = '//vt44ebi3jj.execute-api.us-east-1.amazonaws.com';
-        document.head.appendChild(link);
-        
-      } catch (error) {
-        Analytics.trackError(error, { function: 'DOMContentLoaded' });
-        console.error('Application initialization failed:', error);
-      }
+// ===== SHARE =====
+function shareSearch() {
+  if (navigator.share) {
+    navigator.share({
+      title: 'Govhoo Search',
+      text: `Expiring contracts for "${AppState.currentKeywords}"`,
+      url: window.location.href
+    }).catch(() => {
+      copyToClipboard();
     });
+  } else {
+    copyToClipboard();
+  }
+}
+
+function copyToClipboard() {
+  navigator.clipboard.writeText(window.location.href);
+}
+
+// ===== RESET =====
+function resetToHero() {
+  document.getElementById('searchKeywords').value = '';
+  document.getElementById('headerSearchKeywords').value = '';
+  document.getElementById('searchFilter').value = '';
+  document.getElementById('priorityFilter').value = '';
+  AppState.opportunities = [];
+  AppState.filteredOpportunities = [];
+  UI.showHero();
+  window.history.replaceState({}, '', window.location.pathname);
+}
+
+// ===== THEME TOGGLE =====
+function initTheme() {
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  updateThemeIcon(savedTheme);
+  
+  // Set initial meta theme color
+  const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+  metaThemeColor.setAttribute('content', savedTheme === 'light' ? '#ffffff' : '#1a1a1a');
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  
+  document.documentElement.setAttribute('data-theme', newTheme);
+  localStorage.setItem('theme', newTheme);
+  updateThemeIcon(newTheme);
+  
+  // Update meta theme color
+  const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+  metaThemeColor.setAttribute('content', newTheme === 'light' ? '#ffffff' : '#1a1a1a');
+}
+
+function updateThemeIcon(theme) {
+  const icon = document.querySelector('#themeToggle i');
+  icon.className = theme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+}
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', () => {
+  // Initialize theme
+  initTheme();
+  
+  // Theme toggle
+  document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+  
+  const heroInput = document.getElementById('searchKeywords');
+  const heroBtn = document.getElementById('executeSearch');
+  
+  heroBtn.addEventListener('click', () => performSearch(heroInput.value.trim(), heroBtn));
+  heroInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') performSearch(heroInput.value.trim(), heroBtn);
+  });
+  
+  const headerInput = document.getElementById('headerSearchKeywords');
+  const headerBtn = document.getElementById('headerSearchBtn');
+  
+  headerBtn.addEventListener('click', () => performSearch(headerInput.value.trim(), headerBtn));
+  headerInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') performSearch(headerInput.value.trim(), headerBtn);
+  });
+  
+  document.getElementById('searchFilter').addEventListener('input', applyFilters);
+  document.getElementById('priorityFilter').addEventListener('change', applyFilters);
+  
+  // Column sorting
+  document.querySelectorAll('.table-header-cell[data-sort]').forEach(header => {
+    header.addEventListener('click', () => {
+      const field = header.dataset.sort;
+      const currentDirection = AppState.currentSort.field === field ? AppState.currentSort.direction : 'asc';
+      const newDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+      sortOpportunities(field, newDirection);
+      UI.renderResults();
+    });
+  });
+  
+  document.getElementById('exportCSV').addEventListener('click', exportToCSV);
+  document.getElementById('shareSearch').addEventListener('click', shareSearch);
+  
+  document.getElementById('exportCSVDesktop').addEventListener('click', exportToCSV);
+  document.getElementById('shareSearchDesktop').addEventListener('click', shareSearch);
+  
+  document.getElementById('heroLogo').addEventListener('click', resetToHero);
+  document.getElementById('headerBrand').addEventListener('click', resetToHero);
+  
+  if (window.innerWidth >= 1024) {
+    document.querySelector('.header-actions-desktop').style.display = 'flex';
+  }
+  
+  window.addEventListener('resize', () => {
+    const tableHeader = document.getElementById('tableHeader');
+    
+    if (window.innerWidth >= 1024) {
+      document.querySelector('.header-actions-desktop').style.display = 'flex';
+      if (AppState.opportunities.length > 0) {
+        tableHeader.classList.add('show');
+      }
+    } else {
+      document.querySelector('.header-actions-desktop').style.display = 'none';
+      tableHeader.classList.remove('show');
+    }
+  });
+  
+  const params = new URLSearchParams(window.location.search);
+  const urlKeywords = params.get('q');
+  if (urlKeywords) {
+    heroInput.value = urlKeywords;
+    performSearch(urlKeywords, heroBtn);
+  } else {
+    heroInput.focus();
+  }
+});
 </script>
+
 </body>
 </html>
