@@ -21,27 +21,41 @@
   </script>
 <style>
 :root {
-  /* Light Mode (E-Ink) */
-  --paper: #fafaf8;
-  --ink: #1a1a1a;
-  --light-ink: #666666;
-  --lighter-ink: #999999;
-  --border: #e0e0de;
-  --accent-line: #d0d0ce;
-  --subtle-bg: #f4f4f2;
-  --hover-bg: #eeeeec;
+  /* Light Mode (E-Ink) - More muted palette */
+  --paper: #f9f9f7;       /* Softer, slightly cream paper */
+  --ink: #333333;         /* Softer, dark-gray ink */
+  --light-ink: #777777;   /* Lighter mid-gray */
+  --lighter-ink: #aaaaaa; /* Lighter gray */
+  --border: #e0e0e0;       /* Neutral gray border */
+  --accent-line: #d8d8d8; /* Softer accent */
+  --subtle-bg: #f5f5f5;   /* Very light gray bg */
+  --hover-bg: #ececec;    /* Light gray hover */
+  
+  /* E-Ink Colors (More desaturated/washed-out) */
+  --eink-coral: #E6C5C5;     /* Muted red */
+  --eink-peach: #EBD9C4;     /* Muted tan/orange */
+  --eink-sage: #D1D9C9;      /* Muted green */
+  --eink-lavender: #C8D3E0;  /* Muted blue (replaced purple) */
+  --eink-mist: #DADADA;      /* Muted gray */
 }
 
 [data-theme="dark"] {
-  /* Dark Mode (Inverted E-Ink) */
-  --paper: #1a1a1a;
-  --ink: #e8e8e8;
-  --light-ink: #a0a0a0;
-  --lighter-ink: #707070;
-  --border: #2a2a2a;
-  --accent-line: #353535;
-  --subtle-bg: #202020;
-  --hover-bg: #252525;
+  /* Dark Mode (Inverted E-Ink) - Softer palette */
+  --paper: #222222;       /* Softer dark background */
+  --ink: #e0e0e0;         /* Softer, light-gray text */
+  --light-ink: #999999;   /* Dark-mode mid-gray */
+  --lighter-ink: #666666; /* Dark-mode light-gray */
+  --border: #333333;       /* Dark border */
+  --accent-line: #3a3a3a; /* Dark accent */
+  --subtle-bg: #282828;   /* Slightly off-black bg */
+  --hover-bg: #2c2c2c;    /* Dark hover */
+  
+  /* E-Ink Colors (darker, muted versions) */
+  --eink-coral: #614646;     /* Dark muted red */
+  --eink-peach: #615545;     /* Dark muted tan */
+  --eink-sage: #4B5242;      /* Dark muted green */
+  --eink-lavender: #464F59;  /* Dark muted blue */
+  --eink-mist: #444444;      /* Dark muted gray */
 }
 
 * {
@@ -106,7 +120,7 @@ body {
 
 .hero-logo-text {
   font-size: clamp(2rem, 10vw, 4rem);
-  font-weight: 300;
+  font-weight: 600;
   letter-spacing: -0.02em;
   margin-bottom: 0.5rem;
   cursor: pointer;
@@ -220,7 +234,7 @@ body {
 
 .header-brand-text {
   font-size: 1.25rem;
-  font-weight: 300;
+  font-weight: 600;
   letter-spacing: -0.01em;
   cursor: pointer;
   user-select: none;
@@ -390,7 +404,7 @@ body {
 .priority-badge {
   display: inline-block;
   padding: 0.25rem 0.625rem;
-  border: 1px solid var(--ink);
+  border: 1px solid transparent;
   border-radius: 0;
   font-size: 0.625rem;
   font-weight: 600;
@@ -401,33 +415,33 @@ body {
 }
 
 .priority-urgent {
-  background: var(--ink);
-  color: var(--paper);
-  border-color: var(--ink);
+  background: var(--eink-coral);
+  color: var(--ink);
+  border-color: var(--eink-coral);
 }
 
 .priority-high {
-  background: transparent;
+  background: var(--eink-peach);
   color: var(--ink);
-  border-color: var(--ink);
+  border-color: var(--eink-peach);
 }
 
 .priority-medium {
-  background: transparent;
-  color: var(--light-ink);
-  border-color: var(--light-ink);
+  background: var(--eink-sage);
+  color: var(--ink);
+  border-color: var(--eink-sage);
 }
 
 .priority-low {
-  background: transparent;
-  color: var(--lighter-ink);
-  border-color: var(--lighter-ink);
+  background: var(--eink-lavender);
+  color: var(--ink);
+  border-color: var(--eink-lavender);
 }
 
 .priority-expired {
-  background: transparent;
-  color: var(--lighter-ink);
-  border-color: var(--accent-line);
+  background: var(--eink-mist);
+  color: var(--light-ink);
+  border-color: var(--eink-mist);
 }
 
 .contract-value {
@@ -457,10 +471,10 @@ body {
   color: var(--ink);
 }
 
-.days-urgent { color: var(--ink); }
-.days-high { color: var(--ink); }
-.days-medium { color: var(--light-ink); }
-.days-low { color: var(--lighter-ink); }
+.days-urgent { color: var(--ink); font-weight: 600; }
+.days-high { color: var(--ink); font-weight: 600; }
+.days-medium { color: var(--ink); font-weight: 500; }
+.days-low { color: var(--light-ink); }
 .days-expired { color: var(--lighter-ink); }
 
 .expiry-date {
@@ -568,12 +582,16 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(250, 250, 248, 0.95);
+  background: rgba(249, 249, 247, 0.95); /* Updated to match new paper */
   display: none;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   z-index: 1000;
+}
+
+[data-theme="dark"] .loading-state {
+  background: rgba(34, 34, 34, 0.95); /* Updated to match new dark paper */
 }
 
 .loading-state.active {
@@ -985,10 +1003,9 @@ body {
 </head>
 <body>
 
-<!-- Hero Section -->
 <section id="heroSection" class="hero-section">
-  <h1 id="heroLogo" class="hero-logo-text">Govhoo</h1>
-  <p class="hero-subtitle">Expiring Federal Contracts</p>
+  <h1 id="heroLogo" class="hero-logo-text">Govhoo?</h1>
+  <p class="hero-subtitle">Search Expiring Federal Contracts</p>
   
   <div class="search-container">
     <input 
@@ -1006,10 +1023,8 @@ body {
   </div>
 </section>
 
-<!-- Footer (Hero) -->
 <footer class="footer" id="heroFooter">
   <div class="footer-grid">
-    <!-- About -->
     <div class="footer-section">
       <h3 class="footer-heading">About Govhoo</h3>
       <p class="footer-text">
@@ -1032,7 +1047,6 @@ body {
       </div>
     </div>
     
-    <!-- How to Use -->
     <div class="footer-section">
       <h3 class="footer-heading">How to Use</h3>
       <p class="footer-text">Run a quick search and turn data into action:</p>
@@ -1044,7 +1058,6 @@ body {
       </ul>
     </div>
     
-    <!-- Who It's For -->
     <div class="footer-section">
       <h3 class="footer-heading">Who It's For</h3>
       <p class="footer-text">
@@ -1063,12 +1076,10 @@ body {
   </div>
 </footer>
 
-<!-- Results Section -->
 <section id="resultsSection" class="results-section">
-  <!-- Header -->
   <div class="results-header">
     <div class="header-brand">
-      <h2 id="headerBrand" class="header-brand-text">Govhoo</h2>
+      <h2 id="headerBrand" class="header-brand-text">Govhoo?</h2>
       <div class="header-actions-desktop">
         <button id="exportCSVDesktop" class="action-btn-desktop">
           <i class="fas fa-download"></i>
@@ -1097,12 +1108,10 @@ body {
     </div>
   </div>
   
-  <!-- Summary -->
   <div class="summary-bar">
     <div id="searchResultsSummary" class="summary-text"></div>
   </div>
   
-  <!-- Filters -->
   <div class="filters-bar">
     <input 
       type="text" 
@@ -1120,7 +1129,6 @@ body {
     </select>
   </div>
   
-  <!-- Results List -->
   <div id="resultsList" class="results-list">
     <div class="table-header" id="tableHeader">
       <div class="table-header-cell" data-sort="priority">
@@ -1149,7 +1157,6 @@ body {
     </div>
   </div>
   
-  <!-- Bottom Actions -->
   <div class="bottom-actions">
     <button id="exportCSV" class="action-btn">
       <i class="fas fa-download"></i>
@@ -1162,22 +1169,18 @@ body {
   </div>
 </section>
 
-<!-- Loading -->
 <div id="loadingState" class="loading-state">
   <div class="loading-spinner"></div>
   <div class="loading-text">Searching</div>
   <div class="loading-subtext">Finding expiring contracts</div>
 </div>
 
-<!-- Theme Toggle -->
 <button id="themeToggle" class="theme-toggle" title="Toggle theme">
   <i class="fas fa-moon"></i>
 </button>
 
-<!-- Footer -->
 <footer class="footer" id="resultsFooter">
   <div class="footer-grid">
-    <!-- About -->
     <div class="footer-section">
       <h3 class="footer-heading">About Govhoo</h3>
       <p class="footer-text">
@@ -1200,7 +1203,6 @@ body {
       </div>
     </div>
     
-    <!-- How to Use -->
     <div class="footer-section">
       <h3 class="footer-heading">How to Use</h3>
       <p class="footer-text">Run a quick search and turn data into action:</p>
@@ -1212,7 +1214,6 @@ body {
       </ul>
     </div>
     
-    <!-- Who It's For -->
     <div class="footer-section">
       <h3 class="footer-heading">Who It's For</h3>
       <p class="footer-text">
@@ -1723,7 +1724,7 @@ function initTheme() {
   
   // Set initial meta theme color
   const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-  metaThemeColor.setAttribute('content', savedTheme === 'light' ? '#ffffff' : '#1a1a1a');
+  metaThemeColor.setAttribute('content', savedTheme === 'light' ? '#f9f9f7' : '#222222'); // Updated
 }
 
 function initFooters() {
@@ -1742,7 +1743,7 @@ function toggleTheme() {
   
   // Update meta theme color
   const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-  metaThemeColor.setAttribute('content', newTheme === 'light' ? '#ffffff' : '#1a1a1a');
+  metaThemeColor.setAttribute('content', newTheme === 'light' ? '#f9f9f7' : '#222222'); // Updated
 }
 
 function updateThemeIcon(theme) {
