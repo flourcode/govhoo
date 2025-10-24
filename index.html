@@ -11,51 +11,44 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-T343V4RFHV"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-T343V4RFHV');
-  </script>
+  
 <style>
 :root {
-  /* Light Mode (E-Ink) - More muted palette */
-  --paper: #f9f9f7;       /* Softer, slightly cream paper */
-  --ink: #333333;         /* Softer, dark-gray ink */
-  --light-ink: #777777;   /* Lighter mid-gray */
-  --lighter-ink: #aaaaaa; /* Lighter gray */
-  --border: #e0e0e0;       /* Neutral gray border */
-  --accent-line: #d8d8d8; /* Softer accent */
-  --subtle-bg: #f5f5f5;   /* Very light gray bg */
-  --hover-bg: #ececec;    /* Light gray hover */
+  /* Light Mode (E-Ink) */
+  --paper: #fafaf8;
+  --ink: #1a1a1a;
+  --light-ink: #666666;
+  --lighter-ink: #999999;
+  --border: #e0e0de;
+  --accent-line: #d0d0ce;
+  --subtle-bg: #f4f4f2;
+  --hover-bg: #eeeeec;
   
-  /* E-Ink Colors (More desaturated/washed-out) */
-  --eink-coral: #E6C5C5;     /* Muted red */
-  --eink-peach: #EBD9C4;     /* Muted tan/orange */
-  --eink-sage: #D1D9C9;      /* Muted green */
-  --eink-lavender: #C8D3E0;  /* Muted blue (replaced purple) */
-  --eink-mist: #DADADA;      /* Muted gray */
+  /* E-Ink Colors (soft, visually pleasing pastels) */
+  --eink-coral: #E8B4B8;
+  --eink-peach: #F5D5B0;
+  --eink-sage: #C8D5B9;
+  --eink-lavender: #D4C8E0;
+  --eink-mist: #D8D8D8;
 }
 
 [data-theme="dark"] {
-  /* Dark Mode (Inverted E-Ink) - Softer palette */
-  --paper: #222222;       /* Softer dark background */
-  --ink: #e0e0e0;         /* Softer, light-gray text */
-  --light-ink: #999999;   /* Dark-mode mid-gray */
-  --lighter-ink: #666666; /* Dark-mode light-gray */
-  --border: #333333;       /* Dark border */
-  --accent-line: #3a3a3a; /* Dark accent */
-  --subtle-bg: #282828;   /* Slightly off-black bg */
-  --hover-bg: #2c2c2c;    /* Dark hover */
+  /* Dark Mode (Inverted E-Ink) */
+  --paper: #1a1a1a;
+  --ink: #e8e8e8;
+  --light-ink: #a0a0a0;
+  --lighter-ink: #707070;
+  --border: #2a2a2a;
+  --accent-line: #353535;
+  --subtle-bg: #202020;
+  --hover-bg: #252525;
   
-  /* E-Ink Colors (darker, muted versions) */
-  --eink-coral: #614646;     /* Dark muted red */
-  --eink-peach: #615545;     /* Dark muted tan */
-  --eink-sage: #4B5242;      /* Dark muted green */
-  --eink-lavender: #464F59;  /* Dark muted blue */
-  --eink-mist: #444444;      /* Dark muted gray */
+  /* E-Ink Colors (darker versions for dark mode) */
+  --eink-coral: #5A3C3E;
+  --eink-peach: #5A4A3A;
+  --eink-sage: #3E4A38;
+  --eink-lavender: #4A3E52;
+  --eink-mist: #3A3A3A;
 }
 
 * {
@@ -111,7 +104,6 @@ body {
   align-items: center;
   text-align: center;
   padding: 4rem 1.5rem 2rem;
-  border-bottom: 1px solid var(--border);
 }
 
 .hero-section.hidden {
@@ -582,16 +574,12 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(249, 249, 247, 0.95); /* Updated to match new paper */
+  background: rgba(250, 250, 248, 0.95);
   display: none;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-}
-
-[data-theme="dark"] .loading-state {
-  background: rgba(34, 34, 34, 0.95); /* Updated to match new dark paper */
 }
 
 .loading-state.active {
@@ -647,9 +635,8 @@ body {
 /* ===== FOOTER ===== */
 .footer {
   background: var(--paper);
-  border-top: 1px solid var(--border);
-  padding: 3rem 1rem 2rem;
-  margin-top: 4rem;
+  padding: 2rem 1rem 2rem;
+  margin-top: 0;
 }
 
 .footer-grid {
@@ -946,13 +933,23 @@ body {
   /* Column 6: View Link */
   .view-link {
     grid-column: 6;
-    justify-content: flex-end;
+    justify-content: center;
+    text-align: center;
     font-size: 0.6875rem;
     border: 1px solid var(--border);
     border-radius: 0;
-    padding: 0.5rem 0.875rem;
-    text-align: center;
+    padding: 0.5rem 0.75rem;
+    text-decoration: none;
     border-bottom-width: 1px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    width: fit-content;
+    margin: 0 auto;
+  }
+  
+  .view-link i {
+    display: none;
   }
   
   .view-link:hover {
@@ -1003,6 +1000,7 @@ body {
 </head>
 <body>
 
+<!-- Hero Section -->
 <section id="heroSection" class="hero-section">
   <h1 id="heroLogo" class="hero-logo-text">Govhoo?</h1>
   <p class="hero-subtitle">Search Expiring Federal Contracts</p>
@@ -1012,7 +1010,7 @@ body {
       type="text" 
       id="searchKeywords" 
       class="form-input" 
-      placeholder="amazon vs oracle"
+      placeholder="Try your company, competitor, or agency"
       autocomplete="off"
       autocapitalize="off"
       autocorrect="off"
@@ -1023,8 +1021,37 @@ body {
   </div>
 </section>
 
+<!-- Footer (Hero) -->
 <footer class="footer" id="heroFooter">
   <div class="footer-grid">
+    
+    
+    <!-- How to Use -->
+    <div class="footer-section">
+      <h3 class="footer-heading">How to Use</h3>
+      <p class="footer-text">Run a quick search and turn data into action:</p>
+      <ul class="footer-list">
+        <li>Enter keywords, company names, or technologies</li>
+        <li>Filter by contract value or agency</li>
+        <li>Review expiration dates and priorities</li>
+        <li>Export results to CSV and share with your team</li>
+      </ul>
+    </div>
+    
+    <!-- Who It's For -->
+    <div class="footer-section">
+      <h3 class="footer-heading">Who It's For</h3>
+      <p class="footer-text">
+        Sales teams, business development professionals, and capture managers who need actionable intelligence on federal contract renewals and competitive opportunities.
+      </p>
+      <ul class="footer-list">
+        <li><span class="footer-emphasis">Defend:</span> Protect your renewal base</li>
+        <li><span class="footer-emphasis">Attack:</span> Target competitor contracts</li>
+        <li><span class="footer-emphasis">Expand:</span> Find new agency white space</li>
+      </ul>
+    </div>
+	
+	<!-- About -->
     <div class="footer-section">
       <h3 class="footer-heading">About Govhoo</h3>
       <p class="footer-text">
@@ -1042,32 +1069,9 @@ body {
         Need help? Schedule a free chat or DM me on LinkedIn.
       </p>
       <div class="footer-links">
-        <a href="https://linkedin.com/in/yourprofile" class="footer-link" target="_blank">Connect</a>
+        <a href="mailto:hello@govhoo.com" class="footer-link" target="_blank">Connect</a>
         <a href="mailto:hello@govhoo.com" class="footer-link">Chat</a>
       </div>
-    </div>
-    
-    <div class="footer-section">
-      <h3 class="footer-heading">How to Use</h3>
-      <p class="footer-text">Run a quick search and turn data into action:</p>
-      <ul class="footer-list">
-        <li>Enter keywords, company names, or technologies</li>
-        <li>Filter by contract value or agency</li>
-        <li>Review expiration dates and priorities</li>
-        <li>Export results to CSV and share with your team</li>
-      </ul>
-    </div>
-    
-    <div class="footer-section">
-      <h3 class="footer-heading">Who It's For</h3>
-      <p class="footer-text">
-        Sales teams, business development professionals, and capture managers who need actionable intelligence on federal contract renewals and competitive opportunities.
-      </p>
-      <ul class="footer-list">
-        <li><span class="footer-emphasis">Defend:</span> Protect your renewal base</li>
-        <li><span class="footer-emphasis">Attack:</span> Target competitor contracts</li>
-        <li><span class="footer-emphasis">Expand:</span> Find new agency white space</li>
-      </ul>
     </div>
   </div>
   
@@ -1076,7 +1080,9 @@ body {
   </div>
 </footer>
 
+<!-- Results Section -->
 <section id="resultsSection" class="results-section">
+  <!-- Header -->
   <div class="results-header">
     <div class="header-brand">
       <h2 id="headerBrand" class="header-brand-text">Govhoo?</h2>
@@ -1097,7 +1103,7 @@ body {
         type="text" 
         id="headerSearchKeywords" 
         class="header-search-input" 
-        placeholder="Search..."
+        placeholder="Search company, competitor, or agency"
         autocomplete="off"
         autocapitalize="off"
         autocorrect="off"
@@ -1108,10 +1114,12 @@ body {
     </div>
   </div>
   
+  <!-- Summary -->
   <div class="summary-bar">
     <div id="searchResultsSummary" class="summary-text"></div>
   </div>
   
+  <!-- Filters -->
   <div class="filters-bar">
     <input 
       type="text" 
@@ -1129,6 +1137,7 @@ body {
     </select>
   </div>
   
+  <!-- Results List -->
   <div id="resultsList" class="results-list">
     <div class="table-header" id="tableHeader">
       <div class="table-header-cell" data-sort="priority">
@@ -1157,6 +1166,7 @@ body {
     </div>
   </div>
   
+  <!-- Bottom Actions -->
   <div class="bottom-actions">
     <button id="exportCSV" class="action-btn">
       <i class="fas fa-download"></i>
@@ -1169,18 +1179,48 @@ body {
   </div>
 </section>
 
+<!-- Loading -->
 <div id="loadingState" class="loading-state">
   <div class="loading-spinner"></div>
   <div class="loading-text">Searching</div>
   <div class="loading-subtext">Finding expiring contracts</div>
 </div>
 
+<!-- Theme Toggle -->
 <button id="themeToggle" class="theme-toggle" title="Toggle theme">
   <i class="fas fa-moon"></i>
 </button>
 
+<!-- Footer -->
 <footer class="footer" id="resultsFooter">
   <div class="footer-grid">
+    
+    
+    <!-- How to Use -->
+    <div class="footer-section">
+      <h3 class="footer-heading">How to Use</h3>
+      <p class="footer-text">Run a quick search and turn data into action:</p>
+      <ul class="footer-list">
+        <li>Enter keywords, company names, or technologies</li>
+        <li>Filter by contract value or agency</li>
+        <li>Review expiration dates and priorities</li>
+        <li>Export results to CSV and share with your team</li>
+      </ul>
+    </div>
+    
+    <!-- Who It's For -->
+    <div class="footer-section">
+      <h3 class="footer-heading">Who It's For</h3>
+      <p class="footer-text">
+        Sales teams, business development professionals, and capture managers who need actionable intelligence on federal contract renewals and competitive opportunities.
+      </p>
+      <ul class="footer-list">
+        <li><span class="footer-emphasis">Defend:</span> Protect your renewal base</li>
+        <li><span class="footer-emphasis">Attack:</span> Target competitor contracts</li>
+        <li><span class="footer-emphasis">Expand:</span> Find new agency white space</li>
+      </ul>
+    </div>
+	<!-- About -->
     <div class="footer-section">
       <h3 class="footer-heading">About Govhoo</h3>
       <p class="footer-text">
@@ -1198,32 +1238,9 @@ body {
         Need help? Schedule a free chat or DM me on LinkedIn.
       </p>
       <div class="footer-links">
-        <a href="https://linkedin.com/in/yourprofile" class="footer-link" target="_blank">Connect</a>
+        <a href="mailto:hello@govhoo.com" class="footer-link" target="_blank">Connect</a>
         <a href="mailto:hello@govhoo.com" class="footer-link">Chat</a>
       </div>
-    </div>
-    
-    <div class="footer-section">
-      <h3 class="footer-heading">How to Use</h3>
-      <p class="footer-text">Run a quick search and turn data into action:</p>
-      <ul class="footer-list">
-        <li>Enter keywords, company names, or technologies</li>
-        <li>Filter by contract value or agency</li>
-        <li>Review expiration dates and priorities</li>
-        <li>Export results to CSV and share with your team</li>
-      </ul>
-    </div>
-    
-    <div class="footer-section">
-      <h3 class="footer-heading">Who It's For</h3>
-      <p class="footer-text">
-        Sales teams, business development professionals, and capture managers who need actionable intelligence on federal contract renewals and competitive opportunities.
-      </p>
-      <ul class="footer-list">
-        <li><span class="footer-emphasis">Defend:</span> Protect your renewal base</li>
-        <li><span class="footer-emphasis">Attack:</span> Target competitor contracts</li>
-        <li><span class="footer-emphasis">Expand:</span> Find new agency white space</li>
-      </ul>
     </div>
   </div>
   
@@ -1724,7 +1741,7 @@ function initTheme() {
   
   // Set initial meta theme color
   const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-  metaThemeColor.setAttribute('content', savedTheme === 'light' ? '#f9f9f7' : '#222222'); // Updated
+  metaThemeColor.setAttribute('content', savedTheme === 'light' ? '#ffffff' : '#1a1a1a');
 }
 
 function initFooters() {
@@ -1743,7 +1760,7 @@ function toggleTheme() {
   
   // Update meta theme color
   const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-  metaThemeColor.setAttribute('content', newTheme === 'light' ? '#f9f9f7' : '#222222'); // Updated
+  metaThemeColor.setAttribute('content', newTheme === 'light' ? '#ffffff' : '#1a1a1a');
 }
 
 function updateThemeIcon(theme) {
