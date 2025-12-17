@@ -524,102 +524,104 @@ body {
           <tbody id="forecastTableBody"></tbody>
         </table>
       </div>
-
-      <div id="strategySection" style="margin-top: 2rem; display:none;">
-        <div class="section-header">
-           <div class="section-title-group">
-              <i class="fas fa-chess-knight" style="color:var(--accent)"></i>
-              <span class="section-title">Strategic Analysis & Actions</span>
-           </div>
-        </div>
-        
-        <div class="deal-card" style="border-left: 4px solid var(--accent); margin-bottom: 1.5rem;">
-           <div class="deal-header" style="margin-bottom:0.5rem">
-              <span class="deal-agency" style="font-size:0.8rem; letter-spacing:1px;">EXECUTIVE SUMMARY</span>
-              <span class="deal-amount" id="strat-outlook" style="font-size:1.1rem">--</span>
-           </div>
-           <div class="deal-desc" id="strat-text" style="font-size: 0.95rem; color: #d0d0d0; line-height: 1.6; font-weight:400;"></div>
-           
-           <div class="deal-footer" style="margin-top:1rem; padding-top:1rem; border-top:1px solid #333; display:block;">
-              <div style="font-size:0.75rem; color:var(--accent); font-weight:700; margin-bottom:4px;">RECOMMENDED ACTION:</div>
-              <div id="strat-action" style="font-size:0.9rem; color:white;"></div>
-           </div>
-        </div>
-      
-        <div class="insight-grid" style="grid-template-columns: repeat(3, 1fr); gap:1rem; margin-bottom: 1.5rem;">
-           <div class="insight-card">
-              <div class="insight-label">BD Investment</div>
-              <div id="matrix-bd" class="insight-val" style="font-size:0.95rem;">--</div>
-              <div class="stat-sub neutral">Based on Growth</div>
-           </div>
-            <div class="insight-card">
-              <div class="insight-label">Capture Strategy</div>
-              <div id="matrix-strat" class="insight-val" style="font-size:0.95rem;">--</div>
-              <div class="stat-sub neutral">Based on HHI</div>
-           </div>
-            <div class="insight-card">
-              <div class="insight-label">Pipeline Focus</div>
-              <div id="matrix-pipe" class="insight-val" style="font-size:0.95rem;">--</div>
-              <div class="stat-sub neutral">Based on Recompetes</div>
-           </div>
-        </div>
-        
-        <div style="background:rgba(255,255,255,0.03); padding:1rem; border-radius:4px; font-size:0.8rem; color:#888; border:1px solid #333; line-height:1.5;">
-          <strong style="color:var(--text-primary); display:block; margin-bottom:0.5rem;"><i class="fas fa-info-circle"></i> INTERPRETING THIS FORECAST</strong>
-          This data predicts <strong>Total Addressable Market (TAM)</strong>, not your specific revenue. 
-          <ul style="margin:0.5rem 0 0 1rem; padding:0;">
-             <li><strong>Growth (+%)</strong> means more total dollars and RFPs entering the market (Higher Opportunity).</li>
-             <li><strong>Decline (-%)</strong> means a tightening market; focus resources on "must-win" deals.</li>
-          </ul>
-        </div>
-      </div>
 <div class="section-header" style="margin-top:2rem;">
-  <div class="section-title-group">
-    <i class="fas fa-info-circle" style="color:var(--accent)"></i>
-    <span class="section-title">How This Forecast Works</span>
-  </div>
-</div>
-
-<div class="methodology-card">
-  <div class="method-item">
-    <div class="method-title"><i class="fas fa-layer-group"></i> Top-Down Volume Modeling</div>
-    <div class="method-desc">Instead of guessing quarterly jumps, we first forecast the <strong>Total Annual Spending Volume</strong> using a weighted average of the last 3 fiscal years (giving higher priority to recent years).</div>
-  </div>
-  
-  <div class="method-item">
-    <div class="method-title"><i class="fas fa-chart-area"></i> Seasonal Profile Mapping</div>
-    <div class="method-desc">We calculate the specific "Shape" of the fiscal year (e.g., how much of the budget typically lands in Q4 vs Q1) and distribute the forecasted annual volume according to this proven historical curve.</div>
-  </div>
-
-  <div class="method-item">
-    <div class="method-title"><i class="fas fa-filter"></i> Smart Outlier Detection</div>
-    <div class="method-desc">Anomalies are filtered <strong>per-quarter</strong>. This ensures that a massive Q4 spike (common in government) is recognized as a legitimate seasonal pattern, while random one-off mega-contracts are excluded.</div>
-  </div>
-
-  <div class="method-item">
-    <div class="method-title"><i class="fas fa-balance-scale"></i> Market Concentration</div>
-    <div class="method-desc">Calculates the <strong>HHI Score</strong> to measure competition. Scores under 1,500 indicate a competitive market, while scores over 2,500 indicate a market dominated by just one or two massive agencies.</div>
-  </div>
-
-  <div class="method-item">
-    <div class="method-title"><i class="fas fa-redo"></i> Recompete Analysis</div>
-    <div class="method-desc">The engine scans active contracts to identify high-value awards ($50k+) that are expiring within the next 6–24 months, flagging them as potential immediate opportunities.</div>
-  </div>
-
-  <div class="method-item">
-    <div class="method-title"><i class="fas fa-calculator"></i> Prediction Formula</div>
-    <div class="method-desc"><code>Predicted = Forecasted Annual Volume × Historical Seasonal %</code><br>The "Trend" percentage shown in the table is a result, representing how much the prediction differs from the raw historical average.</div>
-  </div>
-</div>
-	  <div class="section-header" style="margin-top:2rem;">
         <div class="section-title-group">
           <i class="fas fa-chart-bar" style="color:var(--accent)"></i>
-          <span class="section-title">Quarterly History</span>
+          <span class="section-title">Historical Performance</span>
         </div>
       </div>
       <div class="chart-wrapper chart-wrapper-sm">
         <canvas id="spendingChart"></canvas>
       </div>
+      <div id="strategySection" style="margin-top: 2rem; display:none;">
+  <div class="section-header">
+    <div class="section-title-group">
+      <i class="fas fa-chess-knight" style="color:var(--accent)"></i>
+      <span class="section-title">Strategic Analysis</span>
+    </div>
+  </div>
+
+  <div class="deal-card" style="border-left: 4px solid var(--accent); margin-bottom: 1.5rem; background: linear-gradient(to right, rgba(212, 196, 168, 0.05), transparent);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+      <span style="font-size:0.75rem; color:var(--accent); font-weight:700; letter-spacing:1px;">OUTLOOK</span>
+      <span id="strat-outlook" style="font-size:1rem; font-weight:700; color:#fff;">--</span>
+    </div>
+    
+    <div id="strat-text" style="font-size: 0.9rem; color: #ccc; margin-bottom: 1.25rem; line-height: 1.5;"></div>
+
+    <div style="padding-top:1rem; border-top:1px solid rgba(255,255,255,0.1);">
+      <div style="font-size:0.7rem; color:#888; text-transform:uppercase; margin-bottom:4px;">Recommended Action</div>
+      <div id="strat-action" style="font-size:0.95rem; color:white; font-weight:500;"></div>
+    </div>
+  </div>
+
+  <div class="insight-grid" style="grid-template-columns: repeat(3, 1fr); gap:0.75rem; margin-bottom: 1.5rem;">
+    <div class="insight-card" style="padding: 0.75rem;">
+      <div class="insight-label">BD Investment</div>
+      <div id="matrix-bd" style="font-size:0.9rem; font-weight:600; color:white; margin:4px 0;">--</div>
+      <div class="stat-sub neutral" style="font-size:0.65rem;">vs. Growth Trend</div>
+    </div>
+    <div class="insight-card" style="padding: 0.75rem;">
+      <div class="insight-label">Capture Strategy</div>
+      <div id="matrix-strat" style="font-size:0.9rem; font-weight:600; color:white; margin:4px 0;">--</div>
+      <div class="stat-sub neutral" style="font-size:0.65rem;">vs. Competition</div>
+    </div>
+    <div class="insight-card" style="padding: 0.75rem;">
+      <div class="insight-label">Pipeline Focus</div>
+      <div id="matrix-pipe" style="font-size:0.9rem; font-weight:600; color:white; margin:4px 0;">--</div>
+      <div class="stat-sub neutral" style="font-size:0.65rem;">vs. Opportunity</div>
+    </div>
+  </div>
+
+  <div style="background:rgba(255,255,255,0.02); padding:1rem; border:1px solid #333; border-radius:4px;">
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:0.75rem; color:var(--text-muted); font-size:0.75rem; font-weight:700; letter-spacing:0.5px;">
+      <i class="fas fa-info-circle"></i> MODEL LIMITATIONS
+    </div>
+    <ul style="margin:0; padding-left:1.2rem; color:#888; font-size:0.8rem; line-height:1.6;">
+      <li><strong>Historical Basis:</strong> Projects future volume based on past seasonal trends. Cannot predict policy shifts or budget cuts.</li>
+      <li><strong>Data Scope:</strong> "Baseline Spend" covers the total market. "Market Concentration" analyzes only the top 100 contracts by value.</li>
+      <li><strong>Reporting Lag:</strong> Recent data may appear low due to federal reporting delays (up to 90 days).</li>
+    </ul>
+  </div>
+</div>
+
+<div class="section-header" style="margin-top:2rem;">
+  <div class="section-title-group">
+    <i class="fas fa-code-branch" style="color:var(--accent)"></i>
+    <span class="section-title">Forecast Methodology</span>
+  </div>
+</div>
+
+<div class="methodology-card" style="grid-template-columns: repeat(2, 1fr); gap:1rem;">
+  <div class="method-item" style="border:none;">
+    <div class="method-title"><i class="fas fa-layer-group"></i> Top-Down Volume</div>
+    <div class="method-desc">
+      Instead of guessing quarterly jumps, we forecast <strong>Total Annual Spending</strong> using a weighted average of the last 3 fiscal years. This creates a stable baseline that prioritizes recent trends over older data.
+    </div>
+  </div>
+
+  <div class="method-item" style="border:none;">
+    <div class="method-title"><i class="fas fa-chart-area"></i> Seasonality</div>
+    <div class="method-desc">
+      We analyze historical spending patterns to determine the unique "shape" of the fiscal year (e.g., how much budget is spent in Q4). The annual forecast is then distributed across quarters to match this proven seasonal rhythm.
+    </div>
+  </div>
+
+  <div class="method-item" style="border:none;">
+    <div class="method-title"><i class="fas fa-filter"></i> Outlier Removal</div>
+    <div class="method-desc">
+      Anomalies are filtered on a <strong>per-quarter basis</strong> to distinguish between recurring seasonal spikes and one-off events. This ensures that random, non-repeating "mega-contracts" do not artificially inflate future predictions.
+    </div>
+  </div>
+
+  <div class="method-item" style="border:none;">
+    <div class="method-title"><i class="fas fa-balance-scale"></i> Market Context</div>
+    <div class="method-desc">
+      We calculate the <strong>Herfindahl-Hirschman Index (HHI)</strong>, a standard economic measure of market concentration. Low scores (<1,500) indicate a competitive field, while high scores (>2,500) signal a market dominated by incumbents.
+    </div>
+  </div>
+</div>
+	  
       <div id="recompetesList" style="margin-top:2rem;"></div>
     </div>
   </div>
@@ -1036,18 +1038,17 @@ const ForecastEngine = {
     }
     return forecasts;
   },
-  
-  generateStrategy(forecasts, hhi, recompetes) {
+generateStrategy(forecasts, hhi, recompetes) {
     // 0. Safety Check
     if(!forecasts || forecasts.length < 2) return null;
 
     // 1. Analyze Growth (Avg of next 2 quarters)
     const nearTerm = forecasts.slice(0, 2);
-    // Parse floats from strings like "+14.1"
     const avgGrowth = nearTerm.reduce((sum, f) => sum + parseFloat(f.trend), 0) / nearTerm.length;
     
     let growthSignal = "Moderate";
-    if (avgGrowth > 20) growthSignal = "High Growth";
+    // Raise the bar: Only flag "High Growth" if it's undeniable (>30%)
+    if (avgGrowth > 30) growthSignal = "High Growth"; 
     else if (avgGrowth < -20) growthSignal = "Decline";
 
     // 2. Analyze Market
@@ -1055,40 +1056,41 @@ const ForecastEngine = {
     if (hhi > 2500) marketType = "Concentrated";
     else if (hhi < 1500) marketType = "Competitive";
 
-    // 3. Generate Executive Text
+    // 3. Generate Executive Text (MUTED LANGUAGE)
     let outlook = "";
     let action = "";
     
-    // Outlook Text
     if (growthSignal === "High Growth") {
-        outlook = `The forecast indicates aggressive market expansion (+${avgGrowth.toFixed(1)}% avg). Expect a surge in RFPs and contracting activity.`;
-        action = "Increase capture capacity immediately. Staff up for proposal volume.";
+        // Changed "Aggressive Expansion" -> "Positive Variance"
+        outlook = `The model projects positive variance (+${avgGrowth.toFixed(1)}% avg) compared to historical baselines. While data suggests upward momentum, users should verify if this is due to new funding or statistical anomalies in prior years.`;
+        action = "Validate pipeline depth. Assess capacity before committing additional resources.";
     } else if (growthSignal === "Decline") {
-        outlook = `The market is contracting (${avgGrowth.toFixed(1)}% avg). Fewer total dollars will be awarded compared to historical averages.`;
-        action = "Consolidate BD resources. Focus strictly on existing relationships and 'must-win' recompetes.";
+        outlook = `The model projects a softening trend (${avgGrowth.toFixed(1)}% avg). Volume may be lower than historical norms for this period.`;
+        action = "Focus business development efforts strictly on high-probability recompetes and existing relationships.";
     } else {
-        outlook = `The market is showing stable, moderate activity. Volume is consistent with historical norms.`;
-        action = "Maintain steady BD cadence. Focus on quality of capture over volume.";
+        outlook = `The model suggests stability, with projected volume tracking close to historical averages.`;
+        action = "Maintain consistent business development cadence. Focus on capture quality over volume.";
     }
 
     // Add Market Nuance
     if (marketType === "Concentrated") {
-        outlook += ` Because the market is Concentrated (HHI > 2500), new entry will be difficult without teaming.`;
-        action += " Prioritize relationships with the top 3 incumbent agencies.";
+        outlook += ` High concentration (HHI > 2500) suggests incumbent dominance.`;
+        action += " Teaming with incumbents is recommended.";
     } else if (marketType === "Competitive") {
-        outlook += ` The Competitive landscape (HHI < 1500) suggests a fragmented buyer base with many entry points.`;
-        action += " Widen your prospecting net; this is a volume play.";
+        outlook += ` Low concentration (HHI < 1500) implies a fragmented landscape.`;
+        action += " A broader prospecting approach may yield results.";
     }
 
-    // 4. Matrix Values
+    // 4. Matrix Values (MUTED ACTIONS)
     const matrix = {
-        bd: growthSignal === "High Growth" ? "Increase Investment" : (growthSignal === "Decline" ? "Reduce / Reassign" : "Maintain Steady"),
+        bd: growthSignal === "High Growth" ? "Validate & Assess" : (growthSignal === "Decline" ? "Selective Focus" : "Maintain Steady"),
         strat: marketType === "Concentrated" ? "Relationship Focus" : (marketType === "Competitive" ? "Volume Bidding" : "Balanced Approach"),
         pipe: recompetes.length > 5 ? "Incumbent Displacement" : "New Requirements"
     };
 
     return {
-        title: growthSignal === "High Growth" ? "High Activity Expected" : (growthSignal === "Decline" ? "Market Contraction" : "Stable Market Outlook"),
+        // Changed "High Activity Expected" -> "Growth Projected" (Less hype)
+        title: growthSignal === "High Growth" ? "Growth Projected" : (growthSignal === "Decline" ? "Softening Projected" : "Stable Outlook"),
         text: outlook,
         action: action,
         matrix: matrix
