@@ -1036,7 +1036,11 @@ const ForecastEngine = {
     }
     return forecasts;
   },
+  
   generateStrategy(forecasts, hhi, recompetes) {
+    // 0. Safety Check
+    if(!forecasts || forecasts.length < 2) return null;
+
     // 1. Analyze Growth (Avg of next 2 quarters)
     const nearTerm = forecasts.slice(0, 2);
     // Parse floats from strings like "+14.1"
