@@ -789,7 +789,7 @@ const API = {
       body: JSON.stringify({
         category: 'awarding_agency',
         filters: { keywords:[keywords], time_period:periods, award_type_codes:['A','B','C','D'] },
-        limit: 20
+        limit: 100
       })
     });
     return (await res.json()).results || [];
@@ -957,26 +957,25 @@ const ForecastEngine = {
     
     if(cleanYears.length === 0) return 0;
     
-    // Weight recent years more heavily (Sum of digits method)
-    // 3 years: 1/6, 2/6, 3/6
+    // Weight recent years more heavily (1, 2, 3...)
     let weightedSum = 0;
     let weightTotal = 0;
     
     cleanYears.forEach((fy, index) => {
-        const weight = index + 1; // 1, 2, 3...
+        const weight = index + 1; 
         weightedSum += filtered.totalByFY[fy] * weight;
         weightTotal += weight;
     });
     
     let baseline = weightedSum / weightTotal;
 
-    // Apply a conservative "Inflation/Drift" adjustment
-    // If the trend is strictly up, add 5%. If strictly down, remove 5%.
+    // FIX: Removed the arbitrary +/- 5% logic.
+    // New Logic: If we have at least 2 years of data, blend the Baseline with the Most Recent Year.
+    // This allows the forecast to react to recent trends without being too volatile.
     if(cleanYears.length >= 2) {
-        const last = filtered.totalByFY[cleanYears[cleanYears.length-1]];
-        const first = filtered.totalByFY[cleanYears[0]];
-        if(last > first) baseline *= 1.05; // Mild growth assumption
-        else baseline *= 0.95; // Mild contraction assumption
+        const recentYear = filtered.totalByFY[cleanYears[cleanYears.length-1]];
+        // 70% Weight to the Stable Baseline, 30% Weight to the Recent Year
+        baseline = (baseline * 0.7) + (recentYear * 0.3);
     }
     
     return baseline;
