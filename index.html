@@ -55,7 +55,7 @@ body {
 /* --- Hero Section --- */
 .hero-view {
   position: fixed; inset: 0; z-index: 200; 
-  background: radial-gradient(circle at 50% 30%, #1a1a1a 0%, #000 70%);
+
   display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
   padding: 2rem; padding-top: max(8vh, var(--safe-top)); 
   transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
@@ -353,7 +353,6 @@ body {
 </head>
 <body>
 
-<!-- HERO VIEW -->
 <div id="heroView" class="hero-view">
   <div class="terminal-logo"><span>>_</span> Govhoo</div>
   <p class="hero-subtitle">Experimental Historical-based Forecasting</p>
@@ -389,7 +388,7 @@ body {
       <span class="cmd-hl">Fuzzy Search</span>
       <span>Quotes are ignored. "Pizza" returns pizza contracts AND Pizzaro's Construction. ¯\_(ツ)_/¯</span>
     </div>
- <div class="tip-row"><span class="cmd-hl">Forecast (experimental)</span> <span>Generates intelligent spending predictions with seasonal indexing (only single company).Outlier filtering, recency weighting, HHI market analysis, recompete detection.</span></div>
+ <div class="tip-row"><span class="cmd-hl">Forecast (experimental)</span> <span>Generates intelligent spending predictions with seasonal indexing. Now includes per-quarter outlier detection and weighted seasonality.</span></div>
 	<div class="tip-row">
       <span class="cmd-hl">Questions?</span>
       <span>DM me on <a href="https://www.linkedin.com/in/markflournoy/" target="_blank" style="color: var(--accent); text-decoration: underline;">LinkedIn</a></span>
@@ -400,7 +399,6 @@ body {
   </div>
 </div>
 
-<!-- APP VIEW -->
 <div id="appView" style="display:none;">
   <header class="app-header">
     <div class="header-left">
@@ -419,7 +417,6 @@ body {
 
   <div id="dashboardContainer" class="dashboard-container">
     
-    <!-- Mode Toggle -->
     <div class="mode-toggle">
       <button class="mode-btn active" id="modeSearchBtn" onclick="App.setMode('search')">
         <i class="fas fa-project-diagram"></i> Search & Flow
@@ -429,9 +426,7 @@ body {
       </button>
     </div>
 
-    <!-- SEARCH MODE VIEW -->
     <div id="searchModeView" class="view-section active">
-      <!-- Stats -->
       <div class="stats-row" id="searchStats">
         <div class="stat-item">
           <div class="stat-label">Total $ Awards</div>
@@ -455,7 +450,6 @@ body {
         </div>
       </div>
 
-      <!-- Sankey Section -->
       <div class="section-header">
         <div class="section-title-group">
           <i class="fas fa-project-diagram" style="color:var(--accent)"></i>
@@ -475,7 +469,6 @@ body {
         <i class="fas fa-mouse-pointer"></i> Click bars to drill down
       </p>
 
-      <!-- Contract Feed -->
       <div class="section-header">
         <div class="section-title-group">
           <i class="fas fa-list-ul" style="color:var(--accent)"></i>
@@ -485,14 +478,12 @@ body {
       <div id="feedGrid" class="feed-grid"></div>
     </div>
 
-    <!-- FORECAST MODE VIEW -->
     <div id="forecastModeView" class="view-section">
-      <!-- Forecast Stats -->
       <div class="stats-row" id="forecastStats">
         <div class="stat-item">
           <div class="stat-label">Baseline Spend</div>
           <div class="stat-val" id="stat-baseline">-</div>
-          <div class="stat-sub neutral">Outliers Removed</div>
+          <div class="stat-sub neutral">Seasonality Adjusted</div>
         </div>
         <div class="stat-item">
           <div class="stat-label">Market Status</div>
@@ -507,11 +498,10 @@ body {
         <div class="stat-item">
           <div class="stat-label">Recompetes</div>
           <div class="stat-val" id="stat-recompetes">-</div>
-          <div class="stat-sub" style="color:var(--danger)">Expiring Soon</div>
+          <div class="stat-sub" style="color:var(--danger)">Expiring < 2Y</div>
         </div>
       </div>
 
-      <!-- Market Insights -->
       <div class="section-header">
         <div class="section-title-group">
           <i class="fas fa-brain" style="color:var(--accent)"></i>
@@ -520,7 +510,6 @@ body {
       </div>
       <div id="marketInsights" class="insight-grid"></div>
 
-      <!-- Forecast Table -->
       <div class="forecast-table-wrapper">
         <table class="forecast-table">
           <thead>
@@ -536,42 +525,40 @@ body {
         </table>
       </div>
 	  
-<!-- Methodology Explainer -->
-      <div class="section-header" style="margin-top:2rem;">
-        <div class="section-title-group">
-          <i class="fas fa-info-circle" style="color:var(--accent)"></i>
-          <span class="section-title">How This Forecast Works</span>
-        </div>
-      </div>
-	  
-      <div class="methodology-card">
-        <div class="method-item">
-          <div class="method-title"><i class="fas fa-filter"></i> Outlier Filtering</div>
-          <div class="method-desc">Removes spending values more than 2 standard deviations above the mean to prevent one-time mega-contracts from skewing predictions.</div>
-        </div>
-        <div class="method-item">
-          <div class="method-title"><i class="fas fa-calendar-alt"></i> Seasonal Indexing</div>
-          <div class="method-desc">Calculates how each quarter (Q1-Q4) typically performs relative to the annual average. Federal spending often spikes in Q4 (Jul-Sep) as agencies rush to use remaining budget before fiscal year end.</div>
-        </div>
-        <div class="method-item">
-          <div class="method-title"><i class="fas fa-clock"></i> Recency Weighting</div>
-          <div class="method-desc">Recent years (e.g., 2024) are weighted more heavily than older years (e.g., 2022) when calculating baselines, since recent spending patterns better predict future behavior.</div>
-        </div>
-        <div class="method-item">
-          <div class="method-title"><i class="fas fa-chart-pie"></i> HHI (Herfindahl-Hirschman Index)</div>
-          <div class="method-desc">A standard measure of market concentration used by the DOJ and FTC. Calculated by squaring each agency's market share percentage and summing the results. <strong>Scores:</strong> Under 1,500 = Competitive market (many buyers), 1,500-2,500 = Moderately concentrated, Over 2,500 = Highly concentrated (few dominant agencies).</div>
-        </div>
-        <div class="method-item">
-          <div class="method-title"><i class="fas fa-redo"></i> Recompete Detection</div>
-          <div class="method-desc">Identifies contracts ending within 6-24 months with values over $50K. These represent potential opportunities as agencies will need to re-award or extend these contracts.</div>
-        </div>
-        <div class="method-item">
-          <div class="method-title"><i class="fas fa-calculator"></i> Prediction Formula</div>
-          <div class="method-desc"><code>Predicted = Baseline × Seasonal Index × (1 + Trend × 0.5)</code><br>The trend impact is dampened by 50% to avoid over-extrapolating from volatile historical data.</div>
-        </div>
-      </div>
-	  <!-- Historical Chart -->
-      <div class="section-header" style="margin-top:2rem;">
+<div class="section-header" style="margin-top:2rem;">
+  <div class="section-title-group">
+    <i class="fas fa-info-circle" style="color:var(--accent)"></i>
+    <span class="section-title">How This Forecast Works</span>
+  </div>
+</div>
+
+<div class="methodology-card">
+  <div class="method-item">
+    <div class="method-title"><i class="fas fa-layer-group"></i> Top-Down Volume Modeling</div>
+    <div class="method-desc">Instead of guessing quarterly jumps, we first forecast the <strong>Total Annual Spending Volume</strong> using a weighted average of the last 3 fiscal years (giving higher priority to recent years).</div>
+  </div>
+  
+  <div class="method-item">
+    <div class="method-title"><i class="fas fa-chart-area"></i> Seasonal Profile Mapping</div>
+    <div class="method-desc">We calculate the specific "Shape" of the fiscal year (e.g., how much of the budget typically lands in Q4 vs Q1) and distribute the forecasted annual volume according to this proven historical curve.</div>
+  </div>
+
+  <div class="method-item">
+    <div class="method-title"><i class="fas fa-filter"></i> Smart Outlier Detection</div>
+    <div class="method-desc">Anomalies are filtered <strong>per-quarter</strong>. This ensures that a massive Q4 spike (common in government) is recognized as a legitimate seasonal pattern, while random one-off mega-contracts are excluded from the baseline.</div>
+  </div>
+
+  <div class="method-item">
+    <div class="method-title"><i class="fas fa-chart-pie"></i> Market Context</div>
+    <div class="method-desc"><strong>HHI Score:</strong> Measures market competition (< 1,500 = Competitive, > 2,500 = Monopolistic). <br><strong>Recompetes:</strong> Scans active contracts to identify high-value awards expiring within 6–24 months.</div>
+  </div>
+
+  <div class="method-item">
+    <div class="method-title"><i class="fas fa-calculator"></i> Prediction Formula</div>
+    <div class="method-desc"><code>Predicted = Forecasted Annual Volume × Historical Seasonal %</code><br>The "Trend" percentage shown in the table is a result, representing how much the prediction differs from the raw historical average.</div>
+  </div>
+</div>
+	  <div class="section-header" style="margin-top:2rem;">
         <div class="section-title-group">
           <i class="fas fa-chart-bar" style="color:var(--accent)"></i>
           <span class="section-title">Quarterly History</span>
@@ -580,13 +567,11 @@ body {
       <div class="chart-wrapper chart-wrapper-sm">
         <canvas id="spendingChart"></canvas>
       </div>
-      <!-- Recompetes -->
       <div id="recompetesList" style="margin-top:2rem;"></div>
     </div>
   </div>
 </div>
 
-<!-- LOADER -->
 <div id="loader" class="loader">
   <div class="spinner"></div>
   <p id="loaderText" style="margin-top:1rem; font-family:'JetBrains Mono'; color:var(--accent);">RETRIEVING DATA...</p>
@@ -597,6 +582,7 @@ body {
 // ==================== UTILITIES ====================
 const Utils = {
   money: n => {
+    if (!n && n !== 0) return '-';
     if(n >= 1e9) return '$' + (n/1e9).toFixed(1) + 'B';
     if(n >= 1e6) return '$' + (n/1e6).toFixed(1) + 'M';
     if(n >= 1e3) return '$' + (n/1e3).toFixed(0) + 'K';
@@ -608,21 +594,37 @@ const Utils = {
   
   getCurrentFY: () => {
     const now = new Date();
+    // Federal FY starts Oct 1 (Month 9)
     return now.getMonth() >= 9 ? now.getFullYear() + 1 : now.getFullYear();
+  },
+
+  getCurrentQuarter: () => {
+    const m = new Date().getMonth(); // 0-11
+    // Oct(9), Nov(10), Dec(11) -> Q1
+    // Jan(0), Feb(1), Mar(2)   -> Q2
+    // Apr(3), May(4), Jun(5)   -> Q3
+    // Jul(6), Aug(7), Sep(8)   -> Q4
+    if (m >= 9) return 1;
+    if (m <= 2) return 2;
+    if (m <= 5) return 3;
+    return 4;
   },
   
   generateWeights: count => {
+    if (count <= 0) return [];
     if (count === 1) return [1];
     if (count === 2) return [0.3, 0.7];
     if (count === 3) return [0.2, 0.3, 0.5];
+    
+    // For more years, favor recent heavily
     const weights = [];
-    let remaining = 1;
-    for (let i = 0; i < count; i++) {
-      const w = (i < count - 2) ? 0.1 : 0.3;
-      weights.push(Math.min(w, remaining));
-      remaining -= w;
+    let sum = 0;
+    // Exponential-ish weights
+    for(let i=0; i<count; i++) {
+        let w = Math.pow(1.5, i);
+        weights.push(w);
+        sum += w;
     }
-    const sum = weights.reduce((a, b) => a + b, 0);
     return weights.map(w => w / sum);
   },
   
@@ -691,9 +693,10 @@ const API = {
   },
   
   // Forecast Mode APIs
-  async getSpendingOverTime(keywords, yearsBack=3) {
+  async getSpendingOverTime(keywords, yearsBack=4) {
     const curFY = Utils.getCurrentFY();
     const periods = [];
+    // Get extra history to establish trends
     for(let y=curFY-yearsBack; y<=curFY; y++) {
       periods.push({start_date:`${y-1}-10-01`, end_date:`${y}-09-30`});
     }
@@ -727,7 +730,8 @@ const API = {
   
   async getAwardsForForecast(keywords, yearsBack=3) {
     const curFY = Utils.getCurrentFY();
-    const periods = [{start_date:`${curFY-yearsBack-1}-10-01`, end_date:`${curFY}-09-30`}];
+    // We want current active contracts primarily
+    const periods = [{start_date:`${curFY-yearsBack-1}-10-01`, end_date:`${curFY+5}-09-30`}];
     
     const res = await fetch(`${this.baseUrl}/search/spending_by_award/`, {
       method: 'POST',
@@ -735,8 +739,9 @@ const API = {
       body: JSON.stringify({
         filters: { keywords:[keywords], time_period:periods, award_type_codes:['A','B','C','D'] },
         fields: ['Award ID','Recipient Name','Description','Start Date','End Date','Award Amount','Awarding Agency','generated_internal_id'],
-        limit: 100,
-        sort: 'End Date',
+        // FIX: Sort by Amount DESC to get big contracts, not "End Date DESC" which gives contracts ending in 2030
+        limit: 100, 
+        sort: 'Award Amount',
         order: 'desc'
       })
     });
@@ -747,34 +752,45 @@ const API = {
 // ==================== FORECAST ENGINE ====================
 const ForecastEngine = {
   analyze(spendingData, awardsData, agencyData) {
+    // 1. Organize Data
     const organized = this.organizeByQuarter(spendingData);
+    
+    // 2. Filter Global Outliers (Quarterly specific)
     const filtered = this.filterOutliers(organized);
-    const indices = this.calculateSeasonalIndices(filtered);
-    const { baseline, trend } = this.calculateWeightedBaseline(filtered);
+    
+    // 3. Calculate Seasonality (The "Shape" of the year)
+    // Returns {1: 0.15, 2: 0.20, 3: 0.25, 4: 0.40} summing to 1.0
+    const seasonalProfile = this.calculateSeasonalProfile(filtered);
+    
+    // 4. Calculate Annual Baseline (The "Volume" of the year)
+    // Uses weighted average of last 3 completed fiscal years
+    const annualForecast = this.calculateAnnualForecast(filtered);
+    
+    // 5. Detect Recompetes & Market Health
     const recompetes = this.detectRecompetes(awardsData);
     const market = this.analyzeMarketConcentration(agencyData);
-    const forecasts = this.generateForecasts(baseline, trend, indices, filtered);
+    
+    // 6. Generate Quarterly Predictions (Top-Down distribution)
+    const forecasts = this.generateForecasts(annualForecast, seasonalProfile, filtered);
 
     return {
       forecasts,
       recompetes,
-      baseline,
+      baseline: annualForecast, // Use the forecasted total as the headline number
       marketStatus: market.level,
       hhi: market.hhi,
-      indices,
+      indices: seasonalProfile, // Pass profile for charting
       byFY: organized.byFY
     };
   },
 
   organizeByQuarter(spendingData) {
     const organized = { byFY: {}, byQuarter: {}, totalByFY: {}, allAmounts: [] };
-    
     spendingData.forEach(d => {
       const q = parseInt(d.time_period?.quarter);
       const fy = parseInt(d.time_period?.fiscal_year);
       const amt = d.aggregated_amount || 0;
-      
-      if(q && amt > 0) {
+      if(q && fy) {
         if(!organized.byFY[fy]) organized.byFY[fy] = {1:0, 2:0, 3:0, 4:0};
         organized.byFY[fy][q] = amt;
         if(!organized.byQuarter[q]) organized.byQuarter[q] = [];
@@ -787,68 +803,113 @@ const ForecastEngine = {
   },
 
   filterOutliers(organized) {
-    const amounts = organized.allAmounts.map(d => d.amt);
-    if(amounts.length < 3) return organized;
-    
-    const mean = amounts.reduce((a,b)=>a+b,0) / amounts.length;
-    const variance = amounts.reduce((s,v)=>s+Math.pow(v-mean,2),0) / amounts.length;
-    const stdDev = Math.sqrt(variance);
-    const upperBound = mean + (2 * stdDev);
-    
+    // Standard deviation filter per quarter to remove massive anomalies
     const filtered = { byFY: {}, byQuarter: {}, totalByFY: {}, allAmounts: [] };
+    Object.keys(organized.byFY).forEach(fy => filtered.byFY[fy] = {}); // Init structure
     
-    organized.allAmounts.forEach(item => {
-      if(item.amt <= upperBound) {
-        const {fy, q, amt} = item;
-        if(!filtered.byFY[fy]) filtered.byFY[fy] = {};
-        filtered.byFY[fy][q] = amt;
-        if(!filtered.byQuarter[q]) filtered.byQuarter[q] = [];
-        filtered.byQuarter[q].push({fy, amt});
-        filtered.totalByFY[fy] = (filtered.totalByFY[fy]||0) + amt;
-        filtered.allAmounts.push(item);
+    for(let q=1; q<=4; q++) {
+      const qData = organized.byQuarter[q] || [];
+      const amounts = qData.map(d => d.amt);
+      
+      // If scant data, keep everything
+      if(amounts.length < 3) {
+        qData.forEach(d => {
+           filtered.byQuarter[q] = filtered.byQuarter[q] || [];
+           filtered.byQuarter[q].push(d);
+           filtered.byFY[d.fy][q] = d.amt;
+           filtered.totalByFY[d.fy] = (filtered.totalByFY[d.fy]||0) + d.amt;
+        });
+        continue;
       }
-    });
+      
+      // Calculate Stats
+      const mean = amounts.reduce((a,b)=>a+b,0) / amounts.length;
+      const variance = amounts.reduce((s,v)=>s+Math.pow(v-mean,2),0) / amounts.length;
+      const stdDev = Math.sqrt(variance);
+      const limit = mean + (2 * stdDev); 
+      
+      qData.forEach(item => {
+        // Only filter high-side outliers (spikes), keep lows (zeros are real in gov)
+        if(item.amt <= limit) {
+           filtered.byQuarter[q] = filtered.byQuarter[q] || [];
+           filtered.byQuarter[q].push(item);
+           filtered.byFY[item.fy][q] = item.amt;
+           filtered.totalByFY[item.fy] = (filtered.totalByFY[item.fy]||0) + item.amt;
+        }
+      });
+    }
     return filtered;
   },
 
-  calculateSeasonalIndices(filtered) {
-    const indices = {1:1, 2:1, 3:1, 4:1};
-    const allAmts = filtered.allAmounts.map(d => d.amt);
-    if(!allAmts.length) return indices;
+  calculateSeasonalProfile(filtered) {
+    // Determine what % of the year usually happens in Q1, Q2, Q3, Q4
+    const quarters = {1:0, 2:0, 3:0, 4:0};
+    const counts = {1:0, 2:0, 3:0, 4:0};
     
-    const globalAvg = allAmts.reduce((a,b)=>a+b,0) / allAmts.length;
-    
+    // Look at every completed year
+    const years = Object.keys(filtered.totalByFY);
+    years.forEach(fy => {
+        const total = filtered.totalByFY[fy];
+        if(total <= 0) return;
+        
+        // Only use years that have data for at least 3 quarters to avoid skewing
+        const qWithData = Object.values(filtered.byFY[fy]).filter(v => v > 0).length;
+        if(qWithData < 3) return;
+
+        for(let q=1; q<=4; q++) {
+            const amt = filtered.byFY[fy][q] || 0;
+            quarters[q] += (amt / total); // Add the percentage (e.g. 0.25)
+            counts[q]++;
+        }
+    });
+
+    // Average the percentages
+    const profile = {};
+    let sum = 0;
     for(let q=1; q<=4; q++) {
-      const qAmts = (filtered.byQuarter[q] || []).map(d => d.amt);
-      if(qAmts.length) {
-        const qAvg = qAmts.reduce((a,b)=>a+b,0) / qAmts.length;
-        indices[q] = globalAvg > 0 ? qAvg / globalAvg : 1;
-      }
+        profile[q] = counts[q] ? quarters[q] / counts[q] : 0.25;
+        sum += profile[q];
     }
-    return indices;
+    
+    // Normalize to ensure sum is exactly 1.0
+    for(let q=1; q<=4; q++) profile[q] = profile[q] / sum;
+    
+    return profile;
   },
 
-  calculateWeightedBaseline(filtered) {
-    const years = Object.keys(filtered.totalByFY).sort();
-    if(!years.length) return { baseline:0, trend:0 };
+  calculateAnnualForecast(filtered) {
+    // Weighted Average of Annual Totals (ignoring incomplete current FY)
+    const curFY = Utils.getCurrentFY();
+    const years = Object.keys(filtered.totalByFY).map(Number).sort((a,b)=>a-b);
     
-    const weights = Utils.generateWeights(years.length);
+    // Filter out the current incomplete year and years with zero spend
+    const cleanYears = years.filter(y => y < curFY && filtered.totalByFY[y] > 0);
+    
+    if(cleanYears.length === 0) return 0;
+    
+    // Weight recent years more heavily (Sum of digits method)
+    // 3 years: 1/6, 2/6, 3/6
     let weightedSum = 0;
+    let weightTotal = 0;
     
-    years.forEach((fy, i) => {
-      const qCount = Object.keys(filtered.byFY[fy]).length || 1;
-      const yrAvg = filtered.totalByFY[fy] / qCount;
-      weightedSum += yrAvg * weights[i];
+    cleanYears.forEach((fy, index) => {
+        const weight = index + 1; // 1, 2, 3...
+        weightedSum += filtered.totalByFY[fy] * weight;
+        weightTotal += weight;
     });
     
-    let trend = 0;
-    if(years.length >= 2) {
-      const recent = filtered.totalByFY[years[years.length-1]];
-      const old = filtered.totalByFY[years[0]];
-      trend = old > 0 ? ((recent - old) / old) * 100 : 0;
+    let baseline = weightedSum / weightTotal;
+
+    // Apply a conservative "Inflation/Drift" adjustment
+    // If the trend is strictly up, add 5%. If strictly down, remove 5%.
+    if(cleanYears.length >= 2) {
+        const last = filtered.totalByFY[cleanYears[cleanYears.length-1]];
+        const first = filtered.totalByFY[cleanYears[0]];
+        if(last > first) baseline *= 1.05; // Mild growth assumption
+        else baseline *= 0.95; // Mild contraction assumption
     }
     
-    return { baseline: weightedSum, trend };
+    return baseline;
   },
 
   analyzeMarketConcentration(agencyData) {
@@ -858,65 +919,69 @@ const ForecastEngine = {
       const share = (a.amount / total) * 100;
       hhi += share * share;
     });
-    
     let level = "Competitive";
-    if(hhi > 2500) level = "Highly Concentrated";
-    else if(hhi > 1500) level = "Moderately Concentrated";
-    
+    if(hhi > 2500) level = "Concentrated";
+    else if(hhi > 1500) level = "Moderate";
     return { hhi: Math.round(hhi), level };
   },
 
   detectRecompetes(awards) {
     const now = new Date();
-    const twoYears = new Date(); 
-    twoYears.setFullYear(now.getFullYear()+2);
-    
+    const sixMonths = new Date(); sixMonths.setMonth(now.getMonth() + 6);
+    const twoYears = new Date(); twoYears.setFullYear(now.getFullYear()+2);
     return awards.filter(a => {
       const end = new Date(a['End Date']);
-      return end > now && end < twoYears && a['Award Amount'] > 50000;
-    }).sort((a,b) => b['Award Amount'] - a['Award Amount']).slice(0, 15);
+      return end > sixMonths && end < twoYears && a['Award Amount'] > 50000;
+    }).slice(0, 15);
   },
 
-  generateForecasts(baseline, globalTrend, indices, filtered) {
+  generateForecasts(annualForecast, seasonalProfile, filtered) {
     const forecasts = [];
     const curFY = Utils.getCurrentFY();
-    const m = new Date().getMonth();
-    let startQ = m >= 9 ? 2 : (m <= 2 ? 3 : (m <= 5 ? 4 : 1));
-    let startFY = m >= 9 ? curFY : curFY;
-    if(startQ===1) startFY++;
+    const curQ = Utils.getCurrentQuarter();
+    
+    let fy = curFY;
+    let q = curQ;
     
     for(let i=0; i<4; i++) {
-      let q = startQ + i;
-      let fy = startFY;
-      if(q > 4) { q -= 4; fy++; }
+      // 1. Prediction: Apply the seasonal % to the Annual Forecast Total
+      const predicted = annualForecast * seasonalProfile[q];
       
-      const seasonal = indices[q] || 1;
+      // 2. Historical Context: Get the weighted average for this specific quarter
+      // We recalculate a simple average of past Q's to show as "Hist. Avg" comparison
       const qHistory = filtered.byQuarter[q] || [];
-      let qTrend = globalTrend;
-      
-      if(qHistory.length >= 2) {
-        qHistory.sort((a,b)=>a.fy - b.fy);
-        const recent = qHistory[qHistory.length-1].amt;
-        const prev = qHistory[0].amt;
-        qTrend = prev > 0 ? ((recent - prev) / prev) * 100 : 0;
+      const validHistory = qHistory.filter(d => d.amt > 0);
+      let histAvg = 0;
+      if(validHistory.length) {
+          histAvg = validHistory.reduce((s, d) => s + d.amt, 0) / validHistory.length;
       }
-      
-      const trendMultiplier = 1 + (qTrend / 100) * 0.5;
-      const predicted = baseline * seasonal * trendMultiplier;
-      const confidence = qHistory.length >= 3 ? "High" : qHistory.length >= 2 ? "Med" : "Low";
+
+      // 3. Trend Calculation: Now we derive the trend from the result
+      // "How different is our prediction from the historical average?"
+      let displayTrend = 0;
+      if(histAvg > 0) {
+          displayTrend = ((predicted - histAvg) / histAvg) * 100;
+      } else if (predicted > 0) {
+          displayTrend = 100;
+      }
+
+      // 4. Confidence
+      let confidence = validHistory.length >= 3 ? "High" : (validHistory.length >= 2 ? "Med" : "Low");
       
       forecasts.push({
         period: `FY${fy} Q${q}`,
         predicted: predicted,
-        histAvg: baseline * seasonal,
-        trend: qTrend.toFixed(1),
+        histAvg: histAvg,
+        trend: displayTrend > 0 ? `+${displayTrend.toFixed(1)}` : displayTrend.toFixed(1),
         confidence: confidence
       });
+      
+      q++;
+      if(q > 4) { q = 1; fy++; }
     }
     return forecasts;
   }
 };
-
 // ==================== APP ====================
 const App = {
   mode: 'search', // 'search' or 'forecast'
@@ -1026,7 +1091,6 @@ const App = {
     const query = val || document.getElementById('mainSearchInput').value;
     if(!query) return;
 
-    // Check if this is a new query - if so, reset both modes
     const isNewQuery = query !== App.currentQuery;
     if(isNewQuery) {
       App.searchData = { raw: [], active: [], filter: null, loaded: false };
@@ -1085,7 +1149,6 @@ const App = {
 
   renderSankey() {
     const container = document.getElementById('chartContainer');
-    // Fully clear the container
     container.innerHTML = '';
     
     const data = App.searchData.active;
@@ -1219,9 +1282,6 @@ const App = {
       let metaTags = '';
       if (c['NAICS Code']) metaTags += `<span class="meta-tag naics" title="${c['NAICS Description'] || ''}">NAICS: ${c['NAICS Code']}</span>`;
       if (c['PSC Code']) metaTags += `<span class="meta-tag psc" title="${c['PSC Description'] || ''}">PSC: ${c['PSC Code']}</span>`;
-      if (c['Awarding Sub Agency'] && c['Awarding Sub Agency'] !== c['Awarding Agency']) {
-        metaTags += `<span class="meta-tag">${Utils.trunc(c['Awarding Sub Agency'], 25)}</span>`;
-      }
 
       return `
         <div class="deal-card">
@@ -1266,20 +1326,18 @@ const App = {
     const query = val || document.getElementById('mainSearchInput').value;
     if(!query) return;
 
-    // Check if this is a new query - if so, reset both modes
     const isNewQuery = query !== App.currentQuery;
     if(isNewQuery) {
       App.searchData = { raw: [], active: [], filter: null, loaded: false };
       App.forecastData = { spending: null, agencies: null, awards: null, analysis: null, loaded: false };
     }
     
-    // Clear previous chart if exists
     const chartStatus = Chart.getChart("spendingChart");
     if (chartStatus) chartStatus.destroy();
     
     App.currentQuery = query;
     App.mode = 'forecast';
-    App.showLoader('CRUNCHING NUMBERS...', 'Applying Seasonal Smoothing & Outlier Filters');
+    App.showLoader('CRUNCHING NUMBERS...', 'Applying Recency-Weighted Seasonality');
 
     try {
       const [spending, agencies, awards] = await Promise.all([
@@ -1327,12 +1385,12 @@ const App = {
     document.getElementById('marketInsights').innerHTML = `
       <div class="insight-card">
         <div class="insight-label">Market Concentration</div>
-        <div class="insight-val" style="color:${analysis.hhi>1500?'var(--danger)':'var(--success)'}">${analysis.marketStatus}</div>
+        <div class="insight-val" style="color:${analysis.hhi>2500?'var(--danger)':'var(--success)'}">${analysis.marketStatus}</div>
         <div style="font-size:0.8rem; color:#666; margin-top:5px">HHI Score: ${analysis.hhi}</div>
       </div>
       <div class="insight-card">
         <div class="insight-label">Top Incumbent</div>
-        <div class="insight-val" style="font-size:0.9rem">${topVendor}</div>
+        <div class="insight-val" style="font-size:0.9rem">${Utils.trunc(topVendor, 30)}</div>
       </div>`;
 
     // Forecast Table
@@ -1355,7 +1413,6 @@ const App = {
     if(analysis.recompetes.length) {
       rl.innerHTML = `<div class="section-header"><div class="section-title-group"><i class="fas fa-exclamation-triangle" style="color:var(--danger)"></i><span class="section-title" style="color:var(--danger)">Recompete Opportunities</span></div></div>` + 
       analysis.recompetes.map(r => {
-        // Build the award URL
         const internalId = r['generated_internal_id'];
         let awardUrl = '#';
         if (internalId) {
@@ -1367,7 +1424,7 @@ const App = {
         return `
         <div class="deal-card" style="margin-bottom:1rem">
           <div class="deal-header">
-            <span class="deal-agency">${r['Awarding Agency']}</span>
+            <span class="deal-agency">${Utils.trunc(r['Awarding Agency'], 40)}</span>
             <span class="deal-amount">${Utils.money(r['Award Amount'])}</span>
           </div>
           <div class="deal-desc">${Utils.trunc(r['Description'], 80)}</div>
