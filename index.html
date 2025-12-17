@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#000000">
   <title>Govhoo - An easy way to visualize USASpending data</title>
   
@@ -27,6 +27,7 @@
   --link: #8DA0CB;   /* Soft Blue for links */
   --success: #66C2A5; /* Muted Teal */
   
+  --safe-top: env(safe-area-inset-top, 20px);
   --safe-bottom: env(safe-area-inset-bottom, 20px);
 }
 
@@ -54,6 +55,9 @@ body {
   justify-content: center;
   padding: 2rem;
   transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  
+  /* FIX: Ensure content doesn't bleed out if taller than screen */
+  overflow-y: auto; 
 }
 
 .hero-view.slide-up {
@@ -67,6 +71,7 @@ body {
   margin-bottom: 0.5rem;
   color: var(--text-primary);
   letter-spacing: -1px;
+  text-align: center;
 }
 .terminal-logo span { color: var(--accent); }
 
@@ -126,6 +131,9 @@ body {
   font-size: 0.75rem;
   color: var(--text-muted);
   text-align: left;
+  
+  /* FIX: Ensure it doesn't get cut off on small screens */
+  margin-bottom: 2rem; 
 }
 
 .tip-header {
@@ -155,19 +163,18 @@ body {
   white-space: nowrap;
 }
 
-.cmd-warn {
-  color: #FB8072; /* Vintage Muted Red */
-  font-weight: 700;
-}
-
 /* --- App Layout --- */
 .app-header {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(0,0,0,0.9);
+  background: rgba(0,0,0,0.95); /* Slightly darker for better contrast */
   backdrop-filter: blur(10px);
+  
   padding: 0.75rem 1rem;
+  /* FIX: Add safe area padding for iPhone notch */
+  padding-top: max(0.75rem, var(--safe-top));
+  
   border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
@@ -179,7 +186,8 @@ body {
   display: flex;
   align-items: center;
   gap: 1rem;
-  flex: 1;
+  flex: 1; /* Allow left side to take available space */
+  min-width: 0; /* Crucial for nested flex truncation */
 }
 
 .logo-btn {
@@ -188,6 +196,10 @@ body {
   color: white;
   cursor: pointer;
   transition: opacity 0.2s;
+  
+  /* FIX: Prevent Logo from shrinking/disappearing on mobile */
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 .logo-btn:hover { color: var(--accent); }
 
@@ -198,12 +210,15 @@ body {
   padding: 0.5rem 1rem;
   border-radius: 4px;
   font-size: 0.9rem;
-  width: 100%;
-  max-width: 250px;
+  
+  /* FIX: Don't force 100% width. Use flex to fill REMAINING space */
+  width: auto;
+  flex: 1;
+  min-width: 0; /* Allows shrinking if needed */
 }
 .mini-search:focus { outline: none; border-color: var(--accent); }
 
-.header-actions { display: flex; gap: 0.5rem; }
+.header-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
 
 .icon-btn {
   background: var(--bg-input);
@@ -436,7 +451,6 @@ body {
   .chart-wrapper { overflow-x: auto; }
   .chart-container { min-width: 600px; }
   .header-actions { gap: 0.25rem; }
-  .mini-search { max-width: 150px; }
   .search-tips { font-size: 0.7rem; }
   .deal-meta { gap: 0.35rem; }
   .meta-tag { font-size: 0.6rem; padding: 2px 6px; }
@@ -447,7 +461,7 @@ body {
 
 <div id="heroView" class="hero-view">
   <div class="terminal-logo"><span>>_</span> Govhoo</div>
-  <p style="color:var(--text-muted); margin-bottom: 2rem;">An easy way to visualize USASpending data.</p>
+  <p style="color:var(--text-muted); margin-bottom: 2rem; text-align:center;">An easy way to visualize USASpending data.</p>
   
   <div class="search-box-container">
     <input type="text" id="mainSearchInput" class="main-input" placeholder="Search Keywords, Company, or Agency" autocomplete="off">
@@ -459,7 +473,7 @@ body {
     
     <div class="tip-row">
       <span class="cmd-hl">cloud computing</span>
-      <span>Searches award descriptions, vendors, and agencies for keyword or phrase.</span>
+      <span>Searches award descriptions, vendors, and agencies.</span>
     </div>
     
     <div class="tip-row">
@@ -474,11 +488,11 @@ body {
 
 	<div class="tip-row">
       <span class="cmd-hl">API Limits</span>
-      <span>Each search returns a max of 100 results sorted by top dollar value for the last 12 months. </span>
+      <span>Max 100 results sorted by top dollar value (last 12 mo).</span>
     </div>
     <div class="tip-row">
       <span class="cmd-hl">Fuzzy Search</span>
-      <span>Keyword matching is loose. Quotes are ignored so "Pizza" returns pizza contracts AND Pizzaro's Construction. ¯\_(ツ)_/¯</span>
+      <span>Quotes are ignored. "Pizza" returns pizza contracts AND Pizzaro's Construction. ¯\_(ツ)_/¯</span>
     </div>
  
 	<div class="tip-row">
@@ -486,7 +500,8 @@ body {
       <span>DM me on <a href="https://www.linkedin.com/in/markflournoy/" target="_blank" style="color: var(--accent); text-decoration: underline;">LinkedIn</a></span>
     </div>
 	<div class="tip-row">
-      <span class="cmd-hl">Data sourced from USASpending.gov</span>
+      <span class="cmd-hl" style="opacity:0.7">Source</span>
+      <span style="opacity:0.7">Data sourced from USASpending.gov</span>
     </div>
 </div>
 
@@ -635,8 +650,15 @@ const App = {
   },
 
   showHero: () => {
+    const hero = document.getElementById('heroView');
     document.getElementById('appView').style.display = 'none';
-    document.getElementById('heroView').classList.remove('slide-up');
+    
+    // Reset hero display property so it can be seen again
+    hero.style.display = 'flex';
+    // Small timeout to allow the display change to register before removing the slide class
+    setTimeout(() => {
+      hero.classList.remove('slide-up');
+    }, 10);
     
     const url = new URL(window.location);
     url.searchParams.delete('q');
@@ -704,16 +726,23 @@ const App = {
       App.updateDashboard();
 
       // UI Transition
-document.getElementById('heroView').classList.add('slide-up');
-document.getElementById('appView').style.display = 'block';
-document.getElementById('miniSearch').value = query;
+      const hero = document.getElementById('heroView');
+      hero.classList.add('slide-up');
+      
+      document.getElementById('appView').style.display = 'block';
+      document.getElementById('miniSearch').value = query;
 
-// Re-render Sankey after layout settles
-requestAnimationFrame(() => {
-  requestAnimationFrame(() => {
-    App.renderSankey();
-  });
-});
+      // FIX: Wait for animation (500ms) then hide Hero completely so no ghost text remains
+      setTimeout(() => {
+        hero.style.display = 'none';
+      }, 500);
+
+      // Re-render Sankey after layout settles
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          App.renderSankey();
+        });
+      });
 
     } catch(e) {
       alert("System Error: Could not retrieve federal data.");
