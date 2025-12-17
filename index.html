@@ -66,7 +66,7 @@ body {
   justify-content: flex-start;
   
   padding: 2rem;
-  padding-top: max(15vh, var(--safe-top)); 
+  padding-top: max(8vh, var(--safe-top)); 
   
   transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   overflow-y: auto; 
@@ -473,7 +473,7 @@ body {
 
 <div id="heroView" class="hero-view">
   <div class="terminal-logo"><span>>_</span> Govhoo</div>
-  <p style="color:var(--text-muted); margin-bottom: 2rem; text-align:center;">An easy way to visualize USASpending data.</p>
+  <p style="color:var(--text-muted); margin-bottom: 2rem; text-align:center;">Visualize USASpending Data</p>
   
   <div class="search-box-container">
     <input type="text" id="mainSearchInput" class="main-input" placeholder="Search Keywords, Company, or Agency" autocomplete="off">
@@ -500,7 +500,7 @@ body {
 
 	<div class="tip-row">
       <span class="cmd-hl">API Limits</span>
-      <span>Max 100 results sorted by top dollar value (last 12 mo).</span>
+      <span>Search returns a max of 100 awards sorted by dollar value for the past 12 months.</span>
     </div>
     <div class="tip-row">
       <span class="cmd-hl">Fuzzy Search</span>
@@ -512,8 +512,7 @@ body {
       <span>DM me on <a href="https://www.linkedin.com/in/markflournoy/" target="_blank" style="color: var(--accent); text-decoration: underline;">LinkedIn</a></span>
     </div>
 	<div class="tip-row">
-      <span class="cmd-hl" style="opacity:0.7">Source</span>
-      <span style="opacity:0.7">Data sourced from USASpending.gov</span>
+      <span class="cmd-hl">Data sourced live from USASpending.gov</span>
     </div>
 </div>
 
