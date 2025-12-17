@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#000000">
-  <title>Govhoo - Market Intelligence</title>
+  <title>Govhoo - Federal Contract Intelligence</title>
   
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-sankey/0.12.3/d3-sankey.min.js"></script>
-  <script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+ <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
@@ -28,11 +28,15 @@
   --text-muted: #888888;
   
   /* Vintage/Elegant Terminal Theme */
-  --accent: #D4C4A8; /* Muted Parchment Gold */
+  --accent: #D4C4A8;
   --accent-dim: rgba(212, 196, 168, 0.1);
-  --link: #8DA0CB;   /* Soft Blue for links */
-  --success: #66C2A5; /* Muted Teal */
+  --link: #8DA0CB;
+  --success: #66C2A5;
+  --danger: #FB8072;
   
+  /* Vintage Chart Palette */
+  --q1-color: #958BB6; --q2-color: #6F8A74; --q3-color: #8FB6D0; --q4-color: #C27E5C;
+
   --safe-top: env(safe-area-inset-top, 20px);
   --safe-bottom: env(safe-area-inset-bottom, 20px);
 }
@@ -40,8 +44,7 @@
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 body {
-  margin: 0;
-  padding: 0;
+  margin: 0; padding: 0;
   font-family: 'Inter', sans-serif;
   background: var(--bg-app);
   color: var(--text-primary);
@@ -49,396 +52,294 @@ body {
   overflow-x: hidden;
 }
 
-/* --- Hero Section (Search) --- */
+/* --- Hero Section --- */
 .hero-view {
-  position: fixed;
-  inset: 0;
-  z-index: 200; 
+  position: fixed; inset: 0; z-index: 200; 
   background: radial-gradient(circle at 50% 30%, #1a1a1a 0%, #000 70%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 2rem;
-  padding-top: max(8vh, var(--safe-top)); 
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+  padding: 2rem; padding-top: max(8vh, var(--safe-top)); 
   transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   overflow-y: auto; 
 }
-
-.hero-view.slide-up {
-  transform: translateY(-100%);
-}
+.hero-view.slide-up { transform: translateY(-100%); }
+.hero-view.hidden { display: none; }
 
 .terminal-logo {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  color: var(--text-primary);
-  letter-spacing: -1px;
-  text-align: center;
+  font-family: 'JetBrains Mono', monospace; font-size: 2.5rem; font-weight: 700;
+  margin-bottom: 0.5rem; color: var(--text-primary); letter-spacing: -1px; text-align: center;
 }
 .terminal-logo span { color: var(--accent); }
 
-.search-box-container {
-  position: relative;
-  z-index: 210; 
-  width: 100%;
-  max-width: 500px;
-  margin-top: 2rem;
+.hero-subtitle {
+  color: var(--text-muted); margin-bottom: 2rem; text-align: center;
+}
+
+.search-box-container { 
+  position: relative; z-index: 210; 
+  width: 100%; max-width: 500px; margin-top: 1.5rem; 
 }
 
 .main-input {
-  width: 100%;
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  padding: 1.25rem 1rem;
-  font-size: 1.1rem;
-  color: white;
-  border-radius: 4px;
-  font-family: 'Inter', sans-serif;
-  transition: border-color 0.2s;
-  -webkit-appearance: none;
+  width: 100%; background: var(--bg-input); border: 1px solid var(--border);
+  padding: 1.25rem 1rem; font-size: 1.1rem; color: white; border-radius: 4px;
+  font-family: 'Inter', sans-serif; transition: border-color 0.2s; -webkit-appearance: none;
 }
+.main-input:focus { outline: none; border-color: var(--accent); background: #222; }
 
-.main-input:focus {
-  outline: none;
-  border-color: var(--accent);
-  background: #222;
+.btn-row { display: flex; gap: 0.75rem; margin-top: 1rem; }
+.btn-primary, .btn-secondary {
+  flex: 1; padding: 1rem;
+  font-weight: 700; border: none; border-radius: 4px;
+  font-size: 0.9rem; cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
 }
+.btn-primary { background: var(--accent); color: #000; }
+.btn-secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+.btn-primary:hover, .btn-secondary:hover { opacity: 0.9; }
 
-.btn-primary {
-  width: 100%;
-  margin-top: 1rem;
-  padding: 1rem;
-  background: var(--accent);
-  color: #000;
-  font-weight: 700;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-.btn-primary:hover { opacity: 0.9; }
-
-/* --- Search Tips --- */
 .search-tips {
-  margin-top: 1.5rem;
-  width: 100%;
-  max-width: 500px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 1rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  text-align: left;
-  margin-bottom: 2rem; 
+  margin-top: 1.5rem; width: 100%; max-width: 500px;
+  background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border);
+  border-radius: 4px; padding: 1rem;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-muted);
 }
-
 .tip-header {
-  color: var(--accent);
-  font-weight: 700;
-  margin-bottom: 0.75rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  color: var(--accent); font-weight: 700; margin-bottom: 0.75rem;
+  display: flex; align-items: center; gap: 0.5rem;
+  text-transform: uppercase; letter-spacing: 1px;
 }
+.tip-row { display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.6rem; line-height: 1.4; }
+.cmd-hl { color: var(--text-primary); background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 2px; white-space: nowrap; }
 
-.tip-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  margin-bottom: 0.6rem;
-  line-height: 1.4;
-}
-
-.cmd-hl {
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.1);
-  padding: 2px 6px;
-  border-radius: 2px;
-  white-space: nowrap;
-}
-
-/* --- App Layout --- */
+/* --- App View --- */
 .app-header {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: rgba(0,0,0,0.95);
-  backdrop-filter: blur(10px);
-  padding: 0.75rem 1rem;
-  padding-top: max(0.75rem, var(--safe-top));
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(0,0,0,0.95); backdrop-filter: blur(10px);
+  padding: 0.75rem 1rem; padding-top: max(0.75rem, var(--safe-top));
   border-bottom: 1px solid var(--border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
+  display: flex; justify-content: space-between; align-items: center; gap: 1rem;
 }
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex: 1; 
-  min-width: 0;
-}
-
-.logo-btn {
-  font-family: 'JetBrains Mono';
-  font-weight: 700;
-  color: white;
-  cursor: pointer;
-  transition: opacity 0.2s;
-  flex-shrink: 0;
-  white-space: nowrap;
-}
+.header-left { display: flex; align-items: center; gap: 1rem; flex: 1; min-width: 0; }
+.logo-btn { font-family: 'JetBrains Mono'; font-weight: 700; color: white; cursor: pointer; flex-shrink: 0; }
 .logo-btn:hover { color: var(--accent); }
 
 .mini-search {
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  width: auto;
-  flex: 1;
-  min-width: 0; 
+  background: var(--bg-input); border: 1px solid var(--border);
+  color: white; padding: 0.5rem 1rem; border-radius: 4px;
+  font-size: 0.9rem; flex: 1; min-width: 0;
 }
 .mini-search:focus { outline: none; border-color: var(--accent); }
 
 .header-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
-
 .icon-btn {
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  width: 36px;
-  height: 36px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
+  background: var(--bg-input); border: 1px solid var(--border); color: var(--text-muted);
+  width: 36px; height: 36px; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
 }
-.icon-btn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
+.icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+.icon-btn.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
 
-/* --- Dashboard Content --- */
+/* --- Dashboard --- */
 .dashboard-container {
-  padding: 1rem;
-  padding-bottom: calc(2rem + var(--safe-bottom));
-  max-width: 1400px; 
-  margin: 0 auto;
-  opacity: 0;
-  animation: fadeIn 0.8s forwards;
+  padding: 1rem; padding-bottom: calc(2rem + var(--safe-bottom));
+  max-width: 1400px; margin: 0 auto;
+  display: none;
 }
-
+.dashboard-container.active { display: block; animation: fadeIn 0.8s forwards; }
 @keyframes fadeIn { to { opacity: 1; } }
+
+/* Mode Toggle */
+.mode-toggle {
+  display: flex; gap: 0.5rem; margin-bottom: 1.5rem;
+  background: var(--bg-card); padding: 0.5rem; border-radius: 4px; border: 1px solid var(--border);
+}
+.mode-btn {
+  flex: 1; padding: 0.75rem; background: transparent; border: none;
+  color: var(--text-muted); font-family: 'JetBrains Mono'; font-size: 0.85rem;
+  cursor: pointer; border-radius: 4px; transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+}
+.mode-btn.active { background: var(--accent-dim); color: var(--accent); }
+.mode-btn:hover:not(.active) { color: var(--text-primary); }
+
+/* Stats Row */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+.stat-item {
+  background: var(--bg-card); padding: 1rem; border-radius: 4px;
+  border: 1px solid var(--border); text-align: center;
+}
+.stat-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem; }
+.stat-val { font-size: 1.25rem; font-weight: 700; font-family: 'JetBrains Mono'; color: white; }
+.stat-sub { font-size: 0.7rem; color: var(--success); margin-top: 4px; }
+.stat-sub.neutral { color: var(--text-muted); }
 
 /* Section Headers */
 .section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  margin: 2rem 0 1rem 0;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 0.5rem;
-  flex-wrap: wrap;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 0.5rem; margin: 2rem 0 1rem 0;
+  border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; flex-wrap: wrap;
 }
-.section-title-group {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
+.section-title-group { display: flex; align-items: center; gap: 0.5rem; }
 .section-title {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--accent);
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; font-weight: 700;
+  color: var(--accent); text-transform: uppercase; letter-spacing: 1px;
 }
 
-.header-controls {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-}
-
+.header-controls { display: flex; gap: 0.75rem; align-items: center; }
 .time-badge {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  border: 1px solid var(--border);
-  padding: 4px 8px;
-  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-muted);
+  border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px;
 }
-
 .filter-badge {
-  display: none;
-  background: var(--accent-dim);
-  color: var(--accent);
-  border: 1px solid var(--accent);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.7rem;
-  font-family: 'JetBrains Mono', monospace;
-  cursor: pointer;
-  align-items: center;
-  gap: 6px;
+  display: none; background: var(--accent-dim); color: var(--accent);
+  border: 1px solid var(--accent); padding: 4px 8px; border-radius: 4px;
+  font-size: 0.7rem; font-family: 'JetBrains Mono', monospace;
+  cursor: pointer; align-items: center; gap: 6px;
 }
 .filter-badge:hover { background: rgba(212, 196, 168, 0.2); }
 
-/* Stats Bar */
-.stats-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-.stat-item {
-  background: var(--bg-card);
-  padding: 1rem;
-  border-radius: 4px;
-  border: 1px solid var(--border);
-  text-align: center;
-}
-.stat-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem; }
-.stat-val { font-size: 1.25rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: white; }
-
-/* Sankey Container */
+/* Chart Containers */
 .chart-wrapper {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 1rem;
-  width: 100%;
-  overflow: hidden;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 4px; padding: 1rem; width: 100%; overflow: hidden;
 }
-.chart-container {
-  width: 100%; 
-  height: 500px;
-  display: flex;
-  justify-content: center;
-}
+.chart-container { width: 100%; height: 500px; display: flex; justify-content: center; }
+.chart-wrapper-sm { height: 350px; }
 
-/* Contract Feed (List) */
-.feed-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
+/* Feed Grid */
+.feed-grid { display: flex; flex-direction: column; gap: 1rem; }
 .deal-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 1.25rem;
-  transition: transform 0.1s;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 4px; padding: 1.25rem; transition: transform 0.1s;
 }
 .deal-card:active { transform: scale(0.99); }
-
-.deal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 0.75rem;
-}
+.deal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; }
 .deal-agency { 
-  font-size: 0.75rem; 
-  color: var(--text-muted); 
-  font-weight: 600; 
-  text-transform: uppercase;
-  background: rgba(255,255,255,0.05);
-  padding: 2px 6px;
-  border-radius: 4px;
+  font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;
+  background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px;
 }
 .deal-amount { font-family: 'JetBrains Mono', monospace; color: var(--accent); font-weight: 700; font-size: 1rem; }
-
 .deal-desc { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; line-height: 1.4; color: white; }
 .deal-vendor { font-size: 0.85rem; color: #8DA0CB; margin-bottom: 0.75rem; font-family: 'JetBrains Mono', monospace; }
 
-/* Meta tags row */
-.deal-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
+.deal-meta { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
 .meta-tag {
-  font-size: 0.65rem;
-  font-family: 'JetBrains Mono', monospace;
-  padding: 3px 8px;
-  border-radius: 3px;
-  background: rgba(255,255,255,0.05);
-  color: var(--text-muted);
-  border: 1px solid var(--border);
+  font-size: 0.65rem; font-family: 'JetBrains Mono', monospace;
+  padding: 3px 8px; border-radius: 3px;
+  background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid var(--border);
 }
-
-.meta-tag.naics {
-  background: rgba(102, 194, 165, 0.15);
-  border-color: rgba(102, 194, 165, 0.3);
-  color: #66C2A5;
-}
-
-.meta-tag.psc {
-  background: rgba(141, 160, 203, 0.15);
-  border-color: rgba(141, 160, 203, 0.3);
-  color: #8DA0CB;
-}
+.meta-tag.naics { background: rgba(102, 194, 165, 0.15); border-color: rgba(102, 194, 165, 0.3); color: #66C2A5; }
+.meta-tag.psc { background: rgba(141, 160, 203, 0.15); border-color: rgba(141, 160, 203, 0.3); color: #8DA0CB; }
 
 .deal-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 1rem;
-  border-top: 1px solid #222;
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 1rem; border-top: 1px solid #222;
 }
-
 .deal-date { font-size: 0.75rem; color: var(--text-muted); }
-
 .action-btn {
-  background: var(--bg-input);
-  color: var(--accent);
-  text-decoration: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  border: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.2s;
+  background: var(--bg-input); color: var(--accent); text-decoration: none;
+  padding: 0.5rem 1rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600;
+  border: 1px solid var(--border); display: flex; align-items: center; gap: 6px;
 }
 .action-btn:hover { border-color: var(--accent); background: var(--accent-dim); }
 
-/* Loading Overlay */
+/* Forecast Tables */
+.forecast-table-wrapper { background: var(--bg-card); border: 1px solid var(--border); overflow-x: auto; border-radius: 4px; }
+.forecast-table { width: 100%; border-collapse: collapse; font-family: 'JetBrains Mono'; font-size: 0.8rem; }
+.forecast-table th { text-align: left; padding: 1rem; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+.forecast-table td { padding: 1rem; border-bottom: 1px solid var(--border); color: var(--text-primary); }
+.trend-pill { padding: 2px 6px; border-radius: 2px; font-size: 0.7rem; font-weight: 700; }
+.trend-up { color: var(--success); background: rgba(102, 194, 165, 0.1); }
+.trend-down { color: var(--danger); background: rgba(251, 128, 114, 0.1); }
+
+/* Insight Grid */
+.insight-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 2rem; }
+.insight-card { background: var(--bg-card); border: 1px solid var(--border); padding: 1rem; border-radius: 4px; }
+.insight-val { font-size: 1.1rem; color: var(--text-primary); font-weight: 700; font-family: 'JetBrains Mono'; }
+.insight-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem; }
+
+/* View Sections */
+.view-section { display: none; }
+.view-section.active { display: block; }
+
+/* Loader */
 .loader {
   position: fixed; inset: 0; z-index: 300;
   background: rgba(0,0,0,0.9);
   display: none; flex-direction: column; align-items: center; justify-content: center;
 }
-.spinner {
-  width: 40px; height: 40px; border: 2px solid #333; border-top-color: var(--accent);
-  border-radius: 50%; animation: spin 0.8s linear infinite;
-}
+.spinner { width: 40px; height: 40px; border: 2px solid #333; border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Mobile Adjustments */
+/* Methodology Explainer */
+.methodology-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+.method-item {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.method-item:nth-last-child(-n+2) {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.method-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.method-title i {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+.method-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.method-desc code {
+  background: rgba(255,255,255,0.1);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--text-primary);
+}
+.method-desc strong {
+  color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+  .methodology-card {
+    grid-template-columns: 1fr;
+  }
+  .method-item {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1rem;
+  }
+  .method-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .insight-grid { grid-template-columns: 1fr; }
+  .btn-row { flex-direction: column; }
+}
 @media (max-width: 600px) {
   .stats-row { grid-template-columns: 1fr; gap: 0.5rem; }
   .stat-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; }
@@ -446,41 +347,36 @@ body {
   .chart-container { height: 400px; }
   .chart-wrapper { overflow-x: auto; }
   .chart-container { min-width: 600px; }
-  .header-actions { gap: 0.25rem; }
-  .search-tips { font-size: 0.7rem; }
-  .deal-meta { gap: 0.35rem; }
-  .meta-tag { font-size: 0.6rem; padding: 2px 6px; }
+  .mode-toggle { flex-direction: column; }
 }
 </style>
 </head>
 <body>
 
+<!-- HERO VIEW -->
 <div id="heroView" class="hero-view">
   <div class="terminal-logo"><span>>_</span> Govhoo</div>
-  <p style="color:var(--text-muted); margin-bottom: 2rem; text-align:center;">Visualize USASpending Data</p>
+  <p class="hero-subtitle">Experimental Historical-based Forecasting</p>
   
   <div class="search-box-container">
-    <input type="text" id="mainSearchInput" class="main-input" placeholder="Search Keywords, Company, or Agency" autocomplete="off">
-    <button id="searchBtn" class="btn-primary">SEARCH</button>
+    <input type="text" id="mainSearchInput" class="main-input" placeholder="Search keywords, company, or agency..." autocomplete="off">
+    <div class="btn-row">
+      <button id="searchBtn" class="btn-primary">
+        <i class="fas fa-search"></i> SEARCH
+      </button>
+      <button id="forecastBtn" class="btn-secondary">
+        <i class="fas fa-chart-line"></i> FORECAST
+      </button>
+    </div>
   </div>
 
-   <div class="search-tips">
+  <div class="search-tips">
     <div class="tip-header"><i class="fas fa-terminal"></i> SEARCH_TIPS</div>
+    <div class="tip-row"><span class="cmd-hl">cloud computing</span> <span>Search award descriptions, vendors, and agencies.</span></div>
+    <div class="tip-row"><span class="cmd-hl">Company A, Company B</span> <span>Compare multiple competitors side-by-side.</span></div>
+    <div class="tip-row"><span class="cmd-hl">Search Mode</span> <span>Shows Sankey flow + contract feed (past 12 months).</span></div>
     
-    <div class="tip-row">
-      <span class="cmd-hl">cloud computing</span>
-      <span>Searches award descriptions, vendors, and agencies.</span>
-    </div>
-    
-    <div class="tip-row">
-      <span class="cmd-hl">Amazon</span>
-      <span>Find awards by company name and associated VARs.</span>
-    </div>
-    <div class="tip-row">
-      <span class="cmd-hl">Company A, Company B</span>
-      <span>Use commas to compare multiple competitors side-by-side.</span>
-    </div>
-    <div class="tip-row">
+	 <div class="tip-row">
       <span class="cmd-hl">DA10</span>
       <span>PSC code (searches descriptions, not PSC field).</span>
     </div>
@@ -493,7 +389,7 @@ body {
       <span class="cmd-hl">Fuzzy Search</span>
       <span>Quotes are ignored. "Pizza" returns pizza contracts AND Pizzaro's Construction. ¯\_(ツ)_/¯</span>
     </div>
- 
+ <div class="tip-row"><span class="cmd-hl">Forecast (experimental)</span> <span>Generates intelligent spending predictions with seasonal indexing (only single company).Outlier filtering, recency weighting, HHI market analysis, recompete detection.</span></div>
 	<div class="tip-row">
       <span class="cmd-hl">Questions?</span>
       <span>DM me on <a href="https://www.linkedin.com/in/markflournoy/" target="_blank" style="color: var(--accent); text-decoration: underline;">LinkedIn</a></span>
@@ -501,99 +397,204 @@ body {
 	<div class="tip-row">
       <span class="cmd-hl">Data sourced live from USASpending.gov</span>
     </div>
+  </div>
 </div>
 
-</div>
-
-</div>
-
+<!-- APP VIEW -->
 <div id="appView" style="display:none;">
   <header class="app-header">
     <div class="header-left">
       <div class="logo-btn" onclick="App.showHero()">Govhoo</div>
       <input type="text" id="miniSearch" class="mini-search" placeholder="New Search...">
     </div>
-    
     <div class="header-actions">
+      <button class="icon-btn" id="toggleModeBtn" onclick="App.toggleMode()" title="Toggle Mode">
+        <i class="fas fa-exchange-alt"></i>
+      </button>
       <button class="icon-btn" onclick="App.exportCSV()" title="Export CSV">
         <i class="fas fa-download"></i>
-      </button>
-      <button class="icon-btn" onclick="App.shareLink()" title="Copy Share Link">
-        <i class="fas fa-share-alt"></i>
       </button>
     </div>
   </header>
 
-  <div class="dashboard-container">
+  <div id="dashboardContainer" class="dashboard-container">
     
-    <div class="stats-row">
-      <div class="stat-item">
-        <div class="stat-label">Total $ Awards (Past 12 Months)</div>
-        <div class="stat-val" id="stat-vol">-</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-label">Contract Count (Past 12 Months)</div>
-        <div class="stat-val" id="stat-count">-</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-label">Prime Vendors</div>
-        <div class="stat-val" id="stat-vendors">-</div>
-      </div>
+    <!-- Mode Toggle -->
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="modeSearchBtn" onclick="App.setMode('search')">
+        <i class="fas fa-project-diagram"></i> Search & Flow
+      </button>
+      <button class="mode-btn" id="modeForecastBtn" onclick="App.setMode('forecast')">
+        <i class="fas fa-brain"></i> FY Forecast (Experimental)
+      </button>
     </div>
 
-    <div class="section-header">
-      <div class="section-title-group">
-        <i class="fas fa-project-diagram" style="color:var(--accent)"></i>
-        <span class="section-title">Capital Flow Analysis</span>
-      </div>
-      
-      <div class="header-controls">
-        <div id="filterBadge" class="filter-badge" onclick="App.clearFilter()">
-          <span id="filterName">FILTER</span> <i class="fas fa-times"></i>
+    <!-- SEARCH MODE VIEW -->
+    <div id="searchModeView" class="view-section active">
+      <!-- Stats -->
+      <div class="stats-row" id="searchStats">
+        <div class="stat-item">
+          <div class="stat-label">Total $ Awards</div>
+          <div class="stat-val" id="stat-vol">-</div>
+          <div class="stat-sub neutral">Past 12 Months</div>
         </div>
-        
-        <div class="time-badge">PAST 12 MONTHS</div>
+        <div class="stat-item">
+          <div class="stat-label">Contract Count</div>
+          <div class="stat-val" id="stat-count">-</div>
+          <div class="stat-sub neutral">Past 12 Months</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Prime Vendors</div>
+          <div class="stat-val" id="stat-vendors">-</div>
+          <div class="stat-sub neutral">Unique Recipients</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Agencies</div>
+          <div class="stat-val" id="stat-agencies">-</div>
+          <div class="stat-sub neutral">Awarding Agencies</div>
+        </div>
       </div>
-    </div>
-    
-    <div class="chart-wrapper">
-      <div id="chartContainer" class="chart-container"></div>
-    </div>
-    <p style="text-align:center; font-size:0.75rem; color:#666; margin-top:0.5rem;">
-      <i class="fas fa-mouse-pointer"></i> Click bars to drill down | <i class="fas fa-arrows-alt-h"></i> Chart auto-sizes to window
-    </p>
 
-    <div class="section-header">
-      <div class="section-title-group">
-        <i class="fas fa-list-ul" style="color:var(--accent)"></i>
-        <span class="section-title">Contract Award Feed</span>
+      <!-- Sankey Section -->
+      <div class="section-header">
+        <div class="section-title-group">
+          <i class="fas fa-project-diagram" style="color:var(--accent)"></i>
+          <span class="section-title">Capital Flow Analysis</span>
+        </div>
+        <div class="header-controls">
+          <div id="filterBadge" class="filter-badge" onclick="App.clearFilter()">
+            <span id="filterName">FILTER</span> <i class="fas fa-times"></i>
+          </div>
+          <div class="time-badge">PAST 12 MONTHS</div>
+        </div>
       </div>
-    </div>
-    
-    <div id="feedGrid" class="feed-grid"></div>
+      <div class="chart-wrapper">
+        <div id="chartContainer" class="chart-container"></div>
+      </div>
+      <p style="text-align:center; font-size:0.75rem; color:#666; margin-top:0.5rem;">
+        <i class="fas fa-mouse-pointer"></i> Click bars to drill down
+      </p>
 
+      <!-- Contract Feed -->
+      <div class="section-header">
+        <div class="section-title-group">
+          <i class="fas fa-list-ul" style="color:var(--accent)"></i>
+          <span class="section-title">Contract Award Feed</span>
+        </div>
+      </div>
+      <div id="feedGrid" class="feed-grid"></div>
+    </div>
+
+    <!-- FORECAST MODE VIEW -->
+    <div id="forecastModeView" class="view-section">
+      <!-- Forecast Stats -->
+      <div class="stats-row" id="forecastStats">
+        <div class="stat-item">
+          <div class="stat-label">Baseline Spend</div>
+          <div class="stat-val" id="stat-baseline">-</div>
+          <div class="stat-sub neutral">Outliers Removed</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Market Status</div>
+          <div class="stat-val" id="stat-market">-</div>
+          <div class="stat-sub" id="stat-hhi">-</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Peak Season</div>
+          <div class="stat-val" id="stat-peak">-</div>
+          <div class="stat-sub neutral">Seasonal Index</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Recompetes</div>
+          <div class="stat-val" id="stat-recompetes">-</div>
+          <div class="stat-sub" style="color:var(--danger)">Expiring Soon</div>
+        </div>
+      </div>
+
+      <!-- Market Insights -->
+      <div class="section-header">
+        <div class="section-title-group">
+          <i class="fas fa-brain" style="color:var(--accent)"></i>
+          <span class="section-title">Intelligent Forecast</span>
+        </div>
+      </div>
+      <div id="marketInsights" class="insight-grid"></div>
+
+      <!-- Forecast Table -->
+      <div class="forecast-table-wrapper">
+        <table class="forecast-table">
+          <thead>
+            <tr>
+              <th>Period</th>
+              <th>Predicted</th>
+              <th>Hist. Avg</th>
+              <th>Trend</th>
+              <th>Confidence</th>
+            </tr>
+          </thead>
+          <tbody id="forecastTableBody"></tbody>
+        </table>
+      </div>
+	  
+<!-- Methodology Explainer -->
+      <div class="section-header" style="margin-top:2rem;">
+        <div class="section-title-group">
+          <i class="fas fa-info-circle" style="color:var(--accent)"></i>
+          <span class="section-title">How This Forecast Works</span>
+        </div>
+      </div>
+	  
+      <div class="methodology-card">
+        <div class="method-item">
+          <div class="method-title"><i class="fas fa-filter"></i> Outlier Filtering</div>
+          <div class="method-desc">Removes spending values more than 2 standard deviations above the mean to prevent one-time mega-contracts from skewing predictions.</div>
+        </div>
+        <div class="method-item">
+          <div class="method-title"><i class="fas fa-calendar-alt"></i> Seasonal Indexing</div>
+          <div class="method-desc">Calculates how each quarter (Q1-Q4) typically performs relative to the annual average. Federal spending often spikes in Q4 (Jul-Sep) as agencies rush to use remaining budget before fiscal year end.</div>
+        </div>
+        <div class="method-item">
+          <div class="method-title"><i class="fas fa-clock"></i> Recency Weighting</div>
+          <div class="method-desc">Recent years (e.g., 2024) are weighted more heavily than older years (e.g., 2022) when calculating baselines, since recent spending patterns better predict future behavior.</div>
+        </div>
+        <div class="method-item">
+          <div class="method-title"><i class="fas fa-chart-pie"></i> HHI (Herfindahl-Hirschman Index)</div>
+          <div class="method-desc">A standard measure of market concentration used by the DOJ and FTC. Calculated by squaring each agency's market share percentage and summing the results. <strong>Scores:</strong> Under 1,500 = Competitive market (many buyers), 1,500-2,500 = Moderately concentrated, Over 2,500 = Highly concentrated (few dominant agencies).</div>
+        </div>
+        <div class="method-item">
+          <div class="method-title"><i class="fas fa-redo"></i> Recompete Detection</div>
+          <div class="method-desc">Identifies contracts ending within 6-24 months with values over $50K. These represent potential opportunities as agencies will need to re-award or extend these contracts.</div>
+        </div>
+        <div class="method-item">
+          <div class="method-title"><i class="fas fa-calculator"></i> Prediction Formula</div>
+          <div class="method-desc"><code>Predicted = Baseline × Seasonal Index × (1 + Trend × 0.5)</code><br>The trend impact is dampened by 50% to avoid over-extrapolating from volatile historical data.</div>
+        </div>
+      </div>
+	  <!-- Historical Chart -->
+      <div class="section-header" style="margin-top:2rem;">
+        <div class="section-title-group">
+          <i class="fas fa-chart-bar" style="color:var(--accent)"></i>
+          <span class="section-title">Quarterly History</span>
+        </div>
+      </div>
+      <div class="chart-wrapper chart-wrapper-sm">
+        <canvas id="spendingChart"></canvas>
+      </div>
+      <!-- Recompetes -->
+      <div id="recompetesList" style="margin-top:2rem;"></div>
+    </div>
   </div>
 </div>
 
+<!-- LOADER -->
 <div id="loader" class="loader">
   <div class="spinner"></div>
-  <p style="margin-top:1rem; font-family:'JetBrains Mono'; color:var(--accent);">RETRIEVING DATA...</p>
+  <p id="loaderText" style="margin-top:1rem; font-family:'JetBrains Mono'; color:var(--accent);">RETRIEVING DATA...</p>
+  <p id="loaderSubtext" style="color:#666; font-size:0.8rem; margin-top:0.5rem;"></p>
 </div>
 
 <script>
-const API_BASE = 'https://api.usaspending.gov/api/v2';
-
-// --- VINTAGE PALETTE ---
-const vintagePalette = [
-  '#958BB6', // Muted Lavender
-  '#6F8A74', // Sage Green
-  '#C27E5C', // Terracotta/Rust
-  '#8FB6D0', // Dusty Blue
-  '#B0C4DE', // Pale Slate
-  '#D9B48F'  // Sand/Beige
-];
-
-// --- UTILS ---
+// ==================== UTILITIES ====================
 const Utils = {
   money: n => {
     if(n >= 1e9) return '$' + (n/1e9).toFixed(1) + 'B';
@@ -602,267 +603,502 @@ const Utils = {
     return '$' + Math.round(n).toLocaleString();
   },
   trunc: (s, l) => (s && s.length > l) ? s.substring(0,l)+'...' : (s || 'No Description'),
-  date: (s) => s ? new Date(s).toLocaleDateString() : '—',
-  formatDateISO: (date) => {
-    return date.toISOString().split('T')[0];
+  date: s => s ? new Date(s).toLocaleDateString() : '—',
+  formatDateISO: date => date.toISOString().split('T')[0],
+  
+  getCurrentFY: () => {
+    const now = new Date();
+    return now.getMonth() >= 9 ? now.getFullYear() + 1 : now.getFullYear();
   },
-  getColor: (name) => {
+  
+  generateWeights: count => {
+    if (count === 1) return [1];
+    if (count === 2) return [0.3, 0.7];
+    if (count === 3) return [0.2, 0.3, 0.5];
+    const weights = [];
+    let remaining = 1;
+    for (let i = 0; i < count; i++) {
+      const w = (i < count - 2) ? 0.1 : 0.3;
+      weights.push(Math.min(w, remaining));
+      remaining -= w;
+    }
+    const sum = weights.reduce((a, b) => a + b, 0);
+    return weights.map(w => w / sum);
+  },
+  
+  getColor: name => {
+    const palette = ['#958BB6', '#6F8A74', '#C27E5C', '#8FB6D0', '#B0C4DE', '#D9B48F'];
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
       hash = name.charCodeAt(i) + ((hash << 5) - hash);
     }
-    return vintagePalette[Math.abs(hash) % vintagePalette.length];
+    return palette[Math.abs(hash) % palette.length];
   }
 };
 
-// --- APP LOGIC ---
-const App = {
-  rawData: [],   
-  activeData: [], 
-  activeFilter: null,
-  currentQuery: '',
-
-  init: () => {
-    document.getElementById('searchBtn').onclick = () => App.search();
+// ==================== API ====================
+const API = {
+  baseUrl: 'https://api.usaspending.gov/api/v2',
+  
+  // Search Mode API
+  async searchAwards(keywords) {
+    const today = new Date();
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(today.getFullYear() - 1);
     
-    document.getElementById('mainSearchInput').addEventListener('keypress', (e) => {
-      if(e.key === 'Enter') App.search();
+    const period = {
+      start_date: Utils.formatDateISO(oneYearAgo),
+      end_date: Utils.formatDateISO(today)
+    };
+    
+    const terms = keywords.split(',').map(s => s.trim()).filter(s => s.length > 0);
+    
+    const fetchPromises = terms.map(term => {
+      return fetch(`${this.baseUrl}/search/spending_by_award/`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          filters: { 
+            keywords: [term], 
+            time_period: [period],
+            award_type_codes: ['A','B','C','D']
+          },
+          fields: [
+            'Award ID', 'Recipient Name', 'Awarding Agency', 'Awarding Sub Agency',
+            'Award Amount', 'Description', 'generated_internal_id',
+            'Start Date', 'End Date', 'NAICS Code', 'NAICS Description', 'PSC Code', 'PSC Description'
+          ],
+          limit: 100,
+          sort: 'Award Amount',
+          order: 'desc'
+        })
+      }).then(res => res.json());
     });
     
-    document.getElementById('miniSearch').addEventListener('keypress', (e) => {
-      if(e.key === 'Enter') App.search(e.target.value);
+    const results = await Promise.all(fetchPromises);
+    let combined = [];
+    results.forEach(json => {
+      if(json.results) combined = combined.concat(json.results);
+    });
+    
+    // Deduplicate
+    const unique = new Map();
+    combined.forEach(item => {
+      if(!unique.has(item['Award ID'])) unique.set(item['Award ID'], item);
+    });
+    
+    return Array.from(unique.values()).sort((a,b) => b['Award Amount'] - a['Award Amount']);
+  },
+  
+  // Forecast Mode APIs
+  async getSpendingOverTime(keywords, yearsBack=3) {
+    const curFY = Utils.getCurrentFY();
+    const periods = [];
+    for(let y=curFY-yearsBack; y<=curFY; y++) {
+      periods.push({start_date:`${y-1}-10-01`, end_date:`${y}-09-30`});
+    }
+    
+    const res = await fetch(`${this.baseUrl}/search/spending_over_time/`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        group: 'quarter',
+        filters: { keywords:[keywords], time_period:periods, award_type_codes:['A','B','C','D'] }
+      })
+    });
+    return (await res.json()).results || [];
+  },
+  
+  async getAgencyData(keywords, yearsBack=3) {
+    const curFY = Utils.getCurrentFY();
+    const periods = [{start_date:`${curFY-yearsBack-1}-10-01`, end_date:`${curFY}-09-30`}];
+    
+    const res = await fetch(`${this.baseUrl}/search/spending_by_category/awarding_agency`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        category: 'awarding_agency',
+        filters: { keywords:[keywords], time_period:periods, award_type_codes:['A','B','C','D'] },
+        limit: 20
+      })
+    });
+    return (await res.json()).results || [];
+  },
+  
+  async getAwardsForForecast(keywords, yearsBack=3) {
+    const curFY = Utils.getCurrentFY();
+    const periods = [{start_date:`${curFY-yearsBack-1}-10-01`, end_date:`${curFY}-09-30`}];
+    
+    const res = await fetch(`${this.baseUrl}/search/spending_by_award/`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        filters: { keywords:[keywords], time_period:periods, award_type_codes:['A','B','C','D'] },
+        fields: ['Award ID','Recipient Name','Description','Start Date','End Date','Award Amount','Awarding Agency','generated_internal_id'],
+        limit: 100,
+        sort: 'End Date',
+        order: 'desc'
+      })
+    });
+    return (await res.json()).results || [];
+  }
+};
+
+// ==================== FORECAST ENGINE ====================
+const ForecastEngine = {
+  analyze(spendingData, awardsData, agencyData) {
+    const organized = this.organizeByQuarter(spendingData);
+    const filtered = this.filterOutliers(organized);
+    const indices = this.calculateSeasonalIndices(filtered);
+    const { baseline, trend } = this.calculateWeightedBaseline(filtered);
+    const recompetes = this.detectRecompetes(awardsData);
+    const market = this.analyzeMarketConcentration(agencyData);
+    const forecasts = this.generateForecasts(baseline, trend, indices, filtered);
+
+    return {
+      forecasts,
+      recompetes,
+      baseline,
+      marketStatus: market.level,
+      hhi: market.hhi,
+      indices,
+      byFY: organized.byFY
+    };
+  },
+
+  organizeByQuarter(spendingData) {
+    const organized = { byFY: {}, byQuarter: {}, totalByFY: {}, allAmounts: [] };
+    
+    spendingData.forEach(d => {
+      const q = parseInt(d.time_period?.quarter);
+      const fy = parseInt(d.time_period?.fiscal_year);
+      const amt = d.aggregated_amount || 0;
+      
+      if(q && amt > 0) {
+        if(!organized.byFY[fy]) organized.byFY[fy] = {1:0, 2:0, 3:0, 4:0};
+        organized.byFY[fy][q] = amt;
+        if(!organized.byQuarter[q]) organized.byQuarter[q] = [];
+        organized.byQuarter[q].push({fy, amt});
+        organized.totalByFY[fy] = (organized.totalByFY[fy] || 0) + amt;
+        organized.allAmounts.push({fy, q, amt});
+      }
+    });
+    return organized;
+  },
+
+  filterOutliers(organized) {
+    const amounts = organized.allAmounts.map(d => d.amt);
+    if(amounts.length < 3) return organized;
+    
+    const mean = amounts.reduce((a,b)=>a+b,0) / amounts.length;
+    const variance = amounts.reduce((s,v)=>s+Math.pow(v-mean,2),0) / amounts.length;
+    const stdDev = Math.sqrt(variance);
+    const upperBound = mean + (2 * stdDev);
+    
+    const filtered = { byFY: {}, byQuarter: {}, totalByFY: {}, allAmounts: [] };
+    
+    organized.allAmounts.forEach(item => {
+      if(item.amt <= upperBound) {
+        const {fy, q, amt} = item;
+        if(!filtered.byFY[fy]) filtered.byFY[fy] = {};
+        filtered.byFY[fy][q] = amt;
+        if(!filtered.byQuarter[q]) filtered.byQuarter[q] = [];
+        filtered.byQuarter[q].push({fy, amt});
+        filtered.totalByFY[fy] = (filtered.totalByFY[fy]||0) + amt;
+        filtered.allAmounts.push(item);
+      }
+    });
+    return filtered;
+  },
+
+  calculateSeasonalIndices(filtered) {
+    const indices = {1:1, 2:1, 3:1, 4:1};
+    const allAmts = filtered.allAmounts.map(d => d.amt);
+    if(!allAmts.length) return indices;
+    
+    const globalAvg = allAmts.reduce((a,b)=>a+b,0) / allAmts.length;
+    
+    for(let q=1; q<=4; q++) {
+      const qAmts = (filtered.byQuarter[q] || []).map(d => d.amt);
+      if(qAmts.length) {
+        const qAvg = qAmts.reduce((a,b)=>a+b,0) / qAmts.length;
+        indices[q] = globalAvg > 0 ? qAvg / globalAvg : 1;
+      }
+    }
+    return indices;
+  },
+
+  calculateWeightedBaseline(filtered) {
+    const years = Object.keys(filtered.totalByFY).sort();
+    if(!years.length) return { baseline:0, trend:0 };
+    
+    const weights = Utils.generateWeights(years.length);
+    let weightedSum = 0;
+    
+    years.forEach((fy, i) => {
+      const qCount = Object.keys(filtered.byFY[fy]).length || 1;
+      const yrAvg = filtered.totalByFY[fy] / qCount;
+      weightedSum += yrAvg * weights[i];
+    });
+    
+    let trend = 0;
+    if(years.length >= 2) {
+      const recent = filtered.totalByFY[years[years.length-1]];
+      const old = filtered.totalByFY[years[0]];
+      trend = old > 0 ? ((recent - old) / old) * 100 : 0;
+    }
+    
+    return { baseline: weightedSum, trend };
+  },
+
+  analyzeMarketConcentration(agencyData) {
+    const total = agencyData.reduce((s,a)=>s+a.amount,0);
+    let hhi = 0;
+    agencyData.forEach(a => {
+      const share = (a.amount / total) * 100;
+      hhi += share * share;
+    });
+    
+    let level = "Competitive";
+    if(hhi > 2500) level = "Highly Concentrated";
+    else if(hhi > 1500) level = "Moderately Concentrated";
+    
+    return { hhi: Math.round(hhi), level };
+  },
+
+  detectRecompetes(awards) {
+    const now = new Date();
+    const twoYears = new Date(); 
+    twoYears.setFullYear(now.getFullYear()+2);
+    
+    return awards.filter(a => {
+      const end = new Date(a['End Date']);
+      return end > now && end < twoYears && a['Award Amount'] > 50000;
+    }).sort((a,b) => b['Award Amount'] - a['Award Amount']).slice(0, 15);
+  },
+
+  generateForecasts(baseline, globalTrend, indices, filtered) {
+    const forecasts = [];
+    const curFY = Utils.getCurrentFY();
+    const m = new Date().getMonth();
+    let startQ = m >= 9 ? 2 : (m <= 2 ? 3 : (m <= 5 ? 4 : 1));
+    let startFY = m >= 9 ? curFY : curFY;
+    if(startQ===1) startFY++;
+    
+    for(let i=0; i<4; i++) {
+      let q = startQ + i;
+      let fy = startFY;
+      if(q > 4) { q -= 4; fy++; }
+      
+      const seasonal = indices[q] || 1;
+      const qHistory = filtered.byQuarter[q] || [];
+      let qTrend = globalTrend;
+      
+      if(qHistory.length >= 2) {
+        qHistory.sort((a,b)=>a.fy - b.fy);
+        const recent = qHistory[qHistory.length-1].amt;
+        const prev = qHistory[0].amt;
+        qTrend = prev > 0 ? ((recent - prev) / prev) * 100 : 0;
+      }
+      
+      const trendMultiplier = 1 + (qTrend / 100) * 0.5;
+      const predicted = baseline * seasonal * trendMultiplier;
+      const confidence = qHistory.length >= 3 ? "High" : qHistory.length >= 2 ? "Med" : "Low";
+      
+      forecasts.push({
+        period: `FY${fy} Q${q}`,
+        predicted: predicted,
+        histAvg: baseline * seasonal,
+        trend: qTrend.toFixed(1),
+        confidence: confidence
+      });
+    }
+    return forecasts;
+  }
+};
+
+// ==================== APP ====================
+const App = {
+  mode: 'search', // 'search' or 'forecast'
+  currentQuery: '',
+  
+  // Search mode state
+  searchData: {
+    raw: [],
+    active: [],
+    filter: null,
+    loaded: false
+  },
+  
+  // Forecast mode state
+  forecastData: {
+    spending: null,
+    agencies: null,
+    awards: null,
+    analysis: null,
+    loaded: false
+  },
+
+  init() {
+    document.getElementById('searchBtn').onclick = () => App.runSearch();
+    document.getElementById('forecastBtn').onclick = () => App.runForecast();
+    
+    document.getElementById('mainSearchInput').addEventListener('keypress', e => {
+      if(e.key === 'Enter') App.runSearch();
+    });
+    
+    document.getElementById('miniSearch').addEventListener('keypress', e => {
+      if(e.key === 'Enter') {
+        const newQuery = e.target.value.trim();
+        if(!newQuery) return;
+        
+        // Update main input as well
+        document.getElementById('mainSearchInput').value = newQuery;
+        
+        if(App.mode === 'forecast') {
+          App.runForecast(newQuery);
+        } else {
+          App.runSearch(newQuery);
+        }
+      }
     });
 
     let resizeTimer;
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
-        if(App.activeData.length > 0) App.renderSankey();
+        if(App.searchData.active.length > 0 && App.mode === 'search') App.renderSankey();
       }, 200);
     });
 
     const params = new URLSearchParams(window.location.search);
     const q = params.get('q');
+    const m = params.get('mode');
     if (q) {
       document.getElementById('mainSearchInput').value = q;
-      App.search(q);
+      if(m === 'forecast') App.runForecast(q);
+      else App.runSearch(q);
     }
   },
 
-  showHero: () => {
+  showHero() {
     const hero = document.getElementById('heroView');
     document.getElementById('appView').style.display = 'none';
     hero.style.display = 'flex';
-    
-    setTimeout(() => {
-      hero.classList.remove('slide-up');
-    }, 10);
+    hero.classList.remove('hidden');
+    setTimeout(() => hero.classList.remove('slide-up'), 10);
     
     const url = new URL(window.location);
     url.searchParams.delete('q');
+    url.searchParams.delete('mode');
     window.history.replaceState({}, '', url);
   },
 
-  search: async (val) => {
-    const rawInput = val || document.getElementById('mainSearchInput').value;
-    if(!rawInput) return;
-
-    App.currentQuery = rawInput;
-    document.getElementById('loader').style.display = 'flex';
+  setMode(mode) {
+    App.mode = mode;
+    document.getElementById('modeSearchBtn').classList.toggle('active', mode === 'search');
+    document.getElementById('modeForecastBtn').classList.toggle('active', mode === 'forecast');
+    document.getElementById('searchModeView').classList.toggle('active', mode === 'search');
+    document.getElementById('forecastModeView').classList.toggle('active', mode === 'forecast');
     
+    // Update URL
+    const url = new URL(window.location);
+    url.searchParams.set('mode', mode);
+    window.history.replaceState({}, '', url);
+    
+    // If switching to a mode that hasn't loaded data yet, fetch it
+    if(App.currentQuery) {
+      if(mode === 'search' && !App.searchData.loaded) {
+        App.runSearch(App.currentQuery);
+      } else if(mode === 'forecast' && !App.forecastData.loaded) {
+        App.runForecast(App.currentQuery);
+      }
+    }
+  },
+
+  toggleMode() {
+    const newMode = App.mode === 'search' ? 'forecast' : 'search';
+    App.setMode(newMode);
+  },
+
+  // ==================== SEARCH MODE ====================
+  async runSearch(val) {
+    const query = val || document.getElementById('mainSearchInput').value;
+    if(!query) return;
+
+    // Check if this is a new query - if so, reset both modes
+    const isNewQuery = query !== App.currentQuery;
+    if(isNewQuery) {
+      App.searchData = { raw: [], active: [], filter: null, loaded: false };
+      App.forecastData = { spending: null, agencies: null, awards: null, analysis: null, loaded: false };
+    }
+    
+    App.currentQuery = query;
+    App.mode = 'search';
+    App.showLoader('RETRIEVING DATA...', 'Searching USASpending API');
+
     try {
-      // Logic: Split by comma to support "Competitor A, Competitor B"
-      const terms = rawInput.split(',').map(s => s.trim()).filter(s => s.length > 0);
+      App.searchData.raw = await API.searchAwards(query);
+      App.searchData.filter = null;
+      App.searchData.active = App.searchData.raw;
+      App.searchData.loaded = true;
       
-      const today = new Date();
-      const oneYearAgo = new Date();
-      oneYearAgo.setFullYear(today.getFullYear() - 1);
-
-      const period = {
-        start_date: Utils.formatDateISO(oneYearAgo),
-        end_date: Utils.formatDateISO(today)
-      };
-
-      // Create an array of Promises (one for each keyword)
-      const fetchPromises = terms.map(term => {
-        return fetch(`${API_BASE}/search/spending_by_award/`, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({
-            filters: { 
-              keywords: [term], 
-              time_period: [period],
-              award_type_codes: ['A','B','C','D']
-            },
-            fields: [
-              'Award ID', 
-              'Recipient Name', 
-              'Awarding Agency',
-              'Awarding Sub Agency',
-              'Award Amount', 
-              'Description', 
-              'generated_internal_id',
-              'Start Date',
-              'End Date',
-              'NAICS Code',
-              'NAICS Description',
-              'PSC Code',
-              'PSC Description'
-            ],
-            limit: 100, // 100 results per competitor
-            page: 1,
-            sort: 'Award Amount',
-            order: 'desc'
-          })
-        }).then(res => res.json());
-      });
-
-      // Wait for all searches to finish
-      const results = await Promise.all(fetchPromises);
+      App.updateURL(query, 'search');
+      App.transitionToApp();
+      App.setMode('search');
+      App.updateSearchDashboard();
       
-      // Combine all results into one array
-      let combinedResults = [];
-      results.forEach(json => {
-        if(json.results) combinedResults = combinedResults.concat(json.results);
-      });
-
-      // Deduplicate by Award ID (in case keywords overlap)
-      const uniqueAwards = new Map();
-      combinedResults.forEach(item => {
-        if(!uniqueAwards.has(item['Award ID'])) {
-          uniqueAwards.set(item['Award ID'], item);
-        }
-      });
-      
-      App.rawData = Array.from(uniqueAwards.values());
-      
-      // Sort combined data by amount desc
-      App.rawData.sort((a,b) => b['Award Amount'] - a['Award Amount']);
-
-      App.activeFilter = null;
-      App.activeData = App.rawData;
-
-      const url = new URL(window.location);
-      url.searchParams.set('q', rawInput);
-      window.history.replaceState({}, '', url);
-
-      App.updateDashboard();
-
-      // UI Transition
-      const hero = document.getElementById('heroView');
-      hero.classList.add('slide-up');
-      
-      document.getElementById('appView').style.display = 'block';
-      document.getElementById('miniSearch').value = rawInput;
-
-      setTimeout(() => {
-        hero.style.display = 'none';
-      }, 500);
-
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          App.renderSankey();
-        });
+        requestAnimationFrame(() => App.renderSankey());
       });
-
+      
     } catch(e) {
-      alert("System Error: Could not retrieve federal data.");
       console.error(e);
+      alert("Error retrieving data.");
     } finally {
-      document.getElementById('loader').style.display = 'none';
+      App.hideLoader();
     }
   },
 
-  drillDown: (name) => {
-    if (App.activeFilter === name) {
-      App.clearFilter();
-      return;
-    }
-
-    App.activeFilter = name;
-    App.activeData = App.rawData.filter(d => 
-      d['Awarding Agency'] === name || d['Recipient Name'] === name
-    );
-    App.updateDashboard();
-  },
-
-  clearFilter: () => {
-    App.activeFilter = null;
-    App.activeData = App.rawData;
-    App.updateDashboard();
-  },
-
-  exportCSV: () => {
-    if (!App.activeData.length) return alert("No data to export");
+  updateSearchDashboard() {
+    const data = App.searchData.active;
+    const total = data.reduce((acc, c) => acc + (c['Award Amount']||0), 0);
+    const vendors = new Set(data.map(c => c['Recipient Name'])).size;
+    const agencies = new Set(data.map(c => c['Awarding Agency'])).size;
     
-    const headers = ['Recipient', 'Agency', 'Sub Agency', 'Amount', 'Description', 'NAICS Code', 'NAICS Description', 'PSC Code', 'PSC Description', 'Start Date', 'End Date', 'Award ID'];
-    const rows = App.activeData.map(c => [
-      `"${(c['Recipient Name'] || '').replace(/"/g, '""')}"`,
-      `"${(c['Awarding Agency'] || '').replace(/"/g, '""')}"`,
-      `"${(c['Awarding Sub Agency'] || '').replace(/"/g, '""')}"`,
-      c['Award Amount'] || 0,
-      `"${(c['Description'] || '').replace(/"/g, '""')}"`,
-      c['NAICS Code'] || '',
-      `"${(c['NAICS Description'] || '').replace(/"/g, '""')}"`,
-      c['PSC Code'] || '',
-      `"${(c['PSC Description'] || '').replace(/"/g, '""')}"`,
-      c['Start Date'] || '',
-      c['End Date'] || '',
-      c['Award ID'] || ''
-    ]);
+    document.getElementById('stat-vol').innerText = Utils.money(total);
+    document.getElementById('stat-count').innerText = data.length;
+    document.getElementById('stat-vendors').innerText = vendors;
+    document.getElementById('stat-agencies').innerText = agencies;
     
-    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `govhoo_export_${App.currentQuery}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  },
-
-  shareLink: () => {
-    const url = window.location.href;
-    navigator.clipboard.writeText(url).then(() => {
-      const btn = document.querySelector('.icon-btn[title="Copy Share Link"]');
-      const originalHTML = btn.innerHTML;
-      btn.innerHTML = '<i class="fas fa-check" style="color:var(--accent)"></i>';
-      setTimeout(() => btn.innerHTML = originalHTML, 2000);
-    });
-  },
-
-  updateDashboard: () => {
+    // Filter badge
     const badge = document.getElementById('filterBadge');
-    if (App.activeFilter) {
+    if (App.searchData.filter) {
       badge.style.display = 'inline-flex';
-      document.getElementById('filterName').innerText = App.activeFilter;
+      document.getElementById('filterName').innerText = App.searchData.filter;
     } else {
       badge.style.display = 'none';
     }
-
-    App.renderStats();
-    App.renderSankey();
+    
     App.renderFeed();
   },
 
-  renderStats: () => {
-    const total = App.activeData.reduce((acc, c) => acc + (c['Award Amount']||0), 0);
-    const vendors = new Set(App.activeData.map(c => c['Recipient Name'])).size;
-    
-    document.getElementById('stat-vol').innerText = Utils.money(total);
-    document.getElementById('stat-count').innerText = App.activeData.length;
-    document.getElementById('stat-vendors').innerText = vendors;
-  },
-
-  renderSankey: () => {
+  renderSankey() {
     const container = document.getElementById('chartContainer');
-    container.innerHTML = '<svg id="sankeySvg"></svg>';
+    // Fully clear the container
+    container.innerHTML = '';
     
-    if(App.activeData.length === 0) return;
+    const data = App.searchData.active;
+    
+    if(data.length === 0) {
+      container.innerHTML = '<div style="text-align:center; padding:4rem; color:#666">No data to display</div>';
+      return;
+    }
+    
+    container.innerHTML = '<svg id="sankeySvg"></svg>';
 
     const flowMap = {};
-    App.activeData.forEach(d => {
+    data.forEach(d => {
       if(d['Award Amount'] > 0) {
         const src = d['Awarding Agency'] || 'Unknown Agency';
         const tgt = d['Recipient Name'] || 'Unknown Vendor';
@@ -873,7 +1109,7 @@ const App = {
 
     let nodesSet = new Set();
     let links = [];
-    const limit = App.activeFilter ? 100 : 25; 
+    const limit = App.searchData.filter ? 100 : 25; 
     const sortedFlows = Object.entries(flowMap).sort((a,b) => b[1] - a[1]).slice(0, limit);
 
     sortedFlows.forEach(([k, val]) => {
@@ -895,9 +1131,7 @@ const App = {
     const width = container.offsetWidth || 800; 
     const height = 500;
 
-    const svg = d3.select("#sankeySvg")
-      .attr("width", width)
-      .attr("height", height);
+    const svg = d3.select("#sankeySvg").attr("width", width).attr("height", height);
 
     const sankey = d3.sankey()
       .nodeId(d => d.index)
@@ -919,7 +1153,7 @@ const App = {
       .attr("height", d => d.y1 - d.y0)
       .attr("width", d => d.x1 - d.x0)
       .attr("fill", d => Utils.getColor(d.name))
-      .attr("opacity", d => (App.activeFilter && d.name !== App.activeFilter) ? 0.3 : 0.9)
+      .attr("opacity", d => (App.searchData.filter && d.name !== App.searchData.filter) ? 0.3 : 0.9)
       .attr("rx", 2)
       .style("cursor", "pointer")
       .on("click", (e, d) => App.drillDown(d.name))
@@ -963,40 +1197,28 @@ const App = {
       .attr("stroke-width", d => Math.max(1, d.width))
       .attr("stroke-opacity", 0.5)
       .style("mix-blend-mode", "screen")
-      .style("transition", "stroke-opacity 0.2s")
       .on("mouseover", function() { d3.select(this).attr("stroke-opacity", 0.8); })
       .on("mouseout", function() { d3.select(this).attr("stroke-opacity", 0.5); });
   },
 
-  renderFeed: () => {
+  renderFeed() {
     const div = document.getElementById('feedGrid');
+    const data = App.searchData.active;
     
-    if(App.activeData.length === 0) {
-      div.innerHTML = '<div style="text-align:center; padding:2rem; color:#666">No contracts found for current filter.</div>';
+    if(data.length === 0) {
+      div.innerHTML = '<div style="text-align:center; padding:2rem; color:#666">No contracts found.</div>';
       return;
     }
 
-    div.innerHTML = App.activeData.map(c => {
+    div.innerHTML = data.map(c => {
       const internalId = c['generated_internal_id'];
       let url = '#';
-      
-      if (internalId) {
-        url = `https://www.usaspending.gov/award/${internalId}`;
-      } else if (c['Award ID']) {
-        url = `https://www.usaspending.gov/search/?hash=&filters=${encodeURIComponent(JSON.stringify({keyword: c['Award ID']}))}`;
-      }
+      if (internalId) url = `https://www.usaspending.gov/award/${internalId}`;
+      else if (c['Award ID']) url = `https://www.usaspending.gov/search/?hash=&filters=${encodeURIComponent(JSON.stringify({keyword: c['Award ID']}))}`;
 
-      // Build meta tags
       let metaTags = '';
-      
-      if (c['NAICS Code']) {
-        metaTags += `<span class="meta-tag naics" title="${c['NAICS Description'] || ''}">NAICS: ${c['NAICS Code']}</span>`;
-      }
-      
-      if (c['PSC Code']) {
-        metaTags += `<span class="meta-tag psc" title="${c['PSC Description'] || ''}">PSC: ${c['PSC Code']}</span>`;
-      }
-      
+      if (c['NAICS Code']) metaTags += `<span class="meta-tag naics" title="${c['NAICS Description'] || ''}">NAICS: ${c['NAICS Code']}</span>`;
+      if (c['PSC Code']) metaTags += `<span class="meta-tag psc" title="${c['PSC Description'] || ''}">PSC: ${c['PSC Code']}</span>`;
       if (c['Awarding Sub Agency'] && c['Awarding Sub Agency'] !== c['Awarding Agency']) {
         metaTags += `<span class="meta-tag">${Utils.trunc(c['Awarding Sub Agency'], 25)}</span>`;
       }
@@ -1007,24 +1229,248 @@ const App = {
             <span class="deal-agency">${Utils.trunc(c['Awarding Agency'], 35)}</span>
             <span class="deal-amount">${Utils.money(c['Award Amount'])}</span>
           </div>
-          
           <div class="deal-desc">${Utils.trunc(c['Description'], 100)}</div>
           <div class="deal-vendor">${c['Recipient Name']}</div>
-          
           ${metaTags ? `<div class="deal-meta">${metaTags}</div>` : ''}
-          
           <div class="deal-footer">
             <span class="deal-date">Start: ${Utils.date(c['Start Date'])}${c['End Date'] ? ' → ' + Utils.date(c['End Date']) : ''}</span>
-            <a href="${url}" target="_blank" class="action-btn">
-              OPEN AWARD <i class="fas fa-external-link-alt"></i>
-            </a>
+            <a href="${url}" target="_blank" class="action-btn">OPEN AWARD <i class="fas fa-external-link-alt"></i></a>
           </div>
         </div>
       `;
     }).join('');
+  },
+
+  drillDown(name) {
+    if (App.searchData.filter === name) {
+      App.clearFilter();
+      return;
+    }
+    App.searchData.filter = name;
+    App.searchData.active = App.searchData.raw.filter(d => 
+      d['Awarding Agency'] === name || d['Recipient Name'] === name
+    );
+    App.updateSearchDashboard();
+    App.renderSankey();
+  },
+
+  clearFilter() {
+    App.searchData.filter = null;
+    App.searchData.active = App.searchData.raw;
+    App.updateSearchDashboard();
+    App.renderSankey();
+  },
+
+  // ==================== FORECAST MODE ====================
+  async runForecast(val) {
+    const query = val || document.getElementById('mainSearchInput').value;
+    if(!query) return;
+
+    // Check if this is a new query - if so, reset both modes
+    const isNewQuery = query !== App.currentQuery;
+    if(isNewQuery) {
+      App.searchData = { raw: [], active: [], filter: null, loaded: false };
+      App.forecastData = { spending: null, agencies: null, awards: null, analysis: null, loaded: false };
+    }
+    
+    // Clear previous chart if exists
+    const chartStatus = Chart.getChart("spendingChart");
+    if (chartStatus) chartStatus.destroy();
+    
+    App.currentQuery = query;
+    App.mode = 'forecast';
+    App.showLoader('CRUNCHING NUMBERS...', 'Applying Seasonal Smoothing & Outlier Filters');
+
+    try {
+      const [spending, agencies, awards] = await Promise.all([
+        API.getSpendingOverTime(query),
+        API.getAgencyData(query),
+        API.getAwardsForForecast(query)
+      ]);
+
+      App.forecastData.spending = spending;
+      App.forecastData.agencies = agencies;
+      App.forecastData.awards = awards;
+      App.forecastData.analysis = ForecastEngine.analyze(spending, awards, agencies);
+      App.forecastData.loaded = true;
+      
+      App.updateURL(query, 'forecast');
+      App.transitionToApp();
+      App.setMode('forecast');
+      App.renderForecastDashboard();
+      
+    } catch(e) {
+      console.error(e);
+      alert("Error fetching forecast data.");
+    } finally {
+      App.hideLoader();
+    }
+  },
+
+  renderForecastDashboard() {
+    const analysis = App.forecastData.analysis;
+    const awards = App.forecastData.awards;
+    
+    if(!analysis) return;
+    // Stats
+    document.getElementById('stat-baseline').innerText = Utils.money(analysis.baseline);
+    document.getElementById('stat-market').innerText = analysis.marketStatus;
+    document.getElementById('stat-hhi').innerText = `HHI: ${analysis.hhi}`;
+    
+    let peakQ=1, peakV=0;
+    for(let q=1; q<=4; q++) if(analysis.indices[q]>peakV) { peakV=analysis.indices[q]; peakQ=q; }
+    document.getElementById('stat-peak').innerText = `Q${peakQ}`;
+    document.getElementById('stat-recompetes').innerText = analysis.recompetes.length;
+
+    // Market Insights
+    const topVendor = awards[0] ? awards[0]['Recipient Name'] : 'Unknown';
+    document.getElementById('marketInsights').innerHTML = `
+      <div class="insight-card">
+        <div class="insight-label">Market Concentration</div>
+        <div class="insight-val" style="color:${analysis.hhi>1500?'var(--danger)':'var(--success)'}">${analysis.marketStatus}</div>
+        <div style="font-size:0.8rem; color:#666; margin-top:5px">HHI Score: ${analysis.hhi}</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-label">Top Incumbent</div>
+        <div class="insight-val" style="font-size:0.9rem">${topVendor}</div>
+      </div>`;
+
+    // Forecast Table
+    const tb = document.getElementById('forecastTableBody');
+    tb.innerHTML = '';
+    analysis.forecasts.forEach(f => {
+      const isUp = parseFloat(f.trend) > 0;
+      tb.innerHTML += `
+        <tr>
+          <td><b>${f.period}</b></td>
+          <td style="color:var(--accent); font-weight:700">${Utils.money(f.predicted)}</td>
+          <td style="color:#666">${Utils.money(f.histAvg)}</td>
+          <td><span class="trend-pill ${isUp?'trend-up':'trend-down'}">${isUp?'▲':'▼'} ${f.trend}%</span></td>
+          <td style="color:${f.confidence==='High'?'var(--success)':'#888'}">${f.confidence}</td>
+        </tr>`;
+    });
+
+    // Recompetes
+    const rl = document.getElementById('recompetesList');
+    if(analysis.recompetes.length) {
+      rl.innerHTML = `<div class="section-header"><div class="section-title-group"><i class="fas fa-exclamation-triangle" style="color:var(--danger)"></i><span class="section-title" style="color:var(--danger)">Recompete Opportunities</span></div></div>` + 
+      analysis.recompetes.map(r => {
+        // Build the award URL
+        const internalId = r['generated_internal_id'];
+        let awardUrl = '#';
+        if (internalId) {
+          awardUrl = `https://www.usaspending.gov/award/${internalId}`;
+        } else if (r['Award ID']) {
+          awardUrl = `https://www.usaspending.gov/search/?hash=&filters=${encodeURIComponent(JSON.stringify({keyword: r['Award ID']}))}`;
+        }
+        
+        return `
+        <div class="deal-card" style="margin-bottom:1rem">
+          <div class="deal-header">
+            <span class="deal-agency">${r['Awarding Agency']}</span>
+            <span class="deal-amount">${Utils.money(r['Award Amount'])}</span>
+          </div>
+          <div class="deal-desc">${Utils.trunc(r['Description'], 80)}</div>
+          <div style="font-size:0.8rem; color:var(--danger); margin-bottom:0.5rem">Expires: ${Utils.date(r['End Date'])}</div>
+          <div style="font-size:0.8rem; color:#666; margin-bottom:0.75rem">${r['Recipient Name']}</div>
+          <a href="${awardUrl}" target="_blank" class="action-btn" style="display:inline-flex; width:auto;">
+            VIEW AWARD <i class="fas fa-external-link-alt"></i>
+          </a>
+        </div>
+      `}).join('');
+    } else {
+      rl.innerHTML = '';
+    }
+
+    // Chart
+    App.renderHistoricalChart(analysis.byFY);
+  },
+
+  renderHistoricalChart(byFY) {
+    const ctx = document.getElementById('spendingChart').getContext('2d');
+    const years = Object.keys(byFY).sort();
+    
+    const chartStatus = Chart.getChart("spendingChart");
+    if (chartStatus != undefined) chartStatus.destroy();
+
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: years.map(y=>`FY${y}`),
+        datasets: [
+          { label:'Q1', data:years.map(y=>byFY[y][1]||0), backgroundColor:'#958BB6' },
+          { label:'Q2', data:years.map(y=>byFY[y][2]||0), backgroundColor:'#6F8A74' },
+          { label:'Q3', data:years.map(y=>byFY[y][3]||0), backgroundColor:'#8FB6D0' },
+          { label:'Q4', data:years.map(y=>byFY[y][4]||0), backgroundColor:'#C27E5C' }
+        ]
+      },
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        scales:{ x:{grid:{display:false}}, y:{grid:{color:'#333'}} },
+        plugins:{ legend:{labels:{color:'#888'}} }
+      }
+    });
+  },
+
+  // ==================== UTILITIES ====================
+  showLoader(text, subtext) {
+    document.getElementById('loaderText').innerText = text;
+    document.getElementById('loaderSubtext').innerText = subtext || '';
+    document.getElementById('loader').style.display = 'flex';
+  },
+
+  hideLoader() {
+    document.getElementById('loader').style.display = 'none';
+  },
+
+  transitionToApp() {
+    const hero = document.getElementById('heroView');
+    hero.classList.add('slide-up');
+    document.getElementById('appView').style.display = 'block';
+    document.getElementById('miniSearch').value = App.currentQuery;
+    document.getElementById('dashboardContainer').classList.add('active');
+    
+    setTimeout(() => {
+      hero.style.display = 'none';
+      hero.classList.add('hidden');
+    }, 500);
+  },
+
+  updateURL(query, mode) {
+    const url = new URL(window.location);
+    url.searchParams.set('q', query);
+    url.searchParams.set('mode', mode);
+    window.history.replaceState({}, '', url);
+  },
+
+  exportCSV() {
+    const data = App.mode === 'search' ? App.searchData.active : (App.forecastData.awards || []);
+    if (!data.length) return alert("No data to export");
+    
+    const headers = ['Recipient', 'Agency', 'Amount', 'Description', 'Start Date', 'End Date', 'Award ID'];
+    const rows = data.map(c => [
+      `"${(c['Recipient Name'] || '').replace(/"/g, '""')}"`,
+      `"${(c['Awarding Agency'] || '').replace(/"/g, '""')}"`,
+      c['Award Amount'] || 0,
+      `"${(c['Description'] || '').replace(/"/g, '""')}"`,
+      c['Start Date'] || '',
+      c['End Date'] || '',
+      c['Award ID'] || ''
+    ]);
+    
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `govhoo_${App.mode}_${App.currentQuery}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 };
 
+// Initialize
 App.init();
 </script>
 </body>
