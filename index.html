@@ -524,7 +524,69 @@ body {
           <tbody id="forecastTableBody"></tbody>
         </table>
       </div>
-	  
+	  <div class="forecast-table-wrapper">
+        <table class="forecast-table">
+          <thead>
+            <tr>
+              <th>Period</th>
+              <th>Predicted</th>
+              <th>Hist. Avg</th>
+              <th>Trend</th>
+              <th>Confidence</th>
+            </tr>
+          </thead>
+          <tbody id="forecastTableBody"></tbody>
+        </table>
+      </div>
+
+      <div id="strategySection" style="margin-top: 2rem; display:none;">
+        <div class="section-header">
+           <div class="section-title-group">
+              <i class="fas fa-chess-knight" style="color:var(--accent)"></i>
+              <span class="section-title">Strategic Analysis & Actions</span>
+           </div>
+        </div>
+        
+        <div class="deal-card" style="border-left: 4px solid var(--accent); margin-bottom: 1.5rem;">
+           <div class="deal-header" style="margin-bottom:0.5rem">
+              <span class="deal-agency" style="font-size:0.8rem; letter-spacing:1px;">EXECUTIVE SUMMARY</span>
+              <span class="deal-amount" id="strat-outlook" style="font-size:1.1rem">--</span>
+           </div>
+           <div class="deal-desc" id="strat-text" style="font-size: 0.95rem; color: #d0d0d0; line-height: 1.6; font-weight:400;"></div>
+           
+           <div class="deal-footer" style="margin-top:1rem; padding-top:1rem; border-top:1px solid #333; display:block;">
+              <div style="font-size:0.75rem; color:var(--accent); font-weight:700; margin-bottom:4px;">RECOMMENDED ACTION:</div>
+              <div id="strat-action" style="font-size:0.9rem; color:white;"></div>
+           </div>
+        </div>
+      
+        <div class="insight-grid" style="grid-template-columns: repeat(3, 1fr); gap:1rem; margin-bottom: 1.5rem;">
+           <div class="insight-card">
+              <div class="insight-label">BD Investment</div>
+              <div id="matrix-bd" class="insight-val" style="font-size:0.95rem;">--</div>
+              <div class="stat-sub neutral">Based on Growth</div>
+           </div>
+            <div class="insight-card">
+              <div class="insight-label">Capture Strategy</div>
+              <div id="matrix-strat" class="insight-val" style="font-size:0.95rem;">--</div>
+              <div class="stat-sub neutral">Based on HHI</div>
+           </div>
+            <div class="insight-card">
+              <div class="insight-label">Pipeline Focus</div>
+              <div id="matrix-pipe" class="insight-val" style="font-size:0.95rem;">--</div>
+              <div class="stat-sub neutral">Based on Recompetes</div>
+           </div>
+        </div>
+        
+        <div style="background:rgba(255,255,255,0.03); padding:1rem; border-radius:4px; font-size:0.8rem; color:#888; border:1px solid #333; line-height:1.5;">
+          <strong style="color:var(--text-primary); display:block; margin-bottom:0.5rem;"><i class="fas fa-info-circle"></i> INTERPRETING THIS FORECAST</strong>
+          This data predicts <strong>Total Addressable Market (TAM)</strong>, not your specific revenue. 
+          <ul style="margin:0.5rem 0 0 1rem; padding:0;">
+             <li><strong>Growth (+%)</strong> means more total dollars and RFPs entering the market (Higher Opportunity).</li>
+             <li><strong>Decline (-%)</strong> means a tightening market; focus resources on "must-win" deals.</li>
+          </ul>
+        </div>
+      </div>
 <div class="section-header" style="margin-top:2rem;">
   <div class="section-title-group">
     <i class="fas fa-info-circle" style="color:var(--accent)"></i>
@@ -778,14 +840,17 @@ const ForecastEngine = {
     // 6. Generate Quarterly Predictions (Top-Down distribution)
     const forecasts = this.generateForecasts(annualForecast, seasonalProfile, filtered);
 
+    const strategy = this.generateStrategy(forecasts, market.hhi, recompetes);
+
     return {
       forecasts,
       recompetes,
-      baseline: annualForecast, // Use the forecasted total as the headline number
+      baseline: annualForecast,
       marketStatus: market.level,
       hhi: market.hhi,
-      indices: seasonalProfile, // Pass profile for charting
-      byFY: organized.byFY
+      indices: seasonalProfile,
+      byFY: organized.byFY,
+      strategy: strategy // <--- Return this
     };
   },
 
@@ -985,6 +1050,60 @@ const ForecastEngine = {
       if(q > 4) { q = 1; fy++; }
     }
     return forecasts;
+  },
+  generateStrategy(forecasts, hhi, recompetes) {
+    // 1. Analyze Growth (Avg of next 2 quarters)
+    const nearTerm = forecasts.slice(0, 2);
+    // Parse floats from strings like "+14.1"
+    const avgGrowth = nearTerm.reduce((sum, f) => sum + parseFloat(f.trend), 0) / nearTerm.length;
+    
+    let growthSignal = "Moderate";
+    if (avgGrowth > 20) growthSignal = "High Growth";
+    else if (avgGrowth < -20) growthSignal = "Decline";
+
+    // 2. Analyze Market
+    let marketType = "Moderate";
+    if (hhi > 2500) marketType = "Concentrated";
+    else if (hhi < 1500) marketType = "Competitive";
+
+    // 3. Generate Executive Text
+    let outlook = "";
+    let action = "";
+    
+    // Outlook Text
+    if (growthSignal === "High Growth") {
+        outlook = `The forecast indicates aggressive market expansion (+${avgGrowth.toFixed(1)}% avg). Expect a surge in RFPs and contracting activity.`;
+        action = "Increase capture capacity immediately. Staff up for proposal volume.";
+    } else if (growthSignal === "Decline") {
+        outlook = `The market is contracting (${avgGrowth.toFixed(1)}% avg). Fewer total dollars will be awarded compared to historical averages.`;
+        action = "Consolidate BD resources. Focus strictly on existing relationships and 'must-win' recompetes.";
+    } else {
+        outlook = `The market is showing stable, moderate activity. Volume is consistent with historical norms.`;
+        action = "Maintain steady BD cadence. Focus on quality of capture over volume.";
+    }
+
+    // Add Market Nuance
+    if (marketType === "Concentrated") {
+        outlook += ` Because the market is Concentrated (HHI > 2500), new entry will be difficult without teaming.`;
+        action += " Prioritize relationships with the top 3 incumbent agencies.";
+    } else if (marketType === "Competitive") {
+        outlook += ` The Competitive landscape (HHI < 1500) suggests a fragmented buyer base with many entry points.`;
+        action += " Widen your prospecting net; this is a volume play.";
+    }
+
+    // 4. Matrix Values
+    const matrix = {
+        bd: growthSignal === "High Growth" ? "Increase Investment" : (growthSignal === "Decline" ? "Reduce / Reassign" : "Maintain Steady"),
+        strat: marketType === "Concentrated" ? "Relationship Focus" : (marketType === "Competitive" ? "Volume Bidding" : "Balanced Approach"),
+        pipe: recompetes.length > 5 ? "Incumbent Displacement" : "New Requirements"
+    };
+
+    return {
+        title: growthSignal === "High Growth" ? "High Activity Expected" : (growthSignal === "Decline" ? "Market Contraction" : "Stable Market Outlook"),
+        text: outlook,
+        action: action,
+        matrix: matrix
+    };
   }
 };
 // ==================== APP ====================
@@ -1375,7 +1494,8 @@ const App = {
     const awards = App.forecastData.awards;
     
     if(!analysis) return;
-    // Stats
+
+    // --- 1. Top Stats Row ---
     document.getElementById('stat-baseline').innerText = Utils.money(analysis.baseline);
     document.getElementById('stat-market').innerText = analysis.marketStatus;
     document.getElementById('stat-hhi').innerText = `HHI: ${analysis.hhi}`;
@@ -1385,7 +1505,7 @@ const App = {
     document.getElementById('stat-peak').innerText = `Q${peakQ}`;
     document.getElementById('stat-recompetes').innerText = analysis.recompetes.length;
 
-    // Market Insights
+    // --- 2. Market Insights (Concentration & Top Vendor) ---
     const topVendor = awards[0] ? awards[0]['Recipient Name'] : 'Unknown';
     document.getElementById('marketInsights').innerHTML = `
       <div class="insight-card">
@@ -1398,11 +1518,12 @@ const App = {
         <div class="insight-val" style="font-size:0.9rem">${Utils.trunc(topVendor, 30)}</div>
       </div>`;
 
-    // Forecast Table
+    // --- 3. Forecast Table ---
     const tb = document.getElementById('forecastTableBody');
     tb.innerHTML = '';
     analysis.forecasts.forEach(f => {
-      const isUp = parseFloat(f.trend) > 0;
+      // Determine if trend is positive for coloring
+      const isUp = f.trend.includes('+'); 
       tb.innerHTML += `
         <tr>
           <td><b>${f.period}</b></td>
@@ -1413,7 +1534,36 @@ const App = {
         </tr>`;
     });
 
-    // Recompetes
+    // --- 4. Strategic Analysis (Executive Summary & Matrix) ---
+    const strat = analysis.strategy;
+    const stratSection = document.getElementById('strategySection');
+    
+    if(strat && stratSection) {
+        stratSection.style.display = 'block';
+        
+        // Executive Card Text
+        const outlookElem = document.getElementById('strat-outlook');
+        outlookElem.innerText = strat.title;
+        // Color code the title based on content
+        if(strat.title.includes("High")) outlookElem.style.color = "var(--success)";
+        else if(strat.title.includes("Contraction")) outlookElem.style.color = "var(--danger)";
+        else outlookElem.style.color = "var(--accent)";
+
+        document.getElementById('strat-text').innerText = strat.text;
+        document.getElementById('strat-action').innerText = strat.action;
+        
+        // Matrix Values
+        const bdElem = document.getElementById('matrix-bd');
+        bdElem.innerText = strat.matrix.bd;
+        bdElem.style.color = strat.matrix.bd.includes("Increase") ? "var(--success)" : "white";
+        
+        document.getElementById('matrix-strat').innerText = strat.matrix.strat;
+        document.getElementById('matrix-pipe').innerText = strat.matrix.pipe;
+    } else if (stratSection) {
+        stratSection.style.display = 'none';
+    }
+
+    // --- 5. Recompetes List ---
     const rl = document.getElementById('recompetesList');
     if(analysis.recompetes.length) {
       rl.innerHTML = `<div class="section-header"><div class="section-title-group"><i class="fas fa-exclamation-triangle" style="color:var(--danger)"></i><span class="section-title" style="color:var(--danger)">Recompete Opportunities</span></div></div>` + 
@@ -1444,7 +1594,7 @@ const App = {
       rl.innerHTML = '';
     }
 
-    // Chart
+    // --- 6. Render Chart ---
     App.renderHistoricalChart(analysis.byFY);
   },
 
