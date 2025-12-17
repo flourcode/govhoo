@@ -4,25 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#000000">
-  <title>Govhoo - An easy way to visualize USASpending data</title>
+  <title>Govhoo - Market Intelligence</title>
   
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-sankey/0.12.3/d3-sankey.min.js"></script>
-  
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-T343V4RFHV"></script>
-<script>
+  <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
 
   gtag('config', 'G-T343V4RFHV');
 </script>
-
-  
 <style>
 :root {
   --bg-app: #000000;
@@ -64,10 +59,8 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  
   padding: 2rem;
   padding-top: max(8vh, var(--safe-top)); 
-  
   transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   overflow-y: auto; 
 }
@@ -143,8 +136,6 @@ body {
   font-size: 0.75rem;
   color: var(--text-muted);
   text-align: left;
-  
-  /* FIX: Ensure it doesn't get cut off on small screens */
   margin-bottom: 2rem; 
 }
 
@@ -180,13 +171,10 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(0,0,0,0.95); /* Slightly darker for better contrast */
+  background: rgba(0,0,0,0.95);
   backdrop-filter: blur(10px);
-  
   padding: 0.75rem 1rem;
-  /* FIX: Add safe area padding for iPhone notch */
   padding-top: max(0.75rem, var(--safe-top));
-  
   border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
@@ -198,8 +186,8 @@ body {
   display: flex;
   align-items: center;
   gap: 1rem;
-  flex: 1; /* Allow left side to take available space */
-  min-width: 0; /* Crucial for nested flex truncation */
+  flex: 1; 
+  min-width: 0;
 }
 
 .logo-btn {
@@ -208,8 +196,6 @@ body {
   color: white;
   cursor: pointer;
   transition: opacity 0.2s;
-  
-  /* FIX: Prevent Logo from shrinking/disappearing on mobile */
   flex-shrink: 0;
   white-space: nowrap;
 }
@@ -222,11 +208,9 @@ body {
   padding: 0.5rem 1rem;
   border-radius: 4px;
   font-size: 0.9rem;
-  
-  /* FIX: Don't force 100% width. Use flex to fill REMAINING space */
   width: auto;
   flex: 1;
-  min-width: 0; /* Allows shrinking if needed */
+  min-width: 0; 
 }
 .mini-search:focus { outline: none; border-color: var(--accent); }
 
@@ -386,7 +370,7 @@ body {
 .deal-desc { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; line-height: 1.4; color: white; }
 .deal-vendor { font-size: 0.85rem; color: #8DA0CB; margin-bottom: 0.75rem; font-family: 'JetBrains Mono', monospace; }
 
-/* NEW: Meta tags row */
+/* Meta tags row */
 .deal-meta {
   display: flex;
   flex-wrap: wrap;
@@ -473,14 +457,14 @@ body {
 
 <div id="heroView" class="hero-view">
   <div class="terminal-logo"><span>>_</span> Govhoo</div>
-  <p style="color:var(--text-muted); margin-bottom: 2rem; text-align:center;">Visualize USASpending Data</p>
+  <p style="color:var(--text-muted); margin-bottom: 2rem; text-align:center;">An easy way to visualize USASpending data.</p>
   
   <div class="search-box-container">
-    <input type="text" id="mainSearchInput" class="main-input" placeholder="Search Keywords, Company, or Agency" autocomplete="off">
+    <input type="text" id="mainSearchInput" class="main-input" placeholder="Search Keywords (e.g. AWS, Microsoft, Dell)" autocomplete="off">
     <button id="searchBtn" class="btn-primary">SEARCH</button>
   </div>
 
-  <div class="search-tips">
+   <div class="search-tips">
     <div class="tip-header"><i class="fas fa-terminal"></i> SEARCH_TIPS</div>
     
     <div class="tip-row">
@@ -492,7 +476,10 @@ body {
       <span class="cmd-hl">Amazon</span>
       <span>Find awards by company name and associated VARs.</span>
     </div>
-    
+    <div class="tip-row">
+      <span class="cmd-hl">Company A, Company B</span>
+      <span>Use commas to compare multiple competitors side-by-side.</span>
+    </div>
     <div class="tip-row">
       <span class="cmd-hl">DA10</span>
       <span>PSC code (searches descriptions, not PSC field).</span>
@@ -514,6 +501,8 @@ body {
 	<div class="tip-row">
       <span class="cmd-hl">Data sourced live from USASpending.gov</span>
     </div>
+</div>
+
 </div>
 
 </div>
@@ -577,7 +566,7 @@ body {
     <div class="section-header">
       <div class="section-title-group">
         <i class="fas fa-list-ul" style="color:var(--accent)"></i>
-        <span class="section-title">Contract Award Feed</span>
+        <span class="section-title">Contract Opportunity Feed</span>
       </div>
     </div>
     
@@ -663,10 +652,8 @@ const App = {
   showHero: () => {
     const hero = document.getElementById('heroView');
     document.getElementById('appView').style.display = 'none';
-    
-    // Reset hero display property so it can be seen again
     hero.style.display = 'flex';
-    // Small timeout to allow the display change to register before removing the slide class
+    
     setTimeout(() => {
       hero.classList.remove('slide-up');
     }, 10);
@@ -677,13 +664,16 @@ const App = {
   },
 
   search: async (val) => {
-    const query = val || document.getElementById('mainSearchInput').value;
-    if(!query) return;
+    const rawInput = val || document.getElementById('mainSearchInput').value;
+    if(!rawInput) return;
 
-    App.currentQuery = query;
+    App.currentQuery = rawInput;
     document.getElementById('loader').style.display = 'flex';
     
     try {
+      // Logic: Split by comma to support "Competitor A, Competitor B"
+      const terms = rawInput.split(',').map(s => s.trim()).filter(s => s.length > 0);
+      
       const today = new Date();
       const oneYearAgo = new Date();
       oneYearAgo.setFullYear(today.getFullYear() - 1);
@@ -693,45 +683,67 @@ const App = {
         end_date: Utils.formatDateISO(today)
       };
 
-      const res = await fetch(`${API_BASE}/search/spending_by_award/`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          filters: { 
-            keywords: [query], 
-            time_period: [period],
-            award_type_codes: ['A','B','C','D']
-          },
-          fields: [
-            'Award ID', 
-            'Recipient Name', 
-            'Awarding Agency',
-            'Awarding Sub Agency',
-            'Award Amount', 
-            'Description', 
-            'generated_internal_id',
-            'Start Date',
-            'End Date',
-            'NAICS Code',
-            'NAICS Description',
-            'PSC Code',
-            'PSC Description'
-          ],
-          limit: 100,
-          page: 1,
-          sort: 'Award Amount',
-          order: 'desc'
-        })
+      // Create an array of Promises (one for each keyword)
+      const fetchPromises = terms.map(term => {
+        return fetch(`${API_BASE}/search/spending_by_award/`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            filters: { 
+              keywords: [term], 
+              time_period: [period],
+              award_type_codes: ['A','B','C','D']
+            },
+            fields: [
+              'Award ID', 
+              'Recipient Name', 
+              'Awarding Agency',
+              'Awarding Sub Agency',
+              'Award Amount', 
+              'Description', 
+              'generated_internal_id',
+              'Start Date',
+              'End Date',
+              'NAICS Code',
+              'NAICS Description',
+              'PSC Code',
+              'PSC Description'
+            ],
+            limit: 100, // 100 results per competitor
+            page: 1,
+            sort: 'Award Amount',
+            order: 'desc'
+          })
+        }).then(res => res.json());
       });
 
-      const json = await res.json();
-      App.rawData = json.results || [];
+      // Wait for all searches to finish
+      const results = await Promise.all(fetchPromises);
       
+      // Combine all results into one array
+      let combinedResults = [];
+      results.forEach(json => {
+        if(json.results) combinedResults = combinedResults.concat(json.results);
+      });
+
+      // Deduplicate by Award ID (in case keywords overlap)
+      const uniqueAwards = new Map();
+      combinedResults.forEach(item => {
+        if(!uniqueAwards.has(item['Award ID'])) {
+          uniqueAwards.set(item['Award ID'], item);
+        }
+      });
+      
+      App.rawData = Array.from(uniqueAwards.values());
+      
+      // Sort combined data by amount desc
+      App.rawData.sort((a,b) => b['Award Amount'] - a['Award Amount']);
+
       App.activeFilter = null;
       App.activeData = App.rawData;
 
       const url = new URL(window.location);
-      url.searchParams.set('q', query);
+      url.searchParams.set('q', rawInput);
       window.history.replaceState({}, '', url);
 
       App.updateDashboard();
@@ -741,14 +753,12 @@ const App = {
       hero.classList.add('slide-up');
       
       document.getElementById('appView').style.display = 'block';
-      document.getElementById('miniSearch').value = query;
+      document.getElementById('miniSearch').value = rawInput;
 
-      // FIX: Wait for animation (500ms) then hide Hero completely so no ghost text remains
       setTimeout(() => {
         hero.style.display = 'none';
       }, 500);
 
-      // Re-render Sankey after layout settles
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           App.renderSankey();
