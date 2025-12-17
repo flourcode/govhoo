@@ -545,12 +545,17 @@ body {
 
   <div class="method-item">
     <div class="method-title"><i class="fas fa-filter"></i> Smart Outlier Detection</div>
-    <div class="method-desc">Anomalies are filtered <strong>per-quarter</strong>. This ensures that a massive Q4 spike (common in government) is recognized as a legitimate seasonal pattern, while random one-off mega-contracts are excluded from the baseline.</div>
+    <div class="method-desc">Anomalies are filtered <strong>per-quarter</strong>. This ensures that a massive Q4 spike (common in government) is recognized as a legitimate seasonal pattern, while random one-off mega-contracts are excluded.</div>
   </div>
 
   <div class="method-item">
-    <div class="method-title"><i class="fas fa-chart-pie"></i> Market Context</div>
-    <div class="method-desc"><strong>HHI Score:</strong> Measures market competition (< 1,500 = Competitive, > 2,500 = Monopolistic). <br><strong>Recompetes:</strong> Scans active contracts to identify high-value awards expiring within 6–24 months.</div>
+    <div class="method-title"><i class="fas fa-balance-scale"></i> Market Concentration</div>
+    <div class="method-desc">Calculates the <strong>HHI Score</strong> to measure competition. Scores under 1,500 indicate a competitive market, while scores over 2,500 indicate a market dominated by just one or two massive agencies.</div>
+  </div>
+
+  <div class="method-item">
+    <div class="method-title"><i class="fas fa-redo"></i> Recompete Analysis</div>
+    <div class="method-desc">The engine scans active contracts to identify high-value awards ($50k+) that are expiring within the next 6–24 months, flagging them as potential immediate opportunities.</div>
   </div>
 
   <div class="method-item">
