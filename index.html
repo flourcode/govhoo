@@ -575,12 +575,13 @@ body {
 
   <div style="background:rgba(255,255,255,0.02); padding:1rem; border:1px solid #333; border-radius:4px;">
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:0.75rem; color:var(--text-muted); font-size:0.75rem; font-weight:700; letter-spacing:0.5px;">
-      <i class="fas fa-info-circle"></i> MODEL LIMITATIONS
+      <i class="fas fa-info-circle"></i> MODEL LIMITATIONS & LOGIC
     </div>
     <ul style="margin:0; padding-left:1.2rem; color:#888; font-size:0.8rem; line-height:1.6;">
-      <li><strong>Historical Basis:</strong> Projects future volume based on past seasonal trends. Cannot predict policy shifts or budget cuts.</li>
-      <li><strong>Data Scope:</strong> "Baseline Spend" covers the total market. "Market Concentration" analyzes only the top 100 contracts by value.</li>
-      <li><strong>Reporting Lag:</strong> Recent data may appear low due to federal reporting delays (up to 90 days).</li>
+      <li style="margin-bottom:4px;"><strong>Historical Basis:</strong> Projects future volume based on seasonal trends. Cannot predict policy shifts or budget cuts.</li>
+      <li style="margin-bottom:4px;"><strong>Data Scope:</strong> "Baseline Spend" covers the total market (TAM). "Market Concentration" analyzes only the top 100 contracts.</li>
+      <li style="margin-bottom:4px;"><strong>Reporting Lag:</strong> Recent quarters may appear artificially low due to the standard 90-day federal reporting delay.</li>
+      <li><strong>Confidence Score:</strong> "High" confidence requires both <em>sufficient data</em> (3+ years) AND <em>market stability</em>. Highly volatile markets will be flagged as "Low Confidence" even if ample historical data exists.</li>
     </ul>
   </div>
 </div>
@@ -1001,20 +1002,28 @@ const ForecastEngine = {
     let q = curQ;
     
     for(let i=0; i<4; i++) {
-      // 1. Prediction: Apply the seasonal % to the Annual Forecast Total
+      // 1. Prediction
       const predicted = annualForecast * seasonalProfile[q];
       
-      // 2. Historical Context: Get the weighted average for this specific quarter
-      // We recalculate a simple average of past Q's to show as "Hist. Avg" comparison
+      // 2. Historical Stats
       const qHistory = filtered.byQuarter[q] || [];
       const validHistory = qHistory.filter(d => d.amt > 0);
       let histAvg = 0;
+      let volatility = 0; // Coefficient of Variation (0 to 1+)
+
       if(validHistory.length) {
+          // Calculate Mean
           histAvg = validHistory.reduce((s, d) => s + d.amt, 0) / validHistory.length;
+          
+          // Calculate Standard Deviation & Volatility
+          if(validHistory.length > 1 && histAvg > 0) {
+              const variance = validHistory.reduce((s, d) => s + Math.pow(d.amt - histAvg, 2), 0) / (validHistory.length - 1);
+              const stdDev = Math.sqrt(variance);
+              volatility = stdDev / histAvg; // e.g., 0.2 means +/- 20% swing on average
+          }
       }
 
-      // 3. Trend Calculation: Now we derive the trend from the result
-      // "How different is our prediction from the historical average?"
+      // 3. Trend Display
       let displayTrend = 0;
       if(histAvg > 0) {
           displayTrend = ((predicted - histAvg) / histAvg) * 100;
@@ -1022,9 +1031,22 @@ const ForecastEngine = {
           displayTrend = 100;
       }
 
-      // 4. Confidence
-      let confidence = validHistory.length >= 3 ? "High" : (validHistory.length >= 2 ? "Med" : "Low");
+      // 4. SMART CONFIDENCE CALCULATION
+      // Start with quantity-based score
+      let confidence = "Low";
       
+      if (validHistory.length >= 3) {
+          // We have plenty of data, but is it stable?
+          if (volatility < 0.25) confidence = "High";      // Very stable (<25% variance)
+          else if (volatility < 0.55) confidence = "Med";  // Moderate swings
+          else confidence = "Low";                         // Chaos (>55% variance)
+      } 
+      else if (validHistory.length === 2) {
+          // Scant data, only high if extremely stable
+          if (volatility < 0.15) confidence = "Med"; 
+          else confidence = "Low";
+      }
+
       forecasts.push({
         period: `FY${fy} Q${q}`,
         predicted: predicted,
