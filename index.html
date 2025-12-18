@@ -577,24 +577,32 @@ body {
   </div>
 
   <div style="background:rgba(255,255,255,0.02); padding:1rem; border:1px solid #333; border-radius:4px;">
-    <div style="display:flex; align-items:center; gap:8px; margin-bottom:0.75rem; color:var(--text-muted); font-size:0.75rem; font-weight:700; letter-spacing:0.5px;">
-      <i class="fas fa-info-circle"></i> MODEL LIMITATIONS & LOGIC
-    </div>
-    <ul style="margin:0; padding-left:1.2rem; color:#888; font-size:0.8rem; line-height:1.6;">
-      <li style="margin-bottom:4px;">
-        <strong>TAM (Total Addressable Market):</strong> 
-        Estimated TAM projects <strong>annual volume</strong> based on the <em>aggregate historical spend</em> of all matching contracts in the USASpending database (not just the top 100 sample shown). The model uses a weighted average of the last 3 Fiscal Years, prioritizing recent spending patterns.
-      </li>
-      <li style="margin-bottom:4px;">
-        <strong>Awards vs. Forecast Gap:</strong> 
-        "Total Awards" reflects <em>Total Contract Value (Ceiling)</em> awarded (often multi-year potential), while "Forecast" projects <em>Actual Obligated Spending</em> (cash flow for the next 12 months). Large deltas represent unfunded ceiling capacity on major vehicles (e.g., IDIQs).
-      </li>
-      <li style="margin-bottom:4px;"><strong>Historical Basis:</strong> Forecasts rely entirely on seasonal trends from data in USASpending. The model cannot predict future budget cuts, policy shifts, or continuing resolutions (CRs).</li>
-      <li style="margin-bottom:4px;"><strong>Data Scope:</strong> While TAM covers the entire market, "Market Concentration" and "Incumbents" are analyzed using a sample of the Top 100 largest contracts.</li>
-      <li style="margin-bottom:4px;"><strong>Reporting Lag:</strong> Recent quarters often appear artificially low due to the standard 90-day federal reporting delay.</li>
-      <li><strong>Confidence Score:</strong> "High" confidence requires both <em>sufficient data</em> (3+ years) AND <em>market stability</em>. High-growth markets may be flagged as "High Confidence" if the growth trend is consistent.</li>
-    </ul>
+  <div style="display:flex; align-items:center; gap:8px; margin-bottom:0.75rem; color:var(--text-muted); font-size:0.75rem; font-weight:700; letter-spacing:0.5px;">
+    <i class="fas fa-info-circle"></i> MODEL LIMITATIONS & LOGIC
   </div>
+  <ul style="margin:0; padding-left:1.2rem; color:#888; font-size:0.8rem; line-height:1.6;">
+    <li style="margin-bottom:4px;">
+      <strong>TAM (Total Addressable Market):</strong> 
+      Projected annual volume based on <em>aggregate historical obligations</em> from USASpending (not just the top 100 sample). Uses a recency-weighted average of completed Fiscal Years, prioritizing the most recent year's spend velocity.
+    </li>
+    <li style="margin-bottom:4px;">
+      <strong>Awards vs. Forecast Gap:</strong> 
+      "Total Awards" reflects <em>Total Contract Value (Ceiling)</em>, the maximum possible spend including all option years. "Forecast" projects <em>Actual Obligated Spending</em>, real cash flow. Large deltas represent unfunded ceiling capacity on vehicles like IDIQs.
+    </li>
+    <li style="margin-bottom:4px;">
+      <strong>Historical Basis:</strong> Forecasts rely entirely on seasonal trends from USASpending data. The model cannot predict budget cuts, policy shifts, or continuing resolutions (CRs).
+    </li>
+    <li style="margin-bottom:4px;">
+      <strong>Data Scope:</strong> TAM covers the full market. "Market Concentration" (HHI) and "Top Incumbents" are calculated from a sample of the top 100 agencies/contracts by value.
+    </li>
+    <li style="margin-bottom:4px;">
+      <strong>Reporting Lag:</strong> Recent quarters may appear artificially low due to the standard 90-day federal reporting delay.
+    </li>
+    <li>
+      <strong>Confidence Score:</strong> Based solely on data availability. "High" = 3+ years of historical data for that quarter. "Medium" = 2 years. "Low" = limited historical data.
+    </li>
+  </ul>
+</div>
 </div>
 
 <div class="section-header" style="margin-top:2rem;">
