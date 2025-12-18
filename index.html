@@ -1710,16 +1710,28 @@ const App = {
     const data = App.mode === 'search' ? App.searchData.active : (App.forecastData.awards || []);
     if (!data.length) return alert("No data to export");
     
-    const headers = ['Recipient', 'Agency', 'Amount', 'Description', 'Start Date', 'End Date', 'Award ID'];
-    const rows = data.map(c => [
-      `"${(c['Recipient Name'] || '').replace(/"/g, '""')}"`,
-      `"${(c['Awarding Agency'] || '').replace(/"/g, '""')}"`,
-      c['Award Amount'] || 0,
-      `"${(c['Description'] || '').replace(/"/g, '""')}"`,
-      c['Start Date'] || '',
-      c['End Date'] || '',
-      c['Award ID'] || ''
-    ]);
+    const headers = ['Recipient', 'Agency', 'Amount', 'Description', 'Start Date', 'End Date', 'Award ID', 'Award Link'];
+    const rows = data.map(c => {
+      // Build the award URL
+      const internalId = c['generated_internal_id'];
+      let awardUrl = '';
+      if (internalId) {
+        awardUrl = `https://www.usaspending.gov/award/${internalId}`;
+      } else if (c['Award ID']) {
+        awardUrl = `https://www.usaspending.gov/search/?hash=&filters=${encodeURIComponent(JSON.stringify({keyword: c['Award ID']}))}`;
+      }
+      
+      return [
+        `"${(c['Recipient Name'] || '').replace(/"/g, '""')}"`,
+        `"${(c['Awarding Agency'] || '').replace(/"/g, '""')}"`,
+        c['Award Amount'] || 0,
+        `"${(c['Description'] || '').replace(/"/g, '""')}"`,
+        c['Start Date'] || '',
+        c['End Date'] || '',
+        c['Award ID'] || '',
+        awardUrl
+      ];
+    });
     
     const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
