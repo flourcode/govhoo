@@ -716,6 +716,12 @@ body {
       <input type="text" id="miniSearch" class="mini-search" placeholder="New search...">
     </div>
     <div class="header-actions">
+      <button class="icon-btn" id="toggleModeBtn" onclick="App.toggleMode()" title="Toggle Mode">
+        <i class="fas fa-exchange-alt"></i>
+      </button>
+      <button class="icon-btn" onclick="App.shareLink()" title="Copy Share Link">
+        <i class="fas fa-link"></i>
+      </button>
       <button class="icon-btn" title="Export CSV" onclick="App.exportCSV()">
         <i class="fas fa-download"></i>
       </button>
@@ -2128,6 +2134,26 @@ const App = {
   },
 
   updateURL(query, mode) { const url = new URL(window.location); url.searchParams.set('q', query); url.searchParams.set('mode', mode); window.history.replaceState({}, '', url); },
+
+  shareLink() {
+    const url = new URL(window.location);
+    url.searchParams.set('q', App.currentQuery);
+    url.searchParams.set('mode', App.mode);
+    navigator.clipboard.writeText(url.toString()).then(() => {
+      const btn = document.querySelector('[onclick="App.shareLink()"]');
+      const icon = btn.querySelector('i');
+      icon.className = 'fas fa-check';
+      btn.style.borderColor = 'var(--success)';
+      btn.style.color = 'var(--success)';
+      setTimeout(() => {
+        icon.className = 'fas fa-link';
+        btn.style.borderColor = '';
+        btn.style.color = '';
+      }, 2000);
+    }).catch(() => {
+      prompt('Copy this link:', url.toString());
+    });
+  },
 
   exportCSV() {
     const data = App.mode === 'search' ? App.searchData.active : (App.forecastData.awards || []);
