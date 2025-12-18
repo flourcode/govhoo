@@ -581,11 +581,11 @@ body {
       <i class="fas fa-info-circle"></i> MODEL LIMITATIONS & LOGIC
     </div>
     <ul style="margin:0; padding-left:1.2rem; color:#888; font-size:0.8rem; line-height:1.6;">
-      <li style="margin-bottom:4px;"><strong>Historical Basis:</strong> Projects future volume based on seasonal trends. Cannot predict policy shifts or budget cuts.</li>
-      <li style="margin-bottom:4px;"><strong>Data Scope:</strong> 
-          "Estimated TAM" represents the <strong style="color:#bbb">aggregate federal spending forecast</strong> for this category. "Market Concentration" and "Recompetes" are calculated using a sample of the Top 100 contracts to identify leaders.</li>
-      <li style="margin-bottom:4px;"><strong>Reporting Lag:</strong> Recent quarters may appear artificially low due to the standard 90-day federal reporting delay.</li>
-      <li><strong>Confidence Score:</strong> "High" confidence requires both <em>sufficient data</em> (3+ years) AND <em>market stability</em>. Highly volatile markets will be flagged as "Low Confidence" even if ample historical data exists.</li>
+      <li style="margin-bottom:4px;"><strong>TAM Calculation:</strong> Estimated TAM is derived from the <em>aggregate</em> federal spending database (all contracts), not just the top 100 displayed. It projects volume using a weighted average of the last 3 Fiscal Years, prioritizing recent spending patterns.</li>
+      <li style="margin-bottom:4px;"><strong>Historical Basis:</strong> Forecasts rely entirely on seasonal trends. The model cannot predict future budget cuts, policy shifts, or continuing resolutions (CRs).</li>
+      <li style="margin-bottom:4px;"><strong>Data Scope:</strong> While TAM covers the entire market, "Market Concentration" and "Incumbents" are analyzed using a sample of the Top 100 largest contracts.</li>
+      <li style="margin-bottom:4px;"><strong>Reporting Lag:</strong> Recent quarters often appear artificially low due to the standard 90-day federal reporting delay.</li>
+      <li><strong>Confidence Score:</strong> "High" confidence requires both <em>sufficient data</em> (3+ years) AND <em>market stability</em>. High-growth markets may be flagged as "High Confidence" if the growth trend is consistent.</li>
     </ul>
   </div>
 </div>
@@ -1542,8 +1542,27 @@ const App = {
     
     if(!analysis) return;
 
-    // --- 1. Top Stats Row ---
+    // --- 1. Top Stats Row (TAM & Growth) ---
     document.getElementById('stat-baseline').innerText = Utils.money(analysis.baseline);
+    
+    // NEW: Calculate Growth vs Last Year's Actuals
+    const curFY = Utils.getCurrentFY();
+    const lastYearTotal = analysis.byFY[curFY - 1]; 
+    // Sum Q1-Q4 for previous year
+    const lastYearSum = lastYearTotal ? Object.values(lastYearTotal).reduce((a,b)=>a+b,0) : 0;
+    
+    if(lastYearSum > 0) {
+        const growth = ((analysis.baseline - lastYearSum) / lastYearSum) * 100;
+        const color = growth >= 0 ? 'var(--success)' : 'var(--danger)';
+        const icon = growth >= 0 ? '▲' : '▼';
+        
+        // Inject dynamic growth % into the sub-text element
+        const subText = document.querySelector('#stat-baseline + .stat-sub');
+        if(subText) {
+             subText.innerHTML = `FY Projected Volume <span style="color:${color}; margin-left:6px; font-weight:700;">${icon} ${Math.abs(growth).toFixed(1)}%</span>`;
+        }
+    }
+
     document.getElementById('stat-market').innerText = analysis.marketStatus;
     document.getElementById('stat-hhi').innerText = `HHI: ${analysis.hhi}`;
     
@@ -1552,7 +1571,7 @@ const App = {
     document.getElementById('stat-peak').innerText = `Q${peakQ}`;
     document.getElementById('stat-recompetes').innerText = analysis.recompetes.length;
 
-    // --- 2. Market Insights (Concentration & Top Vendor) ---
+    // --- 2. Market Insights ---
     const topVendor = awards[0] ? awards[0]['Recipient Name'] : 'Unknown';
     document.getElementById('marketInsights').innerHTML = `
       <div class="insight-card">
@@ -1565,17 +1584,17 @@ const App = {
         <div class="insight-val" style="font-size:0.9rem">${Utils.trunc(topVendor, 30)}</div>
       </div>`;
 
-    // --- 3. Forecast Table ---
+    // --- 3. Forecast Table (With Micro-Labels) ---
     const tb = document.getElementById('forecastTableBody');
     tb.innerHTML = '';
     analysis.forecasts.forEach(f => {
       const isUp = f.trend.includes('+'); 
       
-      // Determine Color based on Label
+      // Determine Confidence Color
       let confColor = '#888'; // Low/Default
       if(f.confidence.label === 'High') confColor = 'var(--success)';
-      if(f.confidence.label === 'Med') confColor = '#FDD835'; // Yellow/Gold for Med
-      
+      else if(f.confidence.label === 'Med') confColor = '#FDD835'; // Gold/Yellow
+
       tb.innerHTML += `
         <tr>
           <td><b>${f.period}</b></td>
@@ -1589,29 +1608,25 @@ const App = {
         </tr>`;
     });
 
-    // --- 4. Strategic Analysis (Executive Summary & Matrix) ---
+    // --- 4. Strategic Analysis ---
     const strat = analysis.strategy;
     const stratSection = document.getElementById('strategySection');
     
     if(strat && stratSection) {
         stratSection.style.display = 'block';
         
-        // Executive Card Text
         const outlookElem = document.getElementById('strat-outlook');
         outlookElem.innerText = strat.title;
-        // Color code the title based on content
-        if(strat.title.includes("High")) outlookElem.style.color = "var(--success)";
-        else if(strat.title.includes("Contraction")) outlookElem.style.color = "var(--danger)";
+        // Color code title based on signal
+        if(strat.title.includes("Growth")) outlookElem.style.color = "var(--success)";
+        else if(strat.title.includes("Softening")) outlookElem.style.color = "var(--danger)";
         else outlookElem.style.color = "var(--accent)";
 
         document.getElementById('strat-text').innerText = strat.text;
         document.getElementById('strat-action').innerText = strat.action;
         
         // Matrix Values
-        const bdElem = document.getElementById('matrix-bd');
-        bdElem.innerText = strat.matrix.bd;
-        bdElem.style.color = strat.matrix.bd.includes("Increase") ? "var(--success)" : "white";
-        
+        document.getElementById('matrix-bd').innerText = strat.matrix.bd;
         document.getElementById('matrix-strat').innerText = strat.matrix.strat;
         document.getElementById('matrix-pipe').innerText = strat.matrix.pipe;
     } else if (stratSection) {
