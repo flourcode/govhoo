@@ -432,7 +432,7 @@ body {
     <div id="searchModeView" class="view-section active">
       <div class="stats-row" id="searchStats">
         <div class="stat-item">
-          <div class="stat-label">Total $ Awards</div>
+          <div class="stat-label">TCV Awarded</div>
           <div class="stat-val" id="stat-vol">-</div>
           <div class="stat-sub neutral">Past 12 Months</div>
         </div>
@@ -582,9 +582,13 @@ body {
     </div>
     <ul style="margin:0; padding-left:1.2rem; color:#888; font-size:0.8rem; line-height:1.6;">
       <li style="margin-bottom:4px;">
-  <strong>TAM (Total Addressable Market):</strong> 
-  Estimated TAM projects <strong>annual volume</strong> based on the <em>aggregate historical spend</em> of all matching contracts in the USASpending database (not just the top 100 sample shown). The model uses a weighted average of the last 3 Fiscal Years, prioritizing recent spending patterns.
-</li>
+        <strong>TAM (Total Addressable Market):</strong> 
+        Estimated TAM projects <strong>annual volume</strong> based on the <em>aggregate historical spend</em> of all matching contracts in the USASpending database (not just the top 100 sample shown). The model uses a weighted average of the last 3 Fiscal Years, prioritizing recent spending patterns.
+      </li>
+      <li style="margin-bottom:4px;">
+        <strong>Awards vs. Forecast Gap:</strong> 
+        "Total Awards" reflects <em>Total Contract Value (Ceiling)</em> awarded (often multi-year potential), while "Forecast" projects <em>Actual Obligated Spending</em> (cash flow for the next 12 months). Large deltas represent unfunded ceiling capacity on major vehicles (e.g., IDIQs).
+      </li>
       <li style="margin-bottom:4px;"><strong>Historical Basis:</strong> Forecasts rely entirely on seasonal trends from data in USASpending. The model cannot predict future budget cuts, policy shifts, or continuing resolutions (CRs).</li>
       <li style="margin-bottom:4px;"><strong>Data Scope:</strong> While TAM covers the entire market, "Market Concentration" and "Incumbents" are analyzed using a sample of the Top 100 largest contracts.</li>
       <li style="margin-bottom:4px;"><strong>Reporting Lag:</strong> Recent quarters often appear artificially low due to the standard 90-day federal reporting delay.</li>
