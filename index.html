@@ -484,7 +484,7 @@ body {
     <div id="forecastModeView" class="view-section">
       <div class="stats-row" id="forecastStats">
         <div class="stat-item">
-          <div class="stat-label" style="color:var(--accent); font-weight:700;">Estimated TAM</div>
+          <div class="stat-label" style="color:var(--accent); font-weight:700;">Estimated Annual TAM</div>
           <div class="stat-val" id="stat-baseline">-</div>
           <div class="stat-sub neutral">FY Projected Volume</div>
         </div>
@@ -1542,25 +1542,28 @@ const App = {
     
     if(!analysis) return;
 
-    // --- 1. Top Stats Row (TAM & Growth) ---
+    // 1. Get Current Fiscal Year for Labels & Math
+    const curFY = Utils.getCurrentFY();
+
+    // --- 2. Top Stats Row (TAM & Growth) ---
     document.getElementById('stat-baseline').innerText = Utils.money(analysis.baseline);
     
-    // NEW: Calculate Growth vs Last Year's Actuals
-    const curFY = Utils.getCurrentFY();
+    // Calculate Growth vs Last Year's Actuals
     const lastYearTotal = analysis.byFY[curFY - 1]; 
-    // Sum Q1-Q4 for previous year
     const lastYearSum = lastYearTotal ? Object.values(lastYearTotal).reduce((a,b)=>a+b,0) : 0;
     
-    if(lastYearSum > 0) {
-        const growth = ((analysis.baseline - lastYearSum) / lastYearSum) * 100;
-        const color = growth >= 0 ? 'var(--success)' : 'var(--danger)';
-        const icon = growth >= 0 ? '▲' : '▼';
-        
-        // Inject dynamic growth % into the sub-text element
-        const subText = document.querySelector('#stat-baseline + .stat-sub');
-        if(subText) {
-             subText.innerHTML = `FY Projected Volume <span style="color:${color}; margin-left:6px; font-weight:700;">${icon} ${Math.abs(growth).toFixed(1)}%</span>`;
+    // Update Subtext with Explicit FY and Growth Trend
+    const subText = document.querySelector('#stat-baseline + .stat-sub');
+    if(subText) {
+        let growthHtml = '';
+        if(lastYearSum > 0) {
+            const growth = ((analysis.baseline - lastYearSum) / lastYearSum) * 100;
+            const color = growth >= 0 ? 'var(--success)' : 'var(--danger)';
+            const icon = growth >= 0 ? '▲' : '▼';
+            growthHtml = `<span style="color:${color}; margin-left:6px; font-weight:700;">${icon} ${Math.abs(growth).toFixed(1)}%</span>`;
         }
+        // Label now reads: "Annual Projected (FY2025)"
+        subText.innerHTML = `FY${curFY} ${growthHtml}`;
     }
 
     document.getElementById('stat-market').innerText = analysis.marketStatus;
@@ -1571,7 +1574,7 @@ const App = {
     document.getElementById('stat-peak').innerText = `Q${peakQ}`;
     document.getElementById('stat-recompetes').innerText = analysis.recompetes.length;
 
-    // --- 2. Market Insights ---
+    // --- 3. Market Insights ---
     const topVendor = awards[0] ? awards[0]['Recipient Name'] : 'Unknown';
     document.getElementById('marketInsights').innerHTML = `
       <div class="insight-card">
@@ -1584,7 +1587,7 @@ const App = {
         <div class="insight-val" style="font-size:0.9rem">${Utils.trunc(topVendor, 30)}</div>
       </div>`;
 
-    // --- 3. Forecast Table (With Micro-Labels) ---
+    // --- 4. Forecast Table (With Micro-Labels) ---
     const tb = document.getElementById('forecastTableBody');
     tb.innerHTML = '';
     analysis.forecasts.forEach(f => {
@@ -1608,7 +1611,7 @@ const App = {
         </tr>`;
     });
 
-    // --- 4. Strategic Analysis ---
+    // --- 5. Strategic Analysis ---
     const strat = analysis.strategy;
     const stratSection = document.getElementById('strategySection');
     
@@ -1633,7 +1636,7 @@ const App = {
         stratSection.style.display = 'none';
     }
 
-    // --- 5. Recompetes List ---
+    // --- 6. Recompetes List ---
     const rl = document.getElementById('recompetesList');
     if(analysis.recompetes.length) {
       rl.innerHTML = `<div class="section-header"><div class="section-title-group"><i class="fas fa-exclamation-triangle" style="color:var(--danger)"></i><span class="section-title" style="color:var(--danger)">Recompete Opportunities</span></div></div>` + 
@@ -1664,7 +1667,7 @@ const App = {
       rl.innerHTML = '';
     }
 
-    // --- 6. Render Chart ---
+    // --- 7. Render Chart ---
     App.renderHistoricalChart(analysis.byFY);
   },
 
