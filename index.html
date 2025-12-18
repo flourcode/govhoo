@@ -202,10 +202,16 @@ body {
 /* Chart Containers */
 .chart-wrapper {
   background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: 4px; padding: 1rem; width: 100%; overflow: hidden;
+  border-radius: 4px; padding: 1rem; width: 100%; 
+  overflow-x: auto; /* Allow horizontal scroll if needed */
+  overflow-y: visible; /* Allow chart to grow vertically */
 }
-.chart-container { width: 100%; height: 500px; display: flex; justify-content: center; }
-.chart-wrapper-sm { height: 350px; }
+.chart-container { 
+  width: 100%; 
+  min-height: 500px; /* Use min-height instead of fixed height */
+  height: auto;      /* Allow it to stretch */
+  display: block;    /* Changed from flex to block to handle height better */
+}
 
 /* Feed Grid */
 .feed-grid { display: flex; flex-direction: column; gap: 1rem; }
@@ -1967,75 +1973,175 @@ const App = {
     }
   },
 
-  renderSankey() {
-    const container = document.getElementById('chartContainer');
-    container.innerHTML = '';
-    const data = App.searchData.active;
-    if(data.length === 0) { container.innerHTML = '<div style="text-align:center; padding:4rem; color:#666">No data to display</div>'; return; }
-    container.innerHTML = '<svg id="sankeySvg"></svg>';
-    const flowMap = {};
+renderSankey() {
+  const container = document.getElementById('chartContainer');
+  container.innerHTML = '';
+  const data = App.searchData.active;
+  
+  if (data.length === 0) { 
+    container.innerHTML = '<div style="text-align:center; padding:4rem; color:#666">No data to display</div>'; 
+    return; 
+  }
+  
+  // Initialize SVG container
+  container.innerHTML = '<svg id="sankeySvg"></svg>';
+  
+  const flowMap = {};
+
+  // 1. Data Aggregation logic
+  if (App.drillState.level === 0) {
+    data.forEach(d => { 
+      if (d['Award Amount'] > 0) { 
+        const src = d['Awarding Agency'] || 'Unknown Agency'; 
+        const tgt = d['Recipient Name'] || 'Unknown Vendor'; 
+        const k = src + "|||" + tgt; 
+        flowMap[k] = (flowMap[k] || 0) + d['Award Amount']; 
+      } 
+    });
+  } else {
+    data.forEach(d => { 
+      if (d['Award Amount'] > 0) { 
+        const src = d['Awarding Sub Agency'] || 'Unknown Sub-Agency'; 
+        const tgt = d['Recipient Name'] || 'Unknown Vendor'; 
+        const k = src + "|||" + tgt; 
+        flowMap[k] = (flowMap[k] || 0) + d['Award Amount']; 
+      } 
+    });
+  }
+
+  // 2. Node & Link Preparation
+  let nodesSet = new Set(); 
+  let links = [];
+  // Use a higher limit for drill-down views to see more detail
+  const limit = App.drillState.level > 0 ? 50 : 25; 
+  
+  const sortedFlows = Object.entries(flowMap)
+    .sort((a,b) => b[1] - a[1])
+    .slice(0, limit);
     
-    if (App.drillState.level === 0) {
-      data.forEach(d => { if(d['Award Amount'] > 0) { const src = d['Awarding Agency'] || 'Unknown Agency'; const tgt = d['Recipient Name'] || 'Unknown Vendor'; const k = src + "|||" + tgt; flowMap[k] = (flowMap[k] || 0) + d['Award Amount']; } });
-    } else {
-      data.forEach(d => { if(d['Award Amount'] > 0) { const src = d['Awarding Sub Agency'] || 'Unknown Sub-Agency'; const tgt = d['Recipient Name'] || 'Unknown Vendor'; const k = src + "|||" + tgt; flowMap[k] = (flowMap[k] || 0) + d['Award Amount']; } });
-    }
+  sortedFlows.forEach(([k, val]) => { 
+    const [src, tgt] = k.split("|||"); 
+    nodesSet.add(src); 
+    nodesSet.add(tgt); 
+    links.push({source: src, target: tgt, value: val}); 
+  });
 
-    let nodesSet = new Set(); let links = [];
-    const limit = App.drillState.level > 0 ? 50 : 25;
-    const sortedFlows = Object.entries(flowMap).sort((a,b) => b[1] - a[1]).slice(0, limit);
-    sortedFlows.forEach(([k, val]) => { const [src, tgt] = k.split("|||"); nodesSet.add(src); nodesSet.add(tgt); links.push({source: src, target: tgt, value: val}); });
+  const nodes = Array.from(nodesSet).map(n => ({name: n}));
+  const nodeMap = new Map(nodes.map((n, i) => [n.name, i]));
+  const d3Links = links.map(l => ({ 
+    source: nodeMap.get(l.source), 
+    target: nodeMap.get(l.target), 
+    value: l.value 
+  }));
 
-    const nodes = Array.from(nodesSet).map(n => ({name: n}));
-    const nodeMap = new Map(nodes.map((n, i) => [n.name, i]));
-    const d3Links = links.map(l => ({ source: nodeMap.get(l.source), target: nodeMap.get(l.target), value: l.value }));
-    const width = container.offsetWidth || 800; const height = 500;
-    const svg = d3.select("#sankeySvg").attr("width", width).attr("height", height);
-    const sankey = d3.sankey().nodeId(d => d.index).nodeWidth(20).nodePadding(15).extent([[1, 1], [width - 1, height - 6]]);
-    const {nodes: graphNodes, links: graphLinks} = sankey({ nodes: nodes.map(d => Object.assign({}, d)), links: d3Links.map(d => Object.assign({}, d)) });
+  // 3. Dynamic Height Calculation (The Fix)
+  const containerWidth = container.offsetWidth || 800;
+  
+  // Calculate dynamic height: ~40px per node in the densest column
+  // This ensures that if you have 50 sub-agencies, the chart grows to ~2000px tall
+  const estimatedNodesPerColumn = Math.ceil(nodes.length / 2);
+  const minHeight = 500;
+  const dynamicHeight = Math.max(minHeight, estimatedNodesPerColumn * 40);
 
-    const isDrillable = (nodeName) => {
-      if (App.drillState.level === 0) return App.searchData.raw.some(d => d['Awarding Agency'] === nodeName);
-      else if (App.drillState.level === 1) return App.searchData.raw.some(d => d['Awarding Sub Agency'] === nodeName);
-      return false;
-    };
+  const svg = d3.select("#sankeySvg")
+    .attr("width", containerWidth)
+    .attr("height", dynamicHeight);
 
-    svg.append("g").selectAll("rect").data(graphNodes).join("rect")
-      .attr("x", d => d.x0).attr("y", d => d.y0).attr("height", d => d.y1 - d.y0).attr("width", d => d.x1 - d.x0)
-      .attr("fill", d => Utils.getColor(d.name))
-      .attr("opacity", d => { if (App.searchData.filter && d.name !== App.searchData.filter) return 0.3; return isDrillable(d.name) ? 1 : 0.8; })
-      .attr("rx", 2)
-      .attr("stroke", d => isDrillable(d.name) ? 'var(--accent)' : 'none')
-      .attr("stroke-width", d => isDrillable(d.name) ? 2 : 0)
-      .style("cursor", "pointer")
-      .on("click", (e, d) => App.drillDown(d.name))
-      .on("mouseover", function(e, d) { if (isDrillable(d.name)) { d3.select(this).attr("opacity", 1).attr("stroke-width", 3); } })
-      .on("mouseout", function(e, d) { const baseOpacity = App.searchData.filter && d.name !== App.searchData.filter ? 0.3 : (isDrillable(d.name) ? 1 : 0.8); d3.select(this).attr("opacity", baseOpacity).attr("stroke-width", isDrillable(d.name) ? 2 : 0); })
-      .append("title").text(d => `${d.name}\n${Utils.money(d.value)}${isDrillable(d.name) ? '\n\nClick to drill down' : ''}`);
+  const sankey = d3.sankey()
+    .nodeId(d => d.index)
+    .nodeWidth(20)
+    .nodePadding(20) // Increased padding makes clicking easier
+    .extent([[1, 1], [containerWidth - 1, dynamicHeight - 6]]);
 
-    svg.append("g").selectAll("text").data(graphNodes).join("text")
-      .attr("x", d => d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6)
-      .attr("y", d => (d.y1 + d.y0) / 2).attr("dy", "0.35em")
-      .attr("text-anchor", d => d.x0 < width / 2 ? "start" : "end")
-      .text(d => { const label = Utils.trunc(d.name, width > 600 ? 30 : 15); return isDrillable(d.name) ? `▶ ${label}` : label; })
-      .attr("fill", d => isDrillable(d.name) ? 'var(--accent)' : '#fff')
-      .style("font-size", "11px").style("font-family", "Inter")
-      .style("font-weight", d => isDrillable(d.name) ? "700" : "500")
-      .style("cursor", "pointer").style("text-shadow", "0 1px 2px black")
-      .on("click", (e, d) => App.drillDown(d.name));
+  const {nodes: graphNodes, links: graphLinks} = sankey({ 
+    nodes: nodes.map(d => Object.assign({}, d)), 
+    links: d3Links.map(d => Object.assign({}, d)) 
+  });
 
-    const defs = svg.append("defs");
-    graphLinks.forEach((l, i) => { const gradient = defs.append("linearGradient").attr("id", "grad" + i).attr("gradientUnits", "userSpaceOnUse").attr("x1", l.source.x1).attr("x2", l.target.x0); gradient.append("stop").attr("offset", "0%").attr("stop-color", Utils.getColor(l.source.name)); gradient.append("stop").attr("offset", "100%").attr("stop-color", Utils.getColor(l.target.name)); });
+  // Helper to determine if a node is clickable/drillable
+  const isDrillable = (nodeName) => {
+    if (App.drillState.level === 0) return App.searchData.raw.some(d => d['Awarding Agency'] === nodeName);
+    else if (App.drillState.level === 1) return App.searchData.raw.some(d => d['Awarding Sub Agency'] === nodeName);
+    return false;
+  };
 
-    svg.append("g").attr("fill", "none").selectAll("path").data(graphLinks).join("path")
-      .attr("d", d3.sankeyLinkHorizontal())
-      .attr("stroke", (d, i) => "url(#grad" + i + ")")
-      .attr("stroke-width", d => Math.max(1, d.width))
-      .attr("stroke-opacity", 0.5).style("mix-blend-mode", "screen")
-      .on("mouseover", function() { d3.select(this).attr("stroke-opacity", 0.8); })
-      .on("mouseout", function() { d3.select(this).attr("stroke-opacity", 0.5); });
-  },
+  // 4. Render Rects (Nodes)
+  svg.append("g")
+    .selectAll("rect")
+    .data(graphNodes)
+    .join("rect")
+    .attr("x", d => d.x0)
+    .attr("y", d => d.y0)
+    .attr("height", d => d.y1 - d.y0)
+    .attr("width", d => d.x1 - d.x0)
+    .attr("fill", d => Utils.getColor(d.name))
+    .attr("opacity", d => { 
+      if (App.searchData.filter && d.name !== App.searchData.filter) return 0.3; 
+      return isDrillable(d.name) ? 1 : 0.8; 
+    })
+    .attr("rx", 2)
+    .attr("stroke", d => isDrillable(d.name) ? 'var(--accent)' : 'none')
+    .attr("stroke-width", d => isDrillable(d.name) ? 2 : 0)
+    .style("cursor", "pointer")
+    .on("click", (e, d) => App.drillDown(d.name))
+    .on("mouseover", function(e, d) { 
+      if (isDrillable(d.name)) { d3.select(this).attr("opacity", 1).attr("stroke-width", 3); } 
+    })
+    .on("mouseout", function(e, d) { 
+      const baseOpacity = App.searchData.filter && d.name !== App.searchData.filter ? 0.3 : (isDrillable(d.name) ? 1 : 0.8); 
+      d3.select(this).attr("opacity", baseOpacity).attr("stroke-width", isDrillable(d.name) ? 2 : 0); 
+    })
+    .append("title")
+    .text(d => `${d.name}\n${Utils.money(d.value)}${isDrillable(d.name) ? '\n\nClick to drill down' : ''}`);
 
+  // 5. Render Labels (Text)
+  svg.append("g")
+    .selectAll("text")
+    .data(graphNodes)
+    .join("text")
+    .attr("x", d => d.x0 < containerWidth / 2 ? d.x1 + 6 : d.x0 - 6)
+    .attr("y", d => (d.y1 + d.y0) / 2)
+    .attr("dy", "0.35em")
+    .attr("text-anchor", d => d.x0 < containerWidth / 2 ? "start" : "end")
+    .text(d => { 
+      // Truncate text logic
+      const label = Utils.trunc(d.name, containerWidth > 600 ? 30 : 15); 
+      return isDrillable(d.name) ? `▶ ${label}` : label; 
+    })
+    .attr("fill", d => isDrillable(d.name) ? 'var(--accent)' : '#fff')
+    .style("font-size", "11px")
+    .style("font-family", "Inter")
+    .style("font-weight", d => isDrillable(d.name) ? "700" : "500")
+    .style("cursor", "pointer")
+    .style("text-shadow", "0 1px 2px black")
+    .on("click", (e, d) => App.drillDown(d.name));
+
+  // 6. Define Gradients
+  const defs = svg.append("defs");
+  graphLinks.forEach((l, i) => { 
+    const gradient = defs.append("linearGradient")
+      .attr("id", "grad" + i)
+      .attr("gradientUnits", "userSpaceOnUse")
+      .attr("x1", l.source.x1)
+      .attr("x2", l.target.x0); 
+    gradient.append("stop").attr("offset", "0%").attr("stop-color", Utils.getColor(l.source.name)); 
+    gradient.append("stop").attr("offset", "100%").attr("stop-color", Utils.getColor(l.target.name)); 
+  });
+
+  // 7. Render Links (Paths)
+  svg.append("g")
+    .attr("fill", "none")
+    .selectAll("path")
+    .data(graphLinks)
+    .join("path")
+    .attr("d", d3.sankeyLinkHorizontal())
+    .attr("stroke", (d, i) => "url(#grad" + i + ")")
+    .attr("stroke-width", d => Math.max(1, d.width))
+    .attr("stroke-opacity", 0.5)
+    .style("mix-blend-mode", "screen")
+    .on("mouseover", function() { d3.select(this).attr("stroke-opacity", 0.8); })
+    .on("mouseout", function() { d3.select(this).attr("stroke-opacity", 0.5); });
+},
   renderFeed() {
     const div = document.getElementById('feedGrid');
     const data = App.searchData.active;
