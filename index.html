@@ -190,6 +190,7 @@ body {
   font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text-muted);
   border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px;
 }
+
 .filter-badge {
   display: none; background: var(--accent-dim); color: var(--accent);
   border: 1px solid var(--accent); padding: 4px 8px; border-radius: 4px;
@@ -320,6 +321,303 @@ body {
   color: var(--text-primary);
 }
 
+/* ========================================
+   NEW: Sub-Agency Drill-Down Styles
+   ======================================== */
+
+/* Breadcrumb Navigation */
+.drill-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(90deg, rgba(212, 196, 168, 0.1), transparent);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.breadcrumb-item:hover {
+  background: rgba(255,255,255,0.05);
+  color: var(--accent);
+}
+
+.breadcrumb-item.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+  cursor: default;
+}
+
+.breadcrumb-separator {
+  color: var(--border);
+  font-size: 0.7rem;
+}
+
+.breadcrumb-icon {
+  font-size: 0.75rem;
+}
+
+/* Drill-Down Hint */
+.drill-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(212, 196, 168, 0.05);
+  border: 1px dashed var(--border);
+  border-radius: 4px;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.drill-hint i {
+  color: var(--accent);
+}
+
+/* Sub-Agency Breakdown Panel */
+.subagency-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-top: 1.5rem;
+  overflow: hidden;
+}
+
+.subagency-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background: linear-gradient(90deg, rgba(212, 196, 168, 0.08), transparent);
+  border-bottom: 1px solid var(--border);
+}
+
+.subagency-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.subagency-header-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  color: var(--accent);
+}
+
+.subagency-header-text h3 {
+  margin: 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.subagency-header-text span {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.subagency-stats {
+  display: flex;
+  gap: 1.5rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.subagency-stat {
+  text-align: right;
+}
+
+.subagency-stat-val {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.subagency-stat-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+/* Sub-Agency List */
+.subagency-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.subagency-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.subagency-item:hover {
+  background: rgba(255,255,255,0.02);
+}
+
+.subagency-item:last-child {
+  border-bottom: none;
+}
+
+.subagency-item-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.subagency-rank {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.05);
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.subagency-rank.top-3 {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1px solid rgba(212, 196, 168, 0.3);
+}
+
+.subagency-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.subagency-name {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.subagency-contracts {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.subagency-item-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.subagency-bar-container {
+  width: 120px;
+  height: 8px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.subagency-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), rgba(212, 196, 168, 0.5));
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.subagency-amount {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--accent);
+  min-width: 80px;
+  text-align: right;
+}
+
+.subagency-drill-icon {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  opacity: 0;
+  transition: all 0.15s;
+}
+
+.subagency-item:hover .subagency-drill-icon {
+  opacity: 1;
+  color: var(--accent);
+  transform: translateX(2px);
+}
+
+/* Drill Level Indicator */
+.drill-level-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 2px 6px;
+  background: rgba(102, 194, 165, 0.1);
+  border: 1px solid rgba(102, 194, 165, 0.3);
+  border-radius: 4px;
+  font-size: 0.65rem;
+  color: var(--success);
+  margin-left: 0.5rem;
+}
+
+/* Sankey Node Enhancement for Drillable */
+.node-drillable {
+  cursor: pointer;
+}
+
+.node-drillable:hover {
+  filter: brightness(1.2);
+}
+
+/* Empty State */
+.empty-drill-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: var(--text-muted);
+}
+
+.empty-drill-state i {
+  font-size: 2rem;
+  color: var(--border);
+  margin-bottom: 1rem;
+}
+
+.empty-drill-state p {
+  margin: 0.5rem 0;
+}
+
 @media (max-width: 768px) {
   .methodology-card {
     grid-template-columns: 1fr;
@@ -331,6 +629,16 @@ body {
   .method-item:last-child {
     border-bottom: none;
     padding-bottom: 0;
+  }
+  .subagency-bar-container {
+    display: none;
+  }
+  .subagency-stats {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .subagency-stat {
+    text-align: left;
   }
 }
 
@@ -373,8 +681,6 @@ body {
     <div class="tip-header"><i class="fas fa-terminal"></i> SEARCH_TIPS</div>
     <div class="tip-row"><span class="cmd-hl">cloud computing</span> <span>Search award descriptions, vendors, and agencies.</span></div>
     <div class="tip-row"><span class="cmd-hl">Company A, Company B</span> <span>Compare multiple competitors side-by-side.</span></div>
-    <div class="tip-row"><span class="cmd-hl">Search Mode</span> <span>Shows Sankey flow + contract feed (past 12 months).</span></div>
-    
 	 <div class="tip-row">
       <span class="cmd-hl">DA10</span>
       <span>PSC code (searches descriptions, not PSC field).</span>
@@ -388,9 +694,10 @@ body {
       <span class="cmd-hl">Fuzzy Search</span>
       <span>Quotes are ignored. "Pizza" returns pizza contracts AND Pizzaro's Construction. ¯\_(ツ)_/¯</span>
     </div>
+	<div class="tip-row"><span class="cmd-hl">Search Mode</span> <span>Drill down by Agency to see Award flow for past 12 months.</span></div>
  <div class="tip-row">
-  <span class="cmd-hl">Forecast</span> 
-  <span>*Experimental. Projects TAM (Total Addressable Market) using historical data. Features per-quarter outlier detection and volatility risk scoring.</span>
+  <span class="cmd-hl">Forecast Mode</span> 
+  <span>Estimates TAM (Total Addressable Market) using historical data. Features per-quarter outlier detection and volatility risk scoring.</span>
 </div>
 	<div class="tip-row">
       <span class="cmd-hl">Questions or Requests?</span>
@@ -405,14 +712,11 @@ body {
 <div id="appView" style="display:none;">
   <header class="app-header">
     <div class="header-left">
-      <div class="logo-btn" onclick="App.showHero()">Govhoo</div>
-      <input type="text" id="miniSearch" class="mini-search" placeholder="New Search...">
+      <span class="logo-btn" onclick="App.showHero()">>_Govhoo</span>
+      <input type="text" id="miniSearch" class="mini-search" placeholder="New search...">
     </div>
     <div class="header-actions">
-      <button class="icon-btn" id="toggleModeBtn" onclick="App.toggleMode()" title="Toggle Mode">
-        <i class="fas fa-exchange-alt"></i>
-      </button>
-      <button class="icon-btn" onclick="App.exportCSV()" title="Export CSV">
+      <button class="icon-btn" title="Export CSV" onclick="App.exportCSV()">
         <i class="fas fa-download"></i>
       </button>
     </div>
@@ -453,10 +757,22 @@ body {
         </div>
       </div>
 
+      <!-- NEW: Breadcrumb Navigation -->
+      <div id="drillBreadcrumb" class="drill-breadcrumb" style="display: none;">
+        <div class="breadcrumb-item" onclick="App.resetDrill()">
+          <i class="fas fa-globe breadcrumb-icon"></i>
+          <span>All Agencies</span>
+        </div>
+      </div>
+
       <div class="section-header">
         <div class="section-title-group">
           <i class="fas fa-project-diagram" style="color:var(--accent)"></i>
           <span class="section-title">Award Flow</span>
+          <span id="drillLevelBadge" class="drill-level-indicator" style="display:none;">
+            <i class="fas fa-layer-group"></i>
+            <span id="drillLevelText">Level 1</span>
+          </span>
         </div>
         <div class="header-controls">
           <div id="filterBadge" class="filter-badge" onclick="App.clearFilter()">
@@ -468,9 +784,38 @@ body {
       <div class="chart-wrapper">
         <div id="chartContainer" class="chart-container"></div>
       </div>
-      <p style="text-align:center; font-size:0.75rem; color:#666; margin-top:0.5rem;">
-        <i class="fas fa-mouse-pointer"></i> Click bars to drill down
-      </p>
+      <div id="drillHint" class="drill-hint">
+        <i class="fas fa-mouse-pointer"></i>
+        <span>Click an <strong>agency bar</strong> to drill into sub-agencies</span>
+      </div>
+
+      <!-- NEW: Sub-Agency Breakdown Panel -->
+      <div id="subagencyPanel" class="subagency-panel" style="display: none;">
+        <div class="subagency-header">
+          <div class="subagency-header-left">
+            <div class="subagency-header-icon">
+              <i class="fas fa-building"></i>
+            </div>
+            <div class="subagency-header-text">
+              <h3 id="subagencyParentName">Department of Defense</h3>
+              <span id="subagencyParentType">Parent Agency</span>
+            </div>
+          </div>
+          <div class="subagency-stats">
+            <div class="subagency-stat">
+              <div class="subagency-stat-val" id="subagencyTotalAmount">$0</div>
+              <div class="subagency-stat-label">Total Value</div>
+            </div>
+            <div class="subagency-stat">
+              <div class="subagency-stat-val" id="subagencyCount">0</div>
+              <div class="subagency-stat-label">Sub-Agencies</div>
+            </div>
+          </div>
+        </div>
+        <div class="subagency-list" id="subagencyList">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
 
       <div class="section-header">
         <div class="section-title-group">
@@ -1168,6 +1513,7 @@ generateStrategy(forecasts, hhi, recompetes) {
     };
   }
 };
+
 // ==================== APP ====================
 const App = {
   mode: 'search', // 'search' or 'forecast'
@@ -1188,6 +1534,14 @@ const App = {
     awards: null,
     analysis: null,
     loaded: false
+  },
+
+  // ==================== NEW: Drill-Down State ====================
+  drillState: {
+    level: 0,                  // 0 = All, 1 = Agency, 2 = Sub-Agency
+    path: [],                  // Breadcrumb trail: [{type, name, data}]
+    currentAgency: null,       // Currently selected agency
+    currentSubAgency: null     // Currently selected sub-agency
   },
 
   init() {
@@ -1281,6 +1635,7 @@ const App = {
     if(isNewQuery) {
       App.searchData = { raw: [], active: [], filter: null, loaded: false };
       App.forecastData = { spending: null, agencies: null, awards: null, analysis: null, loaded: false };
+      App.resetDrill(); // Reset drill state on new query
     }
     
     App.currentQuery = query;
@@ -1321,7 +1676,7 @@ const App = {
     document.getElementById('stat-vendors').innerText = vendors;
     document.getElementById('stat-agencies').innerText = agencies;
     
-    // Filter badge
+    // Filter badge (legacy - keeping for compatibility)
     const badge = document.getElementById('filterBadge');
     if (App.searchData.filter) {
       badge.style.display = 'inline-flex';
@@ -1331,121 +1686,346 @@ const App = {
     }
     
     App.renderFeed();
+    App.updateDrillUI();
+  },
+
+  // ==================== NEW: Drill-Down Methods ====================
+
+  resetDrill() {
+    App.drillState = {
+      level: 0,
+      path: [],
+      currentAgency: null,
+      currentSubAgency: null
+    };
+    App.searchData.filter = null;
+    App.searchData.active = App.searchData.raw;
+    App.updateSearchDashboard();
+    App.renderSankey();
+  },
+
+  updateDrillUI() {
+    const breadcrumb = document.getElementById('drillBreadcrumb');
+    const hint = document.getElementById('drillHint');
+    const levelBadge = document.getElementById('drillLevelBadge');
+    const subagencyPanel = document.getElementById('subagencyPanel');
+    
+    if (App.drillState.level === 0) {
+      // Top level - show hint, hide breadcrumb
+      breadcrumb.style.display = 'none';
+      hint.style.display = 'flex';
+      hint.innerHTML = `
+        <i class="fas fa-mouse-pointer"></i>
+        <span>Click an <strong>agency bar</strong> to drill into sub-agencies</span>
+      `;
+      levelBadge.style.display = 'none';
+      subagencyPanel.style.display = 'none';
+    } else {
+      // Drilled in - show breadcrumb
+      breadcrumb.style.display = 'flex';
+      levelBadge.style.display = 'inline-flex';
+      
+      // Build breadcrumb HTML
+      let breadcrumbHTML = `
+        <div class="breadcrumb-item" onclick="App.resetDrill()">
+          <i class="fas fa-globe breadcrumb-icon"></i>
+          <span>All Agencies</span>
+        </div>
+      `;
+      
+      App.drillState.path.forEach((item, idx) => {
+        const isLast = idx === App.drillState.path.length - 1;
+        breadcrumbHTML += `
+          <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
+          <div class="breadcrumb-item ${isLast ? 'active' : ''}" 
+               onclick="${isLast ? '' : `App.drillToLevel(${idx + 1})`}">
+            <i class="fas ${item.type === 'agency' ? 'fa-building' : 'fa-sitemap'} breadcrumb-icon"></i>
+            <span>${Utils.trunc(item.name, 25)}</span>
+          </div>
+        `;
+      });
+      
+      breadcrumb.innerHTML = breadcrumbHTML;
+      
+      // Update level badge
+      document.getElementById('drillLevelText').innerText = 
+        App.drillState.level === 1 ? 'Agency View' : 'Sub-Agency View';
+      
+      // Update hint based on level
+      if (App.drillState.level === 1) {
+        hint.style.display = 'flex';
+        hint.innerHTML = `
+          <i class="fas fa-layer-group"></i>
+          <span>Click a <strong>sub-agency</strong> in the panel below or in the chart to see vendor breakdown</span>
+        `;
+        // Show sub-agency panel
+        App.renderSubAgencyPanel();
+      } else if (App.drillState.level === 2) {
+        hint.style.display = 'flex';
+        hint.innerHTML = `
+          <i class="fas fa-check-circle" style="color: var(--success)"></i>
+          <span>Viewing vendor breakdown for <strong>${Utils.trunc(App.drillState.currentSubAgency, 30)}</strong></span>
+        `;
+        subagencyPanel.style.display = 'none';
+      }
+    }
+  },
+
+  renderSubAgencyPanel() {
+    const panel = document.getElementById('subagencyPanel');
+    const list = document.getElementById('subagencyList');
+    
+    if (!App.drillState.currentAgency) {
+      panel.style.display = 'none';
+      return;
+    }
+    
+    // Get all contracts for this agency
+    const agencyContracts = App.searchData.raw.filter(
+      d => d['Awarding Agency'] === App.drillState.currentAgency
+    );
+    
+    // Group by sub-agency
+    const subAgencyMap = {};
+    agencyContracts.forEach(c => {
+      const subAgency = c['Awarding Sub Agency'] || 'Unknown Sub-Agency';
+      if (!subAgencyMap[subAgency]) {
+        subAgencyMap[subAgency] = { amount: 0, count: 0 };
+      }
+      subAgencyMap[subAgency].amount += c['Award Amount'] || 0;
+      subAgencyMap[subAgency].count++;
+    });
+    
+    // Convert to sorted array
+    const subAgencies = Object.entries(subAgencyMap)
+      .map(([name, data]) => ({ name, ...data }))
+      .sort((a, b) => b.amount - a.amount);
+    
+    const totalAmount = subAgencies.reduce((sum, s) => sum + s.amount, 0);
+    const maxAmount = subAgencies[0]?.amount || 1;
+    
+    // Update header
+    document.getElementById('subagencyParentName').innerText = Utils.trunc(App.drillState.currentAgency, 40);
+    document.getElementById('subagencyParentType').innerText = 'Parent Agency';
+    document.getElementById('subagencyTotalAmount').innerText = Utils.money(totalAmount);
+    document.getElementById('subagencyCount').innerText = subAgencies.length;
+    
+    // Render list
+    if (subAgencies.length === 0) {
+      list.innerHTML = `
+        <div class="empty-drill-state">
+          <i class="fas fa-inbox"></i>
+          <p>No sub-agency data available</p>
+          <p style="font-size: 0.8rem;">This agency may not have reported sub-agency information</p>
+        </div>
+      `;
+    } else {
+      list.innerHTML = subAgencies.map((sub, idx) => {
+        const barWidth = (sub.amount / maxAmount) * 100;
+        const isTop3 = idx < 3;
+        
+        return `
+          <div class="subagency-item" onclick="App.drillToSubAgency('${sub.name.replace(/'/g, "\\'")}')">
+            <div class="subagency-item-left">
+              <div class="subagency-rank ${isTop3 ? 'top-3' : ''}">${idx + 1}</div>
+              <div class="subagency-info">
+                <div class="subagency-name">${sub.name}</div>
+                <div class="subagency-contracts">${sub.count} contract${sub.count !== 1 ? 's' : ''}</div>
+              </div>
+            </div>
+            <div class="subagency-item-right">
+              <div class="subagency-bar-container">
+                <div class="subagency-bar" style="width: ${barWidth}%"></div>
+              </div>
+              <div class="subagency-amount">${Utils.money(sub.amount)}</div>
+              <i class="fas fa-chevron-right subagency-drill-icon"></i>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    panel.style.display = 'block';
+  },
+
+  drillToAgency(agencyName) {
+    // If clicking the same agency, reset
+    if (App.drillState.currentAgency === agencyName && App.drillState.level === 1) {
+      App.resetDrill();
+      return;
+    }
+    
+    App.drillState.level = 1;
+    App.drillState.currentAgency = agencyName;
+    App.drillState.currentSubAgency = null;
+    App.drillState.path = [{ type: 'agency', name: agencyName }];
+    
+    // Filter to this agency's contracts
+    App.searchData.active = App.searchData.raw.filter(
+      d => d['Awarding Agency'] === agencyName
+    );
+    App.searchData.filter = agencyName;
+    
+    App.updateSearchDashboard();
+    App.renderSankey();
+  },
+
+  drillToSubAgency(subAgencyName) {
+    // If clicking the same sub-agency, go back to agency level
+    if (App.drillState.currentSubAgency === subAgencyName && App.drillState.level === 2) {
+      App.drillToAgency(App.drillState.currentAgency);
+      return;
+    }
+    
+    App.drillState.level = 2;
+    App.drillState.currentSubAgency = subAgencyName;
+    App.drillState.path = [
+      { type: 'agency', name: App.drillState.currentAgency },
+      { type: 'subagency', name: subAgencyName }
+    ];
+    
+    // Filter to this sub-agency's contracts
+    App.searchData.active = App.searchData.raw.filter(
+      d => d['Awarding Agency'] === App.drillState.currentAgency &&
+           d['Awarding Sub Agency'] === subAgencyName
+    );
+    App.searchData.filter = subAgencyName;
+    
+    App.updateSearchDashboard();
+    App.renderSankey();
+  },
+
+  drillToLevel(level) {
+    if (level === 1 && App.drillState.path[0]) {
+      App.drillToAgency(App.drillState.path[0].name);
+    } else {
+      App.resetDrill();
+    }
+  },
+
+  // ==================== Enhanced drillDown (replaces old) ====================
+  drillDown(name) {
+    const data = App.searchData.raw;
+    
+    // Check if it's an agency
+    const isAgency = data.some(d => d['Awarding Agency'] === name);
+    
+    // Check if it's a sub-agency
+    const isSubAgency = data.some(d => d['Awarding Sub Agency'] === name);
+    
+    // Check if it's a vendor
+    const isVendor = data.some(d => d['Recipient Name'] === name);
+    
+    if (isAgency && App.drillState.level === 0) {
+      // Drill into agency
+      App.drillToAgency(name);
+    } else if (isSubAgency && App.drillState.level === 1) {
+      // Drill into sub-agency
+      App.drillToSubAgency(name);
+    } else if (isVendor) {
+      // Filter to vendor (terminal state)
+      if (App.searchData.filter === name) {
+        // Clicking same vendor - go back one level
+        if (App.drillState.level === 2) {
+          App.drillToSubAgency(App.drillState.currentSubAgency);
+        } else if (App.drillState.level === 1) {
+          App.drillToAgency(App.drillState.currentAgency);
+        } else {
+          App.resetDrill();
+        }
+        return;
+      }
+      App.searchData.active = App.searchData.active.filter(d => d['Recipient Name'] === name);
+      App.searchData.filter = name;
+      App.updateSearchDashboard();
+      App.renderSankey();
+    } else if (isAgency && App.drillState.level > 0) {
+      App.drillToAgency(name);
+    } else {
+      if (App.searchData.filter === name) { App.clearFilter(); return; }
+      App.searchData.filter = name;
+      App.searchData.active = App.searchData.raw.filter(d => d['Awarding Agency'] === name || d['Recipient Name'] === name);
+      App.updateSearchDashboard();
+      App.renderSankey();
+    }
+  },
+
+  clearFilter() {
+    if (App.drillState.level > 0) {
+      App.resetDrill();
+    } else {
+      App.searchData.filter = null;
+      App.searchData.active = App.searchData.raw;
+      App.updateSearchDashboard();
+      App.renderSankey();
+    }
   },
 
   renderSankey() {
     const container = document.getElementById('chartContainer');
     container.innerHTML = '';
-    
     const data = App.searchData.active;
-    
-    if(data.length === 0) {
-      container.innerHTML = '<div style="text-align:center; padding:4rem; color:#666">No data to display</div>';
-      return;
-    }
-    
+    if(data.length === 0) { container.innerHTML = '<div style="text-align:center; padding:4rem; color:#666">No data to display</div>'; return; }
     container.innerHTML = '<svg id="sankeySvg"></svg>';
-
     const flowMap = {};
-    data.forEach(d => {
-      if(d['Award Amount'] > 0) {
-        const src = d['Awarding Agency'] || 'Unknown Agency';
-        const tgt = d['Recipient Name'] || 'Unknown Vendor';
-        const k = src + "|||" + tgt;
-        flowMap[k] = (flowMap[k] || 0) + d['Award Amount'];
-      }
-    });
+    
+    if (App.drillState.level === 0) {
+      data.forEach(d => { if(d['Award Amount'] > 0) { const src = d['Awarding Agency'] || 'Unknown Agency'; const tgt = d['Recipient Name'] || 'Unknown Vendor'; const k = src + "|||" + tgt; flowMap[k] = (flowMap[k] || 0) + d['Award Amount']; } });
+    } else {
+      data.forEach(d => { if(d['Award Amount'] > 0) { const src = d['Awarding Sub Agency'] || 'Unknown Sub-Agency'; const tgt = d['Recipient Name'] || 'Unknown Vendor'; const k = src + "|||" + tgt; flowMap[k] = (flowMap[k] || 0) + d['Award Amount']; } });
+    }
 
-    let nodesSet = new Set();
-    let links = [];
-    const limit = App.searchData.filter ? 100 : 25; 
+    let nodesSet = new Set(); let links = [];
+    const limit = App.drillState.level > 0 ? 50 : 25;
     const sortedFlows = Object.entries(flowMap).sort((a,b) => b[1] - a[1]).slice(0, limit);
-
-    sortedFlows.forEach(([k, val]) => {
-      const [src, tgt] = k.split("|||");
-      nodesSet.add(src);
-      nodesSet.add(tgt);
-      links.push({source: src, target: tgt, value: val});
-    });
+    sortedFlows.forEach(([k, val]) => { const [src, tgt] = k.split("|||"); nodesSet.add(src); nodesSet.add(tgt); links.push({source: src, target: tgt, value: val}); });
 
     const nodes = Array.from(nodesSet).map(n => ({name: n}));
     const nodeMap = new Map(nodes.map((n, i) => [n.name, i]));
-    
-    const d3Links = links.map(l => ({
-      source: nodeMap.get(l.source),
-      target: nodeMap.get(l.target),
-      value: l.value
-    }));
-
-    const width = container.offsetWidth || 800; 
-    const height = 500;
-
+    const d3Links = links.map(l => ({ source: nodeMap.get(l.source), target: nodeMap.get(l.target), value: l.value }));
+    const width = container.offsetWidth || 800; const height = 500;
     const svg = d3.select("#sankeySvg").attr("width", width).attr("height", height);
+    const sankey = d3.sankey().nodeId(d => d.index).nodeWidth(20).nodePadding(15).extent([[1, 1], [width - 1, height - 6]]);
+    const {nodes: graphNodes, links: graphLinks} = sankey({ nodes: nodes.map(d => Object.assign({}, d)), links: d3Links.map(d => Object.assign({}, d)) });
 
-    const sankey = d3.sankey()
-      .nodeId(d => d.index)
-      .nodeWidth(20)
-      .nodePadding(15)
-      .extent([[1, 1], [width - 1, height - 6]]);
+    const isDrillable = (nodeName) => {
+      if (App.drillState.level === 0) return App.searchData.raw.some(d => d['Awarding Agency'] === nodeName);
+      else if (App.drillState.level === 1) return App.searchData.raw.some(d => d['Awarding Sub Agency'] === nodeName);
+      return false;
+    };
 
-    const {nodes: graphNodes, links: graphLinks} = sankey({
-      nodes: nodes.map(d => Object.assign({}, d)),
-      links: d3Links.map(d => Object.assign({}, d))
-    });
-
-    svg.append("g")
-      .selectAll("rect")
-      .data(graphNodes)
-      .join("rect")
-      .attr("x", d => d.x0)
-      .attr("y", d => d.y0)
-      .attr("height", d => d.y1 - d.y0)
-      .attr("width", d => d.x1 - d.x0)
+    svg.append("g").selectAll("rect").data(graphNodes).join("rect")
+      .attr("x", d => d.x0).attr("y", d => d.y0).attr("height", d => d.y1 - d.y0).attr("width", d => d.x1 - d.x0)
       .attr("fill", d => Utils.getColor(d.name))
-      .attr("opacity", d => (App.searchData.filter && d.name !== App.searchData.filter) ? 0.3 : 0.9)
+      .attr("opacity", d => { if (App.searchData.filter && d.name !== App.searchData.filter) return 0.3; return isDrillable(d.name) ? 1 : 0.8; })
       .attr("rx", 2)
+      .attr("stroke", d => isDrillable(d.name) ? 'var(--accent)' : 'none')
+      .attr("stroke-width", d => isDrillable(d.name) ? 2 : 0)
       .style("cursor", "pointer")
       .on("click", (e, d) => App.drillDown(d.name))
-      .append("title")
-      .text(d => `${d.name}\n${Utils.money(d.value)}`);
+      .on("mouseover", function(e, d) { if (isDrillable(d.name)) { d3.select(this).attr("opacity", 1).attr("stroke-width", 3); } })
+      .on("mouseout", function(e, d) { const baseOpacity = App.searchData.filter && d.name !== App.searchData.filter ? 0.3 : (isDrillable(d.name) ? 1 : 0.8); d3.select(this).attr("opacity", baseOpacity).attr("stroke-width", isDrillable(d.name) ? 2 : 0); })
+      .append("title").text(d => `${d.name}\n${Utils.money(d.value)}${isDrillable(d.name) ? '\n\nClick to drill down' : ''}`);
 
-    svg.append("g")
-      .selectAll("text")
-      .data(graphNodes)
-      .join("text")
+    svg.append("g").selectAll("text").data(graphNodes).join("text")
       .attr("x", d => d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6)
-      .attr("y", d => (d.y1 + d.y0) / 2)
-      .attr("dy", "0.35em")
+      .attr("y", d => (d.y1 + d.y0) / 2).attr("dy", "0.35em")
       .attr("text-anchor", d => d.x0 < width / 2 ? "start" : "end")
-      .text(d => Utils.trunc(d.name, width > 600 ? 30 : 15))
-      .attr("fill", "#fff")
-      .style("font-size", "11px")
-      .style("font-family", "Inter")
-      .style("font-weight", "500")
-      .style("cursor", "pointer")
-      .style("text-shadow", "0 1px 2px black")
+      .text(d => { const label = Utils.trunc(d.name, width > 600 ? 30 : 15); return isDrillable(d.name) ? `▶ ${label}` : label; })
+      .attr("fill", d => isDrillable(d.name) ? 'var(--accent)' : '#fff')
+      .style("font-size", "11px").style("font-family", "Inter")
+      .style("font-weight", d => isDrillable(d.name) ? "700" : "500")
+      .style("cursor", "pointer").style("text-shadow", "0 1px 2px black")
       .on("click", (e, d) => App.drillDown(d.name));
 
     const defs = svg.append("defs");
-    graphLinks.forEach((l, i) => {
-      const gradient = defs.append("linearGradient")
-        .attr("id", "grad" + i)
-        .attr("gradientUnits", "userSpaceOnUse")
-        .attr("x1", l.source.x1).attr("x2", l.target.x0);
-      gradient.append("stop").attr("offset", "0%").attr("stop-color", Utils.getColor(l.source.name));
-      gradient.append("stop").attr("offset", "100%").attr("stop-color", Utils.getColor(l.target.name));
-    });
+    graphLinks.forEach((l, i) => { const gradient = defs.append("linearGradient").attr("id", "grad" + i).attr("gradientUnits", "userSpaceOnUse").attr("x1", l.source.x1).attr("x2", l.target.x0); gradient.append("stop").attr("offset", "0%").attr("stop-color", Utils.getColor(l.source.name)); gradient.append("stop").attr("offset", "100%").attr("stop-color", Utils.getColor(l.target.name)); });
 
-    svg.append("g")
-      .attr("fill", "none")
-      .selectAll("path")
-      .data(graphLinks)
-      .join("path")
+    svg.append("g").attr("fill", "none").selectAll("path").data(graphLinks).join("path")
       .attr("d", d3.sankeyLinkHorizontal())
       .attr("stroke", (d, i) => "url(#grad" + i + ")")
       .attr("stroke-width", d => Math.max(1, d.width))
-      .attr("stroke-opacity", 0.5)
-      .style("mix-blend-mode", "screen")
+      .attr("stroke-opacity", 0.5).style("mix-blend-mode", "screen")
       .on("mouseover", function() { d3.select(this).attr("stroke-opacity", 0.8); })
       .on("mouseout", function() { d3.select(this).attr("stroke-opacity", 0.5); });
   },
@@ -1453,275 +2033,90 @@ const App = {
   renderFeed() {
     const div = document.getElementById('feedGrid');
     const data = App.searchData.active;
-    
-    if(data.length === 0) {
-      div.innerHTML = '<div style="text-align:center; padding:2rem; color:#666">No contracts found.</div>';
-      return;
-    }
-
+    if(data.length === 0) { div.innerHTML = '<div style="text-align:center; padding:2rem; color:#666">No contracts found.</div>'; return; }
     div.innerHTML = data.map(c => {
       const internalId = c['generated_internal_id'];
       let url = '#';
       if (internalId) url = `https://www.usaspending.gov/award/${internalId}`;
       else if (c['Award ID']) url = `https://www.usaspending.gov/search/?hash=&filters=${encodeURIComponent(JSON.stringify({keyword: c['Award ID']}))}`;
-
       let metaTags = '';
       if (c['NAICS Code']) metaTags += `<span class="meta-tag naics" title="${c['NAICS Description'] || ''}">NAICS: ${c['NAICS Code']}</span>`;
       if (c['PSC Code']) metaTags += `<span class="meta-tag psc" title="${c['PSC Description'] || ''}">PSC: ${c['PSC Code']}</span>`;
-
-      return `
-        <div class="deal-card">
-          <div class="deal-header">
-            <span class="deal-agency">${Utils.trunc(c['Awarding Agency'], 35)}</span>
-            <span class="deal-amount">${Utils.money(c['Award Amount'])}</span>
-          </div>
-          <div class="deal-desc">${Utils.trunc(c['Description'], 100)}</div>
-          <div class="deal-vendor">${c['Recipient Name']}</div>
-          ${metaTags ? `<div class="deal-meta">${metaTags}</div>` : ''}
-          <div class="deal-footer">
-            <span class="deal-date">Start: ${Utils.date(c['Start Date'])}${c['End Date'] ? ' → ' + Utils.date(c['End Date']) : ''}</span>
-            <a href="${url}" target="_blank" class="action-btn">OPEN AWARD <i class="fas fa-external-link-alt"></i></a>
-          </div>
-        </div>
-      `;
+      const subAgency = c['Awarding Sub Agency'];
+      const agencyDisplay = subAgency && subAgency !== c['Awarding Agency'] ? `${Utils.trunc(c['Awarding Agency'], 20)} → ${Utils.trunc(subAgency, 20)}` : Utils.trunc(c['Awarding Agency'], 35);
+      return `<div class="deal-card">
+        <div class="deal-header"><span class="deal-agency">${agencyDisplay}</span><span class="deal-amount">${Utils.money(c['Award Amount'])}</span></div>
+        <div class="deal-desc">${Utils.trunc(c['Description'], 100)}</div>
+        <div class="deal-vendor">${c['Recipient Name']}</div>
+        ${metaTags ? `<div class="deal-meta">${metaTags}</div>` : ''}
+        <div class="deal-footer"><span class="deal-date">Start: ${Utils.date(c['Start Date'])}${c['End Date'] ? ' → ' + Utils.date(c['End Date']) : ''}</span><a href="${url}" target="_blank" class="action-btn">OPEN AWARD <i class="fas fa-external-link-alt"></i></a></div>
+      </div>`;
     }).join('');
-  },
-
-  drillDown(name) {
-    if (App.searchData.filter === name) {
-      App.clearFilter();
-      return;
-    }
-    App.searchData.filter = name;
-    App.searchData.active = App.searchData.raw.filter(d => 
-      d['Awarding Agency'] === name || d['Recipient Name'] === name
-    );
-    App.updateSearchDashboard();
-    App.renderSankey();
-  },
-
-  clearFilter() {
-    App.searchData.filter = null;
-    App.searchData.active = App.searchData.raw;
-    App.updateSearchDashboard();
-    App.renderSankey();
   },
 
   // ==================== FORECAST MODE ====================
   async runForecast(val) {
     const query = val || document.getElementById('mainSearchInput').value;
     if(!query) return;
-
     const isNewQuery = query !== App.currentQuery;
-    if(isNewQuery) {
-      App.searchData = { raw: [], active: [], filter: null, loaded: false };
-      App.forecastData = { spending: null, agencies: null, awards: null, analysis: null, loaded: false };
-    }
-    
-    const chartStatus = Chart.getChart("spendingChart");
-    if (chartStatus) chartStatus.destroy();
-    
-    App.currentQuery = query;
-    App.mode = 'forecast';
+    if(isNewQuery) { App.searchData = { raw: [], active: [], filter: null, loaded: false }; App.forecastData = { spending: null, agencies: null, awards: null, analysis: null, loaded: false }; }
+    const chartStatus = Chart.getChart("spendingChart"); if (chartStatus) chartStatus.destroy();
+    App.currentQuery = query; App.mode = 'forecast';
     App.showLoader('CRUNCHING NUMBERS...', 'Applying Recency-Weighted Seasonality');
-
     try {
-      const [spending, agencies, awards] = await Promise.all([
-        API.getSpendingOverTime(query),
-        API.getAgencyData(query),
-        API.getAwardsForForecast(query)
-      ]);
-
-      App.forecastData.spending = spending;
-      App.forecastData.agencies = agencies;
-      App.forecastData.awards = awards;
+      const [spending, agencies, awards] = await Promise.all([API.getSpendingOverTime(query), API.getAgencyData(query), API.getAwardsForForecast(query)]);
+      App.forecastData.spending = spending; App.forecastData.agencies = agencies; App.forecastData.awards = awards;
       App.forecastData.analysis = ForecastEngine.analyze(spending, awards, agencies);
       App.forecastData.loaded = true;
-      
-      App.updateURL(query, 'forecast');
-      App.transitionToApp();
-      App.setMode('forecast');
-      App.renderForecastDashboard();
-      
-    } catch(e) {
-      console.error(e);
-      alert("Error fetching forecast data.");
-    } finally {
-      App.hideLoader();
-    }
+      App.updateURL(query, 'forecast'); App.transitionToApp(); App.setMode('forecast'); App.renderForecastDashboard();
+    } catch(e) { console.error(e); alert("Error fetching forecast data."); }
+    finally { App.hideLoader(); }
   },
 
   renderForecastDashboard() {
-    const analysis = App.forecastData.analysis;
-    const awards = App.forecastData.awards;
-    
+    const analysis = App.forecastData.analysis; const awards = App.forecastData.awards;
     if(!analysis) return;
-
-    // 1. Get Current Fiscal Year for Labels & Math
     const curFY = Utils.getCurrentFY();
-
-    // --- 2. Top Stats Row (TAM & Growth) ---
     document.getElementById('stat-baseline').innerText = Utils.money(analysis.baseline);
-    
-    // Calculate Growth vs Last Year's Actuals
-    const lastYearTotal = analysis.byFY[curFY - 1]; 
-    const lastYearSum = lastYearTotal ? Object.values(lastYearTotal).reduce((a,b)=>a+b,0) : 0;
-    
-    // Update Subtext with Explicit FY and Growth Trend
+    const lastYearTotal = analysis.byFY[curFY - 1]; const lastYearSum = lastYearTotal ? Object.values(lastYearTotal).reduce((a,b)=>a+b,0) : 0;
     const subText = document.querySelector('#stat-baseline + .stat-sub');
-    if(subText) {
-        let growthHtml = '';
-        if(lastYearSum > 0) {
-            const growth = ((analysis.baseline - lastYearSum) / lastYearSum) * 100;
-            const color = growth >= 0 ? 'var(--success)' : 'var(--danger)';
-            const icon = growth >= 0 ? '▲' : '▼';
-            growthHtml = `<span style="color:${color}; margin-left:6px; font-weight:700;">${icon} ${Math.abs(growth).toFixed(1)}%</span>`;
-        }
-        // Label now reads: "Annual Projected (FY2025)"
-        subText.innerHTML = `FY${curFY} ${growthHtml}`;
-    }
-
+    if(subText) { let growthHtml = ''; if(lastYearSum > 0) { const growth = ((analysis.baseline - lastYearSum) / lastYearSum) * 100; const color = growth >= 0 ? 'var(--success)' : 'var(--danger)'; const icon = growth >= 0 ? '▲' : '▼'; growthHtml = `<span style="color:${color}; margin-left:6px; font-weight:700;">${icon} ${Math.abs(growth).toFixed(1)}%</span>`; } subText.innerHTML = `FY${curFY} ${growthHtml}`; }
     document.getElementById('stat-market').innerText = analysis.marketStatus;
     document.getElementById('stat-hhi').innerText = `HHI: ${analysis.hhi}`;
-    
-    let peakQ=1, peakV=0;
-    for(let q=1; q<=4; q++) if(analysis.indices[q]>peakV) { peakV=analysis.indices[q]; peakQ=q; }
+    let peakQ=1, peakV=0; for(let q=1; q<=4; q++) if(analysis.indices[q]>peakV) { peakV=analysis.indices[q]; peakQ=q; }
     document.getElementById('stat-peak').innerText = `Q${peakQ}`;
     document.getElementById('stat-recompetes').innerText = analysis.recompetes.length;
-
-    // --- 3. Market Insights ---
     const topVendor = awards[0] ? awards[0]['Recipient Name'] : 'Unknown';
-    document.getElementById('marketInsights').innerHTML = `
-      <div class="insight-card">
-        <div class="insight-label">Market Concentration</div>
-        <div class="insight-val" style="color:${analysis.hhi>2500?'var(--danger)':'var(--success)'}">${analysis.marketStatus}</div>
-        <div style="font-size:0.8rem; color:#666; margin-top:5px">HHI Score: ${analysis.hhi}</div>
-      </div>
-      <div class="insight-card">
-        <div class="insight-label">Top Incumbent</div>
-        <div class="insight-val" style="font-size:0.9rem">${Utils.trunc(topVendor, 30)}</div>
-      </div>`;
-
-    // --- 4. Forecast Table (With Micro-Labels) ---
-    const tb = document.getElementById('forecastTableBody');
-    tb.innerHTML = '';
-    analysis.forecasts.forEach(f => {
-      const isUp = f.trend.includes('+'); 
-      
-      // Determine Confidence Color
-      let confColor = '#888'; // Low/Default
-      if(f.confidence.label === 'High') confColor = 'var(--success)';
-      else if(f.confidence.label === 'Med') confColor = '#FDD835'; // Gold/Yellow
-
-      tb.innerHTML += `
-        <tr>
-          <td><b>${f.period}</b></td>
-          <td style="color:var(--accent); font-weight:700">${Utils.money(f.predicted)}</td>
-          <td style="color:#666">${Utils.money(f.histAvg)}</td>
-          <td><span class="trend-pill ${isUp?'trend-up':'trend-down'}">${isUp?'▲':'▼'} ${f.trend}%</span></td>
-          <td>
-            <div style="color:${confColor}; font-weight:700; line-height:1;">${f.confidence.label}</div>
-            <div style="font-size:0.65rem; color:#666; margin-top:2px;">${f.confidence.reason}</div>
-          </td>
-        </tr>`;
-    });
-
-    // --- 5. Strategic Analysis ---
-    const strat = analysis.strategy;
-    const stratSection = document.getElementById('strategySection');
-    
-    if(strat && stratSection) {
-        stratSection.style.display = 'block';
-        
-        const outlookElem = document.getElementById('strat-outlook');
-        outlookElem.innerText = strat.title;
-        // Color code title based on signal
-        if(strat.title.includes("Growth")) outlookElem.style.color = "var(--success)";
-        else if(strat.title.includes("Softening")) outlookElem.style.color = "var(--danger)";
-        else outlookElem.style.color = "var(--accent)";
-
-        document.getElementById('strat-text').innerText = strat.text;
-        document.getElementById('strat-action').innerText = strat.action;
-        
-        // Matrix Values
-        document.getElementById('matrix-bd').innerText = strat.matrix.bd;
-        document.getElementById('matrix-strat').innerText = strat.matrix.strat;
-        document.getElementById('matrix-pipe').innerText = strat.matrix.pipe;
-    } else if (stratSection) {
-        stratSection.style.display = 'none';
-    }
-
-    // --- 6. Recompetes List ---
+    document.getElementById('marketInsights').innerHTML = `<div class="insight-card"><div class="insight-label">Market Concentration</div><div class="insight-val" style="color:${analysis.hhi>2500?'var(--danger)':'var(--success)'}">${analysis.marketStatus}</div><div style="font-size:0.8rem; color:#666; margin-top:5px">HHI Score: ${analysis.hhi}</div></div><div class="insight-card"><div class="insight-label">Top Incumbent</div><div class="insight-val" style="font-size:0.9rem">${Utils.trunc(topVendor, 30)}</div></div>`;
+    const tb = document.getElementById('forecastTableBody'); tb.innerHTML = '';
+    analysis.forecasts.forEach(f => { const isUp = f.trend.includes('+'); let confColor = '#888'; if(f.confidence.label === 'High') confColor = 'var(--success)'; else if(f.confidence.label === 'Med') confColor = '#FDD835';
+      tb.innerHTML += `<tr><td><b>${f.period}</b></td><td style="color:var(--accent); font-weight:700">${Utils.money(f.predicted)}</td><td style="color:#666">${Utils.money(f.histAvg)}</td><td><span class="trend-pill ${isUp?'trend-up':'trend-down'}">${isUp?'▲':'▼'} ${f.trend}%</span></td><td><div style="color:${confColor}; font-weight:700; line-height:1;">${f.confidence.label}</div><div style="font-size:0.65rem; color:#666; margin-top:2px;">${f.confidence.reason}</div></td></tr>`; });
+    const strat = analysis.strategy; const stratSection = document.getElementById('strategySection');
+    if(strat && stratSection) { stratSection.style.display = 'block'; const outlookElem = document.getElementById('strat-outlook'); outlookElem.innerText = strat.title; if(strat.title.includes("Growth")) outlookElem.style.color = "var(--success)"; else if(strat.title.includes("Softening")) outlookElem.style.color = "var(--danger)"; else outlookElem.style.color = "var(--accent)"; document.getElementById('strat-text').innerText = strat.text; document.getElementById('strat-action').innerText = strat.action; document.getElementById('matrix-bd').innerText = strat.matrix.bd; document.getElementById('matrix-strat').innerText = strat.matrix.strat; document.getElementById('matrix-pipe').innerText = strat.matrix.pipe; } else if (stratSection) { stratSection.style.display = 'none'; }
     const rl = document.getElementById('recompetesList');
-    if(analysis.recompetes.length) {
-      rl.innerHTML = `<div class="section-header"><div class="section-title-group"><i class="fas fa-exclamation-triangle" style="color:var(--danger)"></i><span class="section-title" style="color:var(--danger)">Recompete Opportunities</span></div></div>` + 
-      analysis.recompetes.map(r => {
-        const internalId = r['generated_internal_id'];
-        let awardUrl = '#';
-        if (internalId) {
-          awardUrl = `https://www.usaspending.gov/award/${internalId}`;
-        } else if (r['Award ID']) {
-          awardUrl = `https://www.usaspending.gov/search/?hash=&filters=${encodeURIComponent(JSON.stringify({keyword: r['Award ID']}))}`;
-        }
-        
-        return `
-        <div class="deal-card" style="margin-bottom:1rem">
-          <div class="deal-header">
-            <span class="deal-agency">${Utils.trunc(r['Awarding Agency'], 40)}</span>
-            <span class="deal-amount">${Utils.money(r['Award Amount'])}</span>
-          </div>
-          <div class="deal-desc">${Utils.trunc(r['Description'], 80)}</div>
-          <div style="font-size:0.8rem; color:var(--danger); margin-bottom:0.5rem">Expires: ${Utils.date(r['End Date'])}</div>
-          <div style="font-size:0.8rem; color:#666; margin-bottom:0.75rem">${r['Recipient Name']}</div>
-          <a href="${awardUrl}" target="_blank" class="action-btn" style="display:inline-flex; width:auto;">
-            VIEW AWARD <i class="fas fa-external-link-alt"></i>
-          </a>
-        </div>
-      `}).join('');
-    } else {
-      rl.innerHTML = '';
-    }
-
-    // --- 7. Render Chart ---
+    if(analysis.recompetes.length) { rl.innerHTML = `<div class="section-header"><div class="section-title-group"><i class="fas fa-exclamation-triangle" style="color:var(--danger)"></i><span class="section-title" style="color:var(--danger)">Recompete Opportunities</span></div></div>` + analysis.recompetes.map(r => { const internalId = r['generated_internal_id']; let awardUrl = '#'; if (internalId) awardUrl = `https://www.usaspending.gov/award/${internalId}`; else if (r['Award ID']) awardUrl = `https://www.usaspending.gov/search/?hash=&filters=${encodeURIComponent(JSON.stringify({keyword: r['Award ID']}))}`;
+      return `<div class="deal-card" style="margin-bottom:1rem"><div class="deal-header"><span class="deal-agency">${Utils.trunc(r['Awarding Agency'], 40)}</span><span class="deal-amount">${Utils.money(r['Award Amount'])}</span></div><div class="deal-desc">${Utils.trunc(r['Description'], 80)}</div><div style="font-size:0.8rem; color:var(--danger); margin-bottom:0.5rem">Expires: ${Utils.date(r['End Date'])}</div><div style="font-size:0.8rem; color:#666; margin-bottom:0.75rem">${r['Recipient Name']}</div><a href="${awardUrl}" target="_blank" class="action-btn" style="display:inline-flex; width:auto;">VIEW AWARD <i class="fas fa-external-link-alt"></i></a></div>`; }).join(''); } else { rl.innerHTML = ''; }
     App.renderHistoricalChart(analysis.byFY);
   },
 
   renderHistoricalChart(byFY) {
     const ctx = document.getElementById('spendingChart').getContext('2d');
     const years = Object.keys(byFY).sort();
-    
-    const chartStatus = Chart.getChart("spendingChart");
-    if (chartStatus != undefined) chartStatus.destroy();
-
+    const chartStatus = Chart.getChart("spendingChart"); if (chartStatus != undefined) chartStatus.destroy();
     new Chart(ctx, {
       type: 'bar',
-      data: {
-        labels: years.map(y=>`FY${y}`),
-        datasets: [
-          { label:'Q1', data:years.map(y=>byFY[y][1]||0), backgroundColor:'#958BB6' },
-          { label:'Q2', data:years.map(y=>byFY[y][2]||0), backgroundColor:'#6F8A74' },
-          { label:'Q3', data:years.map(y=>byFY[y][3]||0), backgroundColor:'#8FB6D0' },
-          { label:'Q4', data:years.map(y=>byFY[y][4]||0), backgroundColor:'#C27E5C' }
-        ]
-      },
-      options: {
-        responsive:true, maintainAspectRatio:false,
-        scales:{ x:{grid:{display:false}}, y:{grid:{color:'#333'}} },
-        plugins:{ legend:{labels:{color:'#888'}} }
-      }
+      data: { labels: years.map(y=>`FY${y}`), datasets: [
+        { label:'Q1', data:years.map(y=>byFY[y][1]||0), backgroundColor:'#958BB6' },
+        { label:'Q2', data:years.map(y=>byFY[y][2]||0), backgroundColor:'#6F8A74' },
+        { label:'Q3', data:years.map(y=>byFY[y][3]||0), backgroundColor:'#8FB6D0' },
+        { label:'Q4', data:years.map(y=>byFY[y][4]||0), backgroundColor:'#C27E5C' }
+      ]},
+      options: { responsive:true, maintainAspectRatio:false, scales:{ x:{grid:{display:false}}, y:{grid:{color:'#333'}} }, plugins:{ legend:{labels:{color:'#888'}} } }
     });
   },
 
-  // ==================== UTILITIES ====================
-  showLoader(text, subtext) {
-    document.getElementById('loaderText').innerText = text;
-    document.getElementById('loaderSubtext').innerText = subtext || '';
-    document.getElementById('loader').style.display = 'flex';
-  },
-
-  hideLoader() {
-    document.getElementById('loader').style.display = 'none';
-  },
+  showLoader(text, subtext) { document.getElementById('loaderText').innerText = text; document.getElementById('loaderSubtext').innerText = subtext || ''; document.getElementById('loader').style.display = 'flex'; },
+  hideLoader() { document.getElementById('loader').style.display = 'none'; },
 
   transitionToApp() {
     const hero = document.getElementById('heroView');
@@ -1729,60 +2124,29 @@ const App = {
     document.getElementById('appView').style.display = 'block';
     document.getElementById('miniSearch').value = App.currentQuery;
     document.getElementById('dashboardContainer').classList.add('active');
-    
-    setTimeout(() => {
-      hero.style.display = 'none';
-      hero.classList.add('hidden');
-    }, 500);
+    setTimeout(() => { hero.style.display = 'none'; hero.classList.add('hidden'); }, 500);
   },
 
-  updateURL(query, mode) {
-    const url = new URL(window.location);
-    url.searchParams.set('q', query);
-    url.searchParams.set('mode', mode);
-    window.history.replaceState({}, '', url);
-  },
+  updateURL(query, mode) { const url = new URL(window.location); url.searchParams.set('q', query); url.searchParams.set('mode', mode); window.history.replaceState({}, '', url); },
 
   exportCSV() {
     const data = App.mode === 'search' ? App.searchData.active : (App.forecastData.awards || []);
     if (!data.length) return alert("No data to export");
-    
-    const headers = ['Recipient', 'Agency', 'Amount', 'Description', 'Start Date', 'End Date', 'Award ID', 'Award Link'];
+    const headers = ['Recipient', 'Agency', 'Sub-Agency', 'Amount', 'Description', 'Start Date', 'End Date', 'Award ID', 'Award Link'];
     const rows = data.map(c => {
-      // Build the award URL
-      const internalId = c['generated_internal_id'];
-      let awardUrl = '';
-      if (internalId) {
-        awardUrl = `https://www.usaspending.gov/award/${internalId}`;
-      } else if (c['Award ID']) {
-        awardUrl = `https://www.usaspending.gov/search/?hash=&filters=${encodeURIComponent(JSON.stringify({keyword: c['Award ID']}))}`;
-      }
-      
-      return [
-        `"${(c['Recipient Name'] || '').replace(/"/g, '""')}"`,
-        `"${(c['Awarding Agency'] || '').replace(/"/g, '""')}"`,
-        c['Award Amount'] || 0,
-        `"${(c['Description'] || '').replace(/"/g, '""')}"`,
-        c['Start Date'] || '',
-        c['End Date'] || '',
-        c['Award ID'] || '',
-        awardUrl
-      ];
+      const internalId = c['generated_internal_id']; let awardUrl = '';
+      if (internalId) awardUrl = `https://www.usaspending.gov/award/${internalId}`;
+      else if (c['Award ID']) awardUrl = `https://www.usaspending.gov/search/?hash=&filters=${encodeURIComponent(JSON.stringify({keyword: c['Award ID']}))}`;
+      return [`"${(c['Recipient Name'] || '').replace(/"/g, '""')}"`, `"${(c['Awarding Agency'] || '').replace(/"/g, '""')}"`, `"${(c['Awarding Sub Agency'] || '').replace(/"/g, '""')}"`, c['Award Amount'] || 0, `"${(c['Description'] || '').replace(/"/g, '""')}"`, c['Start Date'] || '', c['End Date'] || '', c['Award ID'] || '', awardUrl];
     });
-    
     const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `govhoo_${App.mode}_${App.currentQuery}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const link = document.createElement("a"); link.setAttribute("href", url); link.setAttribute("download", `govhoo_${App.mode}_${App.currentQuery}.csv`);
+    document.body.appendChild(link); link.click(); document.body.removeChild(link);
   }
 };
 
-// Initialize
 App.init();
 </script>
 </body>
