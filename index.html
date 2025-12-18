@@ -663,6 +663,26 @@ body {
   .chart-container { min-width: 600px; }
   .mode-toggle { flex-direction: column; }
 }
+/* Custom Scrollbar for Chart Wrapper */
+.chart-wrapper::-webkit-scrollbar {
+  height: 8px; /* Slim horizontal scrollbar */
+  width: 8px;
+}
+
+.chart-wrapper::-webkit-scrollbar-track {
+  background: var(--bg-card); 
+  border-radius: 4px;
+}
+
+.chart-wrapper::-webkit-scrollbar-thumb {
+  background: #333; 
+  border-radius: 4px;
+  border: 1px solid var(--bg-card);
+}
+
+.chart-wrapper::-webkit-scrollbar-thumb:hover {
+  background: var(--accent); /* Light up on hover */
+}
 </style>
 </head>
 <body>
@@ -1988,44 +2008,62 @@ renderSankey() {
   
   const flowMap = {};
 
-  // 1. Data Aggregation logic
-  if (App.drillState.level === 0) {
-    data.forEach(d => { 
-      if (d['Award Amount'] > 0) { 
-        const src = d['Awarding Agency'] || 'Unknown Agency'; 
-        const tgt = d['Recipient Name'] || 'Unknown Vendor'; 
-        const k = src + "|||" + tgt; 
-        flowMap[k] = (flowMap[k] || 0) + d['Award Amount']; 
-      } 
-    });
-  } else {
-    data.forEach(d => { 
-      if (d['Award Amount'] > 0) { 
-        const src = d['Awarding Sub Agency'] || 'Unknown Sub-Agency'; 
-        const tgt = d['Recipient Name'] || 'Unknown Vendor'; 
-        const k = src + "|||" + tgt; 
-        flowMap[k] = (flowMap[k] || 0) + d['Award Amount']; 
-      } 
-    });
-  }
+  // 1. Data Aggregation
+  const isLevel0 = App.drillState.level === 0;
+  
+  data.forEach(d => { 
+    if (d['Award Amount'] > 0) { 
+      // Determine Source based on drill level
+      const src = isLevel0 
+        ? (d['Awarding Agency'] || 'Unknown Agency')
+        : (d['Awarding Sub Agency'] || 'Unknown Sub-Agency');
+        
+      const tgt = d['Recipient Name'] || 'Unknown Vendor'; 
+      const k = src + "|||" + tgt; 
+      flowMap[k] = (flowMap[k] || 0) + d['Award Amount']; 
+    } 
+  });
 
-  // 2. Node & Link Preparation
+  // 2. Sort and Separate "Tail" Data
+  const allFlows = Object.entries(flowMap).sort((a,b) => b[1] - a[1]);
+  
+  // Higher limit for drill-down to show more detail
+  const limit = App.drillState.level > 0 ? 50 : 25;
+  
+  const topFlows = allFlows.slice(0, limit);
+  const tailFlows = allFlows.slice(limit);
+
   let nodesSet = new Set(); 
   let links = [];
-  // Use a higher limit for drill-down views to see more detail
-  const limit = App.drillState.level > 0 ? 50 : 25; 
-  
-  const sortedFlows = Object.entries(flowMap)
-    .sort((a,b) => b[1] - a[1])
-    .slice(0, limit);
-    
-  sortedFlows.forEach(([k, val]) => { 
+
+  // Add Top Flows
+  topFlows.forEach(([k, val]) => { 
     const [src, tgt] = k.split("|||"); 
     nodesSet.add(src); 
     nodesSet.add(tgt); 
     links.push({source: src, target: tgt, value: val}); 
   });
 
+  // Aggregate Tail Flows into "Other"
+  if (tailFlows.length > 0) {
+    const tailAggregates = {};
+    
+    tailFlows.forEach(([k, val]) => {
+      const [src, tgt] = k.split("|||");
+      // Only attach "Other" to Agencies that are already visible in the top set
+      if (nodesSet.has(src)) {
+        tailAggregates[src] = (tailAggregates[src] || 0) + val;
+      }
+    });
+
+    Object.entries(tailAggregates).forEach(([src, val]) => {
+      const otherLabel = `Other Vendors (${tailFlows.length})`;
+      nodesSet.add(otherLabel);
+      links.push({source: src, target: otherLabel, value: val});
+    });
+  }
+
+  // 3. Convert to D3 format
   const nodes = Array.from(nodesSet).map(n => ({name: n}));
   const nodeMap = new Map(nodes.map((n, i) => [n.name, i]));
   const d3Links = links.map(l => ({ 
@@ -2034,11 +2072,9 @@ renderSankey() {
     value: l.value 
   }));
 
-  // 3. Dynamic Height Calculation (The Fix)
+  // 4. Dynamic Height Calculation
   const containerWidth = container.offsetWidth || 800;
-  
-  // Calculate dynamic height: ~40px per node in the densest column
-  // This ensures that if you have 50 sub-agencies, the chart grows to ~2000px tall
+  // Estimate ~40px per node in the densest column
   const estimatedNodesPerColumn = Math.ceil(nodes.length / 2);
   const minHeight = 500;
   const dynamicHeight = Math.max(minHeight, estimatedNodesPerColumn * 40);
@@ -2050,7 +2086,7 @@ renderSankey() {
   const sankey = d3.sankey()
     .nodeId(d => d.index)
     .nodeWidth(20)
-    .nodePadding(20) // Increased padding makes clicking easier
+    .nodePadding(20) 
     .extent([[1, 1], [containerWidth - 1, dynamicHeight - 6]]);
 
   const {nodes: graphNodes, links: graphLinks} = sankey({ 
@@ -2058,14 +2094,15 @@ renderSankey() {
     links: d3Links.map(d => Object.assign({}, d)) 
   });
 
-  // Helper to determine if a node is clickable/drillable
+  // Helper: check if a node can be drilled into
   const isDrillable = (nodeName) => {
+    if (nodeName.startsWith('Other Vendors')) return false;
     if (App.drillState.level === 0) return App.searchData.raw.some(d => d['Awarding Agency'] === nodeName);
     else if (App.drillState.level === 1) return App.searchData.raw.some(d => d['Awarding Sub Agency'] === nodeName);
     return false;
   };
 
-  // 4. Render Rects (Nodes)
+  // 5. Render Nodes (Rects) using Utils.getColor
   svg.append("g")
     .selectAll("rect")
     .data(graphNodes)
@@ -2074,7 +2111,7 @@ renderSankey() {
     .attr("y", d => d.y0)
     .attr("height", d => d.y1 - d.y0)
     .attr("width", d => d.x1 - d.x0)
-    .attr("fill", d => Utils.getColor(d.name))
+    .attr("fill", d => Utils.getColor(d.name)) // <--- Reverted to Utils.getColor
     .attr("opacity", d => { 
       if (App.searchData.filter && d.name !== App.searchData.filter) return 0.3; 
       return isDrillable(d.name) ? 1 : 0.8; 
@@ -2082,8 +2119,8 @@ renderSankey() {
     .attr("rx", 2)
     .attr("stroke", d => isDrillable(d.name) ? 'var(--accent)' : 'none')
     .attr("stroke-width", d => isDrillable(d.name) ? 2 : 0)
-    .style("cursor", "pointer")
-    .on("click", (e, d) => App.drillDown(d.name))
+    .style("cursor", d => isDrillable(d.name) ? "pointer" : "default")
+    .on("click", (e, d) => { if(isDrillable(d.name)) App.drillDown(d.name); })
     .on("mouseover", function(e, d) { 
       if (isDrillable(d.name)) { d3.select(this).attr("opacity", 1).attr("stroke-width", 3); } 
     })
@@ -2094,7 +2131,7 @@ renderSankey() {
     .append("title")
     .text(d => `${d.name}\n${Utils.money(d.value)}${isDrillable(d.name) ? '\n\nClick to drill down' : ''}`);
 
-  // 5. Render Labels (Text)
+  // 6. Render Labels
   svg.append("g")
     .selectAll("text")
     .data(graphNodes)
@@ -2104,7 +2141,6 @@ renderSankey() {
     .attr("dy", "0.35em")
     .attr("text-anchor", d => d.x0 < containerWidth / 2 ? "start" : "end")
     .text(d => { 
-      // Truncate text logic
       const label = Utils.trunc(d.name, containerWidth > 600 ? 30 : 15); 
       return isDrillable(d.name) ? `▶ ${label}` : label; 
     })
@@ -2112,11 +2148,11 @@ renderSankey() {
     .style("font-size", "11px")
     .style("font-family", "Inter")
     .style("font-weight", d => isDrillable(d.name) ? "700" : "500")
-    .style("cursor", "pointer")
+    .style("cursor", d => isDrillable(d.name) ? "pointer" : "default")
     .style("text-shadow", "0 1px 2px black")
-    .on("click", (e, d) => App.drillDown(d.name));
+    .on("click", (e, d) => { if(isDrillable(d.name)) App.drillDown(d.name); });
 
-  // 6. Define Gradients
+  // 7. Render Links (Paths) using Utils.getColor
   const defs = svg.append("defs");
   graphLinks.forEach((l, i) => { 
     const gradient = defs.append("linearGradient")
@@ -2124,11 +2160,11 @@ renderSankey() {
       .attr("gradientUnits", "userSpaceOnUse")
       .attr("x1", l.source.x1)
       .attr("x2", l.target.x0); 
+    // <--- Reverted to Utils.getColor
     gradient.append("stop").attr("offset", "0%").attr("stop-color", Utils.getColor(l.source.name)); 
     gradient.append("stop").attr("offset", "100%").attr("stop-color", Utils.getColor(l.target.name)); 
   });
 
-  // 7. Render Links (Paths)
   svg.append("g")
     .attr("fill", "none")
     .selectAll("path")
@@ -2137,11 +2173,12 @@ renderSankey() {
     .attr("d", d3.sankeyLinkHorizontal())
     .attr("stroke", (d, i) => "url(#grad" + i + ")")
     .attr("stroke-width", d => Math.max(1, d.width))
-    .attr("stroke-opacity", 0.5)
+    .attr("stroke-opacity", 0.4) 
     .style("mix-blend-mode", "screen")
-    .on("mouseover", function() { d3.select(this).attr("stroke-opacity", 0.8); })
-    .on("mouseout", function() { d3.select(this).attr("stroke-opacity", 0.5); });
+    .on("mouseover", function() { d3.select(this).attr("stroke-opacity", 0.7); })
+    .on("mouseout", function() { d3.select(this).attr("stroke-opacity", 0.4); });
 },
+  
   renderFeed() {
     const div = document.getElementById('feedGrid');
     const data = App.searchData.active;
