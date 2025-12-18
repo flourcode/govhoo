@@ -992,8 +992,7 @@ const ForecastEngine = {
       return end > sixMonths && end < twoYears && a['Award Amount'] > 50000;
     }).slice(0, 15);
   },
-
-  generateForecasts(annualForecast, seasonalProfile, filtered) {
+generateForecasts(annualForecast, seasonalProfile, filtered) {
     const forecasts = [];
     const curFY = Utils.getCurrentFY();
     const curQ = Utils.getCurrentQuarter();
@@ -1002,57 +1001,88 @@ const ForecastEngine = {
     let q = curQ;
     
     for(let i=0; i<4; i++) {
-      // 1. Prediction
       const predicted = annualForecast * seasonalProfile[q];
       
-      // 2. Historical Stats
+      // Get full history
       const qHistory = filtered.byQuarter[q] || [];
-      const validHistory = qHistory.filter(d => d.amt > 0);
-      let histAvg = 0;
-      let volatility = 0; // Coefficient of Variation (0 to 1+)
+      // Get active years to check for dollar stability
+      const activeYears = qHistory.filter(d => d.amt > 0).sort((a,b) => a.fy - b.fy);
+      
+      const trueAvg = qHistory.length ? qHistory.reduce((s, d) => s + d.amt, 0) / qHistory.length : 0;
+      
+      // 1. Calculate Volatility
+      let volatility = 0;
+      if(activeYears.length > 1) {
+          const activeAvg = activeYears.reduce((s, d) => s + d.amt, 0) / activeYears.length;
+          const variance = activeYears.reduce((s, d) => s + Math.pow(d.amt - activeAvg, 2), 0) / (activeYears.length - 1);
+          volatility = Math.sqrt(variance) / activeAvg;
+      }
 
-      if(validHistory.length) {
-          // Calculate Mean
-          histAvg = validHistory.reduce((s, d) => s + d.amt, 0) / validHistory.length;
-          
-          // Calculate Standard Deviation & Volatility
-          if(validHistory.length > 1 && histAvg > 0) {
-              const variance = validHistory.reduce((s, d) => s + Math.pow(d.amt - histAvg, 2), 0) / (validHistory.length - 1);
-              const stdDev = Math.sqrt(variance);
-              volatility = stdDev / histAvg; // e.g., 0.2 means +/- 20% swing on average
+      // 2. Check for "Strict Growth" (Is every year higher than the last?)
+      // If yes, we forgive high volatility because it's directional.
+      let isStrictGrowth = false;
+      if (activeYears.length >= 3) {
+          isStrictGrowth = true;
+          for(let k=1; k<activeYears.length; k++) {
+              if (activeYears[k].amt <= activeYears[k-1].amt) {
+                  isStrictGrowth = false;
+                  break;
+              }
           }
       }
 
-      // 3. Trend Display
+      // 3. Trend Calculation
       let displayTrend = 0;
-      if(histAvg > 0) {
-          displayTrend = ((predicted - histAvg) / histAvg) * 100;
-      } else if (predicted > 0) {
-          displayTrend = 100;
-      }
+      if(trueAvg > 0) displayTrend = ((predicted - trueAvg) / trueAvg) * 100;
+      else if (predicted > 0) displayTrend = 100;
 
-      // 4. SMART CONFIDENCE CALCULATION
-      // Start with quantity-based score
-      let confidence = "Low";
-      
-      if (validHistory.length >= 3) {
-          // We have plenty of data, but is it stable?
-          if (volatility < 0.25) confidence = "High";      // Very stable (<25% variance)
-          else if (volatility < 0.55) confidence = "Med";  // Moderate swings
-          else confidence = "Low";                         // Chaos (>55% variance)
-      } 
-      else if (validHistory.length === 2) {
-          // Scant data, only high if extremely stable
-          if (volatility < 0.15) confidence = "Med"; 
-          else confidence = "Low";
+      // 4. CONFIDENCE LOGIC (Adjusted for Growth & Gov Lumpiness)
+      let confLabel = "Low";
+      let confReason = "Insufficient Data";
+
+      if (qHistory.length === 0) {
+          confLabel = "Low"; confReason = "No History";
+      } else if (activeYears.length === 0) {
+          confLabel = "Low"; confReason = "Inactive";
+      } else {
+          const isFrequent = activeYears.length >= 3;
+          const hasGaps = activeYears.length < qHistory.length; 
+          
+          // Adjusted Thresholds: 
+          // < 0.5 (50%) is now considered "Stable" for Gov (was 0.25)
+          // < 1.0 (100%) is "Moderate" (was 0.55)
+          
+          if (isFrequent && !hasGaps) {
+              if (isStrictGrowth) {
+                  confLabel = "High";
+                  confReason = "Consistent Growth"; // Reward Growth
+              } else if (volatility < 0.5) {
+                  confLabel = "High";
+                  confReason = "Stable Trend";
+              } else if (volatility < 1.0) {
+                  confLabel = "Med";
+                  confReason = "Moderate Variance";
+              } else {
+                  confLabel = "Low";
+                  confReason = "High Volatility";
+              }
+          } 
+          else if (isFrequent && hasGaps) {
+              confLabel = "Med"; confReason = "Intermittent";
+          } 
+          else {
+              // Less than 3 data points
+              if (volatility < 0.2) { confLabel = "Med"; confReason = "Limited but Stable"; }
+              else { confLabel = "Low"; confReason = "Limited History"; }
+          }
       }
 
       forecasts.push({
         period: `FY${fy} Q${q}`,
         predicted: predicted,
-        histAvg: histAvg,
+        histAvg: trueAvg,
         trend: displayTrend > 0 ? `+${displayTrend.toFixed(1)}` : displayTrend.toFixed(1),
-        confidence: confidence
+        confidence: { label: confLabel, reason: confReason }
       });
       
       q++;
@@ -1535,15 +1565,23 @@ const App = {
     const tb = document.getElementById('forecastTableBody');
     tb.innerHTML = '';
     analysis.forecasts.forEach(f => {
-      // Determine if trend is positive for coloring
       const isUp = f.trend.includes('+'); 
+      
+      // Determine Color based on Label
+      let confColor = '#888'; // Low/Default
+      if(f.confidence.label === 'High') confColor = 'var(--success)';
+      if(f.confidence.label === 'Med') confColor = '#FDD835'; // Yellow/Gold for Med
+      
       tb.innerHTML += `
         <tr>
           <td><b>${f.period}</b></td>
           <td style="color:var(--accent); font-weight:700">${Utils.money(f.predicted)}</td>
           <td style="color:#666">${Utils.money(f.histAvg)}</td>
           <td><span class="trend-pill ${isUp?'trend-up':'trend-down'}">${isUp?'▲':'▼'} ${f.trend}%</span></td>
-          <td style="color:${f.confidence==='High'?'var(--success)':'#888'}">${f.confidence}</td>
+          <td>
+            <div style="color:${confColor}; font-weight:700; line-height:1;">${f.confidence.label}</div>
+            <div style="font-size:0.65rem; color:#666; margin-top:2px;">${f.confidence.reason}</div>
+          </td>
         </tr>`;
     });
 
