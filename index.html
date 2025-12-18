@@ -484,9 +484,9 @@ body {
     <div id="forecastModeView" class="view-section">
       <div class="stats-row" id="forecastStats">
         <div class="stat-item">
-          <div class="stat-label">Baseline Spend</div>
+          <div class="stat-label" style="color:var(--accent); font-weight:700;">Estimated TAM</div>
           <div class="stat-val" id="stat-baseline">-</div>
-          <div class="stat-sub neutral">Seasonality Adjusted</div>
+          <div class="stat-sub neutral">FY Projected Volume</div>
         </div>
         <div class="stat-item">
           <div class="stat-label">Market Status</div>
@@ -582,7 +582,8 @@ body {
     </div>
     <ul style="margin:0; padding-left:1.2rem; color:#888; font-size:0.8rem; line-height:1.6;">
       <li style="margin-bottom:4px;"><strong>Historical Basis:</strong> Projects future volume based on seasonal trends. Cannot predict policy shifts or budget cuts.</li>
-      <li style="margin-bottom:4px;"><strong>Data Scope:</strong> "Baseline Spend" covers the total market (TAM). "Market Concentration" analyzes only the top 100 contracts.</li>
+      <li style="margin-bottom:4px;"><strong>Data Scope:</strong> 
+          "Estimated TAM" represents the <strong style="color:#bbb">aggregate federal spending forecast</strong> for this category. "Market Concentration" and "Recompetes" are calculated using a sample of the Top 100 contracts to identify leaders.</li>
       <li style="margin-bottom:4px;"><strong>Reporting Lag:</strong> Recent quarters may appear artificially low due to the standard 90-day federal reporting delay.</li>
       <li><strong>Confidence Score:</strong> "High" confidence requires both <em>sufficient data</em> (3+ years) AND <em>market stability</em>. Highly volatile markets will be flagged as "Low Confidence" even if ample historical data exists.</li>
     </ul>
