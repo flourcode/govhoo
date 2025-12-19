@@ -3123,23 +3123,362 @@ ${Object.entries(extractedData.forecastInsights.historicalByFY || {}).map(([fy, 
 
 ## OUTPUT REQUIREMENTS
 
-${searchIntent.type === 'product_oem' ? `1. **Executive Summary** (1/2 page): Key findings on channel performance and growth opportunities
-2. **Channel Performance Analysis** (1 page): Detailed scorecard of partner performance
-3. **Agency Adoption Report** (1 page): Which agencies use ${query}? Where are the gaps?
-4. **Recompete Defense Plan** (1 page): Protect renewals, assign partners, set targets
-5. **Channel Enablement Plan** (1-2 pages): Partner training, incentives, and coverage optimization` : `1. **Executive Summary** (1/2 page): Key findings, primary opportunities, and recommended strategy
-2. **Market Analysis** (1 page): Deep dive on the data above with strategic implications
-3. **Competitive Intelligence** (1 page): Battle cards for top 3 competitors with win strategies
-4. **Opportunity Pipeline** (1 page): Prioritized list of specific pursuits with timelines
-5. **Quarterly Action Plan** (1-2 pages): SMART goals and activities by quarter`}
+Generate an **executive-ready GTM playbook** (4-6 pages) using the **OneTeam collaborative approach**. Every section must include concrete actions, owners, and decision gates.
 
-**VALIDATION CRITERIA:**
-- Plan must be specific to the search intent (${searchIntent.type})
-- Include at least 5 specific, actionable recommendations
-- Reference actual data from the report (use real ${searchIntent.type === 'product_oem' ? 'partner' : 'vendor'}/agency names)
-- Provide measurable targets with timelines
-${searchIntent.type === 'product_oem' ? `- Address channel management best practices (partner tiers, incentives, coverage)
-- Include specific partner assignments for each major recompete` : `- Address federal procurement considerations (FAR, DFAR, small business, etc.)`}`;
+### PART 1: EXECUTIVE SUMMARY (1/2 page)
+- Key findings from the data above
+- Primary opportunities (ranked by value and probability)
+- Recommended strategy in one paragraph
+- Critical success factors
+
+### PART 2: ${searchIntent.type === 'product_oem' ? 'CHANNEL' : 'MARKET'} ANALYSIS (1 page)
+${searchIntent.type === 'product_oem' ? `- Channel performance scorecard (tier partners by revenue and growth)
+- Agency adoption map with coverage gaps
+- Partner concentration risk assessment
+- White space opportunities` : `- Market size, growth trajectory, and concentration analysis
+- Competitive landscape and positioning
+- Agency priorities and budget signals
+- Entry points and timing considerations`}
+
+### PART 3: STAKEHOLDER PERSPECTIVES (OneTeam Format)
+Provide **1-2 actionable paragraphs** from each perspective:
+
+${this.getOneTeamPerspectives(searchIntent, query)}
+
+### PART 4: COMPETITIVE INTELLIGENCE
+Create a table with this structure:
+| Competitor | Strengths | Weaknesses | Our Counter-Positioning |
+|------------|-----------|------------|------------------------|
+| [From data above] | [Specific advantage] | [Specific gap] | [How we differentiate] |
+
+${searchIntent.type === 'product_oem' ? `Also address: Are there alternative products agencies might consider? What triggers switching?` : `Also address: DIY/In-House option - perceived control vs. hidden costs and talent risk.`}
+
+### PART 5: 90-DAY CRITICAL PATH
+
+**Phase 1 — Discovery (Days 1–30)**
+${searchIntent.type === 'product_oem' ? `- Validate partner pipeline accuracy for all recompetes
+- Identify coverage gaps by agency/sub-agency
+- Assess partner enablement needs` : `- Validate BANT (Budget, Authority, Need, Timeline) for top opportunities
+- Map stakeholders and decision-makers
+- Conduct gap analysis vs. incumbents`}
+**Gate 1:** ${searchIntent.type === 'product_oem' ? 'Proceed if renewals tracked and partners engaged' : 'Proceed to pursuit if budget and champion confirmed'}
+
+**Phase 2 — ${searchIntent.type === 'product_oem' ? 'Enablement' : 'Engagement'} (Days 31–60)**
+${searchIntent.type === 'product_oem' ? `- Execute partner training on new features/pricing
+- Joint account planning with top 5 partners
+- Develop co-branded collateral for key agencies` : `- Execute targeted outreach to decision-makers
+- Conduct technical validation / PoC if applicable
+- Draft value proposition and ROI framework`}
+**Gate 2:** ${searchIntent.type === 'product_oem' ? 'Advance if partners demonstrate pipeline growth' : 'Advance if success criteria met and business case approved'}
+
+**Phase 3 — ${searchIntent.type === 'product_oem' ? 'Execution' : 'Pursuit'} (Days 61–90)**
+${searchIntent.type === 'product_oem' ? `- Support partners on active recompetes
+- Track win/loss on renewals
+- Build reference stories from wins` : `- Finalize proposal strategy and pricing
+- Engage executives for relationship leverage
+- Submit response / negotiate terms`}
+**Gate 3:** ${searchIntent.type === 'product_oem' ? 'Scale if renewal win rate > 80%' : 'Award or lessons learned capture'}
+
+### PART 6: RISK REGISTER
+Create a table with this structure:
+| Risk | Impact (H/M/L) | Probability (H/M/L) | Mitigation Plan | Owner |
+|------|----------------|---------------------|-----------------|-------|
+${searchIntent.type === 'product_oem' ? `| Partner capacity constraints | H | M | Cross-train backup partners | Partner Lead |
+| Competitive product displacement | H | M | Accelerate feature parity + exec engagement | Product |
+| Renewal slippage | M | H | Early engagement 6mo before expiry | Channel Sales |` : `| Technical non-compliance | H | M | Accelerate FedRAMP/security validation | Solution Architect |
+| Competitive displacement | H | M | Partner alignment + exec sponsorship | Sales |
+| Budget delay or CR | M | H | Identify bridge funding or carryover | Finance |`}
+[Add 2-3 more specific to the data above]
+
+### PART 7: RACI MATRIX
+| Workstream | Responsible | Accountable | Consulted | Informed |
+|------------|-------------|-------------|-----------|----------|
+${searchIntent.type === 'product_oem' ? `| Channel strategy | Partner Lead | Sales VP | Marketing, Product | Leadership |
+| Partner enablement | Enablement Mgr | Partner Lead | Product, Sales | Marketing |
+| Renewal tracking | Channel Sales | Partner Lead | Finance | Leadership |
+| Agency expansion | Sales Lead | Sales VP | Partner, Marketing | Product |` : `| Account strategy | Sales Lead | BD Lead | SA, Marketing | Leadership |
+| Technical validation | SA Lead | BD Lead | Sales, Partner | Leadership |
+| Marketing campaign | Marketing Lead | BD Lead | Sales, Exec | Partner |
+| Pricing & negotiation | Sales Lead | Leadership | Finance | BD Lead |`}
+
+### PART 8: SUCCESS METRICS
+**Leading Indicators (Activity):**
+${searchIntent.type === 'product_oem' ? `- Partner pipeline reported ($)
+- Partners trained (#)
+- Joint meetings conducted (#)
+- Coverage gaps closed (#)` : `- Qualified meetings held (#)
+- PoC/pilots initiated (#)
+- Champions identified (#)
+- Proposals submitted (#)`}
+
+**Lagging Indicators (Results):**
+${searchIntent.type === 'product_oem' ? `- Renewal win rate (%)
+- Channel revenue growth ($)
+- New agency logos (#)
+- Partner satisfaction score` : `- Pipeline generated ($)
+- Win rate (%)
+- ARR/TCV closed ($)
+- References created (#)`}
+
+---
+
+## FY26 FEDERAL CONTEXT
+
+${this.getFY26Context(extractedData.agencies.top5)}
+
+---
+
+## VALIDATION CRITERIA
+
+- **Specificity:** Reference actual ${searchIntent.type === 'product_oem' ? 'partner' : 'vendor'}/agency names from the data
+- **Accountability:** Every action has an owner and timeline
+- **Federal-Savvy:** Address procurement realities (FAR, vehicles, budget cycles)
+- **No Filler:** Every sentence must advance execution
+- **Measurable:** Include quantified targets where possible
+- Plan must align with search intent: **${searchIntent.type}**`;
+  },
+
+  // ==================== FY26 FEDERAL CONTEXT GENERATOR ====================
+  getFY26Context(topAgencies) {
+    const agencyContexts = {
+      'Department of Defense': `**DoD FY26 Priorities:**
+- Zero Trust implementation mandate by FY27
+- JADC2 (Joint All-Domain Command and Control) expansion
+- Software factory and DevSecOps acceleration
+- CMMC 2.0 compliance requirements
+- **Key Vehicles:** JWCC, Alliant 3, SEWP VI, OTA consortia (NSTXL, AFWERX)
+- **Budget:** $14B+ cyber budget across RDT&E and O&M`,
+
+      'Department of Homeland Security': `**DHS FY26 Priorities:**
+- Cybersecurity and critical infrastructure protection
+- Border technology modernization
+- Identity and access management (ICAM)
+- Cloud migration and Zero Trust
+- **Key Vehicles:** EAGLE II, FirstSource III, SEWP VI, GSA MAS
+- **Budget:** Focus on CISA funding and component modernization`,
+
+      'General Services Administration': `**GSA FY26 Priorities:**
+- Government-wide shared services expansion
+- FedRAMP authorization acceleration
+- Acquisition modernization and e-commerce
+- Login.gov and identity services
+- **Key Vehicles:** GSA MAS, Alliant 3, OASIS+, SEWP VI
+- **Budget:** TMF allocations and working capital fund`,
+
+      'Department of Veterans Affairs': `**VA FY26 Priorities:**
+- EHR modernization (Oracle Health) stabilization
+- Veteran-facing digital services
+- Cybersecurity and Zero Trust
+- AI for claims processing and scheduling
+- **Key Vehicles:** T4NG2, SEWP VI, GSA MAS
+- **Budget:** $4B+ IT budget with modernization focus`,
+
+      'Department of Health and Human Services': `**HHS FY26 Priorities:**
+- Public health data modernization
+- AI governance for medical applications
+- Interoperability and data sharing
+- Cybersecurity resilience
+- **Key Vehicles:** CIO-SP4, NIH LTASC, SEWP VI
+- **Budget:** CDC DMI funding, NIH STRIDES program`,
+
+      'Department of the Treasury': `**Treasury FY26 Priorities:**
+- IRS modernization (IRA funding)
+- Financial crimes and fraud detection
+- Cloud migration and Zero Trust
+- Customer experience improvement
+- **Key Vehicles:** Alliant 3, SEWP VI, GSA MAS
+- **Budget:** IRA technology modernization funds`,
+
+      'Department of Commerce': `**Commerce FY26 Priorities:**
+- CHIPS Act implementation support
+- Weather and climate data systems
+- Cybersecurity and export control systems
+- Cloud modernization
+- **Key Vehicles:** SEWP VI, GSA MAS, Alliant 3
+- **Budget:** CHIPS funding and bureau modernization`,
+
+      'Department of Energy': `**DOE FY26 Priorities:**
+- Grid modernization and resilience
+- AI for scientific computing (exascale)
+- Cybersecurity for critical infrastructure
+- Climate modeling and clean energy data
+- **Key Vehicles:** DOE BPAs, SEWP VI, Lab IDIQs
+- **Budget:** IIJA extensions and OCIO modernization`,
+
+      'Department of State': `**State FY26 Priorities:**
+- Diplomatic technology modernization
+- Cybersecurity and secure communications
+- Cloud migration (IL4/IL5 environments)
+- Consular systems modernization
+- **Key Vehicles:** GSA MAS, Alliant 3, SEWP VI
+- **Budget:** Diplomatic technology fund`,
+
+      'Securities and Exchange Commission': `**SEC FY26 Priorities:**
+- Market surveillance and analytics modernization
+- Cybersecurity for financial data protection
+- Cloud migration and data management
+- Digital submission and processing systems
+- **Key Vehicles:** GSA MAS, SEWP VI, CIO-SP4
+- **Budget:** IT modernization and enforcement technology`,
+
+      'Social Security Administration': `**SSA FY26 Priorities:**
+- Customer service modernization
+- Fraud detection and prevention
+- Legacy system modernization
+- Cloud and cybersecurity improvements
+- **Key Vehicles:** GSA MAS, SEWP VI, CIO-SP4
+- **Budget:** IT modernization fund and customer experience`,
+
+      'Department of Justice': `**DOJ FY26 Priorities:**
+- Law enforcement technology modernization
+- Cybersecurity and data protection
+- Case management system upgrades
+- Cloud migration and Zero Trust
+- **Key Vehicles:** GSA MAS, ITES-3S, SEWP VI
+- **Budget:** IT working capital fund`,
+
+      'Department of Agriculture': `**USDA FY26 Priorities:**
+- Farm and rural service delivery modernization
+- Cybersecurity and data protection
+- Cloud migration initiatives
+- Customer experience improvements
+- **Key Vehicles:** GSA MAS, SEWP VI, Alliant 3
+- **Budget:** OCIO modernization and FPAC systems`,
+
+      'Federal Communications Commission': `**FCC FY26 Priorities:**
+- Spectrum management system modernization
+- Broadband mapping and data systems
+- Cybersecurity improvements
+- Public-facing digital services
+- **Key Vehicles:** GSA MAS, SEWP VI
+- **Budget:** IT modernization and enforcement systems`
+    };
+
+    // Generate context for top agencies in the data
+    let context = `**Relevant FY26 Agency Priorities:**\n\n`;
+    
+    const addedAgencies = new Set();
+    topAgencies.forEach(a => {
+      // Find matching context - use more precise matching
+      const agencyName = a.agency.toLowerCase();
+      
+      for (const [key, value] of Object.entries(agencyContexts)) {
+        const keyLower = key.toLowerCase();
+        
+        // Check for exact match or if agency name contains the full key
+        // or if key contains specific agency identifier (not just "Department")
+        const keyWords = key.split(' ').filter(w => w !== 'Department' && w !== 'of' && w !== 'the');
+        const isMatch = agencyName.includes(keyLower) || 
+                        keyWords.some(word => word.length > 3 && agencyName.includes(word.toLowerCase()));
+        
+        if (isMatch && !addedAgencies.has(key)) {
+          context += value + '\n\n';
+          addedAgencies.add(key);
+          break;
+        }
+      }
+    });
+    
+    // If no specific agencies matched, note that
+    if (addedAgencies.size === 0) {
+      context += `*No specific agency context available. See Universal Requirements below.*\n\n`;
+    }
+
+    // Add general FY26 context
+    context += `**Universal FY26 Compliance Requirements:**
+- OMB M-24-14: Cybersecurity Priorities
+- Zero Trust Architecture implementation
+- FedRAMP High / IL4-IL5 for cloud
+- CMMC 2.0 for defense contractors
+- EO 14110: AI Safety and Governance
+- TIC 3.0 network security`;
+
+    return context;
+  },
+
+  // ==================== ONETEAM PERSPECTIVES GENERATOR ====================
+  getOneTeamPerspectives(searchIntent, query) {
+    const perspectives = {
+      'product_oem': `
+**Sales (Channel Account Manager):** Assess partner pipeline health, identify which partners need support on active opportunities, flag any relationship risks or competitive threats at the account level.
+
+**Marketing (Channel Marketing):** Develop co-branded campaigns and content for top agencies, plan joint events or webinars, create partner-ready battle cards and ROI tools.
+
+**Solution Architect (Technical Enablement):** Identify integration requirements at key accounts, ensure partners are certified on latest features, develop technical win strategies for competitive situations.
+
+**Partner Lead (Channel Strategy):** Evaluate partner tier structure, assess coverage gaps, recommend partner recruitment or pruning, align incentives with strategic priorities.
+
+**Finance (Channel Operations):** Analyze deal registration and margin by partner, recommend pricing or incentive adjustments, forecast channel revenue by quarter.
+
+**Leadership (Executive Sponsor):** Determine strategic importance of this product line, allocate executive engagement for key renewals, set go/no-go criteria for partner investments.`,
+
+      'own_company': `
+**Sales (Account Executive):** Provide current relationship status, identify champions and blockers, flag active RFPs or budget signals, assess competitive threats to existing contracts.
+
+**Marketing (Demand Generation):** Develop agency-specific messaging and value propositions, plan ABM campaigns and executive briefings, create case studies from recent wins.
+
+**Solution Architect (Technical Lead):** Validate technical alignment with agency requirements, identify compliance gaps (FedRAMP, CMMC, Zero Trust), scope PoC or pilot approach.
+
+**Partner Lead (Ecosystem Strategy):** Recommend teaming arrangements with SIs or ISVs, identify subcontracting opportunities, assess partner conflicts.
+
+**Finance (Deal Strategy):** Develop pricing strategy aligned with budget cycles, create ROI framework, recommend contract vehicle and structure.
+
+**Leadership (Executive Sponsor):** Confirm account tier and resource allocation, engage for executive-to-executive relationships, set pursuit go/no-go criteria.`,
+
+      'competitor': `
+**Sales (Competitive Intelligence):** Document competitor's current positions, relationships, and contract expiration dates. Identify accounts where they are vulnerable.
+
+**Marketing (Competitive Positioning):** Develop "why us vs. them" messaging, create competitor battle cards, plan targeted campaigns against their install base.
+
+**Solution Architect (Technical Differentiation):** Identify technical gaps in competitor's solution, develop proof points for our advantages, create migration/displacement approach.
+
+**Partner Lead (Ecosystem Gaps):** Identify partners currently aligned with competitor, assess potential to flip partnerships, find SI/ISVs who prefer our solution.
+
+**Finance (Competitive Pricing):** Analyze competitor's pricing model, develop competitive pricing strategy, identify TCO advantages.
+
+**Leadership (Strategic Priority):** Determine investment level for competitive displacement, allocate resources for targeted pursuits.`,
+
+      'agency': `
+**Sales (Account Development):** Map organizational structure and key stakeholders, identify budget owners and technical evaluators, assess current vendor relationships and satisfaction.
+
+**Marketing (Agency Marketing):** Develop mission-aligned messaging for this agency, plan targeted events and thought leadership, identify relevant case studies from similar agencies.
+
+**Solution Architect (Technical Alignment):** Map solution to agency technical environment, identify integration requirements, assess compliance posture (FedRAMP, IL level, etc.).
+
+**Partner Lead (Agency Relationships):** Identify SIs with strong agency relationships, assess teaming opportunities, recommend partner-led vs. direct approach.
+
+**Finance (Budget Intelligence):** Research agency budget and appropriations, identify funding sources (base budget, TMF, working capital), align pricing to fiscal year timing.
+
+**Leadership (Executive Engagement):** Plan executive-to-executive engagement strategy, identify industry days or speaking opportunities, set account penetration milestones.`,
+
+      'partner': `
+**Sales (Joint Selling):** Identify joint opportunities in partner's pipeline, assess deal registration and support needs, plan co-selling activities.
+
+**Marketing (Partner Marketing):** Develop co-branded content and campaigns, plan joint events, create partner success stories.
+
+**Solution Architect (Integration):** Ensure technical integration between solutions, develop joint reference architecture, support partner technical enablement.
+
+**Partner Lead (Relationship Management):** Assess partnership health and alignment, develop joint business plan, identify expansion opportunities.
+
+**Finance (Partner Economics):** Analyze margin and deal structure, recommend incentive adjustments, forecast joint revenue.
+
+**Leadership (Strategic Partnership):** Confirm partnership tier and investment level, engage for executive alignment, set partnership success metrics.`,
+
+      'market_keyword': `
+**Sales (Market Development):** Identify highest-potential agencies and accounts in this market, assess current relationships and entry points, prioritize pursuit targets.
+
+**Marketing (Market Strategy):** Develop market-specific messaging and positioning, plan awareness campaigns and thought leadership, create market-relevant content and case studies.
+
+**Solution Architect (Solution Fit):** Validate solution alignment with market requirements, identify compliance or integration gaps, develop market-specific reference architectures.
+
+**Partner Lead (Go-to-Market):** Identify partners with market expertise and relationships, recommend channel strategy, assess build vs. partner decision.
+
+**Finance (Market Sizing):** Validate TAM and growth assumptions, develop pricing strategy for market, create ROI frameworks relevant to this market's buyers.
+
+**Leadership (Market Investment):** Determine strategic priority of this market, allocate resources and headcount, set market share and revenue targets.`
+    };
+
+    return perspectives[searchIntent.type] || perspectives['market_keyword'];
   },
 
   // ==================== MAIN BUILD FUNCTION ====================
