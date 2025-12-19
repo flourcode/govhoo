@@ -525,23 +525,29 @@ body {
 .chart-wrapper::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 /* ==================== MODAL UX IMPROVEMENTS ==================== */
 
-/* Intent Banner */
+/* Intent Banner - Matching the Breadcrumb/Subagency look */
 #spIntentBanner {
   display: none;
-  background: linear-gradient(135deg, rgba(212, 196, 168, 0.08), rgba(212, 196, 168, 0.02));
+  background: linear-gradient(90deg, var(--accent-dim), transparent);
   border-bottom: 1px solid var(--border);
   padding: 1rem 1.5rem;
+  font-family: 'Inter', sans-serif;
 }
 
 .intent-banner-content {
   display: flex;
   align-items: flex-start;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .intent-banner-icon {
-  font-size: 2rem;
+  font-size: 1.75rem;
   line-height: 1;
+  color: var(--accent);
+  background: var(--bg-input);
+  padding: 0.5rem;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
 }
 
 .intent-banner-text {
@@ -549,18 +555,20 @@ body {
 }
 
 .intent-banner-title {
-  font-size: 0.85rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
   font-weight: 700;
   color: var(--accent);
   text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 0.25rem;
+  letter-spacing: 1.5px;
+  margin-bottom: 0.4rem;
 }
 
 .intent-banner-desc {
-  font-size: 0.85rem;
-  color: #ccc;
-  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+  font-weight: 500;
 }
 
 .intent-banner-focus {
@@ -571,61 +579,97 @@ body {
 }
 
 .focus-label {
-  font-size: 0.7rem;
-  color: #888;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--text-muted);
   text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .focus-tag {
-  font-size: 0.7rem;
-  background: rgba(212, 196, 168, 0.1);
-  border: 1px solid rgba(212, 196, 168, 0.3);
-  color: var(--accent);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
   padding: 2px 8px;
-  border-radius: 12px;
+  border-radius: 3px;
 }
 
 .intent-change-btn {
-  background: transparent;
+  background: var(--bg-input);
   border: 1px solid var(--border);
-  color: var(--text-muted);
+  color: var(--accent);
   padding: 6px 12px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase;
   transition: all 0.2s;
 }
 
 .intent-change-btn:hover {
   border-color: var(--accent);
-  color: var(--accent);
+  background: var(--accent-dim);
 }
 
-/* AI Link Buttons for Success Modal */
+/* Success Modal AI Buttons - Matching the Terminal Button feel */
 .ai-link-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0.75rem;
-  border-radius: 8px;
+  padding: 1rem 0.5rem;
+  border-radius: 4px; /* Matching the rest of the app's 4px */
   color: white;
   text-decoration: none;
-  font-size: 0.8rem;
-  font-weight: 600;
-  gap: 0.25rem;
-  transition: transform 0.2s, opacity 0.2s;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  gap: 0.5rem;
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: transform 0.1s, border-color 0.2s;
 }
 
 .ai-link-btn:hover {
   transform: translateY(-2px);
-  opacity: 0.9;
+  border-color: white;
 }
 
-/* Vendor List Updates */
-.vendor-list-item:last-child {
-  border-bottom: none !important;
+/* Specific Brand Colors for AI Buttons but keeping the vintage overlay */
+.ai-link-btn span:first-child {
+  font-size: 1.4rem;
+  filter: grayscale(0.2);
+}
+
+/* Modal Content Updates for scannability */
+#copySuccessModal .channel-modal-content {
+  border: 1px solid var(--accent);
+  box-shadow: 0 0 30px rgba(0,0,0,0.5);
+}
+
+#copySuccessModal kbd {
+  background: var(--bg-app);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  font-family: 'JetBrains Mono', monospace;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+/* Ensuring Vendor List items match the Feed Card style */
+.vendor-list-item {
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  border-top: none;
+  border-bottom: 1px solid var(--border);
+}
+
+.vendor-list-item:first-child {
+  border-top: 1px solid var(--border);
 }
 </style>
 </head>
@@ -1862,7 +1906,7 @@ const SalesPlanManager = {
         
         <div class="channel-modal-body" style="padding: 1.5rem;">
           <div style="text-align: center; margin-bottom: 1.5rem;">
-            <div style="font-size: 3rem; margin-bottom: 0.5rem;">✅</div>
+            <div style="font-size: 3rem; margin-bottom: 0.5rem;">👍</div>
             <div style="font-size: 1.1rem; color: #fff; font-weight: 600;">Your prompt is ready!</div>
             <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">
               ${charCount.toLocaleString()} characters • ~${wordCount.toLocaleString()} words • ~${estimatedTokens.toLocaleString()} tokens
