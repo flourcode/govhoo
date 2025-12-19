@@ -11,10 +11,13 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-sankey/0.12.3/d3-sankey.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
- <script>
+ <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-T343V4RFHV"></script>
+<script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
+
   gtag('config', 'G-T343V4RFHV');
 </script>
 <style>
@@ -2647,149 +2650,6 @@ renderForecastDashboard() {
   }
 };
 
-// ==================== ENHANCED EXPORT WITH CHANNEL AWARENESS ====================
-// --- NEW FUNCTION: Open the Plan Config Modal ---
-App.openPlanConfig = function() {
-  if (App.mode !== 'forecast') {
-    return alert("Please switch to Forecast mode first. The sales plan requires forecast analysis.");
-  }
-  
-  const searchData = App.searchData.raw || [];
-  const forecastData = App.forecastData.awards || [];
-  const combinedData = searchData.length > 0 ? searchData : forecastData;
-  
-  if (!combinedData.length) {
-    return alert("Please run both a search and forecast to generate a complete sales plan.");
-  }
-
-  // Populate Agency List
-  const agencySet = new Set(combinedData.map(d => d['Awarding Agency']));
-  const agencies = Array.from(agencySet).sort();
-  
-  const selectGroup = document.getElementById('planSpecificAgencies');
-  selectGroup.innerHTML = '';
-  agencies.forEach(ag => {
-    const opt = document.createElement('option');
-    opt.value = ag;
-    opt.textContent = ag;
-    selectGroup.appendChild(opt);
-  });
-
-  // Open Modal
-  document.getElementById('planConfigModal').classList.add('active');
-};
-
-// --- NEW FUNCTION: Generate from Config ---
-App.generatePlanFromConfig = function() {
-  const target = document.getElementById('planSectorSelector').value;
-  const searchData = App.searchData.raw || [];
-  const forecastData = App.forecastData.awards || [];
-  const analysis = App.forecastData.analysis;
-  
-  let combinedData = searchData.length > 0 ? searchData : forecastData;
-  
-  // FILTER DATA BASED ON SELECTION
-  let filteredData = combinedData;
-  let sectorName = "ENTIRE MARKET";
-
-  if (target === 'defense') {
-    filteredData = combinedData.filter(d => 
-      (d['Awarding Agency'] || '').includes('Department of Defense') || 
-      (d['Awarding Agency'] || '').includes('Dept of Defense')
-    );
-    sectorName = "DEFENSE SECTOR";
-  } else if (target === 'civilian') {
-    filteredData = combinedData.filter(d => 
-      !(d['Awarding Agency'] || '').includes('Department of Defense') &&
-      !(d['Awarding Agency'] || '').includes('Dept of Defense')
-    );
-    sectorName = "FEDERAL CIVILIAN SECTOR";
-  } else if (target !== 'all') {
-    // Specific Agency
-    filteredData = combinedData.filter(d => d['Awarding Agency'] === target);
-    sectorName = target.toUpperCase();
-  }
-
-  if (filteredData.length === 0) {
-    alert("No contracts found for the selected sector/agency in the current dataset.");
-    return;
-  }
-
-  // Close modal and start generation
-  document.getElementById('planConfigModal').classList.remove('active');
-  App.showLoader(`GENERATING ${sectorName} PLAN...`, 'Analyzing competitive landscape');
-
-  setTimeout(() => {
-    try {
-      const packageData = PromptPackageGenerator.buildPackage(filteredData, analysis, sectorName);
-      PromptPackageGenerator.downloadPackage(packageData, sectorName);
-      App.hideLoader();
-    } catch (error) {
-      console.error('Package Generation Error:', error);
-      App.hideLoader();
-      alert('Error generating package: ' + error.message);
-    }
-  }, 500);
-};
-
-App.showChannelModal = function() {
-  const data = App.searchData.raw.length > 0 ? App.searchData.raw : App.forecastData.awards || [];
-  if (!data.length) {
-    return alert("Please run a search or forecast first.");
-  }
-  
-  const vendorSpend = {};
-  let totalMarketValue = 0;
-  data.forEach(r => {
-    const vendor = r['Recipient Name'] || 'Unknown';
-    const amt = parseFloat(r['Award Amount']) || 0;
-    vendorSpend[vendor] = (vendorSpend[vendor] || 0) + amt;
-    totalMarketValue += amt;
-  });
-  
-  const vendors = Object.entries(vendorSpend)
-    .map(([vendor, spend]) => ({
-      vendor,
-      spend,
-      marketShare: ((spend / totalMarketValue) * 100).toFixed(2),
-      contractCount: data.filter(r => r['Recipient Name'] === vendor).length
-    }))
-    .sort((a, b) => b.spend - a.spend)
-    .slice(0, 20);
-  
-  ChannelManager.showModal(vendors);
-};
-
-// ==================== IMPROVED PROMPT PACKAGE GENERATOR ====================
-// This version:
-// 1. Classifies search intent (own company, competitor, partner, keyword, agency)
-// 2. Utilizes ALL available data from search and forecast modes
-// 3. Generates context-aware prompts with clear strategic intention
-//
-// REQUIRED FIXES TO index.html:
-// =============================
-// 
-// FIX #1: Update SalesPlanManager.generate() and copyPrompt() to pass forecast analysis:
-// 
-//   // In generate() around line 1437, change:
-//   const pkg = PromptPackageGenerator.buildPackage(filteredAwards, null, { scope: scopeName, focus });
-//   // TO:
-//   const analysis = App.mode === 'forecast' ? App.forecastData.analysis : null;
-//   const pkg = PromptPackageGenerator.buildPackage(filteredAwards, analysis, { scope: scopeName, focus });
-//
-//   // In copyPrompt() around line 1466, same change:
-//   const analysis = App.mode === 'forecast' ? App.forecastData.analysis : null;
-//   const pkg = PromptPackageGenerator.buildPackage(filteredAwards, analysis, { scope: scopeName, focus });
-//
-// FIX #2: Update API.getAwardsForForecast() to request all fields (around line 1065):
-//
-//   fields: [
-//     'Award ID', 'Recipient Name', 'Description', 'Start Date', 'End Date', 
-//     'Award Amount', 'Awarding Agency', 'Awarding Sub Agency', 'generated_internal_id',
-//     'NAICS Code', 'NAICS Description', 'PSC Code', 'PSC Description'
-//   ],
-//
-// =============================
 
 const PromptPackageGenerator = {
   
