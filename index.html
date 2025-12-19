@@ -2149,6 +2149,37 @@ App.showChannelModal = function() {
   ChannelManager.showModal(vendors);
 };
 
+// ==================== IMPROVED PROMPT PACKAGE GENERATOR ====================
+// This version:
+// 1. Classifies search intent (own company, competitor, partner, keyword, agency)
+// 2. Utilizes ALL available data from search and forecast modes
+// 3. Generates context-aware prompts with clear strategic intention
+//
+// REQUIRED FIXES TO index.html:
+// =============================
+// 
+// FIX #1: Update SalesPlanManager.generate() and copyPrompt() to pass forecast analysis:
+// 
+//   // In generate() around line 1437, change:
+//   const pkg = PromptPackageGenerator.buildPackage(filteredAwards, null, { scope: scopeName, focus });
+//   // TO:
+//   const analysis = App.mode === 'forecast' ? App.forecastData.analysis : null;
+//   const pkg = PromptPackageGenerator.buildPackage(filteredAwards, analysis, { scope: scopeName, focus });
+//
+//   // In copyPrompt() around line 1466, same change:
+//   const analysis = App.mode === 'forecast' ? App.forecastData.analysis : null;
+//   const pkg = PromptPackageGenerator.buildPackage(filteredAwards, analysis, { scope: scopeName, focus });
+//
+// FIX #2: Update API.getAwardsForForecast() to request all fields (around line 1065):
+//
+//   fields: [
+//     'Award ID', 'Recipient Name', 'Description', 'Start Date', 'End Date', 
+//     'Award Amount', 'Awarding Agency', 'Awarding Sub Agency', 'generated_internal_id',
+//     'NAICS Code', 'NAICS Description', 'PSC Code', 'PSC Description'
+//   ],
+//
+// =============================
+
 const PromptPackageGenerator = {
   
   // ==================== SEARCH INTENT CLASSIFICATION ====================
@@ -2679,6 +2710,106 @@ const PromptPackageGenerator = {
     return { quarter: peakQ, index: (peakV * 100).toFixed(1) };
   },
 
+  // ==================== STRATEGY INTERPRETATION BY INTENT ====================
+  getStrategyInterpretation(searchIntent, strategy) {
+    if (!strategy) return '';
+    
+    // Map generic strategy terms to intent-specific language
+    const interpretations = {
+      'product_oem': {
+        header: '**How to interpret for OEM/Channel Sales:**',
+        mappings: {
+          'Incumbent Displacement': 'Protect renewals from competitive products; ensure partners are engaged before recompetes',
+          'New Requirements': 'Identify agencies not yet using your product; expand partner coverage to white space',
+          'Relationship Focus': 'Strengthen ties with top-performing partners; joint business planning with key accounts',
+          'Volume Bidding': 'Enable more partners to quote; simplify pricing and reduce friction',
+          'Validate & Assess': 'Verify partner pipeline accuracy; confirm renewals are tracked',
+          'Selective Focus': 'Concentrate enablement on top partners; deprioritize low performers',
+          'Maintain Steady': 'Continue current partner programs; monitor for competitive threats'
+        }
+      },
+      'own_company': {
+        header: '**How to interpret for your business:**',
+        mappings: {
+          'Incumbent Displacement': 'Competitors are targeting your contracts; strengthen customer relationships before recompetes',
+          'New Requirements': 'Look for new opportunities beyond your current base',
+          'Relationship Focus': 'Leverage existing customer relationships for sole-source or follow-on work',
+          'Volume Bidding': 'Cast a wide net; pursue multiple opportunities to improve win rate odds',
+          'Validate & Assess': 'Confirm your pipeline is real; verify funding and timing',
+          'Selective Focus': 'Focus on highest-probability wins; don\'t spread resources thin',
+          'Maintain Steady': 'Keep doing what\'s working; stay close to customers'
+        }
+      },
+      'competitor': {
+        header: '**How to interpret for competitive strategy:**',
+        mappings: {
+          'Incumbent Displacement': 'This competitor has contracts expiring - opportunity to displace them',
+          'New Requirements': 'Market is growing with new opportunities not yet locked up',
+          'Relationship Focus': 'Competitor relies on relationships; you need inside access to compete',
+          'Volume Bidding': 'Many opportunities available; compete broadly against this player',
+          'Validate & Assess': 'Verify this competitor is actually vulnerable before investing pursuit resources',
+          'Selective Focus': 'Pick your battles carefully against this competitor',
+          'Maintain Steady': 'Competitor is stable; look for specific weaknesses or niche opportunities'
+        }
+      },
+      'agency': {
+        header: '**How to interpret for agency penetration:**',
+        mappings: {
+          'Incumbent Displacement': 'Current vendors have contracts expiring; position for recompetes',
+          'New Requirements': 'Agency has new initiatives or budget; pursue new starts',
+          'Relationship Focus': 'Build relationships with program offices and contracting officers',
+          'Volume Bidding': 'Agency buys frequently; pursue multiple vehicles and opportunities',
+          'Validate & Assess': 'Confirm agency budget and priorities before investing in pursuit',
+          'Selective Focus': 'Focus on specific programs or sub-agencies with best fit',
+          'Maintain Steady': 'Agency spending is stable; focus on getting on contract vehicles'
+        }
+      },
+      'partner': {
+        header: '**How to interpret for partner strategy:**',
+        mappings: {
+          'Incumbent Displacement': 'Partner may face competition on renewals; support their recompetes',
+          'New Requirements': 'Help partner pursue new opportunities; joint capture efforts',
+          'Relationship Focus': 'Deepen partnership; joint account planning and executive engagement',
+          'Volume Bidding': 'Partner can pursue many deals; ensure they have capacity and enablement',
+          'Validate & Assess': 'Verify partner pipeline is real; align on priorities',
+          'Selective Focus': 'Focus partnership on highest-value opportunities',
+          'Maintain Steady': 'Partnership is performing well; continue current engagement model'
+        }
+      },
+      'market_keyword': {
+        header: '**How to interpret for market strategy:**',
+        mappings: {
+          'Incumbent Displacement': 'Market has established players with expiring contracts; target recompetes',
+          'New Requirements': 'Market is growing; pursue new opportunities and emerging requirements',
+          'Relationship Focus': 'Success requires agency relationships; invest in customer engagement',
+          'Volume Bidding': 'Fragmented market with many opportunities; broad pursuit strategy',
+          'Validate & Assess': 'Verify market opportunity is real before major investment',
+          'Selective Focus': 'Pick specific niches or agencies to focus on',
+          'Maintain Steady': 'Stable market; consistent business development approach'
+        }
+      }
+    };
+    
+    const intentConfig = interpretations[searchIntent.type] || interpretations['market_keyword'];
+    
+    // Find relevant interpretations based on strategy matrix values
+    const relevantMappings = [];
+    if (strategy.matrix) {
+      ['bd', 'strat', 'pipe'].forEach(key => {
+        const value = strategy.matrix[key];
+        if (value && intentConfig.mappings[value]) {
+          relevantMappings.push(`- *${value}*: ${intentConfig.mappings[value]}`);
+        }
+      });
+    }
+    
+    if (relevantMappings.length === 0) return '';
+    
+    return `
+${intentConfig.header}
+${relevantMappings.join('\n')}`;
+  },
+
   // ==================== INTENT-AWARE PROMPT GENERATION ====================
   generatePrompt(searchIntent, extractedData, config = {}) {
     const mf = v => Utils.money(v);
@@ -2979,7 +3110,9 @@ ${extractedData.forecastInsights.strategy ? `**AI Strategy Recommendation:**
 - **Recommended Action:** ${extractedData.forecastInsights.strategy.action}
 - **BD Focus:** ${extractedData.forecastInsights.strategy.matrix?.bd || 'N/A'}
 - **Strategic Approach:** ${extractedData.forecastInsights.strategy.matrix?.strat || 'N/A'}
-- **Pipeline Focus:** ${extractedData.forecastInsights.strategy.matrix?.pipe || 'N/A'}` : ''}
+- **Pipeline Focus:** ${extractedData.forecastInsights.strategy.matrix?.pipe || 'N/A'}
+
+${this.getStrategyInterpretation(searchIntent, extractedData.forecastInsights.strategy)}` : ''}
 
 **Historical Spending by Fiscal Year:**
 ${Object.entries(extractedData.forecastInsights.historicalByFY || {}).map(([fy, quarters]) => 
@@ -3035,7 +3168,6 @@ ${searchIntent.type === 'product_oem' ? `- Address channel management best pract
     document.body.removeChild(link);
   }
 };
-
 App.init();
 </script>
 
