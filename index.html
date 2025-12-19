@@ -523,6 +523,110 @@ body {
 .chart-wrapper::-webkit-scrollbar-track { background: var(--bg-card); border-radius: 4px; }
 .chart-wrapper::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; border: 1px solid var(--bg-card); }
 .chart-wrapper::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+/* ==================== MODAL UX IMPROVEMENTS ==================== */
+
+/* Intent Banner */
+#spIntentBanner {
+  display: none;
+  background: linear-gradient(135deg, rgba(212, 196, 168, 0.08), rgba(212, 196, 168, 0.02));
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 1.5rem;
+}
+
+.intent-banner-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.intent-banner-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.intent-banner-text {
+  flex: 1;
+}
+
+.intent-banner-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.25rem;
+}
+
+.intent-banner-desc {
+  font-size: 0.85rem;
+  color: #ccc;
+  margin-bottom: 0.5rem;
+}
+
+.intent-banner-focus {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.focus-label {
+  font-size: 0.7rem;
+  color: #888;
+  text-transform: uppercase;
+}
+
+.focus-tag {
+  font-size: 0.7rem;
+  background: rgba(212, 196, 168, 0.1);
+  border: 1px solid rgba(212, 196, 168, 0.3);
+  color: var(--accent);
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.intent-change-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-family: 'JetBrains Mono', monospace;
+  transition: all 0.2s;
+}
+
+.intent-change-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* AI Link Buttons for Success Modal */
+.ai-link-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  border-radius: 8px;
+  color: white;
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  gap: 0.25rem;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.ai-link-btn:hover {
+  transform: translateY(-2px);
+  opacity: 0.9;
+}
+
+/* Vendor List Updates */
+.vendor-list-item:last-child {
+  border-bottom: none !important;
+}
 </style>
 </head>
 <body>
@@ -855,75 +959,84 @@ body {
 <div id="salesPlanModal" class="channel-marking-modal">
   <div class="channel-modal-content" style="max-width: 900px; height: 85vh; display:flex; flex-direction:column;">
     <div class="channel-modal-header">
-      <div class="channel-modal-title"><i class="fas fa-sliders-h"></i> CONFIGURE SALES PLAN</div>
+      <div class="channel-modal-title"><i class="fas fa-rocket"></i> GENERATE SALES PLAN</div>
       <button class="channel-modal-close" onclick="SalesPlanManager.close()"><i class="fas fa-times"></i></button>
     </div>
     
     <div class="channel-modal-body" style="flex:1; overflow-y:auto; padding:0;">
-       
-       <div style="padding:1.5rem; border-bottom:1px solid var(--border); background:rgba(255,255,255,0.02);">
-          <div style="font-size:0.85rem; color:var(--accent); font-weight:700; margin-bottom:1rem; text-transform:uppercase; letter-spacing:1px;">
-            <i class="fas fa-bullseye"></i> Step 1: Define Plan Scope
+      
+      <!-- NEW: Intent Detection Banner -->
+      <div id="spIntentBanner"></div>
+      
+      <!-- Step 1: Scope -->
+      <div style="padding:1.5rem; border-bottom:1px solid var(--border); background:rgba(255,255,255,0.02);">
+        <div style="font-size:0.85rem; color:var(--accent); font-weight:700; margin-bottom:1rem; text-transform:uppercase; letter-spacing:1px;">
+          <i class="fas fa-bullseye"></i> Step 1: Define Plan Scope
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
+          <div>
+            <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:0.5rem; font-weight:600;">
+              PLAN SCOPE / SECTOR
+            </label>
+            <select id="spScope" class="main-input" style="padding:0.6rem; font-size:0.9rem; background:var(--bg-app);">
+              <option value="all">Entire Market (All Results)</option>
+              <option value="defense">Defense (DoD & Branches)</option>
+              <option value="civilian">Federal Civilian (Non-DoD)</option>
+              <optgroup label="Specific Agencies" id="spSpecificAgencies"></optgroup>
+            </select>
           </div>
-          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
-            <div>
-              <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:0.5rem; font-weight:600;">PLAN SCOPE / SECTOR</label>
-              <select id="spScope" class="main-input" style="padding:0.6rem; font-size:0.9rem; background:var(--bg-app);">
-                 <option value="all">Entire Market (All Results)</option>
-                 <option value="defense">Defense (DoD & Branches)</option>
-                 <option value="civilian">Federal Civilian (Non-DoD)</option>
-                 <optgroup label="Specific Agencies" id="spSpecificAgencies">
-                   </optgroup>
-              </select>
-            </div>
-            <div>
-               <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:0.5rem; font-weight:600;">STRATEGIC GOAL</label>
-               <select id="spFocus" class="main-input" style="padding:0.6rem; font-size:0.9rem; background:var(--bg-app);">
-                 <option value="Growth">Aggressive Growth (New Business)</option>
-                 <option value="Retention">Retention (Defend Incumbency)</option>
-                 <option value="Partnership">Partner/Channel Strategy</option>
-              </select>
-            </div>
+          <div>
+            <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:0.5rem; font-weight:600;">
+              STRATEGIC GOAL
+              <span style="cursor:help; margin-left:4px;" title="Growth = New business pursuit&#10;Retention = Defend existing contracts&#10;Partnership = Channel/partner optimization">ⓘ</span>
+            </label>
+            <select id="spFocus" class="main-input" style="padding:0.6rem; font-size:0.9rem; background:var(--bg-app);">
+              <option value="Growth">Aggressive Growth (New Business)</option>
+              <option value="Retention">Retention (Defend Incumbency)</option>
+              <option value="Partnership">Partner/Channel Strategy</option>
+            </select>
           </div>
-          <p style="margin-top:10px; font-size:0.8rem; color:#666;">
-            <i class="fas fa-info-circle"></i> Selecting a specific sector will <strong>recalculate</strong> all market stats (TAM, Competitors, HHI) for that specific slice of data.
-          </p>
-       </div>
+        </div>
+      </div>
 
-       <div style="padding:1.5rem;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-             <div style="font-size:0.85rem; color:var(--accent); font-weight:700; text-transform:uppercase; letter-spacing:1px;">
-               <i class="fas fa-sitemap"></i> Step 2: Classify Market Actors
-             </div>
-             <div id="spBulkActionContainer"></div>
+      <!-- Step 2: Vendor Classification -->
+      <div style="padding:1.5rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <div style="font-size:0.85rem; color:var(--accent); font-weight:700; text-transform:uppercase; letter-spacing:1px;">
+            <i class="fas fa-sitemap"></i> Step 2: Classify Vendors
           </div>
-          
-          <div style="background:rgba(212, 196, 168, 0.05); padding:0.75rem; border-radius:4px; margin-bottom:1.5rem; font-size:0.8rem; color:var(--text-muted); border-left:2px solid var(--accent);">
-            <i class="fas fa-info-circle"></i> <strong>How this works:</strong> Companies marked as "Channels/VARs" are treated as allies in the plan. Unmarked companies are treated as hostile competitors for Battle Card generation.
-          </div>
+          <div id="spBulkActionContainer"></div>
+        </div>
+        
+        <div style="background:rgba(212, 196, 168, 0.05); padding:0.75rem; border-radius:4px; margin-bottom:1.5rem; font-size:0.8rem; color:var(--text-muted); border-left:2px solid var(--accent);">
+          <i class="fas fa-magic" style="color:var(--accent);"></i>
+          <strong>Smart Detection:</strong> We've pre-identified likely resellers based on known patterns. Accept our suggestions or customize below.
+        </div>
 
-          <div id="spVendorList"></div>
-       </div>
+        <div id="spVendorList"></div>
+      </div>
     </div>
 
+    <!-- Updated Footer with Better Labels -->
     <div class="channel-modal-footer" style="background:var(--bg-card); border-top:1px solid var(--border);">
-  <div style="flex:1; font-size:0.75rem; color:var(--text-muted); display:flex; align-items:center; gap:1rem;">
-      <div id="spDataStatus"></div>
+      <div style="flex:1; font-size:0.75rem; color:var(--text-muted); display:flex; align-items:center; gap:0.5rem;">
+        <div id="spDataStatus"></div>
+      </div>
+      
+      <button class="modal-btn modal-btn-cancel" onclick="SalesPlanManager.close()">
+        Cancel
+      </button>
+      
+      <button class="modal-btn modal-btn-cancel" onclick="SalesPlanManager.generate()" title="Download as .txt file">
+        <i class="fas fa-download"></i> Download .txt
+      </button>
+      
+      <button id="btnCopyPrompt" class="modal-btn modal-btn-primary" onclick="SalesPlanManager.copyPrompt()" style="min-width: 180px;">
+        <i class="fas fa-copy"></i> Copy → Paste to AI
+      </button>
+    </div>
   </div>
-  
-  <button class="modal-btn modal-btn-cancel" onclick="SalesPlanManager.close()">Cancel</button>
-  
-  <button class="modal-btn modal-btn-cancel" onclick="SalesPlanManager.generate()" title="Download as .txt file">
-    <i class="fas fa-download"></i> File
-  </button>
-  
-  <button id="btnCopyPrompt" class="modal-btn modal-btn-primary" onclick="SalesPlanManager.copyPrompt()">
-    <i class="fas fa-copy"></i> COPY PROMPT
-  </button>
 </div>
-  </div>
-</div>
-
 <script>
 // ==================== UTILITIES ====================
 const Utils = {
@@ -1356,28 +1469,224 @@ const ForecastEngine = {
     };
   }
 };
-// ==================== SALES PLAN MANAGER (FIXED) ====================
+// ==================== KNOWN VENDORS DATABASE ====================
+const KnownVendors = {
+  // Known VARs/Resellers
+  vars: new Set([
+    'CARAHSOFT TECHNOLOGY CORP', 'CARAHSOFT TECHNOLOGY CORPORATION',
+    'CDW GOVERNMENT LLC', 'CDW-G',
+    'SHI INTERNATIONAL CORP', 'SHI GOVERNMENT SOLUTIONS',
+    'INSIGHT PUBLIC SECTOR INC', 'INSIGHT DIRECT USA INC',
+    'GOVPLACE, LLC', 'GOVPLACE LLC',
+    'IMMIX GROUP INC', 'IMMIXGROUP INC',
+    'DLT SOLUTIONS LLC', 'DLT SOLUTIONS',
+    'THUNDERCAT TECHNOLOGY, LLC', 'THUNDERCAT TECHNOLOGY LLC',
+    'WORLD WIDE TECHNOLOGY LLC', 'WWT GOVERNMENT SERVICES',
+    'PRESIDIO NETWORKED SOLUTIONS', 'PRESIDIO GOVERNMENT SOLUTIONS',
+    'CONNECTION', 'PC CONNECTION', 'PCMG INC',
+    'EN POINTE TECHNOLOGIES',
+    'STERLING COMPUTERS CORPORATION', 'STERLING COMPUTERS',
+    'MERLIN INTERNATIONAL', 'RED RIVER TECHNOLOGY',
+    'MYTHICS INC', 'MYTHICS LLC',
+    'FOUR POINTS TECHNOLOGY', 'FOUR POINTS TECHNOLOGY LLC',
+    'SILOTECH GROUP INC', 'DECISIVE COMMUNICATIONS INC',
+    'FCN INC', 'FCN, INC.',
+    'SOFTCHOICE CORPORATION', 'SOFTCHOICE',
+    'TRACE3', 'OPTIV SECURITY INC', 'OPTIV SECURITY',
+    'FEDSTORE CORPORATION', 'FEDSTORE',
+    'GOVSMART INC', 'GOVSMART, INC.',
+    'NEW TECH SOLUTIONS', 'NEW TECH SOLUTIONS, INC.',
+    'PANAMERICA COMPUTERS', 'PANAMERICA COMPUTERS, INC.',
+    'SOFTWARE INFORMATION RESOURCE CORP',
+    'ACCESSAGILITY LLC', 'BLUE TECH INC', 'BLUE TECH INC.',
+    'DH TECHNOLOGIES', 'DH TECHNOLOGIES, INC.',
+    'IT1 SOURCE LLC',
+    'ENTERPRISE TECHNOLOGY SOLUTIONS', 'ENTERPRISE TECHNOLOGY SOLUTIONS, INC.',
+    'DISTRIBUTED TECHNOLOGY GROUP LLC', 'ARCHITECHTURE SOLUTIONS LLC',
+    'ADVANCED COMPUTER CONCEPTS', 'ADVANCED COMPUTER CONCEPTS, INC.',
+    '4 STAR TECHNOLOGIES', '4 STAR TECHNOLOGIES, INC.',
+    'THREE WIRE SYSTEMS', 'THREE WIRE SYSTEMS, LLC',
+    'C & C INTERNATIONAL COMPUTERS'
+  ]),
+
+  // Known Large Primes/System Integrators
+  primes: new Set([
+    'BOOZ ALLEN HAMILTON', 'BOOZ ALLEN HAMILTON INC',
+    'GENERAL DYNAMICS INFORMATION TECHNOLOGY', 'GENERAL DYNAMICS IT', 'GDIT',
+    'LEIDOS INC', 'LEIDOS HOLDINGS', 'LEIDOS',
+    'SAIC', 'SCIENCE APPLICATIONS INTERNATIONAL',
+    'NORTHROP GRUMMAN', 'RAYTHEON',
+    'LOCKHEED MARTIN', 'LOCKHEED MARTIN CORPORATION',
+    'BAE SYSTEMS', 'L3HARRIS TECHNOLOGIES',
+    'CACI INTERNATIONAL', 'CACI INC',
+    'MANTECH INTERNATIONAL', 'MANTECH',
+    'PERATON INC', 'PERATON',
+    'ACCENTURE FEDERAL SERVICES', 'ACCENTURE',
+    'DELOITTE CONSULTING', 'DELOITTE',
+    'IBM CORPORATION', 'IBM', 'KPMG',
+    'CGI FEDERAL', 'CGI TECHNOLOGIES',
+    'MAXIMUS INC', 'MAXIMUS FEDERAL',
+    'ICF INTERNATIONAL', 'ICF INC',
+    'SERCO INC', 'SERCO',
+    'PAE INCORPORATED', 'AMENTUM',
+    'JACOBS TECHNOLOGY', 'KBR INC'
+  ]),
+
+  // Classify a vendor name
+  classify(vendorName) {
+    const upper = vendorName.toUpperCase().trim();
+    
+    // Check exact matches first
+    if (this.vars.has(upper)) return 'var';
+    if (this.primes.has(upper)) return 'prime';
+    
+    // Check partial matches
+    for (const known of this.vars) {
+      if (upper.includes(known) || known.includes(upper)) return 'var';
+    }
+    for (const known of this.primes) {
+      if (upper.includes(known) || known.includes(upper)) return 'prime';
+    }
+    
+    // Pattern-based detection for likely VARs
+    const varPatterns = [
+      /\b(TECHNOLOGY|TECHNOLOGIES)\s*(CORP|LLC|INC)/i,
+      /\b(COMPUTERS?|COMPUTING)\s*(CORP|LLC|INC)/i,
+      /\bSOLUTIONS?\s*(CORP|LLC|INC)/i,
+      /\bGOV(PLACE|SMART|STORE)/i,
+      /\bFEDERAL\s*(SOLUTIONS|TECHNOLOGY)/i
+    ];
+    
+    for (const pattern of varPatterns) {
+      if (pattern.test(upper)) return 'likely_var';
+    }
+    
+    return 'unknown';
+  }
+};
+// ==================== ENHANCED SALES PLAN MANAGER ====================
 const SalesPlanManager = {
   channels: new Set(),
-  currentVendors: [], 
-
+  currentVendors: [],
+  detectedIntent: null,
+  
   init() {
     const saved = localStorage.getItem('govhoo_channels');
     if (saved) this.channels = new Set(JSON.parse(saved));
   },
 
-  isChannel(vendorName) { return this.channels.has(vendorName); },
+  isChannel(vendorName) { 
+    return this.channels.has(vendorName); 
+  },
 
-  // --- UI Actions ---
+  // ==================== INTENT DETECTION ====================
+  detectIntent(awards) {
+    const query = App.currentQuery || '';
+    const vendorSpend = {};
+    let totalSpend = 0;
+    
+    awards.forEach(r => {
+      const v = r['Recipient Name'] || 'Unknown';
+      const a = parseFloat(r['Award Amount']) || 0;
+      vendorSpend[v] = (vendorSpend[v] || 0) + a;
+      totalSpend += a;
+    });
+    
+    const vendors = Object.entries(vendorSpend)
+      .map(([name, spend]) => ({ name, spend, share: spend / totalSpend }))
+      .sort((a, b) => b.spend - a.spend);
+    
+    // Calculate channel metrics
+    let channelSpend = 0;
+    let channelCount = 0;
+    vendors.forEach(v => {
+      if (this.isChannel(v.name)) {
+        channelSpend += v.spend;
+        channelCount++;
+      }
+    });
+    const channelShare = totalSpend > 0 ? channelSpend / totalSpend : 0;
+    
+    // Detect Product/OEM (high channel share)
+    if (channelShare > 0.7 && channelCount >= 3) {
+      return {
+        type: 'product_oem',
+        icon: '📦',
+        title: 'PRODUCT / OEM CHANNEL',
+        description: `${(channelShare * 100).toFixed(1)}% of revenue flows through ${channelCount} channel partners`,
+        focusAreas: [
+          'Channel performance & rankings',
+          'Partner enablement priorities', 
+          'Recompete defense by partner',
+          'Agency coverage gaps'
+        ],
+        suggestedGoal: 'Partnership'
+      };
+    }
+    
+    // Detect own company search
+    const topVendor = vendors[0];
+    if (topVendor && query.toLowerCase().includes(topVendor.name.toLowerCase().split(' ')[0])) {
+      return {
+        type: 'own_company',
+        icon: '🏢',
+        title: 'YOUR COMPANY ANALYSIS',
+        description: `Analyzing your market position: ${Utils.money(topVendor.spend)} (${(topVendor.share * 100).toFixed(1)}% share)`,
+        focusAreas: [
+          'Defend existing contracts',
+          'Identify growth opportunities',
+          'Competitive threats to your position',
+          'Recompete calendar & defense'
+        ],
+        suggestedGoal: 'Retention'
+      };
+    }
+    
+    // Detect agency search
+    const agencyKeywords = ['department', 'agency', 'administration', 'commission', 'bureau'];
+    if (agencyKeywords.some(kw => query.toLowerCase().includes(kw))) {
+      return {
+        type: 'agency',
+        icon: '🏛️',
+        title: 'AGENCY PENETRATION',
+        description: `Analyzing how to enter or expand within this customer`,
+        focusAreas: [
+          'Agency mission & budget priorities',
+          'Current vendor landscape',
+          'Entry points & opportunities',
+          'Key contracting vehicles'
+        ],
+        suggestedGoal: 'Growth'
+      };
+    }
+    
+    // Default: Market/keyword search
+    return {
+      type: 'market_keyword',
+      title: 'MARKET ANALYSIS',
+      description: `Analyzing the "${query}" market landscape`,
+      focusAreas: [
+        'Market size & growth trends',
+        'Competitive landscape',
+        'Top agencies & opportunities',
+        'Entry strategy recommendations'
+      ],
+      suggestedGoal: 'Growth'
+    };
+  },
+
+  // ==================== UI ACTIONS ====================
   open() {
-    // 1. Data Availability Check
     const awards = App.forecastData.awards || App.searchData.raw || [];
     if (!awards.length) {
-      alert("No award data loaded. Please run a search or forecast first."); // Fixed: Used alert
+      alert("No award data loaded. Please run a search or forecast first.");
       return;
     }
 
-    // 2. Populate Agency Dropdown
+    // Detect intent
+    this.detectedIntent = this.detectIntent(awards);
+    
+    // Populate Agency Dropdown
     const agencyCounts = {};
     awards.forEach(r => {
       const ag = r['Awarding Agency'];
@@ -1390,20 +1699,61 @@ const SalesPlanManager = {
       .join('');
       
     document.getElementById('spSpecificAgencies').innerHTML = sortedAgencies;
-    document.getElementById('spScope').value = 'all'; 
+    document.getElementById('spScope').value = 'all';
+    
+    // Set suggested goal based on intent
+    document.getElementById('spFocus').value = this.detectedIntent.suggestedGoal;
 
-    // 3. Prepare Vendor List
+    // Prepare and render
     this.prepareVendorList(awards);
+    this.renderIntentBanner();
     this.updateStatus(awards.length, "Entire Market");
-    this.renderList();
+    this.renderSmartVendorList();
+    
     document.getElementById('salesPlanModal').classList.add('active');
   },
 
   close() {
     document.getElementById('salesPlanModal').classList.remove('active');
+    // Also close success modal if open
+    const successModal = document.getElementById('copySuccessModal');
+    if (successModal) successModal.classList.remove('active');
   },
 
-  // --- Data Processing Helper ---
+  // ==================== INTENT BANNER ====================
+  renderIntentBanner() {
+    const banner = document.getElementById('spIntentBanner');
+    if (!banner || !this.detectedIntent) return;
+    
+    const intent = this.detectedIntent;
+    banner.innerHTML = `
+      <div class="intent-banner-content">
+        <div class="intent-banner-icon">${intent.icon}</div>
+        <div class="intent-banner-text">
+          <div class="intent-banner-title">DETECTED: ${intent.title}</div>
+          <div class="intent-banner-desc">${intent.description}</div>
+          <div class="intent-banner-focus">
+            <span class="focus-label">Plan will focus on:</span>
+            ${intent.focusAreas.map(f => `<span class="focus-tag">${f}</span>`).join('')}
+          </div>
+        </div>
+        <button class="intent-change-btn" onclick="SalesPlanManager.showIntentOptions()">
+          <i class="fas fa-edit"></i> Change
+        </button>
+      </div>
+    `;
+    banner.style.display = 'block';
+  },
+
+  showIntentOptions() {
+    // For now, just focus on the goal dropdown
+    const focusSelect = document.getElementById('spFocus');
+    focusSelect.focus();
+    focusSelect.style.outline = '2px solid var(--accent)';
+    setTimeout(() => focusSelect.style.outline = '', 2000);
+  },
+
+  // ==================== DATA PROCESSING ====================
   getFilteredData() {
     const scope = document.getElementById('spScope').value;
     const focus = document.getElementById('spFocus').value;
@@ -1413,16 +1763,16 @@ const SalesPlanManager = {
     let scopeName = "Entire Market";
 
     if (scope === 'all') {
-        filteredAwards = rawAwards;
+      filteredAwards = rawAwards;
     } else if (scope === 'defense') {
-        filteredAwards = rawAwards.filter(r => /defense|army|navy|air force|marine|space force/i.test(r['Awarding Agency']));
-        scopeName = "Defense Sector";
+      filteredAwards = rawAwards.filter(r => /defense|army|navy|air force|marine|space force/i.test(r['Awarding Agency']));
+      scopeName = "Defense Sector";
     } else if (scope === 'civilian') {
-        filteredAwards = rawAwards.filter(r => !/defense|army|navy|air force|marine|space force/i.test(r['Awarding Agency']));
-        scopeName = "Federal Civilian Sector";
+      filteredAwards = rawAwards.filter(r => !/defense|army|navy|air force|marine|space force/i.test(r['Awarding Agency']));
+      scopeName = "Federal Civilian Sector";
     } else {
-        filteredAwards = rawAwards.filter(r => r['Awarding Agency'] === scope);
-        scopeName = scope;
+      filteredAwards = rawAwards.filter(r => r['Awarding Agency'] === scope);
+      scopeName = scope;
     }
 
     if (filteredAwards.length === 0) throw new Error("No awards found for the selected scope.");
@@ -1430,23 +1780,18 @@ const SalesPlanManager = {
     return { filteredAwards, scopeName, focus };
   },
 
-  // --- Output Actions ---
+  // ==================== OUTPUT ACTIONS ====================
   generate() {
     App.showLoader('GENERATING PLAN...', 'Filtering data & packaging prompt...');
     setTimeout(() => {
       try {
         const { filteredAwards, scopeName, focus } = this.getFilteredData();
-        
-        // Build and Download - pass forecast analysis if available
-        const analysis = App.mode === 'forecast' ? App.forecastData.analysis : null;
-        const pkg = PromptPackageGenerator.buildPackage(filteredAwards, analysis, { scope: scopeName, focus });
+        const pkg = PromptPackageGenerator.buildPackage(filteredAwards, null, { scope: scopeName, focus });
         PromptPackageGenerator.downloadPackage(pkg);
-        
         this.close();
-        // Success is indicated by the file download starting
       } catch(e) { 
         console.error(e); 
-        alert(e.message || "Error generating plan"); // Fixed: Used alert
+        alert(e.message || "Error generating plan");
       } finally { 
         App.hideLoader(); 
       }
@@ -1457,55 +1802,146 @@ const SalesPlanManager = {
     const btn = document.getElementById('btnCopyPrompt');
     if (!btn) return;
 
-    const originalText = btn.innerHTML;
-    const originalBg = btn.style.background;
-    const originalColor = btn.style.color;
+    const originalHTML = btn.innerHTML;
     
     // Loading State
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> GENERATING...';
-    btn.style.opacity = '0.8';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+    btn.style.opacity = '0.7';
     btn.style.pointerEvents = 'none';
     
     try {
       const { filteredAwards, scopeName, focus } = this.getFilteredData();
-      const analysis = App.mode === 'forecast' ? App.forecastData.analysis : null;
-      const pkg = PromptPackageGenerator.buildPackage(filteredAwards, analysis, { scope: scopeName, focus });
+      const pkg = PromptPackageGenerator.buildPackage(filteredAwards, null, { scope: scopeName, focus });
       
       // Copy to clipboard
       await navigator.clipboard.writeText(pkg);
       
-      // Success State (Green Button)
-      btn.style.opacity = '1';
-      btn.style.background = 'var(--success)';
-      btn.style.color = '#000';
-      btn.style.borderColor = 'var(--success)';
-      btn.innerHTML = '<i class="fas fa-check"></i> COPIED';
+      // Show success modal instead of just changing button
+      this.showCopySuccessModal(pkg.length);
       
-      // Close after 2 seconds
-      setTimeout(() => {
-        this.close();
-        // Reset button
-        btn.style.background = originalBg;
-        btn.style.color = originalColor;
-        btn.style.borderColor = '';
-        btn.innerHTML = originalText;
-        btn.style.pointerEvents = 'auto';
-      }, 2000);
-
+      // Reset button
+      btn.innerHTML = originalHTML;
+      btn.style.opacity = '1';
+      btn.style.pointerEvents = 'auto';
+      
     } catch(e) {
       console.error(e);
-      alert(e.message || "Error copying prompt"); // Fixed: Used alert
-      
-      // Reset button immediately on error
+      alert(e.message || "Error copying prompt");
+      btn.innerHTML = originalHTML;
       btn.style.opacity = '1';
-      btn.style.background = originalBg;
-      btn.style.color = originalColor;
-      btn.innerHTML = originalText;
       btn.style.pointerEvents = 'auto';
     }
   },
 
-  // --- Vendor List Helpers ---
+  // ==================== SUCCESS MODAL ====================
+  showCopySuccessModal(charCount) {
+    let modal = document.getElementById('copySuccessModal');
+    
+    if (!modal) {
+      // Create modal if it doesn't exist
+      modal = document.createElement('div');
+      modal.id = 'copySuccessModal';
+      modal.className = 'channel-marking-modal';
+      document.body.appendChild(modal);
+    }
+    
+    const wordCount = Math.round(charCount / 5);
+    const estimatedTokens = Math.round(charCount / 4);
+    
+    modal.innerHTML = `
+      <div class="channel-modal-content" style="max-width: 500px; height: auto;">
+        <div class="channel-modal-header" style="background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), transparent); border-bottom-color: var(--success);">
+          <div class="channel-modal-title" style="color: var(--success);">
+            <i class="fas fa-check-circle"></i> COPIED TO CLIPBOARD
+          </div>
+          <button class="channel-modal-close" onclick="SalesPlanManager.closeSuccessModal()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        
+        <div class="channel-modal-body" style="padding: 1.5rem;">
+          <div style="text-align: center; margin-bottom: 1.5rem;">
+            <div style="font-size: 3rem; margin-bottom: 0.5rem;">✅</div>
+            <div style="font-size: 1.1rem; color: #fff; font-weight: 600;">Your prompt is ready!</div>
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">
+              ${charCount.toLocaleString()} characters • ~${wordCount.toLocaleString()} words • ~${estimatedTokens.toLocaleString()} tokens
+            </div>
+          </div>
+          
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
+            <div style="font-size: 0.75rem; color: var(--accent); font-weight: 700; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 1px;">
+              Next Steps
+            </div>
+            <ol style="margin: 0; padding-left: 1.25rem; color: #ccc; font-size: 0.9rem; line-height: 1.8;">
+              <li>Open your preferred AI assistant</li>
+              <li>Paste the prompt <kbd style="background: #333; padding: 2px 6px; border-radius: 3px; font-size: 0.8rem;">Ctrl+V</kbd></li>
+              <li>Get your 4-6 page executive GTM playbook</li>
+            </ol>
+          </div>
+          
+          <div style="font-size: 0.75rem; color: var(--accent); font-weight: 700; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 1px;">
+            Open In
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem;">
+            <a href="https://claude.ai/new" target="_blank" class="ai-link-btn" style="background: linear-gradient(135deg, #D97706, #B45309);">
+              <span style="font-size: 1.2rem;">🤖</span>
+              <span>Claude</span>
+            </a>
+            <a href="https://chat.openai.com" target="_blank" class="ai-link-btn" style="background: linear-gradient(135deg, #10A37F, #0D8A6A);">
+              <span style="font-size: 1.2rem;">💬</span>
+              <span>ChatGPT</span>
+            </a>
+            <a href="https://gemini.google.com" target="_blank" class="ai-link-btn" style="background: linear-gradient(135deg, #4285F4, #3367D6);">
+              <span style="font-size: 1.2rem;">✨</span>
+              <span>Gemini</span>
+            </a>
+          </div>
+          
+          <div style="background: rgba(212, 196, 168, 0.05); padding: 0.75rem; border-radius: 4px; font-size: 0.8rem; color: var(--text-muted); border-left: 2px solid var(--accent);">
+            <i class="fas fa-lightbulb" style="color: var(--accent);"></i>
+            <strong>Tip:</strong> Claude and GPT-4 produce the best results. GPT-3.5 may truncate long outputs.
+          </div>
+        </div>
+        
+        <div class="channel-modal-footer">
+          <button class="modal-btn modal-btn-cancel" onclick="SalesPlanManager.closeSuccessModal()">
+            Done
+          </button>
+          <button class="modal-btn modal-btn-primary" onclick="SalesPlanManager.copyAgain()">
+            <i class="fas fa-copy"></i> Copy Again
+          </button>
+        </div>
+      </div>
+    `;
+    
+    modal.classList.add('active');
+  },
+
+  closeSuccessModal() {
+    const modal = document.getElementById('copySuccessModal');
+    if (modal) modal.classList.remove('active');
+    this.close(); // Also close main modal
+  },
+
+  async copyAgain() {
+    try {
+      const { filteredAwards, scopeName, focus } = this.getFilteredData();
+      const pkg = PromptPackageGenerator.buildPackage(filteredAwards, null, { scope: scopeName, focus });
+      await navigator.clipboard.writeText(pkg);
+      
+      // Brief visual feedback
+      const btn = document.querySelector('#copySuccessModal .modal-btn-primary');
+      if (btn) {
+        const original = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        setTimeout(() => btn.innerHTML = original, 1500);
+      }
+    } catch(e) {
+      alert('Failed to copy: ' + e.message);
+    }
+  },
+
+  // ==================== VENDOR LIST HELPERS ====================
   prepareVendorList(dataSlice) {
     const vendorSpend = {}; 
     let total = 0;
@@ -1522,29 +1958,40 @@ const SalesPlanManager = {
         vendor: v, 
         spend: s, 
         marketShare: total > 0 ? ((s / total) * 100).toFixed(2) : "0.00", 
-        contractCount: dataSlice.filter(r => r['Recipient Name'] === v).length 
+        contractCount: dataSlice.filter(r => r['Recipient Name'] === v).length,
+        classification: KnownVendors.classify(v)
       }))
       .sort((a, b) => b.spend - a.spend)
-      .slice(0, 25);
+      .slice(0, 30); // Increased to 30 for better coverage
   },
 
   updateStatus(count, scopeName) {
     const statusEl = document.getElementById('spDataStatus');
     if(!statusEl) return;
+    
+    const channelCount = this.currentVendors.filter(v => this.isChannel(v.vendor)).length;
+    const totalVendors = this.currentVendors.length;
+    
     statusEl.innerHTML = `
       <span style="color:var(--success); display:flex; align-items:center; gap:6px;">
-        <i class="fas fa-check-circle"></i> Data Ready
+        <i class="fas fa-check-circle"></i> Ready
       </span>
-      <span style="margin-left:8px; opacity:0.5;">|</span>
-      <span style="margin-left:8px;">Scope: <strong>${scopeName}</strong> (${count} awards)</span>
+      <span style="margin-left:8px; opacity:0.3;">|</span>
+      <span style="margin-left:8px;">${scopeName}</span>
+      <span style="margin-left:8px; opacity:0.3;">|</span>
+      <span style="margin-left:8px;">${count} awards</span>
+      <span style="margin-left:8px; opacity:0.3;">|</span>
+      <span style="margin-left:8px; color: var(--accent);">${channelCount}/${totalVendors} channels</span>
     `;
   },
 
-  // --- Toggle Logic ---
+  // ==================== TOGGLE LOGIC ====================
   toggleChannel(vendorName) {
     if (this.channels.has(vendorName)) this.channels.delete(vendorName);
     else this.channels.add(vendorName);
     this.save();
+    this.updateStatus(App.forecastData.awards?.length || App.searchData.raw?.length || 0, 
+      document.getElementById('spScope')?.value === 'all' ? 'Entire Market' : document.getElementById('spScope')?.value);
   },
 
   toggleAll() {
@@ -1553,59 +2000,179 @@ const SalesPlanManager = {
     else this.currentVendors.forEach(v => this.channels.add(v.vendor));
     
     this.save();
-    this.renderList(); 
+    this.renderSmartVendorList();
+    this.updateStatus(App.forecastData.awards?.length || App.searchData.raw?.length || 0, 
+      document.getElementById('spScope')?.value === 'all' ? 'Entire Market' : document.getElementById('spScope')?.value);
+  },
+
+  acceptSuggested() {
+    // Mark all suggested VARs as channels
+    this.currentVendors.forEach(v => {
+      if (v.classification === 'var' || v.classification === 'likely_var') {
+        this.channels.add(v.vendor);
+      }
+    });
+    this.save();
+    this.renderSmartVendorList();
+    this.updateStatus(App.forecastData.awards?.length || App.searchData.raw?.length || 0, 
+      document.getElementById('spScope')?.value === 'all' ? 'Entire Market' : document.getElementById('spScope')?.value);
   },
 
   save() { 
     localStorage.setItem('govhoo_channels', JSON.stringify([...this.channels])); 
   },
 
-  // --- Rendering ---
-  renderList() {
+  // ==================== SMART VENDOR LIST RENDERING ====================
+  renderSmartVendorList() {
     const list = document.getElementById('spVendorList');
     const container = document.getElementById('spBulkActionContainer');
     if(!list || !container) return;
 
+    // Group vendors by classification
+    const suggestedVars = this.currentVendors.filter(v => 
+      (v.classification === 'var' || v.classification === 'likely_var') && !this.isChannel(v.vendor)
+    );
+    const primes = this.currentVendors.filter(v => v.classification === 'prime');
+    const unknown = this.currentVendors.filter(v => 
+      v.classification === 'unknown' && !this.isChannel(v.vendor)
+    );
+    const alreadyMarked = this.currentVendors.filter(v => this.isChannel(v.vendor));
+
     const allMarked = this.currentVendors.length > 0 && this.currentVendors.every(v => this.isChannel(v.vendor));
     
+    // Bulk action buttons
     container.innerHTML = `
-      <button onclick="SalesPlanManager.toggleAll()" style="background:transparent; border:1px solid var(--border); color:var(--accent); padding:6px 12px; border-radius:4px; cursor:pointer; font-size:0.7rem; font-family:'JetBrains Mono'; display:flex; align-items:center; gap:6px;">
-        <i class="far ${allMarked ? 'fa-square' : 'fa-check-square'}"></i> ${allMarked ? 'UNMARK ALL' : 'MARK ALL CHANNELS'}
-      </button>
+      <div style="display: flex; gap: 0.5rem;">
+        ${suggestedVars.length > 0 ? `
+          <button onclick="SalesPlanManager.acceptSuggested()" style="background: rgba(76, 175, 80, 0.1); border: 1px solid var(--success); color: var(--success); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; font-family: 'JetBrains Mono'; display: flex; align-items: center; gap: 6px;">
+            <i class="fas fa-magic"></i> ACCEPT SUGGESTIONS (${suggestedVars.length})
+          </button>
+        ` : ''}
+        <button onclick="SalesPlanManager.toggleAll()" style="background: transparent; border: 1px solid var(--border); color: var(--accent); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; font-family: 'JetBrains Mono'; display: flex; align-items: center; gap: 6px;">
+          <i class="far ${allMarked ? 'fa-square' : 'fa-check-square'}"></i> ${allMarked ? 'UNMARK ALL' : 'MARK ALL'}
+        </button>
+      </div>
     `;
 
     if (this.currentVendors.length === 0) {
-        list.innerHTML = `<div style="text-align:center; padding:1rem; color:#666;">No vendors found in this scope.</div>`;
-        return;
+      list.innerHTML = `<div style="text-align:center; padding:1rem; color:#666;">No vendors found in this scope.</div>`;
+      return;
     }
 
-    list.innerHTML = this.currentVendors.map(v => `
-      <div class="vendor-list-item">
-        <div class="vendor-info">
-          <div class="vendor-name">${v.vendor}</div>
-          <div class="vendor-stats">${v.contractCount} contracts • ${Utils.money(v.spend)} • ${v.marketShare}% share</div>
+    let html = '';
+
+    // Already Marked Section
+    if (alreadyMarked.length > 0) {
+      html += this.renderVendorSection(
+        '✅ MARKED AS CHANNELS',
+        'These vendors are already marked as your channel partners',
+        alreadyMarked,
+        'success'
+      );
+    }
+
+    // Suggested VARs Section  
+    if (suggestedVars.length > 0) {
+      html += this.renderVendorSection(
+        '🎯 SUGGESTED CHANNELS',
+        'We detected these as likely resellers/VARs based on known patterns',
+        suggestedVars,
+        'accent'
+      );
+    }
+
+    // Unknown/Review Section
+    if (unknown.length > 0) {
+      html += this.renderVendorSection(
+        '❓ NEEDS REVIEW', 
+        'We couldn\'t automatically classify these vendors',
+        unknown,
+        'muted'
+      );
+    }
+
+    // Primes Section (usually not marked as channels)
+    if (primes.length > 0) {
+      html += this.renderVendorSection(
+        '🏢 LIKELY PRIMES/SIs',
+        'These appear to be system integrators or large primes',
+        primes,
+        'muted'
+      );
+    }
+
+    list.innerHTML = html;
+  },
+
+  renderVendorSection(title, description, vendors, colorClass) {
+    const colorMap = {
+      'success': 'var(--success)',
+      'accent': 'var(--accent)',
+      'muted': '#666'
+    };
+    const borderColor = colorMap[colorClass] || '#666';
+    
+    return `
+      <div style="margin-bottom: 1.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <span style="font-size: 0.8rem; font-weight: 700; color: ${borderColor}; text-transform: uppercase; letter-spacing: 0.5px;">
+            ${title}
+          </span>
+          <span style="font-size: 0.7rem; color: #666;">(${vendors.length})</span>
         </div>
-        <div class="vendor-toggle">
-          <div class="toggle-switch ${this.isChannel(v.vendor) ? 'active' : ''}" onclick="SalesPlanManager.toggleItem('${v.vendor.replace(/'/g, "\\'")}', this)">
-            <div class="toggle-slider"></div>
-          </div>
-          <div class="toggle-label">${this.isChannel(v.vendor) ? 'Channel/VAR' : 'Competitor'}</div>
+        <div style="font-size: 0.75rem; color: #888; margin-bottom: 0.75rem;">${description}</div>
+        <div style="border: 1px solid var(--border); border-radius: 6px; overflow: hidden; border-left: 3px solid ${borderColor};">
+          ${vendors.map(v => this.renderVendorRow(v)).join('')}
         </div>
       </div>
-    `).join('');
+    `;
+  },
+
+  renderVendorRow(v) {
+    const isMarked = this.isChannel(v.vendor);
+    return `
+      <div class="vendor-list-item" style="border-bottom: 1px solid var(--border); padding: 0.6rem 0.75rem;">
+        <div class="vendor-info" style="flex: 1;">
+          <div class="vendor-name" style="font-size: 0.85rem; font-weight: 600; color: #fff;">${v.vendor}</div>
+          <div class="vendor-stats" style="font-size: 0.7rem; color: #888;">
+            ${v.contractCount} contracts • ${Utils.money(v.spend)} • ${v.marketShare}% share
+          </div>
+        </div>
+        <div class="vendor-toggle" style="display: flex; align-items: center; gap: 0.5rem;">
+          <div class="toggle-switch ${isMarked ? 'active' : ''}" onclick="SalesPlanManager.toggleItem('${v.vendor.replace(/'/g, "\\'")}', this)">
+            <div class="toggle-slider"></div>
+          </div>
+          <div class="toggle-label" style="font-size: 0.7rem; width: 70px; color: ${isMarked ? 'var(--success)' : '#888'};">
+            ${isMarked ? 'Channel' : 'Competitor'}
+          </div>
+        </div>
+      </div>
+    `;
   },
 
   toggleItem(vendorName, element) {
     this.toggleChannel(vendorName);
-    const toggle = element; 
+    const toggle = element;
     const label = element.nextElementSibling;
-    if (this.isChannel(vendorName)) { toggle.classList.add('active'); label.textContent = 'Channel/VAR'; }
-    else { toggle.classList.remove('active'); label.textContent = 'Competitor'; }
+    const isNowChannel = this.isChannel(vendorName);
     
-    // Quick update bulk button
-    const allMarked = this.currentVendors.every(v => this.isChannel(v.vendor));
-    const btn = document.querySelector('#spBulkActionContainer button');
-    if(btn) btn.innerHTML = `<i class="far ${allMarked ? 'fa-square' : 'fa-check-square'}"></i> ${allMarked ? 'UNMARK ALL' : 'MARK ALL CHANNELS'}`;
+    if (isNowChannel) {
+      toggle.classList.add('active');
+      label.textContent = 'Channel';
+      label.style.color = 'var(--success)';
+    } else {
+      toggle.classList.remove('active');
+      label.textContent = 'Competitor';
+      label.style.color = '#888';
+    }
+    
+    // Re-render to move items between sections
+    setTimeout(() => this.renderSmartVendorList(), 300);
+  },
+
+  // Legacy method for compatibility
+  renderList() {
+    this.renderSmartVendorList();
   }
 };
 // ==================== APP CORE ====================
@@ -1867,10 +2434,9 @@ renderForecastDashboard() {
 
       <div class="insight-card sales-plan-card" onclick="SalesPlanManager.open()">
         <div class="sales-plan-card-icon"><i class="fas fa-file-export"></i></div>
-        <div class="sales-plan-card-title">Generate AI Strategy Prompt</div>
+        <div class="sales-plan-card-title">Generate Sales Strategy Prompt</div>
         <div class="sales-plan-card-subtitle">
-          Configure scope, classify partners, and export a prompt package for your AI model.
-          <br><em style="font-size: 0.8em; opacity: 0.7;">Note: Click "Agency Award Flow" first to include full awards data.</em>
+          Create an AI prompt package from these results you can paste into your preferred AI tool (ChatGPT, Claude, Gemini, etc.) to build an Annual Sales Plan.
         </div>
       </div>
     `;
