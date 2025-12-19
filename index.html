@@ -1062,7 +1062,11 @@ const API = {
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
         filters: { keywords:[keywords], time_period:periods, award_type_codes:['A','B','C','D'] },
-        fields: ['Award ID','Recipient Name','Description','Start Date','End Date','Award Amount','Awarding Agency','generated_internal_id'],
+        fields: [
+          'Award ID', 'Recipient Name', 'Description', 'Start Date', 'End Date', 
+          'Award Amount', 'Awarding Agency', 'Awarding Sub Agency', 'generated_internal_id',
+          'NAICS Code', 'NAICS Description', 'PSC Code', 'PSC Description'
+        ],
         // FIX: Sort by Amount DESC to get big contracts, not "End Date DESC" which gives contracts ending in 2030
         limit: 100, 
         sort: 'Award Amount',
@@ -1433,8 +1437,9 @@ const SalesPlanManager = {
       try {
         const { filteredAwards, scopeName, focus } = this.getFilteredData();
         
-        // Build and Download
-        const pkg = PromptPackageGenerator.buildPackage(filteredAwards, null, { scope: scopeName, focus });
+        // Build and Download - pass forecast analysis if available
+        const analysis = App.mode === 'forecast' ? App.forecastData.analysis : null;
+        const pkg = PromptPackageGenerator.buildPackage(filteredAwards, analysis, { scope: scopeName, focus });
         PromptPackageGenerator.downloadPackage(pkg);
         
         this.close();
@@ -1463,7 +1468,8 @@ const SalesPlanManager = {
     
     try {
       const { filteredAwards, scopeName, focus } = this.getFilteredData();
-      const pkg = PromptPackageGenerator.buildPackage(filteredAwards, null, { scope: scopeName, focus });
+      const analysis = App.mode === 'forecast' ? App.forecastData.analysis : null;
+      const pkg = PromptPackageGenerator.buildPackage(filteredAwards, analysis, { scope: scopeName, focus });
       
       // Copy to clipboard
       await navigator.clipboard.writeText(pkg);
@@ -2143,175 +2149,748 @@ App.showChannelModal = function() {
   ChannelManager.showModal(vendors);
 };
 
-// ==================== PROMPT PACKAGE GENERATOR ====================
 const PromptPackageGenerator = {
-  buildPackage(data, analysis, config = {}) {
-    // Note: 'data' is already filtered by SalesPlanManager based on the scope
+  
+  // ==================== SEARCH INTENT CLASSIFICATION ====================
+  classifySearchIntent(query, data, userMarkedChannels) {
+    /*
+     * Determines what the user searched for and their likely strategic intent.
+     * Returns: { type, confidence, details }
+     * 
+     * Types:
+     * - 'own_company': User searched for their own company
+     * - 'competitor': User searched for a competitor to analyze
+     * - 'partner': User searched for a channel/partner relationship
+     * - 'agency': User searched for a specific agency/customer
+     * - 'market_keyword': User searched for a market/technology area
+     */
+    
+    const queryLower = query.toLowerCase().trim();
+    
+    // Extract top entities from data
+    const vendorSpend = {};
+    const agencySpend = {};
+    let totalValue = 0;
+    
+    data.forEach(r => {
+      const vendor = r['Recipient Name'] || 'Unknown';
+      const agency = r['Awarding Agency'] || 'Unknown';
+      const amt = parseFloat(r['Award Amount']) || 0;
+      vendorSpend[vendor] = (vendorSpend[vendor] || 0) + amt;
+      agencySpend[agency] = (agencySpend[agency] || 0) + amt;
+      totalValue += amt;
+    });
+    
+    const topVendors = Object.entries(vendorSpend)
+      .map(([name, spend]) => ({ name, spend, share: (spend / totalValue * 100) }))
+      .sort((a, b) => b.spend - a.spend);
+    
+    const topAgencies = Object.entries(agencySpend)
+      .map(([name, spend]) => ({ name, spend, share: (spend / totalValue * 100) }))
+      .sort((a, b) => b.spend - a.spend);
+    
+    // Check if query matches a specific vendor name (exact or fuzzy)
+    const matchingVendor = topVendors.find(v => 
+      v.name.toLowerCase().includes(queryLower) || 
+      queryLower.includes(v.name.toLowerCase().split(' ')[0])
+    );
+    
+    // Check if query matches a specific agency
+    const matchingAgency = topAgencies.find(a => 
+      a.name.toLowerCase().includes(queryLower) || 
+      queryLower.includes(a.name.toLowerCase().replace('department of ', ''))
+    );
+    
+    // Check if query is a known market keyword
+    const marketKeywords = [
+      'cyber', 'cloud', 'ai', 'artificial intelligence', 'machine learning', 'ml',
+      'data', 'analytics', 'software', 'it services', 'infrastructure',
+      'network', 'security', 'zero trust', 'devops', 'devsecops',
+      'modernization', 'digital', 'transformation', 'agile', 'sap', 'oracle',
+      'healthcare', 'logistics', 'training', 'simulation', 'c4isr',
+      'satellite', 'space', 'communications', 'mobility', 'wireless'
+    ];
+    
+    const isMarketKeyword = marketKeywords.some(kw => queryLower.includes(kw));
+    
+    // Determine intent
+    if (matchingVendor && matchingVendor.share > 30) {
+      // Dominant single vendor - likely searching for own company or major competitor
+      const isChannel = userMarkedChannels.has(matchingVendor.name);
+      if (isChannel) {
+        return {
+          type: 'partner',
+          confidence: 'high',
+          details: {
+            entityName: matchingVendor.name,
+            entityShare: matchingVendor.share.toFixed(1),
+            entityValue: matchingVendor.spend,
+            relationship: 'Marked as channel/partner'
+          }
+        };
+      }
+      // If they searched their own company name, they want competitive intel
+      return {
+        type: 'own_company',
+        confidence: 'medium',
+        details: {
+          entityName: matchingVendor.name,
+          entityShare: matchingVendor.share.toFixed(1),
+          entityValue: matchingVendor.spend,
+          suggestion: 'If this is YOUR company, the plan will focus on defending position. If a COMPETITOR, mark as such in settings.'
+        }
+      };
+    }
+    
+    if (matchingVendor && matchingVendor.share > 5) {
+      // Specific vendor but not dominant - likely competitor research
+      return {
+        type: 'competitor',
+        confidence: 'medium',
+        details: {
+          entityName: matchingVendor.name,
+          entityShare: matchingVendor.share.toFixed(1),
+          entityValue: matchingVendor.spend,
+          competitorCount: topVendors.filter(v => v.share > 1).length
+        }
+      };
+    }
+    
+    if (matchingAgency) {
+      // Agency-focused search
+      return {
+        type: 'agency',
+        confidence: 'high',
+        details: {
+          entityName: matchingAgency.name,
+          entityShare: matchingAgency.share.toFixed(1),
+          entityValue: matchingAgency.spend,
+          vendorCount: new Set(data.filter(r => r['Awarding Agency'] === matchingAgency.name).map(r => r['Recipient Name'])).size
+        }
+      };
+    }
+    
+    if (isMarketKeyword || topVendors.length > 5) {
+      // Market/technology keyword search
+      return {
+        type: 'market_keyword',
+        confidence: 'high',
+        details: {
+          keyword: query,
+          totalMarketValue: totalValue,
+          vendorCount: topVendors.length,
+          agencyCount: topAgencies.length,
+          topVendor: topVendors[0]?.name,
+          topAgency: topAgencies[0]?.name
+        }
+      };
+    }
+    
+    // Default - treat as market exploration
+    return {
+      type: 'market_keyword',
+      confidence: 'low',
+      details: {
+        keyword: query,
+        totalMarketValue: totalValue,
+        note: 'Search intent unclear - defaulting to market analysis'
+      }
+    };
+  },
+
+  // ==================== FULL DATA EXTRACTION ====================
+  extractAllData(data, analysis, config = {}) {
     const curFY = Utils.getCurrentFY();
-    const vendorSpend = {}; 
+    const curQ = Utils.getCurrentQuarter();
+    
+    // === VENDOR ANALYSIS ===
+    const vendorSpend = {};
     let totalMarketValue = 0;
     
     data.forEach(r => {
-      const vendor = r['Recipient Name'] || 'Unknown'; 
+      const vendor = r['Recipient Name'] || 'Unknown';
       const amt = parseFloat(r['Award Amount']) || 0;
-      vendorSpend[vendor] = (vendorSpend[vendor] || 0) + amt; 
+      if (!vendorSpend[vendor]) {
+        vendorSpend[vendor] = { 
+          spend: 0, 
+          contracts: [], 
+          agencies: new Set(),
+          subAgencies: new Set(),
+          naicsCodes: new Set(),
+          pscCodes: new Set()
+        };
+      }
+      vendorSpend[vendor].spend += amt;
+      vendorSpend[vendor].contracts.push(r);
+      if (r['Awarding Agency']) vendorSpend[vendor].agencies.add(r['Awarding Agency']);
+      if (r['Awarding Sub Agency']) vendorSpend[vendor].subAgencies.add(r['Awarding Sub Agency']);
+      if (r['NAICS Code']) vendorSpend[vendor].naicsCodes.add(r['NAICS Code']);
+      if (r['PSC Code']) vendorSpend[vendor].pscCodes.add(r['PSC Code']);
       totalMarketValue += amt;
     });
-
-    // ... (same calculation logic as before) ...
-    const allVendors = Object.entries(vendorSpend).map(([vendor, spend]) => ({
-      vendor, 
-      spend, 
-      marketShare: ((spend / totalMarketValue) * 100).toFixed(2),
-      contractCount: data.filter(r => r['Recipient Name'] === vendor).length,
-      avgContractSize: spend / data.filter(r => r['Recipient Name'] === vendor).length,
-      isChannel: SalesPlanManager.isChannel(vendor) 
-    })).sort((a, b) => b.spend - a.spend);
-
-    const topCompetitors = allVendors.filter(v => !v.isChannel).slice(0, 15);
-    const topChannels = allVendors.filter(v => v.isChannel).slice(0, 10);
     
-    const agencySpend = {}; 
-    data.forEach(r => { 
-        const ag = r['Awarding Agency'] || 'Unknown'; 
-        agencySpend[ag] = (agencySpend[ag] || 0) + (parseFloat(r['Award Amount']) || 0); 
+    const allVendors = Object.entries(vendorSpend).map(([vendor, data]) => ({
+      vendor,
+      spend: data.spend,
+      marketShare: ((data.spend / totalMarketValue) * 100).toFixed(2),
+      contractCount: data.contracts.length,
+      avgContractSize: data.spend / data.contracts.length,
+      agencyDiversity: data.agencies.size,
+      subAgencyReach: data.subAgencies.size,
+      naicsCodes: Array.from(data.naicsCodes),
+      pscCodes: Array.from(data.pscCodes),
+      isChannel: SalesPlanManager.isChannel(vendor),
+      // Calculate expiring contracts
+      expiringContracts: data.contracts.filter(c => {
+        if (!c['End Date']) return false;
+        const monthsUntilEnd = (new Date(c['End Date']) - new Date()) / (1000 * 60 * 60 * 24 * 30);
+        return monthsUntilEnd > 0 && monthsUntilEnd <= 18;
+      }),
+      // Calculate contract value at risk
+      expiringValue: data.contracts.filter(c => {
+        if (!c['End Date']) return false;
+        const monthsUntilEnd = (new Date(c['End Date']) - new Date()) / (1000 * 60 * 60 * 24 * 30);
+        return monthsUntilEnd > 0 && monthsUntilEnd <= 18;
+      }).reduce((sum, c) => sum + (parseFloat(c['Award Amount']) || 0), 0)
+    })).sort((a, b) => b.spend - a.spend);
+    
+    const competitors = allVendors.filter(v => !v.isChannel);
+    const channels = allVendors.filter(v => v.isChannel);
+    
+    // === AGENCY ANALYSIS ===
+    const agencyData = {};
+    data.forEach(r => {
+      const agency = r['Awarding Agency'] || 'Unknown';
+      const subAgency = r['Awarding Sub Agency'] || 'General';
+      const amt = parseFloat(r['Award Amount']) || 0;
+      
+      if (!agencyData[agency]) {
+        agencyData[agency] = { 
+          spend: 0, 
+          contracts: [],
+          subAgencies: {},
+          topVendors: {}
+        };
+      }
+      agencyData[agency].spend += amt;
+      agencyData[agency].contracts.push(r);
+      
+      // Sub-agency breakdown
+      if (!agencyData[agency].subAgencies[subAgency]) {
+        agencyData[agency].subAgencies[subAgency] = { spend: 0, count: 0 };
+      }
+      agencyData[agency].subAgencies[subAgency].spend += amt;
+      agencyData[agency].subAgencies[subAgency].count++;
+      
+      // Track vendors per agency
+      const vendor = r['Recipient Name'] || 'Unknown';
+      agencyData[agency].topVendors[vendor] = (agencyData[agency].topVendors[vendor] || 0) + amt;
     });
     
-    const topAgencies = Object.entries(agencySpend).map(([a, s]) => ({ 
-        agency: a, 
-        spend: s, 
-        percentage: ((s / totalMarketValue) * 100).toFixed(1), 
-        contractCount: data.filter(r => r['Awarding Agency'] === a).length 
-    })).sort((a, b) => b.spend - a.spend).slice(0, 10);
+    const topAgencies = Object.entries(agencyData).map(([agency, d]) => ({
+      agency,
+      spend: d.spend,
+      percentage: ((d.spend / totalMarketValue) * 100).toFixed(1),
+      contractCount: d.contracts.length,
+      subAgencyCount: Object.keys(d.subAgencies).length,
+      subAgencies: Object.entries(d.subAgencies)
+        .map(([name, data]) => ({ name, ...data }))
+        .sort((a, b) => b.spend - a.spend)
+        .slice(0, 5),
+      topVendors: Object.entries(d.topVendors)
+        .map(([name, spend]) => ({ name, spend }))
+        .sort((a, b) => b.spend - a.spend)
+        .slice(0, 3),
+      incumbentVendor: Object.entries(d.topVendors).sort((a, b) => b[1] - a[1])[0]?.[0]
+    })).sort((a, b) => b.spend - a.spend);
     
-    const recompetes = data.filter(r => {
-      if (!r['End Date']) return false;
-      const m = (new Date(r['End Date']) - new Date()) / (1000 * 60 * 60 * 24 * 30);
-      return m > 0 && m <= 18;
-    }).sort((a, b) => new Date(a['End Date']) - new Date(b['End Date']));
-
-    // Recalculate HHI for this specific slice if not provided
+    // === RECOMPETE ANALYSIS ===
+    const now = new Date();
+    const recompetes = {
+      immediate: [], // 0-6 months
+      nearTerm: [],  // 6-12 months
+      pipeline: []   // 12-18 months
+    };
+    
+    data.forEach(r => {
+      if (!r['End Date']) return;
+      const endDate = new Date(r['End Date']);
+      const monthsUntilEnd = (endDate - now) / (1000 * 60 * 60 * 24 * 30);
+      
+      if (monthsUntilEnd > 0 && monthsUntilEnd <= 6) {
+        recompetes.immediate.push(r);
+      } else if (monthsUntilEnd > 6 && monthsUntilEnd <= 12) {
+        recompetes.nearTerm.push(r);
+      } else if (monthsUntilEnd > 12 && monthsUntilEnd <= 18) {
+        recompetes.pipeline.push(r);
+      }
+    });
+    
+    // Sort each by value
+    Object.keys(recompetes).forEach(key => {
+      recompetes[key].sort((a, b) => (b['Award Amount'] || 0) - (a['Award Amount'] || 0));
+    });
+    
+    // === NAICS/PSC ANALYSIS ===
+    const naicsBreakdown = {};
+    const pscBreakdown = {};
+    
+    data.forEach(r => {
+      const naics = r['NAICS Code'];
+      const psc = r['PSC Code'];
+      const amt = parseFloat(r['Award Amount']) || 0;
+      
+      if (naics) {
+        if (!naicsBreakdown[naics]) {
+          naicsBreakdown[naics] = { code: naics, description: r['NAICS Description'] || '', spend: 0, count: 0 };
+        }
+        naicsBreakdown[naics].spend += amt;
+        naicsBreakdown[naics].count++;
+      }
+      
+      if (psc) {
+        if (!pscBreakdown[psc]) {
+          pscBreakdown[psc] = { code: psc, description: r['PSC Description'] || '', spend: 0, count: 0 };
+        }
+        pscBreakdown[psc].spend += amt;
+        pscBreakdown[psc].count++;
+      }
+    });
+    
+    // === MARKET CONCENTRATION (HHI) ===
     let hhi = 0;
-    if (analysis) {
-        hhi = analysis.hhi; // Use forecast analysis if available
+    if (analysis && analysis.hhi) {
+      hhi = analysis.hhi;
     } else {
-        // Calculate raw HHI based on the current filtered vendor set
-        const total = allVendors.reduce((acc, v) => acc + v.spend, 0);
-        allVendors.forEach(v => {
-            const share = (v.spend / total) * 100;
-            hhi += share * share;
-        });
-        hhi = Math.round(hhi);
+      allVendors.forEach(v => {
+        const share = (v.spend / totalMarketValue) * 100;
+        hhi += share * share;
+      });
+      hhi = Math.round(hhi);
     }
     
-    // Competitor Deep Dive
-    const competitorDeepDive = topCompetitors.slice(0, 5).map(c => {
-      const contracts = data.filter(r => r['Recipient Name'] === c.vendor);
-      return {
-        vendor: c.vendor, 
-        marketShare: c.marketShare, 
-        totalValue: c.spend, 
-        contractCount: c.contractCount,
-        agencyPresence: new Set(contracts.map(r => r['Awarding Agency'])).size,
-        expiringContracts: contracts.filter(r => r['End Date'] && (new Date(r['End Date']) - new Date()) / (1000*60*60*24*30) <= 18).length
+    const marketConcentration = {
+      hhi,
+      status: hhi > 2500 ? 'Highly Concentrated' : hhi > 1500 ? 'Moderately Concentrated' : 'Competitive',
+      top3Share: competitors.slice(0, 3).reduce((s, v) => s + parseFloat(v.marketShare), 0).toFixed(1),
+      top5Share: competitors.slice(0, 5).reduce((s, v) => s + parseFloat(v.marketShare), 0).toFixed(1),
+      vendorCount: allVendors.length,
+      interpretation: hhi > 2500 
+        ? 'Market dominated by few incumbents. Teaming or niche strategies required.'
+        : hhi > 1500 
+          ? 'Moderate competition. Both displacement and new opportunity strategies viable.'
+          : 'Fragmented market. Volume bidding and broad prospecting may succeed.'
+    };
+    
+    // === FORECAST DATA (if available) ===
+    let forecastInsights = null;
+    if (analysis) {
+      forecastInsights = {
+        baseline: analysis.baseline,
+        quarterlyForecasts: analysis.forecasts || [],
+        seasonalIndices: analysis.indices || {},
+        peakQuarter: this.getPeakQuarter(analysis),
+        growthRate: this.calculateGrowthRate(analysis),
+        historicalByFY: analysis.byFY || {},
+        strategy: analysis.strategy || null,
+        marketStatus: analysis.marketStatus || 'Unknown'
       };
-    });
-
-    return this.generatePrompt({
-      config: config, 
-      metadata: { 
-          generatedDate: new Date().toISOString(), 
-          fiscalYear: curFY, 
-          marketQuery: App.currentQuery, 
-          totalContracts: data.length, 
-          channelsIdentified: topChannels.length 
+      
+      // Calculate YoY trends
+      if (analysis.byFY) {
+        const years = Object.keys(analysis.byFY).sort();
+        if (years.length >= 2) {
+          const currentFY = years[years.length - 1];
+          const previousFY = years[years.length - 2];
+          const currentTotal = Object.values(analysis.byFY[currentFY]).reduce((a, b) => a + b, 0);
+          const previousTotal = Object.values(analysis.byFY[previousFY]).reduce((a, b) => a + b, 0);
+          forecastInsights.yoyChange = previousTotal > 0 
+            ? (((currentTotal - previousTotal) / previousTotal) * 100).toFixed(1)
+            : null;
+        }
+      }
+    }
+    
+    return {
+      metadata: {
+        generatedDate: new Date().toISOString(),
+        fiscalYear: curFY,
+        currentQuarter: curQ,
+        marketQuery: App.currentQuery,
+        totalContracts: data.length,
+        totalMarketValue,
+        channelsIdentified: channels.length,
+        competitorsIdentified: competitors.length,
+        dataSource: analysis ? 'Forecast Mode' : 'Search Mode'
       },
-      marketOverview: { 
-          totalAddressableMarket: totalMarketValue, 
-          marketConcentration: { hhi: hhi, status: hhi > 2500 ? 'Concentrated' : 'Competitive' }, 
-          avgContractSize: totalMarketValue / data.length 
+      marketConcentration,
+      competitors: {
+        all: competitors,
+        top5: competitors.slice(0, 5),
+        top10: competitors.slice(0, 10)
       },
-      competitiveLandscape: { 
-          topCompetitors, 
-          competitorDeepDive, 
-          top3Share: topCompetitors.slice(0,3).reduce((s,v)=>s+parseFloat(v.marketShare),0).toFixed(1) 
+      channels: {
+        all: channels,
+        totalValue: channels.reduce((s, c) => s + c.spend, 0)
       },
-      channelLandscape: { 
-          identifiedChannels: topChannels, 
-          totalChannelValue: topChannels.reduce((s,c)=>s+c.spend,0) 
+      agencies: {
+        all: topAgencies,
+        top5: topAgencies.slice(0, 5),
+        top10: topAgencies.slice(0, 10)
       },
-      agencyLandscape: { topAgencies },
-      recompeteIntelligence: { 
-          totalRecompetes: recompetes.length, 
-          totalRecompeteValue: recompetes.reduce((s,r)=>s+(r['Award Amount']||0),0), 
-          highValueRecompetes: recompetes.filter(r=>r['Award Amount']>10000000).slice(0,10) 
-      },
-      forecastData: analysis ? { 
-          baseline: analysis.baseline, 
-          quarterlyForecasts: analysis.forecasts, 
-          growthRate: this.calculateGrowthRate(analysis), 
-          peakQuarter: this.getPeakQuarter(analysis) 
-      } : null
-    });
+      recompetes,
+      naicsBreakdown: Object.values(naicsBreakdown).sort((a, b) => b.spend - a.spend).slice(0, 10),
+      pscBreakdown: Object.values(pscBreakdown).sort((a, b) => b.spend - a.spend).slice(0, 10),
+      forecastInsights
+    };
   },
 
   calculateGrowthRate(analysis) {
-    if (!analysis || !analysis.byFY) return null; 
-    const ys = Object.keys(analysis.byFY).sort(); 
-    if (ys.length < 2) return null;
-    const cur = Object.values(analysis.byFY[ys[ys.length-1]]).reduce((a,b)=>a+b,0); 
-    const prev = Object.values(analysis.byFY[ys[ys.length-2]]).reduce((a,b)=>a+b,0);
-    return prev > 0 ? (((cur-prev)/prev)*100).toFixed(1) : null;
+    if (!analysis || !analysis.byFY) return null;
+    const years = Object.keys(analysis.byFY).map(Number).sort((a, b) => a - b);
+    if (years.length < 2) return null;
+    
+    const curFY = Utils.getCurrentFY();
+    const curQ = Utils.getCurrentQuarter();
+    
+    // Find the two most recent COMPLETE fiscal years (exclude current partial year)
+    const completeYears = years.filter(y => y < curFY);
+    
+    if (completeYears.length >= 2) {
+      // Compare two complete years
+      const recentYear = completeYears[completeYears.length - 1];
+      const priorYear = completeYears[completeYears.length - 2];
+      const recentTotal = Object.values(analysis.byFY[recentYear]).reduce((a, b) => a + b, 0);
+      const priorTotal = Object.values(analysis.byFY[priorYear]).reduce((a, b) => a + b, 0);
+      
+      if (priorTotal > 0) {
+        return {
+          value: (((recentTotal - priorTotal) / priorTotal) * 100).toFixed(1),
+          comparison: `FY${recentYear} vs FY${priorYear}`,
+          type: 'full_year'
+        };
+      }
+    }
+    
+    // Fallback: Compare same quarters year-over-year if we have current year data
+    if (years.includes(curFY) && years.includes(curFY - 1)) {
+      // Sum only quarters that exist in BOTH years for fair comparison
+      const currentYearData = analysis.byFY[curFY];
+      const priorYearData = analysis.byFY[curFY - 1];
+      
+      let currentSum = 0;
+      let priorSum = 0;
+      let quartersCompared = [];
+      
+      for (let q = 1; q <= curQ; q++) {
+        if (currentYearData[q] > 0 && priorYearData[q] > 0) {
+          currentSum += currentYearData[q];
+          priorSum += priorYearData[q];
+          quartersCompared.push(`Q${q}`);
+        }
+      }
+      
+      if (priorSum > 0 && quartersCompared.length > 0) {
+        return {
+          value: (((currentSum - priorSum) / priorSum) * 100).toFixed(1),
+          comparison: `FY${curFY} ${quartersCompared.join('+')} vs FY${curFY - 1} ${quartersCompared.join('+')}`,
+          type: 'quarter_comparison'
+        };
+      }
+    }
+    
+    return null;
   },
 
   getPeakQuarter(analysis) {
-    if (!analysis || !analysis.indices) return null; 
-    let peakQ=1, peakV=0;
-    for(let q=1; q<=4; q++) if(analysis.indices[q]>peakV) { peakV=analysis.indices[q]; peakQ=q; }
-    return { quarter: peakQ };
+    if (!analysis || !analysis.indices) return null;
+    let peakQ = 1, peakV = 0;
+    for (let q = 1; q <= 4; q++) {
+      if (analysis.indices[q] > peakV) {
+        peakV = analysis.indices[q];
+        peakQ = q;
+      }
+    }
+    return { quarter: peakQ, index: (peakV * 100).toFixed(1) };
   },
 
-  generatePrompt(data) {
+  // ==================== INTENT-AWARE PROMPT GENERATION ====================
+  generatePrompt(searchIntent, extractedData, config = {}) {
     const mf = v => Utils.money(v);
-    const scope = data.config?.scope || 'Entire Market';
-    const focus = data.config?.focus || 'Growth';
+    const scope = config.scope || 'Entire Market';
+    const focus = config.focus || 'Growth';
+    const query = extractedData.metadata.marketQuery;
+    
+    // Build intent-specific context
+    let intentContext = '';
+    let strategicFramework = '';
+    let specificInstructions = '';
+    
+    switch (searchIntent.type) {
+      case 'own_company':
+        intentContext = `
+**SEARCH CONTEXT: OWN COMPANY ANALYSIS**
+The user searched for "${query}" which appears to be their own company or primary entity.
+- Entity: ${searchIntent.details.entityName}
+- Current Market Share: ${searchIntent.details.entityShare}%
+- Current Contract Value: ${mf(searchIntent.details.entityValue)}
 
-    return `# ANNUAL FEDERAL SALES PLAN: ${scope.toUpperCase()}
-## STRATEGIC FOCUS: ${focus}
-## INSTRUCTIONS FOR LLM
-Create a comprehensive, executive-level annual sales plan (4 to 6 pages) based on the provided data.
-**CONTEXT**: The user is targeting **${scope}** with a focus on **${focus}**.
-**CHANNELS vs. COMPETITORS**: ${data.metadata.channelsIdentified} companies marked as channels/VARs.
+**STRATEGIC INTENT:** The user wants to understand their competitive position and defend/grow their market share.`;
+        
+        strategicFramework = `
+**FRAMEWORK: INCUMBENT DEFENSE & GROWTH**
+1. **Protect Base**: Identify expiring contracts and recompete risks
+2. **Expand Footprint**: Find adjacent agencies/sub-agencies to penetrate
+3. **Competitive Intelligence**: Understand who is threatening your position
+4. **Channel Leverage**: Identify partners who can extend your reach`;
+        
+        specificInstructions = `
+**SPECIFIC DELIVERABLES:**
+1. **Position Assessment**: Your current standing vs. competitors
+2. **Risk Register**: Contracts expiring in next 18 months with displacement probability
+3. **Expansion Opportunities**: Agencies where you're underrepresented vs. competitors
+4. **Competitive Threats**: Who is growing in your space and how to counter
+5. **Defense Playbook**: Actions to protect recompetes`;
+        break;
+        
+      case 'competitor':
+        intentContext = `
+**SEARCH CONTEXT: COMPETITOR ANALYSIS**
+The user searched for "${query}" which identifies a specific competitor.
+- Competitor: ${searchIntent.details.entityName}
+- Their Market Share: ${searchIntent.details.entityShare}%
+- Their Contract Value: ${mf(searchIntent.details.entityValue)}
 
-### MARKET OVERVIEW (${scope})
-- TAM (Total Contract Value in this scope): ${mf(data.marketOverview.totalAddressableMarket)}
-- HHI: ${data.marketOverview.marketConcentration.hhi} (${data.marketOverview.marketConcentration.status})
-- Avg Contract: ${mf(data.marketOverview.avgContractSize)}
+**STRATEGIC INTENT:** The user wants to understand this competitor's position to displace them or compete effectively.`;
+        
+        strategicFramework = `
+**FRAMEWORK: COMPETITIVE DISPLACEMENT**
+1. **Know the Enemy**: Deep dive on competitor's strengths and weaknesses
+2. **Find Vulnerabilities**: Expiring contracts, unhappy customers, delivery issues
+3. **Counter-Position**: Develop messaging that highlights your advantages
+4. **Team or Compete**: Identify where to team vs. go head-to-head`;
+        
+        specificInstructions = `
+**SPECIFIC DELIVERABLES:**
+1. **Competitor Profile**: Full analysis of ${searchIntent.details.entityName}
+2. **Vulnerability Assessment**: Their expiring contracts (your opportunities)
+3. **Agency Overlap**: Where you both compete for the same customers
+4. **Displacement Strategy**: How to win their contracts at recompete
+5. **Battle Cards**: Win themes and competitive differentiators`;
+        break;
+        
+      case 'partner':
+        intentContext = `
+**SEARCH CONTEXT: PARTNER/CHANNEL ANALYSIS**
+The user searched for "${query}" which is marked as a channel partner.
+- Partner: ${searchIntent.details.entityName}
+- Their Federal Revenue: ${mf(searchIntent.details.entityValue)}
+- Relationship: ${searchIntent.details.relationship}
 
-### COMPETITIVE LANDSCAPE (Top 3 Share: ${data.competitiveLandscape.top3Share}%)
-${data.competitiveLandscape.competitorDeepDive.map(c => `**${c.vendor}**: Share ${c.marketShare}% | Value ${mf(c.totalValue)} | Expiring Contracts: ${c.expiringContracts}`).join('\n')}
+**STRATEGIC INTENT:** The user wants to understand how to leverage this partner relationship for growth.`;
+        
+        strategicFramework = `
+**FRAMEWORK: CHANNEL OPTIMIZATION**
+1. **Partner Value**: Understand their reach and capabilities
+2. **Joint Opportunities**: Identify deals where teaming makes sense
+3. **Enablement**: How to help them sell your solutions
+4. **Expansion**: Where else they can take you`;
+        
+        specificInstructions = `
+**SPECIFIC DELIVERABLES:**
+1. **Partner Profile**: Their federal presence and agency relationships
+2. **Joint Pipeline**: Recompetes and new opportunities for teaming
+3. **Agency Introduction Map**: Where they have relationships you don't
+4. **Enablement Plan**: How to arm them to represent you
+5. **Revenue Targets**: Realistic joint revenue goals by quarter`;
+        break;
+        
+      case 'agency':
+        intentContext = `
+**SEARCH CONTEXT: AGENCY/CUSTOMER ANALYSIS**
+The user searched for "${query}" which is a federal agency.
+- Agency: ${searchIntent.details.entityName}
+- Total Spend: ${mf(searchIntent.details.entityValue)}
+- Active Vendors: ${searchIntent.details.vendorCount}
 
-${data.channelLandscape.identifiedChannels.length > 0 ? `### CHANNEL PARTNERS (Treat as Allies)
-${data.channelLandscape.identifiedChannels.map(c => `- ${c.vendor}: ${mf(c.spend)} (${c.contractCount} contracts)`).join('\n')}` : 'NO CHANNELS IDENTIFIED'}
+**STRATEGIC INTENT:** The user wants to penetrate or expand within this specific agency.`;
+        
+        strategicFramework = `
+**FRAMEWORK: AGENCY PENETRATION**
+1. **Know the Customer**: Understand their mission and priorities
+2. **Map the Landscape**: Who's the incumbent? Who's winning?
+3. **Find Entry Points**: Recompetes, new requirements, set-asides
+4. **Build Relationships**: Key contracting offices and program managers`;
+        
+        specificInstructions = `
+**SPECIFIC DELIVERABLES:**
+1. **Agency Profile**: Mission, budget trends, IT priorities
+2. **Competitive Map**: Who holds the contracts you want
+3. **Entry Strategy**: Specific opportunities to pursue
+4. **Sub-Agency Breakdown**: Where are the best opportunities
+5. **Timeline**: Key dates and procurement cycles`;
+        break;
+        
+      case 'market_keyword':
+      default:
+        intentContext = `
+**SEARCH CONTEXT: MARKET/TECHNOLOGY ANALYSIS**
+The user searched for "${query}" which represents a market segment or technology area.
+- Total Addressable Market: ${mf(searchIntent.details.totalMarketValue)}
+- Active Vendors: ${searchIntent.details.vendorCount || extractedData.metadata.competitorsIdentified}
+- Active Agencies: ${searchIntent.details.agencyCount || extractedData.agencies.all.length}
+- Top Vendor: ${searchIntent.details.topVendor || extractedData.competitors.top5[0]?.vendor}
+- Top Agency: ${searchIntent.details.topAgency || extractedData.agencies.top5[0]?.agency}
 
-### TOP AGENCIES IN THIS SCOPE
-${data.agencyLandscape.topAgencies.map(a => `- ${a.agency}: ${mf(a.spend)} (${a.percentage}%)`).join('\n')}
+**STRATEGIC INTENT:** The user wants to understand this market to enter or expand their presence.`;
+        
+        strategicFramework = `
+**FRAMEWORK: MARKET ENTRY/EXPANSION**
+1. **Size the Prize**: Understand TAM and growth trajectory
+2. **Know the Players**: Who dominates? Who's growing?
+3. **Find Your Lane**: Where do you have competitive advantage?
+4. **Build the Pipeline**: Specific opportunities to pursue`;
+        
+        specificInstructions = `
+**SPECIFIC DELIVERABLES:**
+1. **Market Overview**: Size, growth, concentration analysis
+2. **Competitive Landscape**: Top players and their positioning
+3. **Agency Priorities**: Who's buying and why
+4. **Opportunity Pipeline**: Specific recompetes and new requirements
+5. **Go-to-Market Strategy**: How to win in this market`;
+        break;
+    }
+    
+    // Build the comprehensive prompt
+    return `# FEDERAL SALES INTELLIGENCE REPORT
+## Query: "${query.toUpperCase()}" | Scope: ${scope} | Focus: ${focus}
+## Generated: ${new Date().toLocaleDateString()} | FY${extractedData.metadata.fiscalYear} Q${extractedData.metadata.currentQuarter}
 
-### RECOMPETES (Immediate Opportunities)
-${data.recompeteIntelligence.highValueRecompetes.map(r => `- ${r['Awarding Agency']} (${r['Recipient Name']}): ${mf(r['Award Amount'])} - Ends ${Utils.date(r['End Date'])}`).join('\n')}
+---
 
-${data.forecastData ? `### FORECAST
-- Baseline: ${mf(data.forecastData.baseline)}
-- Growth: ${data.forecastData.growthRate || 'N/A'}%
-- Peak: Q${data.forecastData.peakQuarter?.quarter}
-${data.forecastData.quarterlyForecasts.map(f => `- ${f.period}: ${mf(f.predicted)} (${f.trend}%)`).join('\n')}` : ''}
+${intentContext}
 
-Generate comprehensive plan including:
-1. Executive Summary
-2. Market Analysis (${scope})
-3. Competitor Battle Cards (Strengths/Weaknesses based on incumbency)
-4. Channel Partner Strategy
-5. Quarterly Action Plan`;
+${strategicFramework}
+
+---
+
+## INSTRUCTIONS FOR AI ASSISTANT
+
+Create a comprehensive, actionable federal sales plan (4-6 pages) based on the data and context below. The plan should be executive-ready with specific actions, timelines, and measurable targets.
+
+${specificInstructions}
+
+---
+
+## MARKET DATA
+
+### MARKET OVERVIEW
+- **Total Addressable Market (TAM):** ${mf(extractedData.metadata.totalMarketValue)}
+- **Total Active Contracts:** ${extractedData.metadata.totalContracts}
+- **Average Contract Size:** ${mf(extractedData.metadata.totalMarketValue / extractedData.metadata.totalContracts)}
+- **Active Competitors:** ${extractedData.metadata.competitorsIdentified}
+- **Active Agencies:** ${extractedData.agencies.all.length}
+
+### MARKET CONCENTRATION ANALYSIS
+- **HHI Score:** ${extractedData.marketConcentration.hhi} (${extractedData.marketConcentration.status})
+- **Top 3 Vendor Share:** ${extractedData.marketConcentration.top3Share}%
+- **Top 5 Vendor Share:** ${extractedData.marketConcentration.top5Share}%
+- **Strategic Implication:** ${extractedData.marketConcentration.interpretation}
+
+### TOP COMPETITORS (by Contract Value)
+${extractedData.competitors.top5.map((c, i) => `${i + 1}. **${c.vendor}**
+   - Market Share: ${c.marketShare}% | Value: ${mf(c.spend)}
+   - Contracts: ${c.contractCount} | Avg Size: ${mf(c.avgContractSize)}
+   - Agency Reach: ${c.agencyDiversity} agencies | ${c.subAgencyReach} sub-agencies
+   - Expiring (18mo): ${c.expiringContracts.length} contracts worth ${mf(c.expiringValue)}
+   - NAICS: ${c.naicsCodes.slice(0, 3).join(', ') || 'N/A'}`).join('\n')}
+
+${extractedData.channels.all.length > 0 ? `### CHANNEL PARTNERS (User-Identified)
+${extractedData.channels.all.map(c => `- **${c.vendor}**: ${mf(c.spend)} (${c.contractCount} contracts, ${c.marketShare}% share)`).join('\n')}
+- **Total Channel Value:** ${mf(extractedData.channels.totalValue)}` : `### NO CHANNEL PARTNERS IDENTIFIED
+Consider marking VARs, resellers, or teaming partners in the channel modal.`}
+
+### TOP AGENCIES (by Spend)
+${extractedData.agencies.top5.map((a, i) => `${i + 1}. **${a.agency}**
+   - Spend: ${mf(a.spend)} (${a.percentage}% of market)
+   - Contracts: ${a.contractCount} | Sub-Agencies: ${a.subAgencyCount}
+   - Incumbent: ${a.incumbentVendor || 'Various'}
+   - Top Sub-Agencies: ${a.subAgencies.slice(0, 3).map(s => s.name).join(', ')}`).join('\n')}
+
+### RECOMPETE INTELLIGENCE (18-Month Pipeline)
+
+**IMMEDIATE (0-6 Months) - ${extractedData.recompetes.immediate.length} Opportunities - ${mf(extractedData.recompetes.immediate.reduce((s, r) => s + (r['Award Amount'] || 0), 0))} at Risk**
+${extractedData.recompetes.immediate.slice(0, 5).map(r => `- ${r['Awarding Agency']}: ${mf(r['Award Amount'])} | Incumbent: ${r['Recipient Name']} | Ends: ${Utils.date(r['End Date'])}`).join('\n') || 'None identified'}
+
+**NEAR-TERM (6-12 Months) - ${extractedData.recompetes.nearTerm.length} Opportunities - ${mf(extractedData.recompetes.nearTerm.reduce((s, r) => s + (r['Award Amount'] || 0), 0))} at Risk**
+${extractedData.recompetes.nearTerm.slice(0, 5).map(r => `- ${r['Awarding Agency']}: ${mf(r['Award Amount'])} | Incumbent: ${r['Recipient Name']} | Ends: ${Utils.date(r['End Date'])}`).join('\n') || 'None identified'}
+
+**PIPELINE (12-18 Months) - ${extractedData.recompetes.pipeline.length} Opportunities - ${mf(extractedData.recompetes.pipeline.reduce((s, r) => s + (r['Award Amount'] || 0), 0))} at Risk**
+${extractedData.recompetes.pipeline.slice(0, 5).map(r => `- ${r['Awarding Agency']}: ${mf(r['Award Amount'])} | Incumbent: ${r['Recipient Name']} | Ends: ${Utils.date(r['End Date'])}`).join('\n') || 'None identified'}
+
+${extractedData.naicsBreakdown.length > 0 ? `### NAICS CODE BREAKDOWN
+${extractedData.naicsBreakdown.slice(0, 5).map(n => `- **${n.code}** (${n.description || 'No description'}): ${mf(n.spend)} | ${n.count} contracts`).join('\n')}` : ''}
+
+${extractedData.pscBreakdown.length > 0 ? `### PSC CODE BREAKDOWN
+${extractedData.pscBreakdown.slice(0, 5).map(p => `- **${p.code}** (${p.description || 'No description'}): ${mf(p.spend)} | ${p.count} contracts`).join('\n')}` : ''}
+
+${extractedData.forecastInsights ? `### FORECAST & TREND ANALYSIS
+- **Baseline Annual Forecast:** ${mf(extractedData.forecastInsights.baseline)}
+- **YoY Growth Rate:** ${extractedData.forecastInsights.growthRate ? `${extractedData.forecastInsights.growthRate.value}% (${extractedData.forecastInsights.growthRate.comparison})` : 'Insufficient complete year data'}
+- **Peak Spending Quarter:** Q${extractedData.forecastInsights.peakQuarter?.quarter || 'N/A'} (${extractedData.forecastInsights.peakQuarter?.index || 'N/A'}% of annual)
+- **Market Status:** ${extractedData.forecastInsights.marketStatus}
+
+**Quarterly Forecasts:**
+${extractedData.forecastInsights.quarterlyForecasts.map(f => `- **${f.period}:** ${mf(f.predicted)} (${f.trend}% vs historical avg) | Confidence: ${f.confidence?.label || 'N/A'} - ${f.confidence?.reason || ''}`).join('\n')}
+
+**Seasonal Indices:**
+${Object.entries(extractedData.forecastInsights.seasonalIndices).map(([q, idx]) => `- Q${q}: ${(idx * 100).toFixed(1)}% of annual spend`).join('\n')}
+
+${extractedData.forecastInsights.strategy ? `**AI Strategy Recommendation:**
+- **Outlook:** ${extractedData.forecastInsights.strategy.title}
+- **Analysis:** ${extractedData.forecastInsights.strategy.text}
+- **Recommended Action:** ${extractedData.forecastInsights.strategy.action}
+- **BD Focus:** ${extractedData.forecastInsights.strategy.matrix?.bd || 'N/A'}
+- **Strategic Approach:** ${extractedData.forecastInsights.strategy.matrix?.strat || 'N/A'}
+- **Pipeline Focus:** ${extractedData.forecastInsights.strategy.matrix?.pipe || 'N/A'}` : ''}
+
+**Historical Spending by Fiscal Year:**
+${Object.entries(extractedData.forecastInsights.historicalByFY || {}).map(([fy, quarters]) => 
+  `- FY${fy}: ${mf(Object.values(quarters).reduce((a, b) => a + b, 0))} (Q1: ${mf(quarters[1] || 0)}, Q2: ${mf(quarters[2] || 0)}, Q3: ${mf(quarters[3] || 0)}, Q4: ${mf(quarters[4] || 0)})`
+).join('\n')}` : '### NO FORECAST DATA AVAILABLE\nRun in Forecast Mode to get predictive analytics and trend analysis.'}
+
+---
+
+## OUTPUT REQUIREMENTS
+
+1. **Executive Summary** (1/2 page): Key findings, primary opportunities, and recommended strategy
+2. **Market Analysis** (1 page): Deep dive on the data above with strategic implications
+3. **Competitive Intelligence** (1 page): Battle cards for top 3 competitors with win strategies
+4. **Opportunity Pipeline** (1 page): Prioritized list of specific pursuits with timelines
+5. **Quarterly Action Plan** (1-2 pages): SMART goals and activities by quarter
+
+**VALIDATION CRITERIA:**
+- Plan must be specific to the search intent (${searchIntent.type})
+- Include at least 5 specific, actionable recommendations
+- Reference actual data from the report (use real vendor/agency names)
+- Provide measurable targets with timelines
+- Address federal procurement considerations (FAR, DFAR, small business, etc.)`;
+  },
+
+  // ==================== MAIN BUILD FUNCTION ====================
+  buildPackage(data, analysis, config = {}) {
+    // Step 1: Classify search intent
+    const searchIntent = this.classifySearchIntent(
+      App.currentQuery, 
+      data, 
+      SalesPlanManager.channels
+    );
+    
+    // Step 2: Extract all available data
+    const extractedData = this.extractAllData(data, analysis, config);
+    
+    // Step 3: Generate intent-aware prompt
+    return this.generatePrompt(searchIntent, extractedData, config);
   },
 
   downloadPackage(promptText) {
@@ -2319,7 +2898,9 @@ Generate comprehensive plan including:
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = `Sales_Plan_FY${Utils.getCurrentFY()}_${App.currentQuery.replace(/\s+/g, '_')}.txt`;
-    document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 };
 
