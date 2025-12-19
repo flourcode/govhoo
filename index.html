@@ -846,53 +846,74 @@ body {
     </div>
   </div>
 </div>
-
 <div id="loader" class="loader">
   <div class="spinner"></div>
   <p id="loaderText" style="margin-top:1rem; font-family:'JetBrains Mono'; color:var(--accent);">RETRIEVING DATA...</p>
   <p id="loaderSubtext" style="color:#666; font-size:0.8rem; margin-top:0.5rem;"></p>
 </div>
 
-<div id="planConfigModal" class="channel-marking-modal">
-  <div class="channel-modal-content" style="max-width: 500px;">
+<div id="salesPlanModal" class="channel-marking-modal">
+  <div class="channel-modal-content" style="max-width: 900px; height: 85vh; display:flex; flex-direction:column;">
     <div class="channel-modal-header">
       <div class="channel-modal-title"><i class="fas fa-sliders-h"></i> CONFIGURE SALES PLAN</div>
-      <button class="channel-modal-close" onclick="document.getElementById('planConfigModal').classList.remove('active')"><i class="fas fa-times"></i></button>
+      <button class="channel-modal-close" onclick="SalesPlanManager.close()"><i class="fas fa-times"></i></button>
     </div>
-    <div class="channel-modal-body">
-      <div style="margin-bottom: 1.5rem;">
-        <label style="display:block; color:#888; font-size:0.75rem; margin-bottom:0.5rem; text-transform:uppercase; font-weight:700;">Target Audience / Sector</label>
-        <select id="planSectorSelector" style="width:100%; padding:0.75rem; background:#222; border:1px solid #333; color:white; border-radius:4px; font-family:'Inter'; outline:none;">
-          <option value="all">Entire Market (All Agencies)</option>
-          <option value="defense">Defense (DoD & Branches)</option>
-          <option value="civilian">Federal Civilian (Non-DoD)</option>
-          <optgroup label="Specific Agencies" id="planSpecificAgencies">
-            </optgroup>
-        </select>
-      </div>
-      <p style="font-size:0.8rem; color:#666; line-height:1.5;">This will filter the contract data and tailor the prompt's narrative for this specific sector. Use this to generate targeted plans for specific verticals.</p>
-    </div>
-    <div class="channel-modal-footer">
-      <button class="modal-btn modal-btn-primary" style="width:100%" onclick="App.generatePlanFromConfig()">Generate Prompt</button>
-    </div>
-  </div>
-</div>
+    
+    <div class="channel-modal-body" style="flex:1; overflow-y:auto; padding:0;">
+       
+       <div style="padding:1.5rem; border-bottom:1px solid var(--border); background:rgba(255,255,255,0.02);">
+          <div style="font-size:0.85rem; color:var(--accent); font-weight:700; margin-bottom:1rem; text-transform:uppercase; letter-spacing:1px;">
+            <i class="fas fa-bullseye"></i> Step 1: Define Plan Scope
+          </div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
+            <div>
+              <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:0.5rem; font-weight:600;">PLAN SCOPE / SECTOR</label>
+              <select id="spScope" class="main-input" style="padding:0.6rem; font-size:0.9rem; background:var(--bg-app);">
+                 <option value="all">Entire Market (All Results)</option>
+                 <option value="defense">Defense (DoD & Branches)</option>
+                 <option value="civilian">Federal Civilian (Non-DoD)</option>
+                 <optgroup label="Specific Agencies" id="spSpecificAgencies">
+                   </optgroup>
+              </select>
+            </div>
+            <div>
+               <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:0.5rem; font-weight:600;">STRATEGIC GOAL</label>
+               <select id="spFocus" class="main-input" style="padding:0.6rem; font-size:0.9rem; background:var(--bg-app);">
+                 <option value="Growth">Aggressive Growth (New Business)</option>
+                 <option value="Retention">Retention (Defend Incumbency)</option>
+                 <option value="Partnership">Partner/Channel Strategy</option>
+              </select>
+            </div>
+          </div>
+          <p style="margin-top:10px; font-size:0.8rem; color:#666;">
+            <i class="fas fa-info-circle"></i> Selecting a specific sector will <strong>recalculate</strong> all market stats (TAM, Competitors, HHI) for that specific slice of data.
+          </p>
+       </div>
 
-<div id="channelModal" class="channel-marking-modal">
-  <div class="channel-modal-content">
-    <div class="channel-modal-header">
-      <div class="channel-modal-title"><i class="fas fa-sitemap"></i> Verify Partners/Competitors</div>
-      <button class="channel-modal-close" onclick="ChannelManager.closeModal()"><i class="fas fa-times"></i></button>
+       <div style="padding:1.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+             <div style="font-size:0.85rem; color:var(--accent); font-weight:700; text-transform:uppercase; letter-spacing:1px;">
+               <i class="fas fa-sitemap"></i> Step 2: Classify Market Actors
+             </div>
+             <div id="spBulkActionContainer"></div>
+          </div>
+          
+          <div style="background:rgba(212, 196, 168, 0.05); padding:0.75rem; border-radius:4px; margin-bottom:1.5rem; font-size:0.8rem; color:var(--text-muted); border-left:2px solid var(--accent);">
+            <i class="fas fa-info-circle"></i> <strong>How this works:</strong> Companies marked as "Channels/VARs" are treated as allies in the plan. Unmarked companies are treated as hostile competitors for Battle Card generation.
+          </div>
+
+          <div id="spVendorList"></div>
+       </div>
     </div>
-    <div class="channel-modal-body">
-      <div class="channel-explanation">
-        Toggle to mark companies as Competitors or Channel Partners/VARs and they'll be treated as such in your sales plan.
+
+    <div class="channel-modal-footer" style="background:var(--bg-card); border-top:1px solid var(--border);">
+      <div style="flex:1; font-size:0.75rem; color:var(--text-muted); display:flex; align-items:center; gap:1rem;">
+         <div id="spDataStatus"></div>
       </div>
-      <div id="channelVendorList"></div>
-    </div>
-    <div class="channel-modal-footer">
-      <button class="modal-btn modal-btn-cancel" onclick="ChannelManager.closeModal()">Cancel</button>
-      <button class="modal-btn modal-btn-primary" onclick="ChannelManager.closeModal()">Save & Close</button>
+      <button class="modal-btn modal-btn-cancel" onclick="SalesPlanManager.close()">Cancel</button>
+      <button class="modal-btn modal-btn-primary" onclick="SalesPlanManager.generate()">
+        <i class="fas fa-file-download"></i> GENERATE PROMPT PACKAGE
+      </button>
     </div>
   </div>
 </div>
@@ -1325,11 +1346,10 @@ const ForecastEngine = {
     };
   }
 };
-
-// ==================== CHANNEL MANAGER ====================
-const ChannelManager = {
+// ==================== SALES PLAN MANAGER ====================
+const SalesPlanManager = {
   channels: new Set(),
-  currentVendors: [], // Store current list for bulk toggling
+  currentVendors: [], 
 
   init() {
     const saved = localStorage.getItem('govhoo_channels');
@@ -1338,76 +1358,193 @@ const ChannelManager = {
 
   isChannel(vendorName) { return this.channels.has(vendorName); },
 
+  // --- Core Actions ---
+  open() {
+    // 1. Data Availability Check
+    const awards = App.forecastData.awards || App.searchData.raw || [];
+    if (!awards.length) {
+      return App.showToast("No award data loaded. Run a search or forecast first.", "error");
+    }
+
+    // 2. Populate Agency Dropdown (The feature you requested)
+    const agencyCounts = {};
+    awards.forEach(r => {
+      const ag = r['Awarding Agency'];
+      if(ag) agencyCounts[ag] = (agencyCounts[ag] || 0) + 1;
+    });
+    
+    // Sort agencies by contract count
+    const sortedAgencies = Object.entries(agencyCounts)
+      .sort((a,b) => b[1] - a[1])
+      .map(([name, count]) => `<option value="${name}">${name} (${count} awards)</option>`)
+      .join('');
+      
+    document.getElementById('spSpecificAgencies').innerHTML = sortedAgencies;
+    document.getElementById('spScope').value = 'all'; // Default to all
+
+    // 3. Prepare Vendor List (Default to 'all' view initially)
+    this.prepareVendorList(awards);
+
+    // 4. Update UI Status
+    this.updateStatus(awards.length, "Entire Market");
+    
+    this.renderList();
+    document.getElementById('salesPlanModal').classList.add('active');
+  },
+
+  close() {
+    document.getElementById('salesPlanModal').classList.remove('active');
+  },
+
+  // Helper to process vendor list based on current data slice
+  prepareVendorList(dataSlice) {
+    const vendorSpend = {}; 
+    let total = 0;
+    
+    dataSlice.forEach(r => { 
+      const v = r['Recipient Name'] || 'Unknown'; 
+      const a = parseFloat(r['Award Amount']) || 0; 
+      vendorSpend[v] = (vendorSpend[v] || 0) + a; 
+      total += a; 
+    });
+    
+    this.currentVendors = Object.entries(vendorSpend)
+      .map(([v, s]) => ({ 
+        vendor: v, 
+        spend: s, 
+        marketShare: total > 0 ? ((s / total) * 100).toFixed(2) : "0.00", 
+        contractCount: dataSlice.filter(r => r['Recipient Name'] === v).length 
+      }))
+      .sort((a, b) => b.spend - a.spend)
+      .slice(0, 25);
+  },
+
+  updateStatus(count, scopeName) {
+    const statusEl = document.getElementById('spDataStatus');
+    statusEl.innerHTML = `
+      <span style="color:var(--success); display:flex; align-items:center; gap:6px;">
+        <i class="fas fa-check-circle"></i> Data Ready
+      </span>
+      <span style="margin-left:8px; opacity:0.5;">|</span>
+      <span style="margin-left:8px;">Scope: <strong>${scopeName}</strong> (${count} awards)</span>
+    `;
+  },
+
+  generate() {
+    const scope = document.getElementById('spScope').value;
+    const focus = document.getElementById('spFocus').value;
+    
+    App.showLoader('GENERATING PLAN...', 'Filtering data & packaging prompt...');
+    
+    setTimeout(() => {
+      try {
+        const rawAwards = App.forecastData.awards || App.searchData.raw || [];
+        let filteredAwards = [];
+        let scopeName = "Entire Market";
+
+        // --- FILTERING LOGIC ---
+        if (scope === 'all') {
+            filteredAwards = rawAwards;
+        } else if (scope === 'defense') {
+            filteredAwards = rawAwards.filter(r => /defense|army|navy|air force|marine|space force/i.test(r['Awarding Agency']));
+            scopeName = "Defense Sector";
+        } else if (scope === 'civilian') {
+            filteredAwards = rawAwards.filter(r => !/defense|army|navy|air force|marine|space force/i.test(r['Awarding Agency']));
+            scopeName = "Federal Civilian Sector";
+        } else {
+            // Specific Agency
+            filteredAwards = rawAwards.filter(r => r['Awarding Agency'] === scope);
+            scopeName = scope;
+        }
+
+        if (filteredAwards.length === 0) {
+            throw new Error("No awards found for the selected scope.");
+        }
+        
+        // Pass the FILTERED data to the generator
+        // Note: We pass 'null' for analysis because re-calculating the full time-series analysis 
+        // on the client side for the sub-slice is complex. The generator will use the raw awards 
+        // to calculate TAM/Competitors for the specific slice.
+        const pkg = PromptPackageGenerator.buildPackage(filteredAwards, null, { scope: scopeName, focus });
+        PromptPackageGenerator.downloadPackage(pkg);
+        
+        this.close();
+        App.showToast(`Plan for ${scopeName} generated`, "success");
+      } catch(e) { 
+        console.error(e); 
+        App.showToast(e.message || "Error generating plan", "error"); 
+      } finally { 
+        App.hideLoader(); 
+      }
+    }, 500);
+  },
+
+  // --- Toggle Logic ---
   toggleChannel(vendorName) {
     if (this.channels.has(vendorName)) this.channels.delete(vendorName);
     else this.channels.add(vendorName);
     this.save();
   },
 
-  // NEW: Bulk Toggle Logic
   toggleAll() {
     const allMarked = this.currentVendors.every(v => this.isChannel(v.vendor));
+    if (allMarked) this.currentVendors.forEach(v => this.channels.delete(v.vendor));
+    else this.currentVendors.forEach(v => this.channels.add(v.vendor));
     
-    if (allMarked) {
-      // Unmark all
-      this.currentVendors.forEach(v => this.channels.delete(v.vendor));
-    } else {
-      // Mark all
-      this.currentVendors.forEach(v => this.channels.add(v.vendor));
-    }
     this.save();
-    this.showModal(this.currentVendors); // Re-render to update UI
+    this.renderList(); 
   },
 
-  save() { localStorage.setItem('govhoo_channels', JSON.stringify([...this.channels])); },
+  save() { 
+    localStorage.setItem('govhoo_channels', JSON.stringify([...this.channels])); 
+  },
 
-  showModal(vendors) {
-    this.currentVendors = vendors; // Save reference
-    const modal = document.getElementById('channelModal');
-    const list = document.getElementById('channelVendorList');
+  // --- Rendering ---
+  renderList() {
+    const list = document.getElementById('spVendorList');
+    const container = document.getElementById('spBulkActionContainer');
     
-    // Check state for the toggle button
-    const allMarked = vendors.length > 0 && vendors.every(v => this.isChannel(v.vendor));
-    const btnText = allMarked ? "UNMARK ALL" : "MARK ALL AS CHANNEL";
-    const btnIcon = allMarked ? "fa-square" : "fa-check-double";
-
-    // Toggle Button HTML
-    const toggleBtn = `
-      <div style="display:flex; justify-content:flex-end; margin-bottom:1rem;">
-        <button onclick="ChannelManager.toggleAll()" style="background:var(--bg-input); border:1px solid var(--border); color:var(--accent); padding:6px 12px; border-radius:4px; cursor:pointer; font-size:0.75rem; font-family:'JetBrains Mono'; display:flex; align-items:center; gap:8px; transition:all 0.2s;">
-          <i class="far ${btnIcon}"></i> ${btnText}
-        </button>
-      </div>
+    const allMarked = this.currentVendors.length > 0 && this.currentVendors.every(v => this.isChannel(v.vendor));
+    
+    container.innerHTML = `
+      <button onclick="SalesPlanManager.toggleAll()" style="background:transparent; border:1px solid var(--border); color:var(--accent); padding:6px 12px; border-radius:4px; cursor:pointer; font-size:0.7rem; font-family:'JetBrains Mono'; display:flex; align-items:center; gap:6px;">
+        <i class="far ${allMarked ? 'fa-square' : 'fa-check-square'}"></i> ${allMarked ? 'UNMARK ALL' : 'MARK ALL CHANNELS'}
+      </button>
     `;
 
-    // List HTML
-    const listItems = vendors.map(v => `
+    if (this.currentVendors.length === 0) {
+        list.innerHTML = `<div style="text-align:center; padding:1rem; color:#666;">No vendors found in this scope.</div>`;
+        return;
+    }
+
+    list.innerHTML = this.currentVendors.map(v => `
       <div class="vendor-list-item">
         <div class="vendor-info">
           <div class="vendor-name">${v.vendor}</div>
           <div class="vendor-stats">${v.contractCount} contracts • ${Utils.money(v.spend)} • ${v.marketShare}% share</div>
         </div>
         <div class="vendor-toggle">
-          <div class="toggle-switch ${this.isChannel(v.vendor) ? 'active' : ''}" onclick="ChannelManager.toggleVendor('${v.vendor.replace(/'/g, "\\'")}', this)">
+          <div class="toggle-switch ${this.isChannel(v.vendor) ? 'active' : ''}" onclick="SalesPlanManager.toggleItem('${v.vendor.replace(/'/g, "\\'")}', this)">
             <div class="toggle-slider"></div>
           </div>
           <div class="toggle-label">${this.isChannel(v.vendor) ? 'Channel/VAR' : 'Competitor'}</div>
         </div>
       </div>
     `).join('');
-
-    list.innerHTML = toggleBtn + listItems;
-    modal.classList.add('active');
   },
 
-  toggleVendor(vendorName, element) {
+  toggleItem(vendorName, element) {
     this.toggleChannel(vendorName);
-    const toggle = element; const label = element.nextElementSibling;
+    const toggle = element; 
+    const label = element.nextElementSibling;
     if (this.isChannel(vendorName)) { toggle.classList.add('active'); label.textContent = 'Channel/VAR'; }
     else { toggle.classList.remove('active'); label.textContent = 'Competitor'; }
-  },
-
-  closeModal() { document.getElementById('channelModal').classList.remove('active'); }
+    
+    // Quick update bulk button
+    const allMarked = this.currentVendors.every(v => this.isChannel(v.vendor));
+    const btn = document.querySelector('#spBulkActionContainer button');
+    if(btn) btn.innerHTML = `<i class="far ${allMarked ? 'fa-square' : 'fa-check-square'}"></i> ${allMarked ? 'UNMARK ALL' : 'MARK ALL CHANNELS'}`;
+  }
 };
 // ==================== APP CORE ====================
 const App = {
@@ -1418,7 +1555,7 @@ const App = {
   drillState: { level: 0, path: [], currentAgency: null, currentSubAgency: null },
 
   init() {
-    ChannelManager.init();
+    SalesPlanManager.init();
     
     // Event Listeners
     document.getElementById('searchBtn').onclick = () => App.runSearch();
@@ -1595,61 +1732,131 @@ const App = {
     }).join('');
   },
 
-  // --- Forecast Mode ---
+// --- Forecast Mode ---
   async runForecast(val) {
     const query = val || document.getElementById('mainSearchInput').value; if(!query) return;
-    if(query !== App.currentQuery) { App.searchData = { loaded:false }; App.forecastData = { spending:null, agencies:null, awards:null, analysis:null, loaded:false }; }
+    
+    // Reset data if query changed
+    if(query !== App.currentQuery) { 
+      App.searchData = { loaded:false }; 
+      App.forecastData = { spending:null, agencies:null, awards:null, analysis:null, loaded:false }; 
+    }
+    
     const cs = Chart.getChart("spendingChart"); if(cs) cs.destroy();
-    App.currentQuery = query; App.mode = 'forecast'; App.showLoader('CRUNCHING NUMBERS...', 'Applying Recency-Weighted Seasonality');
+    App.currentQuery = query; 
+    App.mode = 'forecast'; 
+    App.showLoader('CRUNCHING NUMBERS...', 'Applying Recency-Weighted Seasonality');
+    
     try {
-      const [spending, agencies, awards] = await Promise.all([API.getSpendingOverTime(query), API.getAgencyData(query), API.getAwardsForForecast(query)]);
-      App.forecastData = { spending, agencies, awards, analysis: ForecastEngine.analyze(spending, awards, agencies), loaded: true };
-      App.transitionToApp(); App.setMode('forecast'); App.renderForecastDashboard();
-    } catch(e) { console.error(e); alert("Error fetching forecast data."); } finally { App.hideLoader(); }
+      const [spending, agencies, awards] = await Promise.all([
+        API.getSpendingOverTime(query), 
+        API.getAgencyData(query), 
+        API.getAwardsForForecast(query)
+      ]);
+      
+      App.forecastData = { 
+        spending, 
+        agencies, 
+        awards, 
+        analysis: ForecastEngine.analyze(spending, awards, agencies), 
+        loaded: true 
+      };
+      
+      App.transitionToApp(); 
+      App.setMode('forecast'); 
+      App.renderForecastDashboard();
+      
+    } catch(e) { 
+      console.error(e); 
+      App.showToast("Error fetching forecast data.", "error"); 
+    } finally { 
+      App.hideLoader(); 
+    }
   },
 
-  renderForecastDashboard() {
-    const analysis = App.forecastData.analysis; const awards = App.forecastData.awards; if(!analysis) return;
+renderForecastDashboard() {
+    const analysis = App.forecastData.analysis; 
+    const awards = App.forecastData.awards; 
+    if(!analysis) return;
+    
+    // Update Stat Blocks
     document.getElementById('stat-baseline').innerText = Utils.money(analysis.baseline);
     document.getElementById('stat-market').innerText = analysis.marketStatus;
     document.getElementById('stat-hhi').innerText = `HHI: ${analysis.hhi}`;
-    let peakQ=1, peakV=0; for(let q=1; q<=4; q++) if(analysis.indices[q]>peakV) { peakV=analysis.indices[q]; peakQ=q; }
+    
+    let peakQ=1, peakV=0; 
+    for(let q=1; q<=4; q++) if(analysis.indices[q]>peakV) { peakV=analysis.indices[q]; peakQ=q; }
     document.getElementById('stat-peak').innerText = `Q${peakQ}`;
     document.getElementById('stat-recompetes').innerText = analysis.recompetes.length;
     
-    // Insights
+    // Insights Grid
     const insightsDiv = document.getElementById('marketInsights');
     insightsDiv.innerHTML = `
-      <div class="insight-card"><div class="insight-label">Market Concentration</div><div class="insight-val" style="color:${analysis.hhi>2500?'var(--danger)':'var(--success)'}">${analysis.marketStatus}</div><div style="font-size:0.8rem; color:#666; margin-top:5px">HHI Score: ${analysis.hhi}</div></div>
-      <div class="insight-card"><div class="insight-label">Top Incumbent</div><div class="insight-val" style="font-size:0.9rem">${Utils.trunc(awards[0]?awards[0]['Recipient Name']:'Unknown', 30)}</div></div>
-    `;
+      <div class="insight-card">
+        <div class="insight-label">Market Concentration</div>
+        <div class="insight-val" style="color:${analysis.hhi>2500?'var(--danger)':'var(--success)'}">${analysis.marketStatus}</div>
+        <div style="font-size:0.8rem; color:#666; margin-top:5px">HHI Score: ${analysis.hhi}</div>
+      </div>
+      
+      <div class="insight-card">
+        <div class="insight-label">Top Incumbent</div>
+        <div class="insight-val" style="font-size:0.9rem">${Utils.trunc(awards[0]?awards[0]['Recipient Name']:'Unknown', 30)}</div>
+      </div>
 
-    // Sales Plan Card (Added dynamically)
-    const salesPlanCard = `
-      <div class="insight-card sales-plan-card" onclick="App.openPlanConfig()">
-        <div class="sales-plan-card-icon">
-          <i class="fas fa-file-export"></i>
+      <div class="insight-card sales-plan-card" onclick="SalesPlanManager.open()">
+        <div class="sales-plan-card-icon"><i class="fas fa-file-export"></i></div>
+        <div class="sales-plan-card-title">Generate AI Strategy Prompt</div>
+        <div class="sales-plan-card-subtitle">
+          Configure scope, classify partners, and export a prompt package for your AI model.
+          <br><em style="font-size: 0.8em; opacity: 0.7;">Note: Click "Agency Award Flow" first to include full awards data.</em>
         </div>
-        <div class="sales-plan-card-title">Generate Sales Plan Prompt</div>
-<div class="sales-plan-card-subtitle">
-  Turn these results into an actionable plan. Download a .txt prompt file ready for ChatGPT, Claude, etc.
-  <br><em style="font-size: 0.8em; opacity: 0.7;">Note: Load "Agency Award Flow" first to include full awards data.</em>
-</div>
-<div class="channel-link" onclick="event.stopPropagation(); App.showChannelModal();">
-  <i class="fas fa-sliders-h"></i> Verify Partner/Competitor Roles
-</div>
       </div>
     `;
-    insightsDiv.insertAdjacentHTML('beforeend', salesPlanCard);
 
     // Forecast Table
-    const tb = document.getElementById('forecastTableBody'); tb.innerHTML = '';
+    const tb = document.getElementById('forecastTableBody'); 
+    tb.innerHTML = '';
     analysis.forecasts.forEach(f => {
-      const isUp = f.trend.includes('+'); const color = f.confidence.label === 'High' ? 'var(--success)' : (f.confidence.label === 'Med' ? '#FDD835' : '#888');
-      tb.innerHTML += `<tr><td><b>${f.period}</b></td><td style="color:var(--accent); font-weight:700">${Utils.money(f.predicted)}</td><td style="color:#666">${Utils.money(f.histAvg)}</td><td><span class="trend-pill ${isUp?'trend-up':'trend-down'}">${isUp?'▲':'▼'} ${f.trend}%</span></td><td><div style="color:${color}; font-weight:700;">${f.confidence.label}</div><div style="font-size:0.65rem; color:#666;">${f.confidence.reason}</div></td></tr>`;
+      const isUp = f.trend.includes('+'); 
+      const color = f.confidence.label === 'High' ? 'var(--success)' : (f.confidence.label === 'Med' ? '#FDD835' : '#888');
+      
+      tb.innerHTML += `
+        <tr>
+          <td><b>${f.period}</b></td>
+          <td style="color:var(--accent); font-weight:700">${Utils.money(f.predicted)}</td>
+          <td style="color:#666">${Utils.money(f.histAvg)}</td>
+          <td><span class="trend-pill ${isUp?'trend-up':'trend-down'}">${isUp?'▲':'▼'} ${f.trend}%</span></td>
+          <td>
+            <div style="color:${color}; font-weight:700;">${f.confidence.label}</div>
+            <div style="font-size:0.65rem; color:#666;">${f.confidence.reason}</div>
+          </td>
+        </tr>`;
+    });
+    
+    // Render Chart
+    const ctx = document.getElementById('spendingChart').getContext('2d');
+    const years = Object.keys(analysis.byFY).sort();
+    
+    new Chart(ctx, {
+      type: 'bar',
+      data: { 
+        labels: years.map(y=>`FY${y}`), 
+        datasets: [
+          { label:'Q1', data:years.map(y=>analysis.byFY[y][1]||0), backgroundColor:'#958BB6' }, 
+          { label:'Q2', data:years.map(y=>analysis.byFY[y][2]||0), backgroundColor:'#6F8A74' }, 
+          { label:'Q3', data:years.map(y=>analysis.byFY[y][3]||0), backgroundColor:'#8FB6D0' }, 
+          { label:'Q4', data:years.map(y=>analysis.byFY[y][4]||0), backgroundColor:'#C27E5C' }
+        ] 
+      },
+      options: { 
+        responsive:true, 
+        maintainAspectRatio:false, 
+        scales:{ x:{grid:{display:false}}, y:{grid:{color:'#333'}} }, 
+        plugins:{ legend:{labels:{color:'#888'}} } 
+      }
     });
 
-    // Strategy Section
+    // Render Strategy Section
     const strat = analysis.strategy;
     if(strat) {
       document.getElementById('strategySection').style.display = 'block';
@@ -1660,18 +1867,21 @@ const App = {
       document.getElementById('matrix-strat').innerText = strat.matrix.strat;
       document.getElementById('matrix-pipe').innerText = strat.matrix.pipe;
     }
-
-    // Recompetes
-    document.getElementById('recompetesList').innerHTML = analysis.recompetes.length ? `<div class="section-header"><div class="section-title-group"><i class="fas fa-exclamation-triangle" style="color:var(--danger)"></i><span class="section-title" style="color:var(--danger)">Recompete Opportunities</span></div></div>` + analysis.recompetes.map(r => `<div class="deal-card" style="margin-bottom:1rem"><div class="deal-header"><span class="deal-agency">${Utils.trunc(r['Awarding Agency'],40)}</span><span class="deal-amount">${Utils.money(r['Award Amount'])}</span></div><div class="deal-desc">${Utils.trunc(r['Description'],80)}</div><div style="font-size:0.8rem; color:var(--danger)">Expires: ${Utils.date(r['End Date'])}</div><div style="font-size:0.8rem; color:#666">${r['Recipient Name']}</div></div>`).join('') : '';
-
-    // Chart
-    const ctx = document.getElementById('spendingChart').getContext('2d');
-    const years = Object.keys(analysis.byFY).sort();
-    new Chart(ctx, {
-      type: 'bar',
-      data: { labels: years.map(y=>`FY${y}`), datasets: [{ label:'Q1', data:years.map(y=>analysis.byFY[y][1]||0), backgroundColor:'#958BB6' }, { label:'Q2', data:years.map(y=>analysis.byFY[y][2]||0), backgroundColor:'#6F8A74' }, { label:'Q3', data:years.map(y=>analysis.byFY[y][3]||0), backgroundColor:'#8FB6D0' }, { label:'Q4', data:years.map(y=>analysis.byFY[y][4]||0), backgroundColor:'#C27E5C' }] },
-      options: { responsive:true, maintainAspectRatio:false, scales:{ x:{grid:{display:false}}, y:{grid:{color:'#333'}} }, plugins:{ legend:{labels:{color:'#888'}} } }
-    });
+    
+    // Render Recompetes List
+    document.getElementById('recompetesList').innerHTML = analysis.recompetes.length ? 
+      `<div class="section-header"><div class="section-title-group"><i class="fas fa-exclamation-triangle" style="color:var(--danger)"></i><span class="section-title" style="color:var(--danger)">Recompete Opportunities</span></div></div>` + 
+      analysis.recompetes.map(r => `
+        <div class="deal-card" style="margin-bottom:1rem">
+          <div class="deal-header">
+            <span class="deal-agency">${Utils.trunc(r['Awarding Agency'],40)}</span>
+            <span class="deal-amount">${Utils.money(r['Award Amount'])}</span>
+          </div>
+          <div class="deal-desc">${Utils.trunc(r['Description'],80)}</div>
+          <div style="font-size:0.8rem; color:var(--danger)">Expires: ${Utils.date(r['End Date'])}</div>
+          <div style="font-size:0.8rem; color:#666">${r['Recipient Name']}</div>
+        </div>`).join('') 
+      : '';
   },
 // --- Helpers ---
   exportCSV(btn) {
@@ -1879,463 +2089,181 @@ App.showChannelModal = function() {
 
 // ==================== PROMPT PACKAGE GENERATOR ====================
 const PromptPackageGenerator = {
-  
-  buildPackage(data, analysis, sectorName = "General") {
+  buildPackage(data, analysis, config = {}) {
+    // Note: 'data' is already filtered by SalesPlanManager based on the scope
     const curFY = Utils.getCurrentFY();
-    
-    const vendorSpend = {};
+    const vendorSpend = {}; 
     let totalMarketValue = 0;
+    
     data.forEach(r => {
-      const vendor = r['Recipient Name'] || 'Unknown';
+      const vendor = r['Recipient Name'] || 'Unknown'; 
       const amt = parseFloat(r['Award Amount']) || 0;
-      vendorSpend[vendor] = (vendorSpend[vendor] || 0) + amt;
+      vendorSpend[vendor] = (vendorSpend[vendor] || 0) + amt; 
       totalMarketValue += amt;
     });
-    
-    const allVendors = Object.entries(vendorSpend)
-      .map(([vendor, spend]) => ({
-        vendor,
-        spend,
-        marketShare: ((spend / totalMarketValue) * 100).toFixed(2),
-        contractCount: data.filter(r => r['Recipient Name'] === vendor).length,
-        avgContractSize: spend / data.filter(r => r['Recipient Name'] === vendor).length,
-        isChannel: ChannelManager.isChannel(vendor)
-      }))
-      .sort((a, b) => b.spend - a.spend);
+
+    // ... (same calculation logic as before) ...
+    const allVendors = Object.entries(vendorSpend).map(([vendor, spend]) => ({
+      vendor, 
+      spend, 
+      marketShare: ((spend / totalMarketValue) * 100).toFixed(2),
+      contractCount: data.filter(r => r['Recipient Name'] === vendor).length,
+      avgContractSize: spend / data.filter(r => r['Recipient Name'] === vendor).length,
+      isChannel: SalesPlanManager.isChannel(vendor) 
+    })).sort((a, b) => b.spend - a.spend);
 
     const topCompetitors = allVendors.filter(v => !v.isChannel).slice(0, 15);
     const topChannels = allVendors.filter(v => v.isChannel).slice(0, 10);
-
-    const agencySpend = {};
-    data.forEach(r => {
-      const agency = r['Awarding Agency'] || 'Unknown';
-      const amt = parseFloat(r['Award Amount']) || 0;
-      agencySpend[agency] = (agencySpend[agency] || 0) + amt;
+    
+    const agencySpend = {}; 
+    data.forEach(r => { 
+        const ag = r['Awarding Agency'] || 'Unknown'; 
+        agencySpend[ag] = (agencySpend[ag] || 0) + (parseFloat(r['Award Amount']) || 0); 
     });
     
-    const topAgencies = Object.entries(agencySpend)
-      .map(([agency, spend]) => ({
-        agency,
-        spend,
-        percentage: ((spend / totalMarketValue) * 100).toFixed(1),
-        contractCount: data.filter(r => r['Awarding Agency'] === agency).length,
-        avgContractValue: spend / data.filter(r => r['Awarding Agency'] === agency).length
-      }))
-      .sort((a, b) => b.spend - a.spend)
-      .slice(0, 10);
-
-    const sizeDistribution = {
-      'Under $1M': data.filter(r => parseFloat(r['Award Amount']) < 1000000).length,
-      '$1M - $10M': data.filter(r => {
-        const amt = parseFloat(r['Award Amount']);
-        return amt >= 1000000 && amt < 10000000;
-      }).length,
-      '$10M - $50M': data.filter(r => {
-        const amt = parseFloat(r['Award Amount']);
-        return amt >= 10000000 && amt < 50000000;
-      }).length,
-      '$50M+': data.filter(r => parseFloat(r['Award Amount']) >= 50000000).length
-    };
-
+    const topAgencies = Object.entries(agencySpend).map(([a, s]) => ({ 
+        agency: a, 
+        spend: s, 
+        percentage: ((s / totalMarketValue) * 100).toFixed(1), 
+        contractCount: data.filter(r => r['Awarding Agency'] === a).length 
+    })).sort((a, b) => b.spend - a.spend).slice(0, 10);
+    
     const recompetes = data.filter(r => {
       if (!r['End Date']) return false;
-      const endDate = new Date(r['End Date']);
-      const now = new Date();
-      const monthsUntilEnd = (endDate - now) / (1000 * 60 * 60 * 24 * 30);
-      return monthsUntilEnd > 0 && monthsUntilEnd <= 18;
+      const m = (new Date(r['End Date']) - new Date()) / (1000 * 60 * 60 * 24 * 30);
+      return m > 0 && m <= 18;
     }).sort((a, b) => new Date(a['End Date']) - new Date(b['End Date']));
 
-    const recompeteTimeline = {
-      'Next 6 Months': recompetes.filter(r => {
-        const monthsUntil = (new Date(r['End Date']) - new Date()) / (1000 * 60 * 60 * 24 * 30);
-        return monthsUntil <= 6;
-      }),
-      '6-12 Months': recompetes.filter(r => {
-        const monthsUntil = (new Date(r['End Date']) - new Date()) / (1000 * 60 * 60 * 24 * 30);
-        return monthsUntil > 6 && monthsUntil <= 12;
-      }),
-      '12-18 Months': recompetes.filter(r => {
-        const monthsUntil = (new Date(r['End Date']) - new Date()) / (1000 * 60 * 60 * 24 * 30);
-        return monthsUntil > 12 && monthsUntil <= 18;
-      })
-    };
-
-    const competitorIntelligence = topCompetitors.slice(0, 5).map(competitor => {
-      const competitorContracts = data.filter(r => r['Recipient Name'] === competitor.vendor);
-      const agencies = [...new Set(competitorContracts.map(r => r['Awarding Agency']))];
-      
-      const recentContracts = competitorContracts.filter(r => {
-        const startDate = new Date(r['Start Date']);
-        const monthsAgo = (new Date() - startDate) / (1000 * 60 * 60 * 24 * 30);
-        return monthsAgo <= 24;
-      });
-
-      const contractDurations = competitorContracts
-        .filter(r => r['Start Date'] && r['End Date'])
-        .map(r => {
-          const duration = (new Date(r['End Date']) - new Date(r['Start Date'])) / (1000 * 60 * 60 * 24 * 365);
-          return duration;
-        });
-      const avgDuration = contractDurations.length > 0 
-        ? (contractDurations.reduce((a, b) => a + b, 0) / contractDurations.length).toFixed(1)
-        : 'N/A';
-
-      const agencyBreakdown = {};
-      competitorContracts.forEach(r => {
-        const ag = r['Awarding Agency'] || 'Unknown';
-        agencyBreakdown[ag] = (agencyBreakdown[ag] || 0) + (parseFloat(r['Award Amount']) || 0);
-      });
-
-      return {
-        vendor: competitor.vendor,
-        marketShare: competitor.marketShare,
-        totalValue: competitor.spend,
-        contractCount: competitor.contractCount,
-        avgContractSize: competitor.avgContractSize,
-        agencyPresence: agencies.length,
-        topAgencies: Object.entries(agencyBreakdown)
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 3)
-          .map(([ag, val]) => ({ agency: ag, value: val })),
-        recentActivity: {
-          contractsLast24Months: recentContracts.length,
-          valueLast24Months: recentContracts.reduce((sum, r) => sum + (parseFloat(r['Award Amount']) || 0), 0)
-        },
-        avgContractDuration: avgDuration,
-        expiringContracts: competitorContracts.filter(r => {
-          if (!r['End Date']) return false;
-          const monthsUntil = (new Date(r['End Date']) - new Date()) / (1000 * 60 * 60 * 24 * 30);
-          return monthsUntil > 0 && monthsUntil <= 18;
-        }).length,
-        sampleContracts: competitorContracts.slice(0, 3).map(r => ({
-          description: r['Description'],
-          agency: r['Awarding Agency'],
-          amount: r['Award Amount'],
-          startDate: r['Start Date'],
-          endDate: r['End Date']
-        }))
-      };
-    });
-
-    const channelIntelligence = topChannels.map(channel => {
-      const channelContracts = data.filter(r => r['Recipient Name'] === channel.vendor);
-      const agencies = [...new Set(channelContracts.map(r => r['Awarding Agency']))];
-      
-      return {
-        vendor: channel.vendor,
-        totalValue: channel.spend,
-        contractCount: channel.contractCount,
-        avgContractSize: channel.avgContractSize,
-        agencyPresence: agencies.length,
-        topAgencies: agencies.slice(0, 3)
-      };
-    });
-
-    const promptPackage = this.generatePrompt({
-      metadata: {
-        generatedDate: new Date().toISOString(),
-        fiscalYear: curFY,
-        marketQuery: App.currentQuery,
-        targetSector: sectorName,
-        totalContracts: data.length,
-        totalMarketValue,
-        dataSource: 'USASpending.gov via Govhoo',
-        analysisVersion: '2.1',
-        channelsIdentified: topChannels.length
-      },
-      marketOverview: {
-        totalAddressableMarket: totalMarketValue,
-        marketConcentration: {
-          hhi: analysis?.hhi || 0,
-          status: analysis?.marketStatus || 'Unknown',
-          interpretation: this.interpretHHI(analysis?.hhi || 0)
-        },
-        contractSizeDistribution: sizeDistribution,
-        totalContracts: data.length,
-        avgContractSize: totalMarketValue / data.length
-      },
-      competitiveLandscape: {
-        topCompetitors: topCompetitors,
-        competitorDeepDive: competitorIntelligence,
-        marketShareConcentration: {
-          top3Share: topCompetitors.slice(0, 3).reduce((sum, v) => sum + parseFloat(v.marketShare), 0).toFixed(1),
-          top5Share: topCompetitors.slice(0, 5).reduce((sum, v) => sum + parseFloat(v.marketShare), 0).toFixed(1),
-          top10Share: topCompetitors.slice(0, 10).reduce((sum, v) => sum + parseFloat(v.marketShare), 0).toFixed(1)
-        }
-      },
-      channelLandscape: {
-        identifiedChannels: topChannels,
-        channelIntelligence: channelIntelligence,
-        totalChannelValue: topChannels.reduce((sum, c) => sum + c.spend, 0),
-        channelShareOfMarket: ((topChannels.reduce((sum, c) => sum + c.spend, 0) / totalMarketValue) * 100).toFixed(1)
-      },
-      agencyLandscape: {
-        topAgencies: topAgencies,
-        agencyConcentration: {
-          topAgencyShare: topAgencies[0] ? topAgencies[0].percentage : 0,
-          diversificationIndex: topAgencies.length
-        }
-      },
-      recompeteIntelligence: {
-        timeline: recompeteTimeline,
-        totalRecompetes: recompetes.length,
-        totalRecompeteValue: recompetes.reduce((sum, r) => sum + (parseFloat(r['Award Amount']) || 0), 0),
-        highValueRecompetes: recompetes
-          .filter(r => parseFloat(r['Award Amount']) > 10000000)
-          .slice(0, 10)
-          .map(r => ({
-            agency: r['Awarding Agency'],
-            vendor: r['Recipient Name'],
-            isChannel: ChannelManager.isChannel(r['Recipient Name']),
-            description: r['Description'],
-            value: r['Award Amount'],
-            endDate: r['End Date'],
-            monthsUntilExpiry: Math.round((new Date(r['End Date']) - new Date()) / (1000 * 60 * 60 * 24 * 30))
-          })),
-        avgRecompeteSize: recompetes.length > 0 
-          ? recompetes.reduce((sum, r) => sum + (parseFloat(r['Award Amount']) || 0), 0) / recompetes.length
-          : 0
-      },
-      forecastData: analysis ? {
-        baseline: analysis.baseline,
-        quarterlyForecasts: analysis.forecasts,
-        seasonalityIndices: analysis.indices,
-        historicalTrend: analysis.byFY,
-        growthRate: this.calculateGrowthRate(analysis),
-        peakQuarter: this.getPeakQuarter(analysis)
-      } : null,
-      strategicInsights: {
-        marketMaturity: this.assessMarketMaturity(data, analysis),
-        barrierToEntry: this.assessBarrierToEntry(analysis?.hhi || 0, topCompetitors),
-        recompeteOpportunityScore: this.scoreRecompeteOpportunity(recompetes, totalMarketValue),
-        recommendedApproach: this.getRecommendedApproach(analysis?.hhi || 0, recompetes.length, totalMarketValue),
-        channelStrategy: this.getChannelStrategy(topChannels, totalMarketValue)
-      }
-    });
-
-    return promptPackage;
-  },
-
-  getChannelStrategy(channels, totalMarket) {
-    if (channels.length === 0) {
-      return 'No channels/VARs identified. Pursue direct sales and partnerships.';
-    }
-    
-    const channelValue = channels.reduce((sum, c) => sum + c.spend, 0);
-    const channelShare = (channelValue / totalMarket) * 100;
-    
-    if (channelShare > 30) {
-      return `Strong channel presence (${channelShare.toFixed(1)}% of market through ${channels.length} VARs). Consider channel partnership strategy alongside direct sales. Key partners: ${channels.slice(0, 3).map(c => c.vendor).join(', ')}.`;
-    } else if (channelShare > 15) {
-      return `Moderate channel presence (${channelShare.toFixed(1)}% through ${channels.length} VARs). Mix of direct and channel sales appropriate.`;
+    // Recalculate HHI for this specific slice if not provided
+    let hhi = 0;
+    if (analysis) {
+        hhi = analysis.hhi; // Use forecast analysis if available
     } else {
-      return `Limited channel presence (${channelShare.toFixed(1)}%). Primary focus on direct sales with selective VAR partnerships.`;
+        // Calculate raw HHI based on the current filtered vendor set
+        const total = allVendors.reduce((acc, v) => acc + v.spend, 0);
+        allVendors.forEach(v => {
+            const share = (v.spend / total) * 100;
+            hhi += share * share;
+        });
+        hhi = Math.round(hhi);
     }
-  },
+    
+    // Competitor Deep Dive
+    const competitorDeepDive = topCompetitors.slice(0, 5).map(c => {
+      const contracts = data.filter(r => r['Recipient Name'] === c.vendor);
+      return {
+        vendor: c.vendor, 
+        marketShare: c.marketShare, 
+        totalValue: c.spend, 
+        contractCount: c.contractCount,
+        agencyPresence: new Set(contracts.map(r => r['Awarding Agency'])).size,
+        expiringContracts: contracts.filter(r => r['End Date'] && (new Date(r['End Date']) - new Date()) / (1000*60*60*24*30) <= 18).length
+      };
+    });
 
-  interpretHHI(hhi) {
-    if (hhi > 2500) return 'Highly concentrated - Teaming or sub-prime entry recommended.';
-    if (hhi > 1500) return 'Moderately concentrated - Direct pursuit possible with differentiation.';
-    return 'Competitive - Good opportunity for new entrants.';
+    return this.generatePrompt({
+      config: config, 
+      metadata: { 
+          generatedDate: new Date().toISOString(), 
+          fiscalYear: curFY, 
+          marketQuery: App.currentQuery, 
+          totalContracts: data.length, 
+          channelsIdentified: topChannels.length 
+      },
+      marketOverview: { 
+          totalAddressableMarket: totalMarketValue, 
+          marketConcentration: { hhi: hhi, status: hhi > 2500 ? 'Concentrated' : 'Competitive' }, 
+          avgContractSize: totalMarketValue / data.length 
+      },
+      competitiveLandscape: { 
+          topCompetitors, 
+          competitorDeepDive, 
+          top3Share: topCompetitors.slice(0,3).reduce((s,v)=>s+parseFloat(v.marketShare),0).toFixed(1) 
+      },
+      channelLandscape: { 
+          identifiedChannels: topChannels, 
+          totalChannelValue: topChannels.reduce((s,c)=>s+c.spend,0) 
+      },
+      agencyLandscape: { topAgencies },
+      recompeteIntelligence: { 
+          totalRecompetes: recompetes.length, 
+          totalRecompeteValue: recompetes.reduce((s,r)=>s+(r['Award Amount']||0),0), 
+          highValueRecompetes: recompetes.filter(r=>r['Award Amount']>10000000).slice(0,10) 
+      },
+      forecastData: analysis ? { 
+          baseline: analysis.baseline, 
+          quarterlyForecasts: analysis.forecasts, 
+          growthRate: this.calculateGrowthRate(analysis), 
+          peakQuarter: this.getPeakQuarter(analysis) 
+      } : null
+    });
   },
 
   calculateGrowthRate(analysis) {
-    if (!analysis || !analysis.byFY) return null;
-    const years = Object.keys(analysis.byFY).sort();
-    if (years.length < 2) return null;
-    
-    const curYear = years[years.length - 1];
-    const prevYear = years[years.length - 2];
-    const curTotal = Object.values(analysis.byFY[curYear]).reduce((a, b) => a + b, 0);
-    const prevTotal = Object.values(analysis.byFY[prevYear]).reduce((a, b) => a + b, 0);
-    
-    return prevTotal > 0 ? (((curTotal - prevTotal) / prevTotal) * 100).toFixed(1) : null;
+    if (!analysis || !analysis.byFY) return null; 
+    const ys = Object.keys(analysis.byFY).sort(); 
+    if (ys.length < 2) return null;
+    const cur = Object.values(analysis.byFY[ys[ys.length-1]]).reduce((a,b)=>a+b,0); 
+    const prev = Object.values(analysis.byFY[ys[ys.length-2]]).reduce((a,b)=>a+b,0);
+    return prev > 0 ? (((cur-prev)/prev)*100).toFixed(1) : null;
   },
 
   getPeakQuarter(analysis) {
-    if (!analysis || !analysis.indices) return null;
-    let peakQ = 1, peakV = 0;
-    for (let q = 1; q <= 4; q++) {
-      if (analysis.indices[q] > peakV) {
-        peakV = analysis.indices[q];
-        peakQ = q;
-      }
-    }
-    return { quarter: peakQ, index: peakV.toFixed(2) };
-  },
-
-  assessMarketMaturity(data, analysis) {
-    const recentContracts = data.filter(r => {
-      const startDate = new Date(r['Start Date']);
-      const monthsAgo = (new Date() - startDate) / (1000 * 60 * 60 * 24 * 30);
-      return monthsAgo <= 12;
-    });
-    
-    const activityRate = (recentContracts.length / data.length) * 100;
-    const growthRate = this.calculateGrowthRate(analysis);
-    
-    if (activityRate > 30 && growthRate && parseFloat(growthRate) > 10) {
-      return 'Growing - High recent activity and positive growth.';
-    } else if (activityRate < 20 && growthRate && parseFloat(growthRate) < -5) {
-      return 'Mature/Declining - Focus on recompetes.';
-    } else {
-      return 'Stable - Balanced new and renewal opportunities.';
-    }
-  },
-
-  assessBarrierToEntry(hhi, topCompetitors) {
-    if (hhi > 2500) {
-      const topShare = topCompetitors.slice(0, 3).reduce((sum, v) => sum + parseFloat(v.marketShare), 0);
-      return `High - Market dominated (${topShare.toFixed(1)}% share). Teaming recommended.`;
-    } else if (hhi > 1500) {
-      return 'Medium - Established players present.';
-    } else {
-      return 'Low - Fragmented market.';
-    }
-  },
-
-  scoreRecompeteOpportunity(recompetes, totalMarket) {
-    const recompeteValue = recompetes.reduce((sum, r) => sum + (parseFloat(r['Award Amount']) || 0), 0);
-    const recompetePercentage = (recompeteValue / totalMarket) * 100;
-    
-    if (recompetePercentage > 30) {
-      return `High - ${recompetes.length} contracts (${recompetePercentage.toFixed(1)}%).`;
-    } else if (recompetePercentage > 15) {
-      return `Medium - ${recompetes.length} contracts (${recompetePercentage.toFixed(1)}%).`;
-    } else {
-      return `Low - ${recompetes.length} contracts (${recompetePercentage.toFixed(1)}%).`;
-    }
-  },
-
-  getRecommendedApproach(hhi, recompeteCount, totalMarket) {
-    if (hhi > 2500 && recompeteCount > 10) {
-      return 'Strategic Partnerships + Recompete Focus';
-    } else if (hhi > 2500) {
-      return 'Teaming-Led Market Entry';
-    } else if (recompeteCount > 15) {
-      return 'Aggressive Recompete Capture';
-    } else if (totalMarket > 100000000) {
-      return 'Direct Prime Pursuit';
-    } else {
-      return 'Balanced Beachhead Strategy';
-    }
+    if (!analysis || !analysis.indices) return null; 
+    let peakQ=1, peakV=0;
+    for(let q=1; q<=4; q++) if(analysis.indices[q]>peakV) { peakV=analysis.indices[q]; peakQ=q; }
+    return { quarter: peakQ };
   },
 
   generatePrompt(data) {
-    const moneyFormat = (val) => {
-      const num = parseFloat(val) || 0;
-      return `$${num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-    };
+    const mf = v => Utils.money(v);
+    const scope = data.config?.scope || 'Entire Market';
+    const focus = data.config?.focus || 'Growth';
 
-    return `# ANNUAL FEDERAL SALES PLAN - ${data.metadata.targetSector}
-
+    return `# ANNUAL FEDERAL SALES PLAN: ${scope.toUpperCase()}
+## STRATEGIC FOCUS: ${focus}
 ## INSTRUCTIONS FOR LLM
-Create a comprehensive, executive-level annual sales plan (6 pages) specifically for the **${data.metadata.targetSector}**.
+Create a comprehensive, executive-level annual sales plan (20-30 pages) based on the provided data.
+**CONTEXT**: The user is targeting **${scope}** with a focus on **${focus}**.
+**CHANNELS vs. COMPETITORS**: ${data.metadata.channelsIdentified} companies marked as channels/VARs.
 
-**CHANNELS vs. COMPETITORS**: ${data.metadata.channelsIdentified} companies marked as channels/VARs (partners, not competitors). Create separate sections for competitive battle cards and channel partner strategy.
-
-Include: Executive Summary, Market Analysis, Competitive Intelligence (battle cards for top 5 competitors only), Channel Partner Analysis, Recompete Intelligence, Strategic Priorities, Quarterly Execution Plan, Risk Assessment, Financial Forecast.
-
----
-
-## DATA PACKAGE
-
-### METADATA
-- Generated: ${data.metadata.generatedDate}
-- Fiscal Year: ${data.metadata.fiscalYear}
-- Market: "${data.metadata.marketQuery}"
-- Target Sector: "${data.metadata.targetSector}"
-- Contracts in Filter: ${data.metadata.totalContracts}
-- Channels Identified: ${data.metadata.channelsIdentified}
-
-### MARKET OVERVIEW
-- TAM (Filtered): ${moneyFormat(data.marketOverview.totalAddressableMarket)}
-- Avg Contract: ${moneyFormat(data.marketOverview.avgContractSize)}
+### MARKET OVERVIEW (${scope})
+- TAM (Total Contract Value in this scope): ${mf(data.marketOverview.totalAddressableMarket)}
 - HHI: ${data.marketOverview.marketConcentration.hhi} (${data.marketOverview.marketConcentration.status})
-- ${data.marketOverview.marketConcentration.interpretation}
+- Avg Contract: ${mf(data.marketOverview.avgContractSize)}
 
-Contract Distribution:
-${Object.entries(data.marketOverview.contractSizeDistribution).map(([range, count]) => `- ${range}: ${count}`).join('\n')}
+### COMPETITIVE LANDSCAPE (Top 3 Share: ${data.competitiveLandscape.top3Share}%)
+${data.competitiveLandscape.competitorDeepDive.map(c => `**${c.vendor}**: Share ${c.marketShare}% | Value ${mf(c.totalValue)} | Expiring Contracts: ${c.expiringContracts}`).join('\n')}
 
-### COMPETITIVE LANDSCAPE (Competitors Only)
-Top 3 Share: ${data.competitiveLandscape.marketShareConcentration.top3Share}%
+${data.channelLandscape.identifiedChannels.length > 0 ? `### CHANNEL PARTNERS (Treat as Allies)
+${data.channelLandscape.identifiedChannels.map(c => `- ${c.vendor}: ${mf(c.spend)} (${c.contractCount} contracts)`).join('\n')}` : 'NO CHANNELS IDENTIFIED'}
 
-Top 15 Competitors:
-${data.competitiveLandscape.topCompetitors.map((v, i) => 
-  `${i + 1}. ${v.vendor} - ${v.marketShare}% - ${moneyFormat(v.spend)} - ${v.contractCount} contracts`
-).join('\n')}
+### TOP AGENCIES IN THIS SCOPE
+${data.agencyLandscape.topAgencies.map(a => `- ${a.agency}: ${mf(a.spend)} (${a.percentage}%)`).join('\n')}
 
-### TOP 5 COMPETITOR DEEP DIVE
-${data.competitiveLandscape.competitorDeepDive.map((c, i) => `
-**#${i + 1}: ${c.vendor}**
-- Share: ${c.marketShare}% | Value: ${moneyFormat(c.totalValue)} | Contracts: ${c.contractCount}
-- Agencies: ${c.agencyPresence} (Top: ${c.topAgencies.map(a => a.agency).join(', ')})
-- Recent: ${c.recentActivity.contractsLast24Months} contracts (${moneyFormat(c.recentActivity.valueLast24Months)})
-- Expiring: ${c.expiringContracts} contracts
-`).join('\n')}
-
-${data.channelLandscape.identifiedChannels.length > 0 ? `
-### CHANNEL/VAR LANDSCAPE
-- Count: ${data.channelLandscape.identifiedChannels.length}
-- Value: ${moneyFormat(data.channelLandscape.totalChannelValue)} (${data.channelLandscape.channelShareOfMarket}%)
-
-Top Channels:
-${data.channelLandscape.channelIntelligence.map((c, i) => 
-  `${i + 1}. ${c.vendor} - ${moneyFormat(c.totalValue)} - ${c.contractCount} contracts - ${c.agencyPresence} agencies`
-).join('\n')}
-` : '### NO CHANNELS IDENTIFIED'}
-
-### AGENCIES
-${data.agencyLandscape.topAgencies.map((a, i) => 
-  `${i + 1}. ${a.agency} - ${moneyFormat(a.spend)} (${a.percentage}%) - ${a.contractCount} contracts`
-).join('\n')}
-
-### RECOMPETES
-- Total: ${data.recompeteIntelligence.totalRecompetes} (${moneyFormat(data.recompeteIntelligence.totalRecompeteValue)})
-- Next 6mo: ${data.recompeteIntelligence.timeline['Next 6 Months'].length}
-- 6-12mo: ${data.recompeteIntelligence.timeline['6-12 Months'].length}
-- 12-18mo: ${data.recompeteIntelligence.timeline['12-18 Months'].length}
-
-High-Value Targets:
-${data.recompeteIntelligence.highValueRecompetes.map((r, i) => 
-  `${i + 1}. ${r.agency} - ${r.vendor} ${r.isChannel ? '(CHANNEL)' : '(COMPETITOR)'} - ${moneyFormat(r.value)} - ${r.monthsUntilExpiry}mo`
-).join('\n')}
+### RECOMPETES (Immediate Opportunities)
+${data.recompeteIntelligence.highValueRecompetes.map(r => `- ${r['Awarding Agency']} (${r['Recipient Name']}): ${mf(r['Award Amount'])} - Ends ${Utils.date(r['End Date'])}`).join('\n')}
 
 ${data.forecastData ? `### FORECAST
-- Baseline FY${data.metadata.fiscalYear}: ${moneyFormat(data.forecastData.baseline)}
+- Baseline: ${mf(data.forecastData.baseline)}
 - Growth: ${data.forecastData.growthRate || 'N/A'}%
 - Peak: Q${data.forecastData.peakQuarter?.quarter}
+${data.forecastData.quarterlyForecasts.map(f => `- ${f.period}: ${mf(f.predicted)} (${f.trend}%)`).join('\n')}` : ''}
 
-Quarterly:
-${data.forecastData.quarterlyForecasts.map(f => 
-  `${f.period}: ${moneyFormat(f.predicted)} (${f.trend}% trend, ${f.confidence.label} confidence)`
-).join('\n')}
-` : ''}
-
-### STRATEGIC INSIGHTS
-- Maturity: ${data.strategicInsights.marketMaturity}
-- Barrier: ${data.strategicInsights.barrierToEntry}
-- Recompete Score: ${data.strategicInsights.recompeteOpportunityScore}
-- Channel Strategy: ${data.strategicInsights.channelStrategy}
-- Approach: ${data.strategicInsights.recommendedApproach}
-
----
-Generate comprehensive plan with battle cards (competitors only), channel strategy (if applicable), priorities, quarterly plan, risks.
-END PACKAGE`;
+Generate comprehensive plan including:
+1. Executive Summary
+2. Market Analysis (${scope})
+3. Competitor Battle Cards (Strengths/Weaknesses based on incumbency)
+4. Channel Partner Strategy
+5. Quarterly Action Plan`;
   },
 
-  downloadPackage(promptText, sectorName) {
+  downloadPackage(promptText) {
     const blob = new Blob([promptText], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    const safeSector = sectorName.replace(/[^a-zA-Z0-9]/g, '_');
-    const filename = `Sales_Plan_${safeSector}_FY${Utils.getCurrentFY()}.txt`;
-    link.setAttribute("href", url);
-    link.setAttribute("download", filename);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    link.href = URL.createObjectURL(blob);
+    link.download = `Sales_Plan_FY${Utils.getCurrentFY()}_${App.currentQuery.replace(/\s+/g, '_')}.txt`;
+    document.body.appendChild(link); link.click(); document.body.removeChild(link);
   }
 };
 
