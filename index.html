@@ -907,14 +907,20 @@ body {
     </div>
 
     <div class="channel-modal-footer" style="background:var(--bg-card); border-top:1px solid var(--border);">
-      <div style="flex:1; font-size:0.75rem; color:var(--text-muted); display:flex; align-items:center; gap:1rem;">
-         <div id="spDataStatus"></div>
-      </div>
-      <button class="modal-btn modal-btn-cancel" onclick="SalesPlanManager.close()">Cancel</button>
-      <button class="modal-btn modal-btn-primary" onclick="SalesPlanManager.generate()">
-        <i class="fas fa-file-download"></i> GENERATE PROMPT PACKAGE
-      </button>
-    </div>
+  <div style="flex:1; font-size:0.75rem; color:var(--text-muted); display:flex; align-items:center; gap:1rem;">
+      <div id="spDataStatus"></div>
+  </div>
+  
+  <button class="modal-btn modal-btn-cancel" onclick="SalesPlanManager.close()">Cancel</button>
+  
+  <button class="modal-btn modal-btn-cancel" onclick="SalesPlanManager.generate()" title="Download as .txt file">
+    <i class="fas fa-download"></i> File
+  </button>
+  
+  <button id="btnCopyPrompt" class="modal-btn modal-btn-primary" onclick="SalesPlanManager.copyPrompt()">
+    <i class="fas fa-copy"></i> COPY PROMPT
+  </button>
+</div>
   </div>
 </div>
 
@@ -1346,7 +1352,7 @@ const ForecastEngine = {
     };
   }
 };
-// ==================== SALES PLAN MANAGER ====================
+// ==================== SALES PLAN MANAGER (FIXED) ====================
 const SalesPlanManager = {
   channels: new Set(),
   currentVendors: [], 
@@ -1358,36 +1364,33 @@ const SalesPlanManager = {
 
   isChannel(vendorName) { return this.channels.has(vendorName); },
 
-  // --- Core Actions ---
+  // --- UI Actions ---
   open() {
     // 1. Data Availability Check
     const awards = App.forecastData.awards || App.searchData.raw || [];
     if (!awards.length) {
-      return App.showToast("No award data loaded. Run a search or forecast first.", "error");
+      alert("No award data loaded. Please run a search or forecast first."); // Fixed: Used alert
+      return;
     }
 
-    // 2. Populate Agency Dropdown (The feature you requested)
+    // 2. Populate Agency Dropdown
     const agencyCounts = {};
     awards.forEach(r => {
       const ag = r['Awarding Agency'];
       if(ag) agencyCounts[ag] = (agencyCounts[ag] || 0) + 1;
     });
     
-    // Sort agencies by contract count
     const sortedAgencies = Object.entries(agencyCounts)
       .sort((a,b) => b[1] - a[1])
       .map(([name, count]) => `<option value="${name}">${name} (${count} awards)</option>`)
       .join('');
       
     document.getElementById('spSpecificAgencies').innerHTML = sortedAgencies;
-    document.getElementById('spScope').value = 'all'; // Default to all
+    document.getElementById('spScope').value = 'all'; 
 
-    // 3. Prepare Vendor List (Default to 'all' view initially)
+    // 3. Prepare Vendor List
     this.prepareVendorList(awards);
-
-    // 4. Update UI Status
     this.updateStatus(awards.length, "Entire Market");
-    
     this.renderList();
     document.getElementById('salesPlanModal').classList.add('active');
   },
@@ -1396,7 +1399,107 @@ const SalesPlanManager = {
     document.getElementById('salesPlanModal').classList.remove('active');
   },
 
-  // Helper to process vendor list based on current data slice
+  // --- Data Processing Helper ---
+  getFilteredData() {
+    const scope = document.getElementById('spScope').value;
+    const focus = document.getElementById('spFocus').value;
+    const rawAwards = App.forecastData.awards || App.searchData.raw || [];
+    
+    let filteredAwards = [];
+    let scopeName = "Entire Market";
+
+    if (scope === 'all') {
+        filteredAwards = rawAwards;
+    } else if (scope === 'defense') {
+        filteredAwards = rawAwards.filter(r => /defense|army|navy|air force|marine|space force/i.test(r['Awarding Agency']));
+        scopeName = "Defense Sector";
+    } else if (scope === 'civilian') {
+        filteredAwards = rawAwards.filter(r => !/defense|army|navy|air force|marine|space force/i.test(r['Awarding Agency']));
+        scopeName = "Federal Civilian Sector";
+    } else {
+        filteredAwards = rawAwards.filter(r => r['Awarding Agency'] === scope);
+        scopeName = scope;
+    }
+
+    if (filteredAwards.length === 0) throw new Error("No awards found for the selected scope.");
+
+    return { filteredAwards, scopeName, focus };
+  },
+
+  // --- Output Actions ---
+  generate() {
+    App.showLoader('GENERATING PLAN...', 'Filtering data & packaging prompt...');
+    setTimeout(() => {
+      try {
+        const { filteredAwards, scopeName, focus } = this.getFilteredData();
+        
+        // Build and Download
+        const pkg = PromptPackageGenerator.buildPackage(filteredAwards, null, { scope: scopeName, focus });
+        PromptPackageGenerator.downloadPackage(pkg);
+        
+        this.close();
+        // Success is indicated by the file download starting
+      } catch(e) { 
+        console.error(e); 
+        alert(e.message || "Error generating plan"); // Fixed: Used alert
+      } finally { 
+        App.hideLoader(); 
+      }
+    }, 500);
+  },
+
+  async copyPrompt() {
+    const btn = document.getElementById('btnCopyPrompt');
+    if (!btn) return;
+
+    const originalText = btn.innerHTML;
+    const originalBg = btn.style.background;
+    const originalColor = btn.style.color;
+    
+    // Loading State
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> GENERATING...';
+    btn.style.opacity = '0.8';
+    btn.style.pointerEvents = 'none';
+    
+    try {
+      const { filteredAwards, scopeName, focus } = this.getFilteredData();
+      const pkg = PromptPackageGenerator.buildPackage(filteredAwards, null, { scope: scopeName, focus });
+      
+      // Copy to clipboard
+      await navigator.clipboard.writeText(pkg);
+      
+      // Success State (Green Button)
+      btn.style.opacity = '1';
+      btn.style.background = 'var(--success)';
+      btn.style.color = '#000';
+      btn.style.borderColor = 'var(--success)';
+      btn.innerHTML = '<i class="fas fa-check"></i> COPIED';
+      
+      // Close after 2 seconds
+      setTimeout(() => {
+        this.close();
+        // Reset button
+        btn.style.background = originalBg;
+        btn.style.color = originalColor;
+        btn.style.borderColor = '';
+        btn.innerHTML = originalText;
+        btn.style.pointerEvents = 'auto';
+      }, 2000);
+
+    } catch(e) {
+      console.error(e);
+      alert(e.message || "Error copying prompt"); // Fixed: Used alert
+      
+      // Reset button immediately on error
+      btn.style.opacity = '1';
+      btn.style.background = originalBg;
+      btn.style.color = originalColor;
+      btn.innerHTML = originalText;
+      btn.style.pointerEvents = 'auto';
+    }
+  },
+
+  // --- Vendor List Helpers ---
   prepareVendorList(dataSlice) {
     const vendorSpend = {}; 
     let total = 0;
@@ -1421,6 +1524,7 @@ const SalesPlanManager = {
 
   updateStatus(count, scopeName) {
     const statusEl = document.getElementById('spDataStatus');
+    if(!statusEl) return;
     statusEl.innerHTML = `
       <span style="color:var(--success); display:flex; align-items:center; gap:6px;">
         <i class="fas fa-check-circle"></i> Data Ready
@@ -1428,55 +1532,6 @@ const SalesPlanManager = {
       <span style="margin-left:8px; opacity:0.5;">|</span>
       <span style="margin-left:8px;">Scope: <strong>${scopeName}</strong> (${count} awards)</span>
     `;
-  },
-
-  generate() {
-    const scope = document.getElementById('spScope').value;
-    const focus = document.getElementById('spFocus').value;
-    
-    App.showLoader('GENERATING PLAN...', 'Filtering data & packaging prompt...');
-    
-    setTimeout(() => {
-      try {
-        const rawAwards = App.forecastData.awards || App.searchData.raw || [];
-        let filteredAwards = [];
-        let scopeName = "Entire Market";
-
-        // --- FILTERING LOGIC ---
-        if (scope === 'all') {
-            filteredAwards = rawAwards;
-        } else if (scope === 'defense') {
-            filteredAwards = rawAwards.filter(r => /defense|army|navy|air force|marine|space force/i.test(r['Awarding Agency']));
-            scopeName = "Defense Sector";
-        } else if (scope === 'civilian') {
-            filteredAwards = rawAwards.filter(r => !/defense|army|navy|air force|marine|space force/i.test(r['Awarding Agency']));
-            scopeName = "Federal Civilian Sector";
-        } else {
-            // Specific Agency
-            filteredAwards = rawAwards.filter(r => r['Awarding Agency'] === scope);
-            scopeName = scope;
-        }
-
-        if (filteredAwards.length === 0) {
-            throw new Error("No awards found for the selected scope.");
-        }
-        
-        // Pass the FILTERED data to the generator
-        // Note: We pass 'null' for analysis because re-calculating the full time-series analysis 
-        // on the client side for the sub-slice is complex. The generator will use the raw awards 
-        // to calculate TAM/Competitors for the specific slice.
-        const pkg = PromptPackageGenerator.buildPackage(filteredAwards, null, { scope: scopeName, focus });
-        PromptPackageGenerator.downloadPackage(pkg);
-        
-        this.close();
-        App.showToast(`Plan for ${scopeName} generated`, "success");
-      } catch(e) { 
-        console.error(e); 
-        App.showToast(e.message || "Error generating plan", "error"); 
-      } finally { 
-        App.hideLoader(); 
-      }
-    }, 500);
   },
 
   // --- Toggle Logic ---
@@ -1503,12 +1558,13 @@ const SalesPlanManager = {
   renderList() {
     const list = document.getElementById('spVendorList');
     const container = document.getElementById('spBulkActionContainer');
-    
+    if(!list || !container) return;
+
     const allMarked = this.currentVendors.length > 0 && this.currentVendors.every(v => this.isChannel(v.vendor));
     
     container.innerHTML = `
       <button onclick="SalesPlanManager.toggleAll()" style="background:transparent; border:1px solid var(--border); color:var(--accent); padding:6px 12px; border-radius:4px; cursor:pointer; font-size:0.7rem; font-family:'JetBrains Mono'; display:flex; align-items:center; gap:6px;">
-        <i class="far ${allMarked ? 'fa-square' : 'fa-check-square'}"></i> ${allMarked ? 'UNMARK ALL' : 'MARK ALL AS CHANNEL'}
+        <i class="far ${allMarked ? 'fa-square' : 'fa-check-square'}"></i> ${allMarked ? 'UNMARK ALL' : 'MARK ALL CHANNELS'}
       </button>
     `;
 
