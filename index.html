@@ -2162,6 +2162,7 @@ const PromptPackageGenerator = {
      * - 'competitor': User searched for a competitor to analyze
      * - 'partner': User searched for a channel/partner relationship
      * - 'agency': User searched for a specific agency/customer
+     * - 'product_oem': User searched for a product/software they sell (OEM/ISV perspective)
      * - 'market_keyword': User searched for a market/technology area
      */
     
@@ -2182,12 +2183,18 @@ const PromptPackageGenerator = {
     });
     
     const topVendors = Object.entries(vendorSpend)
-      .map(([name, spend]) => ({ name, spend, share: (spend / totalValue * 100) }))
+      .map(([name, spend]) => ({ name, spend, share: (spend / totalValue * 100), isChannel: userMarkedChannels.has(name) }))
       .sort((a, b) => b.spend - a.spend);
     
     const topAgencies = Object.entries(agencySpend)
       .map(([name, spend]) => ({ name, spend, share: (spend / totalValue * 100) }))
       .sort((a, b) => b.spend - a.spend);
+    
+    // Calculate channel vs non-channel breakdown
+    const channelVendors = topVendors.filter(v => v.isChannel);
+    const nonChannelVendors = topVendors.filter(v => !v.isChannel);
+    const channelShare = channelVendors.reduce((sum, v) => sum + v.share, 0);
+    const nonChannelShare = nonChannelVendors.reduce((sum, v) => sum + v.share, 0);
     
     // Check if query matches a specific vendor name (exact or fuzzy)
     const matchingVendor = topVendors.find(v => 
@@ -2212,6 +2219,30 @@ const PromptPackageGenerator = {
     ];
     
     const isMarketKeyword = marketKeywords.some(kw => queryLower.includes(kw));
+    
+    // === NEW: Detect Product/OEM search ===
+    // If most vendors are marked as channels, this is likely a product search
+    // (e.g., searching "Sonatype" where all vendors are resellers of Sonatype products)
+    if (channelShare > 70 && channelVendors.length >= 3) {
+      return {
+        type: 'product_oem',
+        confidence: 'high',
+        details: {
+          productName: query,
+          totalMarketValue: totalValue,
+          channelCount: channelVendors.length,
+          channelShare: channelShare.toFixed(1),
+          topChannel: channelVendors[0]?.name,
+          topChannelShare: channelVendors[0]?.share.toFixed(1),
+          agencyCount: topAgencies.length,
+          topAgency: topAgencies[0]?.name,
+          topAgencyShare: topAgencies[0]?.share.toFixed(1),
+          // Non-channel vendors might be direct sales or competitors
+          directSalesCount: nonChannelVendors.length,
+          directSalesShare: nonChannelShare.toFixed(1)
+        }
+      };
+    }
     
     // Determine intent
     if (matchingVendor && matchingVendor.share > 30) {
@@ -2324,8 +2355,14 @@ const PromptPackageGenerator = {
       vendorSpend[vendor].contracts.push(r);
       if (r['Awarding Agency']) vendorSpend[vendor].agencies.add(r['Awarding Agency']);
       if (r['Awarding Sub Agency']) vendorSpend[vendor].subAgencies.add(r['Awarding Sub Agency']);
-      if (r['NAICS Code']) vendorSpend[vendor].naicsCodes.add(r['NAICS Code']);
-      if (r['PSC Code']) vendorSpend[vendor].pscCodes.add(r['PSC Code']);
+      
+      // Handle NAICS - try multiple possible field names
+      const naicsCode = r['NAICS Code'] || r['naics_code'] || r['NAICS'] || r['naics'];
+      if (naicsCode) vendorSpend[vendor].naicsCodes.add(naicsCode);
+      
+      // Handle PSC - try multiple possible field names  
+      const pscCode = r['PSC Code'] || r['psc_code'] || r['PSC'] || r['psc'] || r['Product Service Code'];
+      if (pscCode) vendorSpend[vendor].pscCodes.add(pscCode);
       totalMarketValue += amt;
     });
     
@@ -2436,13 +2473,19 @@ const PromptPackageGenerator = {
     const pscBreakdown = {};
     
     data.forEach(r => {
-      const naics = r['NAICS Code'];
-      const psc = r['PSC Code'];
+      // Handle multiple possible field names for NAICS
+      const naics = r['NAICS Code'] || r['naics_code'] || r['NAICS'] || r['naics'];
+      const naicsDesc = r['NAICS Description'] || r['naics_description'] || r['NAICS Desc'] || '';
+      
+      // Handle multiple possible field names for PSC
+      const psc = r['PSC Code'] || r['psc_code'] || r['PSC'] || r['psc'] || r['Product Service Code'];
+      const pscDesc = r['PSC Description'] || r['psc_description'] || r['PSC Desc'] || r['Product Service Description'] || '';
+      
       const amt = parseFloat(r['Award Amount']) || 0;
       
       if (naics) {
         if (!naicsBreakdown[naics]) {
-          naicsBreakdown[naics] = { code: naics, description: r['NAICS Description'] || '', spend: 0, count: 0 };
+          naicsBreakdown[naics] = { code: naics, description: naicsDesc, spend: 0, count: 0 };
         }
         naicsBreakdown[naics].spend += amt;
         naicsBreakdown[naics].count++;
@@ -2450,7 +2493,7 @@ const PromptPackageGenerator = {
       
       if (psc) {
         if (!pscBreakdown[psc]) {
-          pscBreakdown[psc] = { code: psc, description: r['PSC Description'] || '', spend: 0, count: 0 };
+          pscBreakdown[psc] = { code: psc, description: pscDesc, spend: 0, count: 0 };
         }
         pscBreakdown[psc].spend += amt;
         pscBreakdown[psc].count++;
@@ -2458,28 +2501,48 @@ const PromptPackageGenerator = {
     });
     
     // === MARKET CONCENTRATION (HHI) ===
-    let hhi = 0;
-    if (analysis && analysis.hhi) {
-      hhi = analysis.hhi;
-    } else {
-      allVendors.forEach(v => {
-        const share = (v.spend / totalMarketValue) * 100;
-        hhi += share * share;
-      });
-      hhi = Math.round(hhi);
-    }
+    // Calculate VENDOR concentration (who's winning the work)
+    let vendorHHI = 0;
+    allVendors.forEach(v => {
+      const share = (v.spend / totalMarketValue) * 100;
+      vendorHHI += share * share;
+    });
+    vendorHHI = Math.round(vendorHHI);
+    
+    // Calculate AGENCY concentration (who's buying)
+    let agencyHHI = 0;
+    topAgencies.forEach(a => {
+      const share = parseFloat(a.percentage);
+      agencyHHI += share * share;
+    });
+    agencyHHI = Math.round(agencyHHI);
+    
+    // Use vendor HHI for market assessment (more relevant for sales strategy)
+    // But also note if analysis provided a different HHI (likely agency-based)
+    const analysisHHI = analysis?.hhi || null;
     
     const marketConcentration = {
-      hhi,
-      status: hhi > 2500 ? 'Highly Concentrated' : hhi > 1500 ? 'Moderately Concentrated' : 'Competitive',
+      vendorHHI,
+      agencyHHI,
+      analysisHHI, // From ForecastEngine (agency-based)
+      // Use vendor HHI for status since it's more relevant for competitive strategy
+      status: vendorHHI > 2500 ? 'Highly Concentrated' : vendorHHI > 1500 ? 'Moderately Concentrated' : 'Competitive',
       top3Share: competitors.slice(0, 3).reduce((s, v) => s + parseFloat(v.marketShare), 0).toFixed(1),
       top5Share: competitors.slice(0, 5).reduce((s, v) => s + parseFloat(v.marketShare), 0).toFixed(1),
+      top10Share: competitors.slice(0, 10).reduce((s, v) => s + parseFloat(v.marketShare), 0).toFixed(1),
       vendorCount: allVendors.length,
-      interpretation: hhi > 2500 
-        ? 'Market dominated by few incumbents. Teaming or niche strategies required.'
-        : hhi > 1500 
-          ? 'Moderate competition. Both displacement and new opportunity strategies viable.'
-          : 'Fragmented market. Volume bidding and broad prospecting may succeed.'
+      // Interpretation based on VENDOR concentration
+      vendorInterpretation: vendorHHI > 2500 
+        ? 'Vendor market dominated by few incumbents. Teaming or niche strategies required.'
+        : vendorHHI > 1500 
+          ? 'Moderate vendor competition. Both displacement and new opportunity strategies viable.'
+          : 'Fragmented vendor landscape. Volume bidding and broad prospecting may succeed.',
+      // Interpretation based on AGENCY concentration
+      agencyInterpretation: agencyHHI > 2500
+        ? 'Spending concentrated in few agencies. Deep account focus recommended.'
+        : agencyHHI > 1500
+          ? 'Moderate agency concentration. Balance depth and breadth.'
+          : 'Spending spread across many agencies. Broad coverage strategy viable.'
     };
     
     // === FORECAST DATA (if available) ===
@@ -2521,7 +2584,9 @@ const PromptPackageGenerator = {
         totalMarketValue,
         channelsIdentified: channels.length,
         competitorsIdentified: competitors.length,
-        dataSource: analysis ? 'Forecast Mode' : 'Search Mode'
+        dataSource: analysis ? 'Forecast Mode' : 'Search Mode',
+        // Debug: sample of available fields from first record (helps identify field names)
+        sampleFields: data.length > 0 ? Object.keys(data[0]) : []
       },
       marketConcentration,
       competitors: {
@@ -2730,6 +2795,42 @@ The user searched for "${query}" which is a federal agency.
 4. **Sub-Agency Breakdown**: Where are the best opportunities
 5. **Timeline**: Key dates and procurement cycles`;
         break;
+      
+      case 'product_oem':
+        intentContext = `
+**SEARCH CONTEXT: PRODUCT/OEM CHANNEL ANALYSIS**
+The user searched for "${query}" which appears to be a **product or software** they sell through channel partners.
+- Product/Software: ${query.toUpperCase()}
+- Total Federal Revenue: ${mf(searchIntent.details.totalMarketValue)}
+- Active Channel Partners: ${searchIntent.details.channelCount}
+- Channel Share: ${searchIntent.details.channelShare}% of revenue through partners
+- Top Channel Partner: ${searchIntent.details.topChannel} (${searchIntent.details.topChannelShare}%)
+- Top Buying Agency: ${searchIntent.details.topAgency} (${searchIntent.details.topAgencyShare}%)
+${searchIntent.details.directSalesCount > 0 ? `- Direct/Other Sales: ${searchIntent.details.directSalesCount} vendors (${searchIntent.details.directSalesShare}%)` : ''}
+
+**STRATEGIC INTENT:** The user is an OEM/ISV who sells through channel partners and wants to:
+1. Understand which partners are performing best
+2. Identify agencies with highest adoption
+3. Find recompete opportunities to protect/grow
+4. Optimize channel coverage and performance`;
+        
+        strategicFramework = `
+**FRAMEWORK: CHANNEL PERFORMANCE & OPTIMIZATION**
+1. **Channel Scorecard**: Rank partners by revenue, growth, and agency coverage
+2. **Agency Penetration**: Which agencies have adopted? Who's missing?
+3. **Recompete Defense**: Protect existing installs through partner coordination
+4. **White Space**: Agencies/sub-agencies with no current coverage
+5. **Partner Enablement**: Who needs support to close more deals?`;
+        
+        specificInstructions = `
+**SPECIFIC DELIVERABLES:**
+1. **Channel Performance Report**: Rank all partners by revenue and growth
+2. **Agency Adoption Map**: Which agencies use ${query}? Coverage gaps?
+3. **Recompete Calendar**: All renewals in next 18 months with assigned partners
+4. **Partner Coverage Matrix**: Which partners cover which agencies?
+5. **Enablement Priorities**: Partners who need training, support, or incentives
+6. **Competitive Threats**: Are there direct competitors or alternative products?`;
+        break;
         
       case 'market_keyword':
       default:
@@ -2785,17 +2886,41 @@ ${specificInstructions}
 ## MARKET DATA
 
 ### MARKET OVERVIEW
-- **Total Addressable Market (TAM):** ${mf(extractedData.metadata.totalMarketValue)}
+- **Total ${searchIntent.type === 'product_oem' ? 'Federal Revenue' : 'Addressable Market (TAM)'}:** ${mf(extractedData.metadata.totalMarketValue)}
 - **Total Active Contracts:** ${extractedData.metadata.totalContracts}
 - **Average Contract Size:** ${mf(extractedData.metadata.totalMarketValue / extractedData.metadata.totalContracts)}
-- **Active Competitors:** ${extractedData.metadata.competitorsIdentified}
+- **${searchIntent.type === 'product_oem' ? 'Channel Partners' : 'Active Competitors'}:** ${searchIntent.type === 'product_oem' ? extractedData.channels.all.length : extractedData.metadata.competitorsIdentified}
 - **Active Agencies:** ${extractedData.agencies.all.length}
 
-### MARKET CONCENTRATION ANALYSIS
-- **HHI Score:** ${extractedData.marketConcentration.hhi} (${extractedData.marketConcentration.status})
+${searchIntent.type === 'product_oem' ? `### CHANNEL PARTNER PERFORMANCE (Ranked by Revenue)
+${extractedData.channels.all.length > 0 ? extractedData.channels.all.map((c, i) => `${i + 1}. **${c.vendor}**
+   - Revenue: ${mf(c.spend)} (${c.marketShare}% share)
+   - Contracts: ${c.contractCount} | Avg Deal: ${mf(c.avgContractSize)}
+   - Agency Reach: ${c.agencyDiversity} agencies | ${c.subAgencyReach} sub-agencies
+   - Expiring (18mo): ${c.expiringContracts.length} contracts worth ${mf(c.expiringValue)}`).join('\n') : 'No channel partners identified. Mark resellers/VARs in the channel modal.'}
+
+### CHANNEL CONCENTRATION
+- **Total Channel Revenue:** ${mf(extractedData.channels.totalValue)}
+- **Top Partner Share:** ${extractedData.channels.all[0] ? extractedData.channels.all[0].marketShare : 0}%
+- **Top 3 Partners Share:** ${extractedData.channels.all.slice(0, 3).reduce((s, c) => s + parseFloat(c.marketShare), 0).toFixed(1)}%
+- **Top 5 Partners Share:** ${extractedData.channels.all.slice(0, 5).reduce((s, c) => s + parseFloat(c.marketShare), 0).toFixed(1)}%
+
+${extractedData.competitors.all.length > 0 ? `### DIRECT SALES / OTHER VENDORS
+These vendors are NOT marked as channel partners - they may be direct sales, competitors, or unidentified resellers:
+${extractedData.competitors.top5.map((c, i) => `${i + 1}. **${c.vendor}**: ${mf(c.spend)} (${c.marketShare}% share, ${c.contractCount} contracts)`).join('\n')}` : ''}` : `### MARKET CONCENTRATION ANALYSIS
+
+**Vendor Concentration** (Who's winning the work):
+- **Vendor HHI:** ${extractedData.marketConcentration.vendorHHI} (${extractedData.marketConcentration.status})
 - **Top 3 Vendor Share:** ${extractedData.marketConcentration.top3Share}%
 - **Top 5 Vendor Share:** ${extractedData.marketConcentration.top5Share}%
-- **Strategic Implication:** ${extractedData.marketConcentration.interpretation}
+- **Top 10 Vendor Share:** ${extractedData.marketConcentration.top10Share}%
+- **Implication:** ${extractedData.marketConcentration.vendorInterpretation}
+
+**Agency Concentration** (Who's buying):
+- **Agency HHI:** ${extractedData.marketConcentration.agencyHHI}
+- **Implication:** ${extractedData.marketConcentration.agencyInterpretation}
+
+*Note: HHI < 1500 = Competitive, 1500-2500 = Moderate, > 2500 = Highly Concentrated*
 
 ### TOP COMPETITORS (by Contract Value)
 ${extractedData.competitors.top5.map((c, i) => `${i + 1}. **${c.vendor}**
@@ -2808,13 +2933,13 @@ ${extractedData.competitors.top5.map((c, i) => `${i + 1}. **${c.vendor}**
 ${extractedData.channels.all.length > 0 ? `### CHANNEL PARTNERS (User-Identified)
 ${extractedData.channels.all.map(c => `- **${c.vendor}**: ${mf(c.spend)} (${c.contractCount} contracts, ${c.marketShare}% share)`).join('\n')}
 - **Total Channel Value:** ${mf(extractedData.channels.totalValue)}` : `### NO CHANNEL PARTNERS IDENTIFIED
-Consider marking VARs, resellers, or teaming partners in the channel modal.`}
+Consider marking VARs, resellers, or teaming partners in the channel modal.`}`}
 
 ### TOP AGENCIES (by Spend)
 ${extractedData.agencies.top5.map((a, i) => `${i + 1}. **${a.agency}**
    - Spend: ${mf(a.spend)} (${a.percentage}% of market)
    - Contracts: ${a.contractCount} | Sub-Agencies: ${a.subAgencyCount}
-   - Incumbent: ${a.incumbentVendor || 'Various'}
+   - ${searchIntent.type === 'product_oem' ? 'Top Partner' : 'Incumbent'}: ${a.incumbentVendor || 'Various'}
    - Top Sub-Agencies: ${a.subAgencies.slice(0, 3).map(s => s.name).join(', ')}`).join('\n')}
 
 ### RECOMPETE INTELLIGENCE (18-Month Pipeline)
@@ -2829,10 +2954,12 @@ ${extractedData.recompetes.nearTerm.slice(0, 5).map(r => `- ${r['Awarding Agency
 ${extractedData.recompetes.pipeline.slice(0, 5).map(r => `- ${r['Awarding Agency']}: ${mf(r['Award Amount'])} | Incumbent: ${r['Recipient Name']} | Ends: ${Utils.date(r['End Date'])}`).join('\n') || 'None identified'}
 
 ${extractedData.naicsBreakdown.length > 0 ? `### NAICS CODE BREAKDOWN
-${extractedData.naicsBreakdown.slice(0, 5).map(n => `- **${n.code}** (${n.description || 'No description'}): ${mf(n.spend)} | ${n.count} contracts`).join('\n')}` : ''}
+${extractedData.naicsBreakdown.slice(0, 5).map(n => `- **${n.code}** (${n.description || 'No description'}): ${mf(n.spend)} | ${n.count} contracts`).join('\n')}` : `### NAICS CODE BREAKDOWN
+*No NAICS data available. API fields in this dataset: ${extractedData.metadata.sampleFields?.join(', ') || 'Unknown'}*`}
 
 ${extractedData.pscBreakdown.length > 0 ? `### PSC CODE BREAKDOWN
-${extractedData.pscBreakdown.slice(0, 5).map(p => `- **${p.code}** (${p.description || 'No description'}): ${mf(p.spend)} | ${p.count} contracts`).join('\n')}` : ''}
+${extractedData.pscBreakdown.slice(0, 5).map(p => `- **${p.code}** (${p.description || 'No description'}): ${mf(p.spend)} | ${p.count} contracts`).join('\n')}` : `### PSC CODE BREAKDOWN
+*No PSC data available.*`}
 
 ${extractedData.forecastInsights ? `### FORECAST & TREND ANALYSIS
 - **Baseline Annual Forecast:** ${mf(extractedData.forecastInsights.baseline)}
@@ -2863,18 +2990,23 @@ ${Object.entries(extractedData.forecastInsights.historicalByFY || {}).map(([fy, 
 
 ## OUTPUT REQUIREMENTS
 
-1. **Executive Summary** (1/2 page): Key findings, primary opportunities, and recommended strategy
+${searchIntent.type === 'product_oem' ? `1. **Executive Summary** (1/2 page): Key findings on channel performance and growth opportunities
+2. **Channel Performance Analysis** (1 page): Detailed scorecard of partner performance
+3. **Agency Adoption Report** (1 page): Which agencies use ${query}? Where are the gaps?
+4. **Recompete Defense Plan** (1 page): Protect renewals, assign partners, set targets
+5. **Channel Enablement Plan** (1-2 pages): Partner training, incentives, and coverage optimization` : `1. **Executive Summary** (1/2 page): Key findings, primary opportunities, and recommended strategy
 2. **Market Analysis** (1 page): Deep dive on the data above with strategic implications
 3. **Competitive Intelligence** (1 page): Battle cards for top 3 competitors with win strategies
 4. **Opportunity Pipeline** (1 page): Prioritized list of specific pursuits with timelines
-5. **Quarterly Action Plan** (1-2 pages): SMART goals and activities by quarter
+5. **Quarterly Action Plan** (1-2 pages): SMART goals and activities by quarter`}
 
 **VALIDATION CRITERIA:**
 - Plan must be specific to the search intent (${searchIntent.type})
 - Include at least 5 specific, actionable recommendations
-- Reference actual data from the report (use real vendor/agency names)
+- Reference actual data from the report (use real ${searchIntent.type === 'product_oem' ? 'partner' : 'vendor'}/agency names)
 - Provide measurable targets with timelines
-- Address federal procurement considerations (FAR, DFAR, small business, etc.)`;
+${searchIntent.type === 'product_oem' ? `- Address channel management best practices (partner tiers, incentives, coverage)
+- Include specific partner assignments for each major recompete` : `- Address federal procurement considerations (FAR, DFAR, small business, etc.)`}`;
   },
 
   // ==================== MAIN BUILD FUNCTION ====================
