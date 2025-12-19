@@ -11,13 +11,12 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-sankey/0.12.3/d3-sankey.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
- <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-T343V4RFHV"></script>
-<script>
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-T343V4RFHV"></script>
+  <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-
   gtag('config', 'G-T343V4RFHV');
 </script>
 <style>
@@ -453,11 +452,28 @@ body {
 .sales-plan-card-action { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
 
 .channel-marking-modal {
-  display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.9);
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+  background: rgba(0, 0, 0, 0);
   z-index: 500; padding: 2rem; overflow-y: auto;
+  display: flex; align-items: flex-start; justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, background 0.25s ease, visibility 0.25s;
 }
-.channel-marking-modal.active { display: flex; align-items: flex-start; justify-content: center; }
-.channel-modal-content { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; max-width: 800px; width: 100%; margin: 2rem auto; }
+.channel-marking-modal.active { 
+  opacity: 1;
+  visibility: visible;
+  background: rgba(0, 0, 0, 0.9);
+}
+.channel-modal-content { 
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; 
+  max-width: 800px; width: 100%; margin: 2rem auto;
+  transform: translateY(-20px) scale(0.98);
+  transition: transform 0.25s ease-out;
+}
+.channel-marking-modal.active .channel-modal-content {
+  transform: translateY(0) scale(1);
+}
 .channel-modal-header { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
 .channel-modal-title { font-size: 1.3rem; font-weight: 700; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
 .channel-modal-close {
@@ -521,6 +537,33 @@ body {
   .chart-container { height: 400px; min-width: 600px; }
   .chart-wrapper { overflow-x: auto; }
   .mode-toggle { flex-direction: column; }
+  
+  /* Modal mobile styles */
+  .channel-marking-modal { padding: 0; }
+  .channel-modal-content {
+    margin: 0;
+    border-radius: 0;
+    max-height: 100vh;
+    height: 100vh;
+    max-width: 100%;
+  }
+  .channel-modal-body { max-height: calc(100vh - 180px); }
+  .channel-modal-footer { 
+    flex-wrap: wrap; 
+    gap: 0.5rem;
+    padding: 1rem;
+  }
+  .channel-modal-footer .modal-btn {
+    flex: 1 1 auto;
+    min-width: 120px;
+    padding: 0.6rem 1rem;
+    font-size: 0.75rem;
+  }
+  /* Stack the step selectors on mobile */
+  .step-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .ai-link-btn { padding: 0.75rem 0.25rem; font-size: 0.65rem; }
 }
 .chart-wrapper::-webkit-scrollbar { height: 8px; width: 8px; }
 .chart-wrapper::-webkit-scrollbar-track { background: var(--bg-card); border-radius: 4px; }
@@ -661,18 +704,6 @@ body {
   font-family: 'JetBrains Mono', monospace;
   padding: 2px 4px;
   border-radius: 3px;
-}
-
-/* Ensuring Vendor List items match the Feed Card style */
-.vendor-list-item {
-  border-left: 1px solid var(--border);
-  border-right: 1px solid var(--border);
-  border-top: none;
-  border-bottom: 1px solid var(--border);
-}
-
-.vendor-list-item:first-child {
-  border-top: 1px solid var(--border);
 }
 </style>
 </head>
@@ -1020,7 +1051,7 @@ body {
         <div style="font-size:0.85rem; color:var(--accent); font-weight:700; margin-bottom:1rem; text-transform:uppercase; letter-spacing:1px;">
           <i class="fas fa-bullseye"></i> Step 1: Define Plan Scope
         </div>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
+        <div class="step-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
           <div>
             <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:0.5rem; font-weight:600;">
               PLAN SCOPE / SECTOR
@@ -1119,6 +1150,93 @@ const Utils = {
       hash = name.charCodeAt(i) + ((hash << 5) - hash);
     }
     return palette[Math.abs(hash) % palette.length];
+  }
+};
+
+// ==================== MODAL UTILITIES ====================
+const ModalUtils = {
+  activeModal: null,
+  previousFocus: null,
+  
+  open(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    
+    // Store previous focus for restoration
+    this.previousFocus = document.activeElement;
+    
+    // Lock body scroll
+    document.body.style.overflow = 'hidden';
+    
+    // Show modal
+    modal.classList.add('active');
+    this.activeModal = modal;
+    
+    // Focus first focusable element
+    const focusable = modal.querySelector('button, input, select, textarea');
+    if (focusable) setTimeout(() => focusable.focus(), 50);
+    
+    // Add event listeners
+    this._boundKeydown = this.handleKeydown.bind(this);
+    this._boundBackdrop = this.handleBackdropClick.bind(this);
+    document.addEventListener('keydown', this._boundKeydown);
+    modal.addEventListener('click', this._boundBackdrop);
+  },
+  
+  close() {
+    if (!this.activeModal) return;
+    
+    const modal = this.activeModal;
+    
+    // Hide modal
+    modal.classList.remove('active');
+    
+    // Restore body scroll
+    document.body.style.overflow = '';
+    
+    // Restore previous focus
+    if (this.previousFocus && this.previousFocus.focus) {
+      this.previousFocus.focus();
+    }
+    
+    // Remove event listeners
+    document.removeEventListener('keydown', this._boundKeydown);
+    modal.removeEventListener('click', this._boundBackdrop);
+    
+    this.activeModal = null;
+  },
+  
+  handleKeydown(e) {
+    if (e.key === 'Escape') {
+      this.close();
+      return;
+    }
+    
+    // Focus trap - keep Tab within modal
+    if (e.key === 'Tab' && this.activeModal) {
+      const focusables = this.activeModal.querySelectorAll(
+        'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusables.length === 0) return;
+      
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  },
+  
+  handleBackdropClick(e) {
+    // Close only if clicking the backdrop itself, not the content
+    if (e.target === this.activeModal) {
+      this.close();
+    }
   }
 };
 
@@ -1758,11 +1876,11 @@ const SalesPlanManager = {
     this.updateStatus(awards.length, "Entire Market");
     this.renderSmartVendorList();
     
-    document.getElementById('salesPlanModal').classList.add('active');
+    ModalUtils.open('salesPlanModal');
   },
 
   close() {
-    document.getElementById('salesPlanModal').classList.remove('active');
+    ModalUtils.close();
     // Also close success modal if open
     const successModal = document.getElementById('copySuccessModal');
     if (successModal) successModal.classList.remove('active');
@@ -1962,13 +2080,14 @@ const SalesPlanManager = {
       </div>
     `;
     
-    modal.classList.add('active');
+    ModalUtils.open('copySuccessModal');
   },
 
   closeSuccessModal() {
-    const modal = document.getElementById('copySuccessModal');
-    if (modal) modal.classList.remove('active');
-    this.close(); // Also close main modal
+    ModalUtils.close();
+    // Also ensure main modal is closed
+    document.getElementById('salesPlanModal').classList.remove('active');
+    document.body.style.overflow = '';
   },
 
   async copyAgain() {
@@ -2650,6 +2769,11 @@ renderForecastDashboard() {
   }
 };
 
+// ==================== IMPROVED PROMPT PACKAGE GENERATOR ====================
+// This version:
+// 1. Classifies search intent (own company, competitor, partner, keyword, agency)
+// 2. Utilizes ALL available data from search and forecast modes
+// 3. Generates context-aware prompts with clear strategic intention
 
 const PromptPackageGenerator = {
   
