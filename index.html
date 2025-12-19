@@ -1419,11 +1419,27 @@ const App = {
 
   init() {
     ChannelManager.init();
+    
+    // Event Listeners
     document.getElementById('searchBtn').onclick = () => App.runSearch();
     document.getElementById('forecastBtn').onclick = () => App.runForecast();
     document.getElementById('mainSearchInput').addEventListener('keypress', e => { if(e.key === 'Enter') App.runSearch(); });
     document.getElementById('miniSearch').addEventListener('keypress', e => { if(e.key === 'Enter') { document.getElementById('mainSearchInput').value = e.target.value; App.mode === 'forecast' ? App.runForecast(e.target.value) : App.runSearch(e.target.value); } });
     window.addEventListener('resize', () => { setTimeout(() => { if(App.searchData.active.length > 0 && App.mode === 'search') App.renderSankey(); }, 200); });
+
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get('q');
+    const mode = params.get('mode');
+
+    if (q) {
+      document.getElementById('mainSearchInput').value = q;
+      
+      if (mode === 'forecast') {
+        App.runForecast(q);
+      } else {
+        App.runSearch(q);
+      }
+    }
   },
 
   showHero() {
