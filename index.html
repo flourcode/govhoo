@@ -40,7 +40,7 @@
   --border: #333333;
   --text-primary: #e6e6e6;
   --text-muted: #888888;
-  --accent: #768076;
+  --accent: #588157;
   --accent-dim: rgba(212, 196, 168, 0.1);
   --link: #8DA0CB;
   --success: #5fa052;
@@ -970,8 +970,8 @@ body {
 <img src="https://govhoo.com/images/oldmark.jpg" alt="Mark Flournoy" class="tip-bio-img"> Hi, I’m Mark. I spent most of my career selling enterprise tech at AWS, F5, and Red Hat. Before that, I was a Marine and a DISA COTR, so I’ve been on both sides of the table.
       </p>
       <p class="footer-text">
-        Most in-year sales don’t come from chasing RFPs. They come from knowing who’s already in place, when contracts expire, and where the money actually flows so you can focus on building real relationships.
-      </p>
+Most of my in-year sales didn’t come from chasing RFPs. They came from knowing how the customer spends, where competitors and partners are winning, and which expiring contracts create mission gaps. This is why I built Govhoo.
+</p>
        <p class="footer-text">Questions or feature requests? DM me on <a href="https://www.linkedin.com/in/markflournoy/" target="_blank" style="color: var(--accent); text-decoration: underline;">LinkedIn</a>.</p>
     </div>
   </div>
@@ -1562,7 +1562,7 @@ const Autocomplete = {
     
     if (recipients.length > 0) {
       html += `<div class="autocomplete-section">
-        <div class="autocomplete-section-label mono muted upper"><i class="fas fa-briefcase"></i> Vendors</div>
+        <div class="autocomplete-section-label mono muted upper"><i class="fas fa-briefcase"></i> Vendors & Keywords</div>
         ${recipients.slice(0, 5).map(r => `
           <div class="autocomplete-item" data-type="recipient" data-value="${this.escapeHtml(r.recipient_name || '')}">
             <i class="fas fa-briefcase muted"></i>
