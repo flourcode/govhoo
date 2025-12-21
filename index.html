@@ -3196,12 +3196,14 @@ renderForecastDashboard() {
     // Render Spending History Chart
     const ctx = document.getElementById('spendingChart').getContext('2d');
     const chartYears = Object.keys(analysis.byFY).sort();
+// Grab the accent color from your CSS :root variables
 const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
 
 new Chart(ctx, {
   type: 'bar',
   data: { 
-    labels: chartYears.map(y => `FY${y}`), 
+    // .slice(-2) takes the last two characters (e.g., "2025" becomes "25")
+    labels: chartYears.map(y => `FY${String(y).slice(-2)}`), 
     datasets: [
       { label: 'Q1', data: chartYears.map(y => analysis.byFY[y][1] || 0), backgroundColor: accentColor }, 
       { label: 'Q2', data: chartYears.map(y => analysis.byFY[y][2] || 0), backgroundColor: accentColor }, 
@@ -3214,18 +3216,18 @@ new Chart(ctx, {
     maintainAspectRatio: false, 
     scales: { 
       x: { 
-        stacked: false, // Ensures bars stay side-by-side
+        stacked: false, // Keeps bars side-by-side
         grid: { display: false }, 
         ticks: { color: '#888' } 
       }, 
       y: { 
-        stacked: false, // Ensures bars stay side-by-side
+        stacked: false, // Keeps bars side-by-side
         grid: { color: '#333' }, 
         ticks: { color: '#888', callback: v => Utils.money(v) } 
       } 
     }, 
     plugins: { 
-      legend: { display: false }, // Removes the Q1-Q4 legend
+      legend: { display: false }, // Hides the legend
       tooltip: {
         callbacks: {
           label: ctx => `${ctx.dataset.label}: ${Utils.money(ctx.raw)}`
