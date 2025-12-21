@@ -1193,7 +1193,7 @@ Most of my in-year sales didn’t come from chasing RFPs. They came from knowing
       <strong>Ceiling vs. Floor (Gap Analysis)</strong> — <em>Contract Awards</em> represent the maximum potential capacity (Ceiling). <em>Obligations</em> represent actual cash flow (Floor). Large deltas indicate significant unspent budget capacity available for task-order pursuits.
     </div>
     <div class="explainer-item">
-      <strong>Quarterly Seasonality</strong> — Projections for **FY Q4** (July-Sept) historically reflect "Use-it-or-Lose-it" surges. High Q4 projections suggest capture efforts should peak in Q2/Q3 to be "on-vehicle" before the drop.
+      <strong>Quarterly Seasonality</strong> — Projections for FY Q4 (July-Sept) historically reflect "Use-it-or-Lose-it" surges. High Q4 projections suggest capture efforts should peak in Q2/Q3 to be "on-vehicle" before the drop.
     </div>
     <div class="explainer-item">
       <strong>Continuing Resolution (CR) Risk</strong> — Q1/Q2 projections assume normal historical funding. However, under current CR conditions (through Jan 30, 2026), expect "Must-Fund" operational renewals to take precedence over new program starts.
@@ -2235,7 +2235,8 @@ const ForecastEngine = {
       const qStdDev = qVolatility > 0 ? trueAvg * qVolatility : quarterlyStdDev * seasonalProfile[q];
       
       forecasts.push({
-        period: `FY${fy} Q${q}`,
+        // Updated to Standard Format: FY26 Q1
+        period: `FY${String(fy).slice(-2)} Q${q}`,
         predicted: predicted,
         histAvg: trueAvg,
         trend: displayTrend > 0 ? `+${displayTrend.toFixed(1)}` : displayTrend.toFixed(1),
@@ -2251,7 +2252,7 @@ const ForecastEngine = {
     }
     return forecasts;
   },
-
+  
   generateStrategy(forecasts, hhi, recompetes, scenarios, vendorAnalysis) {
     if(!forecasts || forecasts.length < 2) return null;
 
@@ -3201,7 +3202,6 @@ renderForecastDashboard() {
     if(!analysis) return;
 
     // Calculate metrics from actual data
-    // Awards = contract ceiling values (potential)
     const totalAwards = awards.reduce((sum, a) => sum + (parseFloat(a['Award Amount']) || 0), 0);
     
     // Get obligation data from spending over time (actual spending)
@@ -3266,46 +3266,48 @@ renderForecastDashboard() {
     // Render Spending History Chart
     const ctx = document.getElementById('spendingChart').getContext('2d');
     const chartYears = Object.keys(analysis.byFY).sort();
-// Grab the accent color from your CSS :root variables
-const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+    
+    // Grab the accent color from your CSS
+    const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
 
-new Chart(ctx, {
-  type: 'bar',
-  data: { 
-    // .slice(-2) takes the last two characters (e.g., "2025" becomes "25")
-    labels: chartYears.map(y => `FY${String(y).slice(-2)}`), 
-    datasets: [
-      { label: 'Q1', data: chartYears.map(y => analysis.byFY[y][1] || 0), backgroundColor: accentColor }, 
-      { label: 'Q2', data: chartYears.map(y => analysis.byFY[y][2] || 0), backgroundColor: accentColor }, 
-      { label: 'Q3', data: chartYears.map(y => analysis.byFY[y][3] || 0), backgroundColor: accentColor }, 
-      { label: 'Q4', data: chartYears.map(y => analysis.byFY[y][4] || 0), backgroundColor: accentColor }
-    ] 
-  },
-  options: { 
-    responsive: true, 
-    maintainAspectRatio: false, 
-    scales: { 
-      x: { 
-        stacked: false, // Keeps bars side-by-side
-        grid: { display: false }, 
-        ticks: { color: '#888' } 
-      }, 
-      y: { 
-        stacked: false, // Keeps bars side-by-side
-        grid: { color: '#333' }, 
-        ticks: { color: '#888', callback: v => Utils.money(v) } 
-      } 
-    }, 
-    plugins: { 
-      legend: { display: false }, // Hides the legend
-      tooltip: {
-        callbacks: {
-          label: ctx => `${ctx.dataset.label}: ${Utils.money(ctx.raw)}`
-        }
+    new Chart(ctx, {
+      type: 'bar',
+      data: { 
+        // Sliced year labels: FY22, FY23, etc.
+        labels: chartYears.map(y => `FY${String(y).slice(-2)}`), 
+        datasets: [
+          { label: 'Q1', data: chartYears.map(y => analysis.byFY[y][1] || 0), backgroundColor: accentColor }, 
+          { label: 'Q2', data: chartYears.map(y => analysis.byFY[y][2] || 0), backgroundColor: accentColor }, 
+          { label: 'Q3', data: chartYears.map(y => analysis.byFY[y][3] || 0), backgroundColor: accentColor }, 
+          { label: 'Q4', data: chartYears.map(y => analysis.byFY[y][4] || 0), backgroundColor: accentColor }
+        ] 
+      },
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        scales: { 
+          x: { 
+            stacked: false, // Keeps bars side-by-side
+            grid: { display: false }, 
+            ticks: { color: '#888' } 
+          }, 
+          y: { 
+            stacked: false, 
+            grid: { color: '#333' }, 
+            ticks: { color: '#888', callback: v => Utils.money(v) } 
+          } 
+        }, 
+        plugins: { 
+          legend: { display: false }, // Hides legend
+          tooltip: {
+            callbacks: {
+              label: ctx => `${ctx.dataset.label}: ${Utils.money(ctx.raw)}`
+            }
+          }
+        } 
       }
-    } 
-  }
-});
+    });
+    
     // Render Recompetes List
     this.renderRecompetes(analysis.recompetes);
   },
@@ -3416,29 +3418,29 @@ new Chart(ctx, {
       return;
     }
     
-    // Calculate mission gap risk for all recompetes
+    // 1. Preserve Mission Gap Risk Calculation
     const withRisk = recompetes.map(r => ({
       ...r,
       risk: Utils.missionGapRisk(r)
     }));
     
-    // Calculate metrics
+    // 2. Preserve Detailed Metrics Calculation
     const totalRecompeteValue = withRisk.reduce((sum, r) => sum + (parseFloat(r['Award Amount']) || 0), 0);
     const highRiskContracts = withRisk.filter(r => r.risk.level === 'high');
     const highRiskValue = highRiskContracts.reduce((sum, r) => sum + (parseFloat(r['Award Amount']) || 0), 0);
-    const mediumRiskContracts = withRisk.filter(r => r.risk.level === 'medium');
     
-    // Apply filter if enabled
+    // 3. Preserve User-Defined Filtering
     const filtered = App.onlyHighMissionGap 
       ? withRisk.filter(r => r.risk.level === 'high')
       : withRisk;
     
-    // Build subtitle with mission gap metrics
+    // 4. Preserve Complex Subtitle Logic
     let subtitleText = `${Utils.money(totalRecompeteValue)} in ${recompetes.length} contracts expiring within 24 months`;
     if (highRiskContracts.length > 0) {
       subtitleText += ` · <span style="color:var(--danger); font-weight:600;">${highRiskContracts.length} high-risk (${Utils.money(highRiskValue)})</span>`;
     }
     
+    // 5. Render Header with the "High Risk Only" Toggle
     container.innerHTML = `
       <div class="section-header">
         <div class="section-title-group">
@@ -3455,6 +3457,7 @@ new Chart(ctx, {
           ` : ''}
         </div>
       </div>
+      
       ${filtered.length === 0 ? `
         <div style="text-align:center; padding:2rem; color:var(--text-muted);">
           No contracts match the current filter.
@@ -3466,13 +3469,23 @@ new Chart(ctx, {
           ? `https://www.usaspending.gov/award/${internalId}`
           : (r['Award ID'] ? `https://www.usaspending.gov/search/?hash=&filters=${encodeURIComponent(JSON.stringify({keyword: r['Award ID']}))}` : null);
         
-        // Calculate days until expiration
+        // 6. Updated: Standardized Fiscal Period Calculation (FY26 Q1)
         const endDate = new Date(r['End Date']);
+        const m = endDate.getMonth();
+        const y = endDate.getFullYear();
+        const fy = m >= 9 ? y + 1 : y;
+        let q = 1;
+        if (m >= 0 && m <= 2) q = 2;
+        else if (m >= 3 && m <= 5) q = 3;
+        else if (m >= 6 && m <= 8) q = 4;
+        const fiscalPeriod = `FY${String(fy).slice(-2)} Q${q}`;
+
+        // 7. Preserve Urgency Calculation
         const today = new Date();
         const daysUntil = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
         const urgency = daysUntil < 180 ? 'urgent' : daysUntil < 365 ? 'soon' : 'later';
         
-        // Mission gap risk info
+        // 8. Preserve Mission Gap Labeling
         const risk = r.risk;
         const riskLabel = risk.level === 'high' ? 'Mission Gap: High'
           : risk.level === 'medium' ? 'Mission Gap: Medium'
@@ -3486,10 +3499,13 @@ new Chart(ctx, {
           </div>
           <div class="deal-desc">${Utils.trunc(r['Description'], 100)}</div>
           <div class="deal-meta">
+            <span class="meta-tag" style="color:var(--accent); border-color:var(--accent);">${fiscalPeriod}</span>
             <span class="meta-tag mission-gap ${risk.level}" title="Flags contracts likely tied to ongoing operational support">${riskLabel}</span>
             ${r['PSC Code'] ? `<span class="meta-tag psc" title="${r['PSC Description'] || ''}">PSC: ${r['PSC Code']}</span>` : ''}
           </div>
+          
           ${risk.reasons.length > 0 && risk.level !== 'low' ? `<div class="mission-gap-signals">Signals: ${risk.reasons.join(', ')}</div>` : ''}
+          
           <div class="deal-footer">
             <div>
               <div style="font-size:0.8rem; color:${urgency === 'urgent' ? 'var(--danger)' : urgency === 'soon' ? '#FDD835' : 'var(--text-muted)'}">
@@ -3503,7 +3519,6 @@ new Chart(ctx, {
       }).join('')}
     `;
   },
-
   toggleMissionGapFilter() {
     App.onlyHighMissionGap = !App.onlyHighMissionGap;
     // Re-render with current recompetes data
@@ -3512,8 +3527,7 @@ new Chart(ctx, {
     }
   },
 
-// Calculate rolling 4-quarter projection using quarter-specific growth rates
-  calculateRollingForecast(byFY, curFY, curQ, overallYoyTrend) {
+calculateRollingForecast(byFY, curFY, curQ, overallYoyTrend) {
     const forecasts = [];
     let fy = curFY;
     let q = curQ;
@@ -3558,7 +3572,8 @@ new Chart(ctx, {
       else if (weightedAvg > 0) projection = weightedAvg * trendMultiplier;
       
       forecasts.push({
-        period: `FY${fy} Q${q}`,
+        // Updated to Standard Format: FY26 Q1
+        period: `FY${String(fy).slice(-2)} Q${q}`,
         quarter: q,
         fiscalYear: fy,
         historicalAvg: weightedAvg,
@@ -3574,11 +3589,12 @@ new Chart(ctx, {
     }
     return forecasts;
   },
-
+  
   renderForecastTable(forecasts, lastFYTotal, yoyChange, projectionTotal, analysis, awards) {
     const tbody = document.getElementById('forecastTableBody');
     if (!tbody) return;
     
+    // 1. Render Table Rows with standardized "FY26 Q1" labels
     tbody.innerHTML = forecasts.map(f => {
       const hasData = f.dataPoints > 0;
       const qGrowth = f.quarterGrowth || 0;
@@ -3606,6 +3622,9 @@ new Chart(ctx, {
       const avgGrowth = quarterGrowths.length > 0 ? (quarterGrowths.reduce((a,b) => a + b, 0) / quarterGrowths.length) : yoyChange;
       const growthColor = avgGrowth >= 0 ? 'var(--success)' : 'var(--danger)';
 
+      // 2. Identify the shorthand FY for the summary header (e.g., "FY26")
+      const fyShorthand = forecasts[0].period.split(' ')[0];
+
       // Safely identify the top agency
       const topAgency = (awards && awards[0] && awards[0]['Awarding Agency']) ? awards[0]['Awarding Agency'] : 'the primary agency';
 
@@ -3620,68 +3639,70 @@ new Chart(ctx, {
       }
 
       const recompeteValue = analysis.recompetes.reduce((s, r) => s + (parseFloat(r['Award Amount']) || 0), 0);
-// Ensure inputs are valid numbers to prevent NaN
-const avgDataPoints = Number(forecasts.reduce((sum, f) => sum + (f.dataPoints || 0), 0) / 4) || 0;
-const volatilityScore = Number(analysis.volatility?.score) || 0.5;
-
-// Weighting: 70% Density (3yrs = 100%), 30% Stability (low volatility = 100%)
-let confidenceScore = ((avgDataPoints / 3) * 70) + ((1 - volatilityScore) * 30);
-confidenceScore = Math.max(0, Math.min(100, Number(confidenceScore) || 0));
-
-let confidenceLevel = 'LOW';
-let confidenceClass = 'low';
-if (confidenceScore >= 75) { confidenceLevel = 'HIGH'; confidenceClass = 'high'; }
-else if (confidenceScore >= 45) { confidenceLevel = 'MEDIUM'; confidenceClass = 'medium'; }
-      summaryEl.innerHTML = `
-    <div class="hero-growth-label">Projected 4-Quarter Volume</div>
-    <div style="display: flex; align-items: baseline; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
-      <div class="hero-growth-value">${Utils.money(projectionTotal)}</div>
-      <div style="color:${growthColor}; font-size: 1.5rem; font-weight: 700; font-family: 'JetBrains Mono';">
-        ${avgGrowth >= 0 ? '▲' : '▼'} ${Math.abs(avgGrowth).toFixed(0)}% <span style="font-size:0.8rem; opacity:0.7">Avg Q-Growth</span>
-      </div>
-    </div>
-    
-    <div class="strategic-narrative-card">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <div style="color:var(--accent); font-weight:700; font-size:0.7rem; text-transform:uppercase; letter-spacing:1px;">
-          <i class="fas fa-robot"></i> Strategic Recommendation
-        </div>
-        <div style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">
-          Model Confidence: <span class="analysis-panel-badge ${confidenceClass}">${confidenceLevel} (${confidenceScore.toFixed(0)}%)</span>
-        </div>
-      </div>
-
-      <strong>Market Dynamics:</strong> This is a <strong>${analysis.marketStatus}</strong> market (HHI: ${analysis.hhi}). 
-      With a ${avgGrowth >= 0 ? 'bullish' : 'softening'} <strong>${avgGrowth.toFixed(0)}% growth trend</strong>, 
-      the model recommends ${tacticalAdvice}
-      ${analysis.recompetes.length > 5 ? ` High recompete volume (${Utils.money(recompeteValue)}) in the next 24 months signals a prime capture window.` : ''}
       
-      <div style="margin-top: 15px; padding: 10px; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 4px;">
-        <div style="font-size: 0.6rem; color: var(--accent); text-transform: uppercase; margin-bottom: 5px; font-weight: 700;">Confidence Logic</div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.65rem; color: var(--text-muted);">
-          <div>
-            <strong>Density:</strong> ${avgDataPoints.toFixed(1)}/3.0 Years 
-            <div style="height:3px; width:100%; background:#333; margin-top:3px;">
-              <div style="height:100%; width:${(avgDataPoints/3)*100}%; background:var(--accent);"></div>
-            </div>
-          </div>
-          <div>
-            <strong>Stability:</strong> ${(100 - (volatilityScore * 100)).toFixed(0)}% Stable
-            <div style="height:3px; width:100%; background:#333; margin-top:3px;">
-              <div style="height:100%; width:${(1-volatilityScore)*100}%; background:var(--accent);"></div>
-            </div>
-          </div>
-        </div>
-        <div style="font-size: 0.6rem; margin-top: 8px; font-style: italic; opacity: 0.8;">
-          Note: High volatility or <1 year of data reduces projection reliability.
-        </div>
-      </div>
-    </div>
+      // Confidence Score Calculations
+      const avgDataPoints = Number(forecasts.reduce((sum, f) => sum + (f.dataPoints || 0), 0) / 4) || 0;
+      const volatilityScore = Number(analysis.volatility?.score) || 0.5;
 
-    <div class="disclaimer-text" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.7rem; color: var(--text-muted); line-height: 1.4; font-style: italic;">
-      <strong>Strategic Disclaimer:</strong> This recommendation is based on a statistical analysis of historical USASpending data and does not account for real-time geopolitical shifts, undisclosed budget reprogramming, or pending litigation. 
-    </div>
-`;
+      let confidenceScore = ((avgDataPoints / 3) * 70) + ((1 - volatilityScore) * 30);
+      confidenceScore = Math.max(0, Math.min(100, Number(confidenceScore) || 0));
+
+      let confidenceLevel = 'LOW';
+      let confidenceClass = 'low';
+      if (confidenceScore >= 75) { confidenceLevel = 'HIGH'; confidenceClass = 'high'; }
+      else if (confidenceScore >= 45) { confidenceLevel = 'MEDIUM'; confidenceClass = 'medium'; }
+
+      // 3. Render the Updated Summary Narrative
+      summaryEl.innerHTML = `
+        <div class="hero-growth-label">Projected ${fyShorthand} Volume</div>
+        <div style="display: flex; align-items: baseline; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+          <div class="hero-growth-value">${Utils.money(projectionTotal)}</div>
+          <div style="color:${growthColor}; font-size: 1.5rem; font-weight: 700; font-family: 'JetBrains Mono';">
+            ${avgGrowth >= 0 ? '▲' : '▼'} ${Math.abs(avgGrowth).toFixed(0)}% <span style="font-size:0.8rem; opacity:0.7">Avg Q-Growth</span>
+          </div>
+        </div>
+        
+        <div class="strategic-narrative-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div style="color:var(--accent); font-weight:700; font-size:0.7rem; text-transform:uppercase; letter-spacing:1px;">
+              <i class="fas fa-robot"></i> Strategic Recommendation
+            </div>
+            <div style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">
+              Model Confidence: <span class="analysis-panel-badge ${confidenceClass}">${confidenceLevel} (${confidenceScore.toFixed(0)}%)</span>
+            </div>
+          </div>
+
+          <strong>Market Dynamics:</strong> This is a <strong>${analysis.marketStatus}</strong> market (HHI: ${analysis.hhi}). 
+          With a ${avgGrowth >= 0 ? 'bullish' : 'softening'} <strong>${avgGrowth.toFixed(0)}% ${fyShorthand} growth trend</strong>, 
+          the model recommends ${tacticalAdvice}
+          ${analysis.recompetes.length > 5 ? ` High recompete volume (${Utils.money(recompeteValue)}) in the next 24 months signals a prime capture window.` : ''}
+          
+          <div style="margin-top: 15px; padding: 10px; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 4px;">
+            <div style="font-size: 0.6rem; color: var(--accent); text-transform: uppercase; margin-bottom: 5px; font-weight: 700;">Confidence Logic</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.65rem; color: var(--text-muted);">
+              <div>
+                <strong>Density:</strong> ${avgDataPoints.toFixed(1)}/3.0 Years 
+                <div style="height:3px; width:100%; background:#333; margin-top:3px;">
+                  <div style="height:100%; width:${(avgDataPoints/3)*100}%; background:var(--accent);"></div>
+                </div>
+              </div>
+              <div>
+                <strong>Stability:</strong> ${(100 - (volatilityScore * 100)).toFixed(0)}% Stable
+                <div style="height:3px; width:100%; background:#333; margin-top:3px;">
+                  <div style="height:100%; width:${(1-volatilityScore)*100}%; background:var(--accent);"></div>
+                </div>
+              </div>
+            </div>
+            <div style="font-size: 0.6rem; margin-top: 8px; font-style: italic; opacity: 0.8;">
+              Note: High volatility or <1 year of data reduces projection reliability.
+            </div>
+          </div>
+        </div>
+
+        <div class="disclaimer-text" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.7rem; color: var(--text-muted); line-height: 1.4; font-style: italic;">
+          <strong>Strategic Disclaimer:</strong> This recommendation is based on a statistical analysis of historical USASpending data and does not account for real-time geopolitical shifts, undisclosed budget reprogramming, or pending litigation. 
+        </div>
+      `;
     } else if (summaryEl) {
       summaryEl.innerHTML = '';
     }
@@ -3696,7 +3717,7 @@ else if (confidenceScore >= 45) { confidenceLevel = 'MEDIUM'; confidenceClass = 
         const originalHtml = btn.innerHTML;
         btn.style.color = 'var(--danger)';
         btn.style.borderColor = 'var(--danger)';
-        btn.innerHTML = '<i class="fas fa-times"></i>'; // Switch to X icon
+        btn.innerHTML = '<i class="fas fa-times"></i>'; 
         setTimeout(() => {
           btn.style.color = '';
           btn.style.borderColor = '';
@@ -3706,16 +3727,31 @@ else if (confidenceScore >= 45) { confidenceLevel = 'MEDIUM'; confidenceClass = 
       return;
     }
     
-    // Detailed Headers
-    const headers = ['Recipient', 'Agency', 'Sub-Agency', 'Amount', 'Description', 'Start Date', 'End Date', 'Award ID', 'Award Link'];
+    // Updated Headers with Fiscal Period
+    const headers = ['Fiscal Period', 'Recipient', 'Agency', 'Sub-Agency', 'Amount', 'Description', 'Start Date', 'End Date', 'Award ID', 'Award Link'];
     
     const rows = data.map(c => {
+      // Logic for FY26 Q1 shorthand
+      let fiscalPeriod = 'N/A';
+      if (c['Start Date']) {
+        const d = new Date(c['Start Date']);
+        const m = d.getMonth(); 
+        const y = d.getFullYear();
+        const fy = m >= 9 ? y + 1 : y;
+        let q = 1; 
+        if (m >= 0 && m <= 2) q = 2;
+        else if (m >= 3 && m <= 5) q = 3;
+        else if (m >= 6 && m <= 8) q = 4;
+        fiscalPeriod = `FY${String(fy).slice(-2)} Q${q}`;
+      }
+
       const internalId = c['generated_internal_id']; 
       let awardUrl = '';
       if (internalId) awardUrl = `https://www.usaspending.gov/award/${internalId}`;
       else if (c['Award ID']) awardUrl = `https://www.usaspending.gov/search/?hash=&filters=${encodeURIComponent(JSON.stringify({keyword: c['Award ID']}))}`;
       
       return [
+        `"${fiscalPeriod}"`,
         `"${(c['Recipient Name'] || '').replace(/"/g, '""')}"`, 
         `"${(c['Awarding Agency'] || '').replace(/"/g, '""')}"`, 
         `"${(c['Awarding Sub Agency'] || '').replace(/"/g, '""')}"`, 
@@ -3741,7 +3777,7 @@ else if (confidenceScore >= 45) { confidenceLevel = 'MEDIUM'; confidenceClass = 
       const originalHtml = btn.innerHTML;
       btn.style.color = 'var(--success)';
       btn.style.borderColor = 'var(--success)';
-      btn.innerHTML = '<i class="fas fa-check"></i>'; // Switch to Checkmark
+      btn.innerHTML = '<i class="fas fa-check"></i>'; 
       setTimeout(() => {
         btn.style.color = '';
         btn.style.borderColor = '';
@@ -3749,7 +3785,7 @@ else if (confidenceScore >= 45) { confidenceLevel = 'MEDIUM'; confidenceClass = 
       }, 2000);
     }
   },
-
+  
   showLoader(text, subtext) { document.getElementById('loaderText').innerText = text; document.getElementById('loaderSubtext').innerText = subtext || ''; document.getElementById('loader').style.display = 'flex'; },
   hideLoader() { document.getElementById('loader').style.display = 'none'; },
   transitionToApp() {
@@ -3910,42 +3946,38 @@ const PromptPackageGenerator = {
       })
       .sort((a, b) => b.spend - a.spend);
   },
-// Generate the territory plan prompt
 generatePrompt(extracted, config) {
     const mf = v => Utils.money(v);
     const pct = v => (v && !isNaN(v)) ? v.toFixed(1) + '%' : '0.0%';
     const query = extracted.query.toUpperCase();
-    const fy = Utils.getCurrentFY();
+    
+    // Standard shorthand for AI instructions
+    const fyShorthand = `FY${String(Utils.getCurrentFY()).slice(-2)}`;
+    const fyFull = Utils.getCurrentFY();
 
-    // 1. Separate vendors based on UI classification
+    // Separate vendors based on UI classification
     const competitors = extracted.vendors.filter(v => !v.isChannel);
     const channels = extracted.vendors.filter(v => v.isChannel);
     
     const agencies = extracted.agencies.slice(0, 6);
     const metrics = extracted.metrics;
 
-    // 2. Formatting strings for the prompt
-    const partnerList = channels.length > 0
-      ? channels.map(c => `- ${c.name}`).join('\n')
-      : "None identified.";
+    // Build the Scope string dynamically based on identified agencies
+    const agencyList = agencies.map(a => a.name).join(', ');
 
-    return `# ROLE
+    return `# Federal Go-To-Market Plan: ${query}
 
-Act as a Senior Federal Sales Director at a Tier-1 Defense Prime or Cloud Service Provider (CSP).
-
-You are producing an FY${fy} Federal Go-To-Market (GTM) Plan for ${query}. 
+**Scope**: Fiscal Year ${fyFull} (${fyShorthand}). Target agencies include ${agencyList}. This plan outlines the GTM strategy to drive ${query}-related business within the Federal market, leveraging both direct sales and strategic partnerships.
 
 ---
 
-## DOCUMENT IDENTITY (MANDATORY)
-
-1) Document Title: Federal Go-To-Market Plan: ${query}
-2) Scope Section: Define plan coverage and usage.
+# ROLE
+Act as a Senior Federal Sales Director at a Tier-1 Defense Prime or Cloud Service Provider (CSP).
+You are producing an ${fyShorthand} Federal Go-To-Market (GTM) Plan for ${query}. 
 
 ---
 
 ## OUTPUT STYLE AND RULES
-
 - Execution-oriented GTM plan. Direct, factual, concise.
 - No marketing language or meta-commentary.
 - Make explicit choices: what we will do and what we will not do.
@@ -3954,24 +3986,21 @@ You are producing an FY${fy} Federal Go-To-Market (GTM) Plan for ${query}.
 ---
 
 ## DATA INPUTS
-
-Market: ${query}  
-Total Awarded Value (12mo): ${mf(metrics.totalValue)}  
-Contract Count: ${metrics.contractCount}  
-Median Deal Size: ${mf(metrics.medianDealSize)}  
-Recompete Signal (18mo): ${mf(metrics.expiringValue)}
+- Market: ${query}  
+- Total Awarded Value (12mo): ${mf(metrics.totalValue)}  
+- Contract Count: ${metrics.contractCount}  
+- Median Deal Size: ${mf(metrics.medianDealSize)}  
+- Recompete Signal (18mo): ${mf(metrics.expiringValue)}
 
 ---
 
-## REQUIRED SECTIONS AND CONTENT
+## EXECUTIVE SUMMARY
+One high-density paragraph stating the ${fyShorthand} target revenue range, primary risk, and focus.
 
-### 1) EXECUTIVE SUMMARY
-One high-density paragraph stating the FY target revenue range, primary risk, and focus.
-
-### 2) MARKET DYNAMICS & FRICTION
+## MARKET DYNAMICS & FRICTION
 Four sentences explaining how revenue is won and the role of incumbency.
 
-### 3) COMPETITIVE LANDSCAPE (NON-CHANNEL VENDORS)
+## COMPETITIVE LANDSCAPE (NON-CHANNEL VENDORS)
 Output the following table for identified competitors ONLY.
 
 | Vendor | Spend | Share | Contracts | Agencies | Recompete Exposure |
@@ -3982,9 +4011,9 @@ ${competitors.slice(0,6).map(c =>
 
 Include 3–6 bullets on vulnerability and gatekeepers.
 
-### 4) CHANNEL PARTNER LANDSCAPE (IDENTIFIED PARTNERS)
-Output the following table for our identified friendly channel partners ONLY.
-
+## CHANNEL PARTNER LANDSCAPE (IDENTIFIED PARTNERS)
+Output the following table for our identified friendly channel partners ONLY. 
+${channels.length === 0 ? "\n(No channel partners marked in Govhoo yet. Identify resellers in the Sales Plan modal to populate this section.)\n" : ""}
 | Partner Vendor | Partner Spend | Share | Contracts | Agencies | Current Exposure |
 |---|---:|---:|---:|---:|---:|
 ${channels.slice(0,6).map(c =>
@@ -3993,8 +4022,8 @@ ${channels.slice(0,6).map(c =>
 
 Include 2–3 bullets on where these partners provide the most "speed to contract".
 
-### 5) PARTNER-TO-INCUMBENT ATTACK MAP
-Output a markdown table mapping identified incumbents (from Section 3) to identified Channel Partners (from Section 4).
+## PARTNER-TO-INCUMBENT ATTACK MAP
+Output a markdown table mapping identified incumbents to identified Channel Partners.
 
 | Target Incumbent | Vulnerability | Recommended Partner Path | Strategic Rationale |
 |---|---|---|---|
@@ -4002,34 +4031,34 @@ ${competitors.slice(0,3).map(comp =>
 `| ${comp.name} | ${mf(comp.expiring)} Recompete | ${channels[0]?.name || 'TBD Channel'} | Leverage existing contract vehicle |`
 ).join('\n')}
 
-### 6) ACCOUNT PRIORITIZATION
+## ACCOUNT PRIORITIZATION
 | Account / Component | Priority | Decision |
 |---|---|---|
 ${agencies.map(a =>
 `| ${a.name} - ${a.topSubs[0]?.name || 'Primary Component'} | TBD | TBD |`
 ).join('\n')}
 
-### 7) STRATEGIC DECISIONS (PRIMARY ACCOUNTS ONLY)
+## STRATEGIC DECISIONS (PRIMARY ACCOUNTS ONLY)
 Focus on target outcome, deal shape, and specific partner access path.
 
-### 8) PIPELINE AND TARGETS
+## PIPELINE AND TARGETS
 Revenue range and required deal count logic.
 
-### 9) GO-TO-MARKET MOTION
-State clearly if execution is Partner-Led or Direct-Led. Use the names from Section 4.
+## GO-TO-MARKET MOTION
+State clearly if execution is Partner-Led or Direct-Led. Use the names identified above.
 
-### 10) RESOURCE PLAN
+## RESOURCE PLAN
 List requirements for Sponsorship, Sales, Technical coverage, and Legal.
 
-### 11) RISKS AND MITIGATION
+## RISKS AND MITIGATION
 Markdown table covering lock, dependency, vehicles, and timing.
 
-### 12) NEXT 30 DAYS: EXECUTION SPRINT
+## NEXT 30 DAYS: EXECUTION SPRINT
 Markdown table with verifiable milestones and a Kill/No-Go decision point.
 
-### 13) APPENDIX: EXECUTION PRECONDITIONS
+## APPENDIX: EXECUTION PRECONDITIONS
 Succinctly state required leadership support and the alternative if withheld.`;
-},
+  },
   buildPackage(data, analysis, config = {}) {
     const metrics = this.calculateMetrics(data, analysis);
     const vendors = this.buildVendorIntel(data);
