@@ -264,7 +264,16 @@ body {
 .forecast-table { width: 100%; border-collapse: collapse; font-family: 'JetBrains Mono'; font-size: 0.8rem; }
 .forecast-table th { text-align: left; padding: 1rem; color: var(--text-muted); border-bottom: 1px solid var(--border); }
 .forecast-table td { padding: 1rem; border-bottom: 1px solid var(--border); color: var(--text-primary); }
-.trend-pill { padding: 2px 6px; border-radius: 2px; font-size: 0.7rem; font-weight: 700; }
+.trend-pill { 
+  padding: 2px 6px; 
+  border-radius: 2px; 
+  font-size: 0.7rem; 
+  font-weight: 700;
+  white-space: nowrap; /* Prevents text inside the pill from wrapping */
+  display: inline-flex; /* Keeps icon and text together */
+  align-items: center;
+  gap: 2px;
+}
 .trend-up { color: var(--success); background: rgba(102, 194, 165, 0.1); }
 .trend-down { color: var(--danger); background: rgba(251, 128, 114, 0.1); }
 
@@ -3045,19 +3054,48 @@ const App = {
   resetDrill() { App.drillState = { level: 0, path: [], currentAgency: null, currentSubAgency: null }; App.searchData.filter = null; App.searchData.active = App.searchData.raw; App.updateSearchDashboard(); App.renderSankey(); },
   
   updateDrillUI() {
-    const bc = document.getElementById('drillBreadcrumb'); const hint = document.getElementById('drillHint'); const lvl = document.getElementById('drillLevelBadge');
-    if (App.drillState.level === 0) {
-      bc.style.display = 'none'; hint.style.display = 'flex'; lvl.style.display = 'none'; document.getElementById('subagencyPanel').style.display = 'none';
-      hint.innerHTML = `<i class="fas fa-mouse-pointer"></i><span>Click an <strong>agency bar</strong> to drill into sub-agencies</span>`;
-    } else {
-      bc.style.display = 'flex'; lvl.style.display = 'inline-flex';
-      let html = `<div class="breadcrumb-item" onclick="App.resetDrill()"><i class="fas fa-globe breadcrumb-icon"></i><span>All Agencies</span></div>`;
-      App.drillState.path.forEach((p, i) => html += `<span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span><div class="breadcrumb-item ${i===App.drillState.path.length-1?'active':''}" onclick="${i===App.drillState.path.length-1?'':`App.drillToLevel(${i+1})`}"><span>${Utils.trunc(p.name, 25)}</span></div>`);
-      bc.innerHTML = html; document.getElementById('drillLevelText').innerText = App.drillState.level === 1 ? 'Agency View' : 'Sub-Agency View';
-      if (App.drillState.level === 1) { hint.innerHTML = `<i class="fas fa-layer-group"></i><span>Click a <strong>sub-agency</strong> to see vendor breakdown</span>`; App.renderSubAgencyPanel(); }
-      else { document.getElementById('subagencyPanel').style.display = 'none'; hint.innerHTML = `<i class="fas fa-check-circle" style="color:var(--success)"></i><span>Viewing vendor breakdown</span>`; }
+  const bc = document.getElementById('drillBreadcrumb'); 
+  const hint = document.getElementById('drillHint'); 
+  const lvl = document.getElementById('drillLevelBadge');
+  const levelText = document.getElementById('drillLevelText');
+
+  if (App.drillState.level === 0) {
+    bc.style.display = 'none'; 
+    hint.style.display = 'flex'; 
+    lvl.style.display = 'none'; 
+    document.getElementById('subagencyPanel').style.display = 'none';
+    hint.innerHTML = `<i class="fas fa-mouse-pointer"></i><span>Click an <strong>agency</strong> or <strong>vendor</strong> bar to drill down</span>`;
+  } else {
+    bc.style.display = 'flex'; 
+    lvl.style.display = 'inline-flex';
+    
+    // Set appropriate badge text
+    if (App.drillState.level === 1) levelText.innerText = 'Agency View';
+    else if (App.drillState.level === 2) levelText.innerText = 'Sub-Agency View';
+    else if (App.drillState.level === 3) levelText.innerText = 'Vendor Perspective';
+
+    let html = `<div class="breadcrumb-item" onclick="App.resetDrill()"><i class="fas fa-globe breadcrumb-icon"></i><span>All Agencies</span></div>`;
+    
+    App.drillState.path.forEach((p, i) => {
+      const isLast = i === App.drillState.path.length - 1;
+      const action = isLast ? '' : `App.drillToLevel(${i + 1})`;
+      html += `
+        <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
+        <div class="breadcrumb-item ${isLast ? 'active' : ''}" onclick="${action}">
+          <span>${Utils.trunc(p.name, 25)}</span>
+        </div>`;
+    });
+    bc.innerHTML = html; 
+
+    if (App.drillState.level === 1) { 
+      hint.innerHTML = `<i class="fas fa-layer-group"></i><span>Click a <strong>sub-agency</strong> or <strong>vendor</strong> to refine</span>`; 
+      App.renderSubAgencyPanel(); 
+    } else { 
+      document.getElementById('subagencyPanel').style.display = 'none'; 
+      hint.innerHTML = `<i class="fas fa-check-circle" style="color:var(--success)"></i><span>Viewing filtered breakdown</span>`; 
     }
-  },
+  }
+},
 
   renderSubAgencyPanel() {
     const list = document.getElementById('subagencyList');
@@ -3071,56 +3109,195 @@ const App = {
     document.getElementById('subagencyPanel').style.display = 'block';
   },
 
-  drillToAgency(name) { App.drillState = { level: 1, currentAgency: name, currentSubAgency: null, path: [{type:'agency', name}] }; App.searchData.active = App.searchData.raw.filter(d => d['Awarding Agency'] === name); App.searchData.filter = name; App.updateSearchDashboard(); App.renderSankey(); },
-  drillToSubAgency(name) { App.drillState.level = 2; App.drillState.currentSubAgency = name; App.drillState.path = [{type:'agency', name:App.drillState.currentAgency}, {type:'sub', name}]; App.searchData.active = App.searchData.raw.filter(d => d['Awarding Agency']===App.drillState.currentAgency && d['Awarding Sub Agency']===name); App.searchData.filter = name; App.updateSearchDashboard(); App.renderSankey(); },
-  drillToLevel(lvl) { if(lvl===1) App.drillToAgency(App.drillState.path[0].name); else App.resetDrill(); },
+  drillToAgency(name) {
+  App.drillState = { 
+    level: 1, 
+    currentAgency: name, 
+    currentSubAgency: null, 
+    path: [{type: 'agency', name: name}] 
+  };
+  // ALWAYS filter from raw to prevent "No Data" screen
+  App.searchData.active = App.searchData.raw.filter(d => d['Awarding Agency'] === name);
+  App.searchData.filter = name;
+  App.updateSearchDashboard();
+  App.renderSankey();
+},
+
+drillToSubAgency(name) {
+  App.drillState.level = 2;
+  App.drillState.currentSubAgency = name;
+  // Re-build path from the current agency and new sub-agency
+  App.drillState.path = [
+    {type: 'agency', name: App.drillState.currentAgency}, 
+    {type: 'sub', name: name}
+  ];
+  // Filter from raw
+  App.searchData.active = App.searchData.raw.filter(d => 
+    d['Awarding Agency'] === App.drillState.currentAgency && 
+    d['Awarding Sub Agency'] === name
+  );
+  App.searchData.filter = name;
+  App.updateSearchDashboard();
+  App.renderSankey();
+},
+  drillToLevel(lvl) { 
+  // Always restore full data before re-applying a level-specific filter
+  App.searchData.active = App.searchData.raw;
+
+  if (lvl === 0) {
+    App.resetDrill();
+  } else if (lvl === 1) {
+    App.drillToAgency(App.drillState.path[0].name); 
+  } else if (lvl === 2) {
+    App.drillToSubAgency(App.drillState.path[1].name);
+  }
+},
   drillDown(name) {
-    if (App.searchData.raw.some(d => d['Awarding Agency'] === name) && App.drillState.level === 0) App.drillToAgency(name);
-    else if (App.searchData.raw.some(d => d['Awarding Sub Agency'] === name) && App.drillState.level === 1) App.drillToSubAgency(name);
-    else { App.searchData.filter = name; App.searchData.active = App.searchData.active.filter(d => d['Recipient Name'] === name); App.updateSearchDashboard(); App.renderSankey(); }
-  },
+  const data = App.searchData.raw;
+  
+  // 1. Identify the entity type from the master dataset
+  const agencyMatch = data.find(d => d['Awarding Agency'] === name);
+  const subAgencyMatch = data.find(d => d['Awarding Sub Agency'] === name);
+  const vendorMatch = data.find(d => d['Recipient Name'] === name);
+
+  // 2. Clear previous specific filters to avoid "No Data" conflicts
+  App.searchData.active = data;
+
+  if (agencyMatch && !subAgencyMatch) {
+    // It's a top-tier agency: Clean drill to Level 1
+    App.drillToAgency(name);
+  } 
+  else if (subAgencyMatch) {
+    // If it's a sub-agency (or both), we must ensure the parent context is set
+    // to prevent "No Description" breadcrumbs.
+    const parentName = subAgencyMatch['Awarding Agency'];
+    App.drillState.currentAgency = parentName; 
+    App.drillToSubAgency(name);
+  } 
+  else if (vendorMatch) {
+    // Vendor Perspective (Level 3)
+    if (App.drillState.level === 3) {
+      App.drillState.path.pop(); // Replace vendor if already in vendor view
+    }
+    
+    App.drillState.level = 3; 
+    App.drillState.path.push({ type: 'vendor', name: name });
+    App.searchData.filter = `Vendor: ${name}`;
+    
+    // Filter specifically for this vendor across all agencies
+    App.searchData.active = data.filter(d => d['Recipient Name'] === name);
+    
+    App.updateSearchDashboard();
+    App.renderSankey();
+  }
+},
   clearFilter() { App.drillState.level > 0 ? App.resetDrill() : (App.searchData.filter = null, App.searchData.active = App.searchData.raw, App.updateSearchDashboard(), App.renderSankey()); },
 
   renderSankey() {
-    const container = document.getElementById('chartContainer'); container.innerHTML = '';
-    const data = App.searchData.active; if(!data.length) { container.innerHTML = '<div style="text-align:center; padding:4rem; color:#666">No data</div>'; return; }
-    container.innerHTML = '<svg id="sankeySvg"></svg>';
-    const isLvl0 = App.drillState.level === 0;
-    const flowMap = {}; data.forEach(d => { if(d['Award Amount']>0) flowMap[(isLvl0 ? d['Awarding Agency'] : d['Awarding Sub Agency'] || 'Unknown') + "|||" + (d['Recipient Name'] || 'Unknown')] = (flowMap[(isLvl0 ? d['Awarding Agency'] : d['Awarding Sub Agency'] || 'Unknown') + "|||" + (d['Recipient Name'] || 'Unknown')] || 0) + d['Award Amount']; });
-    const allFlows = Object.entries(flowMap).sort((a,b)=>b[1]-a[1]); const limit = App.drillState.level > 0 ? 50 : 25;
-    const topFlows = allFlows.slice(0, limit); const tailFlows = allFlows.slice(limit);
-    const nodesSet = new Set(); const links = [];
-    topFlows.forEach(([k,v]) => { const [s,t] = k.split("|||"); nodesSet.add(s); nodesSet.add(t); links.push({source:s, target:t, value:v}); });
-    if(tailFlows.length) { const aggs={}; tailFlows.forEach(([k,v]) => { const [s] = k.split("|||"); if(nodesSet.has(s)) aggs[s] = (aggs[s]||0)+v; }); Object.entries(aggs).forEach(([s,v]) => { const n = `Other (${tailFlows.length})`; nodesSet.add(n); links.push({source:s, target:n, value:v}); }); }
-    
-    const nodes = Array.from(nodesSet).map(n=>({name:n})); const nodeMap = new Map(nodes.map((n,i)=>[n.name,i]));
-    const d3Links = links.map(l=>({source:nodeMap.get(l.source), target:nodeMap.get(l.target), value:l.value}));
-    const w = container.offsetWidth || 800; const h = Math.max(500, nodes.length * 30);
-    const svg = d3.select("#sankeySvg").attr("width", w).attr("height", h);
-    const sankey = d3.sankey().nodeId(d=>d.index).nodeWidth(20).nodePadding(20).extent([[1,1],[w-1,h-6]]);
-    const {nodes:gn, links:gl} = sankey({nodes:nodes.map(d=>Object.assign({},d)), links:d3Links.map(d=>Object.assign({},d))});
-    
-    const isDrillable = n => !n.startsWith('Other') && (App.drillState.level===0 ? App.searchData.raw.some(d=>d['Awarding Agency']===n) : App.drillState.level===1 && App.searchData.raw.some(d=>d['Awarding Sub Agency']===n));
+  const container = document.getElementById('chartContainer'); 
+  container.innerHTML = '';
+  
+  const data = App.searchData.active; 
+  if(!data || data.length === 0) { 
+    container.innerHTML = '<div style="text-align:center; padding:4rem; color:#666">No data available for this view.</div>'; 
+    return; 
+  }
+  
+  container.innerHTML = '<svg id="sankeySvg"></svg>';
+  
+  // Identify the source level for the left side of the Sankey
+  const isLvl0 = App.drillState.level === 0;
+  const flowMap = {}; 
 
-    svg.append("g").selectAll("rect").data(gn).join("rect")
-       .attr("x",d=>d.x0).attr("y",d=>d.y0).attr("height",d=>d.y1-d.y0).attr("width",d=>d.x1-d.x0)
-       .attr("fill",d=>Utils.getColor(d.name)).attr("opacity",0.8)
-       .attr("stroke",d=>isDrillable(d.name)?'var(--accent)':'none').attr("stroke-width",d=>isDrillable(d.name)?2:0)
-       .style("cursor",d=>isDrillable(d.name)?"pointer":"default")
-       .on("click",(e,d)=>{if(isDrillable(d.name))App.drillDown(d.name)})
-       .append("title").text(d=>`${d.name}\n${Utils.money(d.value)}`);
+  data.forEach(d => { 
+    if(d['Award Amount'] > 0) {
+      // Fallback logic to prevent "No Description" nodes
+      const source = (isLvl0 ? d['Awarding Agency'] : d['Awarding Sub Agency']) || d['Awarding Agency'] || 'Unknown Agency';
+      const target = d['Recipient Name'] || 'Unknown Vendor';
+      const key = source + "|||" + target;
+      
+      flowMap[key] = (flowMap[key] || 0) + d['Award Amount']; 
+    }
+  });
 
-    const defs = svg.append("defs");
-    gl.forEach((l,i) => { const g = defs.append("linearGradient").attr("id","g"+i).attr("gradientUnits","userSpaceOnUse").attr("x1",l.source.x1).attr("x2",l.target.x0); g.append("stop").attr("offset","0%").attr("stop-color",Utils.getColor(l.source.name)); g.append("stop").attr("offset","100%").attr("stop-color",Utils.getColor(l.target.name)); });
+  const allFlows = Object.entries(flowMap).sort((a,b) => b[1] - a[1]); 
+  const limit = App.drillState.level > 0 ? 50 : 25;
+  const topFlows = allFlows.slice(0, limit); 
+  const tailFlows = allFlows.slice(limit);
+  
+  const nodesSet = new Set(); 
+  const links = [];
+  
+  topFlows.forEach(([k,v]) => { 
+    const [s,t] = k.split("|||"); 
+    nodesSet.add(s); 
+    nodesSet.add(t); 
+    links.push({source:s, target:t, value:v}); 
+  });
+
+  // Aggregate smaller flows into an "Other" category to keep the chart clean
+  if(tailFlows.length > 0) { 
+    const aggs = {}; 
+    tailFlows.forEach(([k,v]) => { 
+      const [s] = k.split("|||"); 
+      if(nodesSet.has(s)) aggs[s] = (aggs[s] || 0) + v; 
+    }); 
+    Object.entries(aggs).forEach(([s,v]) => { 
+      const n = `Other (${tailFlows.length} Vendors)`; 
+      nodesSet.add(n); 
+      links.push({source:s, target:n, value:v}); 
+    }); 
+  }
+  
+  const nodes = Array.from(nodesSet).map(n => ({name:n})); 
+  const nodeMap = new Map(nodes.map((n,i) => [n.name, i]));
+  const d3Links = links.map(l => ({source:nodeMap.get(l.source), target:nodeMap.get(l.target), value:l.value}));
+  
+  const w = container.offsetWidth || 800; 
+  const h = Math.max(500, nodes.length * 28);
+  const svg = d3.select("#sankeySvg").attr("width", w).attr("height", h);
+  const sankey = d3.sankey().nodeId(d => d.index).nodeWidth(20).nodePadding(20).extent([[1,1],[w-1,h-6]]);
+  const {nodes:gn, links:gl} = sankey({nodes:nodes.map(d=>Object.assign({},d)), links:d3Links.map(d=>Object.assign({},d))});
+  
+  // Logic to determine if a node should show the "drill-down" highlight
+  const isDrillable = n => {
+    if (!n || n.startsWith('Other') || n.includes('Unknown') || n === 'No Description') return false;
     
-    svg.append("g").attr("fill","none").selectAll("path").data(gl).join("path")
-       .attr("d",d3.sankeyLinkHorizontal()).attr("stroke",(d,i)=>"url(#g"+i+")").attr("stroke-width",d=>Math.max(1,d.width)).attr("stroke-opacity",0.4);
-    
-    svg.append("g").selectAll("text").data(gn).join("text")
-       .attr("x",d=>d.x0<w/2?d.x1+6:d.x0-6).attr("y",d=>(d.y1+d.y0)/2).attr("dy","0.35em")
-       .attr("text-anchor",d=>d.x0<w/2?"start":"end").text(d=>Utils.trunc(d.name,40))
-       .style("font-size","11px").style("fill","#fff").style("pointer-events","none");
-  },
+    // Check if the node is a known Agency, Sub-Agency, or Vendor
+    return App.searchData.raw.some(d => 
+      d['Awarding Agency'] === n || 
+      d['Awarding Sub Agency'] === n || 
+      d['Recipient Name'] === n
+    );
+  };
+
+  // Render Nodes
+  svg.append("g").selectAll("rect").data(gn).join("rect")
+     .attr("x", d => d.x0).attr("y", d => d.y0).attr("height", d => d.y1 - d.y0).attr("width", d => d.x1 - d.x0)
+     .attr("fill", d => Utils.getColor(d.name)).attr("opacity", 0.8)
+     .attr("stroke", d => isDrillable(d.name) ? 'var(--accent)' : 'none').attr("stroke-width", d => isDrillable(d.name) ? 2 : 0)
+     .style("cursor", d => isDrillable(d.name) ? "pointer" : "default")
+     .on("click", (e, d) => { if(isDrillable(d.name)) App.drillDown(d.name); })
+     .append("title").text(d => `${d.name}\n${Utils.money(d.value)}`);
+
+  // Render Gradients for links
+  const defs = svg.append("defs");
+  gl.forEach((l,i) => { 
+    const g = defs.append("linearGradient").attr("id","g"+i).attr("gradientUnits","userSpaceOnUse").attr("x1",l.source.x1).attr("x2",l.target.x0); 
+    g.append("stop").attr("offset","0%").attr("stop-color",Utils.getColor(l.source.name)); 
+    g.append("stop").attr("offset","100%").attr("stop-color",Utils.getColor(l.target.name)); 
+  });
+  
+  // Render Links
+  svg.append("g").attr("fill","none").selectAll("path").data(gl).join("path")
+     .attr("d", d3.sankeyLinkHorizontal()).attr("stroke",(d,i) => "url(#g"+i+")").attr("stroke-width", d => Math.max(1, d.width)).attr("stroke-opacity", 0.4);
+  
+  // Render Labels
+  svg.append("g").selectAll("text").data(gn).join("text")
+     .attr("x", d => d.x0 < w/2 ? d.x1 + 6 : d.x0 - 6).attr("y", d => (d.y1 + d.y0) / 2).attr("dy", "0.35em")
+     .attr("text-anchor", d => d.x0 < w/2 ? "start" : "end").text(d => Utils.trunc(d.name, 40))
+     .style("font-size", "11px").style("fill", "#fff").style("pointer-events", "none");
+},
 
   renderFeed() {
     const div = document.getElementById('feedGrid');
@@ -3592,7 +3769,6 @@ calculateRollingForecast(byFY, curFY, curQ, overallYoyTrend) {
     const tbody = document.getElementById('forecastTableBody');
     if (!tbody) return;
     
-    // 1. Render Table Rows with standardized "FY26 Q1" labels
     tbody.innerHTML = forecasts.map(f => {
       const hasData = f.dataPoints > 0;
       const qGrowth = f.quarterGrowth || 0;
@@ -3606,9 +3782,13 @@ calculateRollingForecast(byFY, curFY, curQ, overallYoyTrend) {
             ${hasData ? Utils.money(f.historicalAvg) : '<span style="opacity:0.5">No data</span>'}
           </td>
           <td style="color:var(--text-muted);">${f.lastYear > 0 ? Utils.money(f.lastYear) : '-'}</td>
-          <td>
-            <span style="color:var(--accent); font-weight:600;">${f.projection > 0 ? Utils.money(f.projection) : '-'}</span>
-            ${f.lastYear > 0 && f.priorYear > 0 ? `<span class="trend-pill ${trendClass}" style="margin-left:0.5rem; font-size:0.65rem;">${trendIcon} ${Math.abs(qGrowth).toFixed(0)}%</span>` : ''}
+          <td style="white-space: nowrap;">
+            <div style="display: inline-flex; align-items: center; gap: 0.5rem;">
+              <span style="color:var(--accent); font-weight:600;">${f.projection > 0 ? Utils.money(f.projection) : '-'}</span>
+              ${f.lastYear > 0 && f.priorYear > 0 ? 
+                `<span class="trend-pill ${trendClass}" style="font-size:0.65rem;">${trendIcon} ${Math.abs(qGrowth).toFixed(0)}%</span>` 
+                : ''}
+            </div>
           </td>
         </tr>
       `;
