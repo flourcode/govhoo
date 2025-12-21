@@ -106,20 +106,6 @@ body {
 .btn-secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
 .btn-primary:hover, .btn-secondary:hover { opacity: 0.9; }
 
-.search-tips {
-  margin-top: 1.5rem; width: 100%; max-width: 500px;
-  background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border);
-  border-radius: 4px; padding: 1rem;
-  font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-muted);
-}
-.tip-header {
-  color: var(--accent); font-weight: 700; margin-bottom: 0.75rem;
-  display: flex; align-items: center; gap: 0.5rem;
-  text-transform: uppercase; letter-spacing: 1px;
-}
-.tip-row { display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.6rem; line-height: 1.4; }
-.cmd-hl { color: var(--text-primary); background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 2px; white-space: nowrap; }
-
 .autocomplete-wrapper { position: relative; }
 .autocomplete-dropdown {
   position: absolute; top: 100%; left: 0; right: 0; z-index: 220;
@@ -568,14 +554,9 @@ body {
     grid-template-columns: 1fr !important;
   }
 }
-.tip-bio-container {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
 
 .tip-bio-img {
-  width: 48px; /* Increased slightly for better visibility in a bio */
+  width: 48px;
   height: 48px;
   border-radius: 50%;
   filter: grayscale(1) contrast(1.1);
@@ -1840,21 +1821,15 @@ const ForecastEngine = {
     const scenarios = this.generateScenarios(annualForecast, volatility, filtered);
     const forecasts = this.generateForecasts(annualForecast, seasonalProfile, filtered, volatility);
     const vendorAnalysis = this.analyzeVendorLandscape(awardsData);
-    const strategy = this.generateStrategy(forecasts, market.hhi, recompetes, scenarios, vendorAnalysis);
+    // Generate strategy (used internally for text generation)
+    this.generateStrategy(forecasts, market.hhi, recompetes, scenarios, vendorAnalysis);
     
     return { 
-      forecasts, 
       recompetes, 
-      baseline: annualForecast, 
       marketStatus: market.level, 
       hhi: market.hhi, 
-      indices: seasonalProfile, 
       byFY: organized.byFY, 
-      strategy,
-      scenarios,
-      volatility,
-      vendorAnalysis,
-      market
+      volatility
     };
   },
 
@@ -1953,13 +1928,13 @@ const ForecastEngine = {
     return baseline;
   },
 
-  // NEW: Calculate volatility metrics for confidence intervals
+  // Calculate volatility metrics
   calculateVolatilityMetrics(filtered) {
     const curFY = Utils.getCurrentFY();
     const years = Object.keys(filtered.totalByFY).map(Number).filter(y => y < curFY).sort();
     
     if (years.length < 2) {
-      return { stdDev: 0, coeffVar: 0, dataPoints: years.length, reliability: 'Low' };
+      return { stdDev: 0, coeffVar: 0, score: 0.5 };
     }
     
     const amounts = years.map(y => filtered.totalByFY[y]);
@@ -1968,71 +1943,27 @@ const ForecastEngine = {
     const stdDev = Math.sqrt(variance);
     const coeffVar = mean > 0 ? (stdDev / mean) : 0;
     
-    // Calculate year-over-year changes
-    const yoyChanges = [];
-    for (let i = 1; i < amounts.length; i++) {
-      if (amounts[i-1] > 0) {
-        yoyChanges.push((amounts[i] - amounts[i-1]) / amounts[i-1]);
-      }
-    }
-    
-    const avgYoYChange = yoyChanges.length > 0 
-      ? yoyChanges.reduce((a, b) => a + b, 0) / yoyChanges.length 
-      : 0;
-    
-    // Determine reliability level
-    let reliability = 'Low';
-    if (years.length >= 4 && coeffVar < 0.3) reliability = 'High';
-    else if (years.length >= 3 && coeffVar < 0.5) reliability = 'Medium';
-    else if (years.length >= 2) reliability = 'Low';
-    
     return {
       stdDev,
       coeffVar,
-      mean,
-      dataPoints: years.length,
-      yoyChanges,
-      avgYoYChange,
-      reliability
+      // Scale coeffVar (typically 0.1-0.5) to 0-1 range where 1 = very volatile
+      score: Math.min(coeffVar * 2.5, 1)
     };
   },
 
-  // NEW: Generate bull/base/bear scenarios
+  // Generate scenarios
   generateScenarios(baseline, volatility, filtered) {
-    const stdDev = volatility.stdDev || baseline * 0.2;
     const coeffVar = volatility.coeffVar || 0.2;
-    
-    // Use coefficient of variation to scale scenarios appropriately
-    const scaleFactor = Math.min(coeffVar, 0.4); // Cap at 40%
+    const scaleFactor = Math.min(coeffVar, 0.4);
     
     return {
-      conservative: {
-        label: 'Conservative',
-        value: baseline * (1 - scaleFactor),
-        description: 'Lower bound assuming headwinds (budget constraints, increased competition)',
-        probability: '25%'
-      },
-      base: {
-        label: 'Base Case',
-        value: baseline,
-        description: 'Most likely outcome based on historical weighted average',
-        probability: '50%'
-      },
-      aggressive: {
-        label: 'Aggressive',
-        value: baseline * (1 + scaleFactor),
-        description: 'Upper bound assuming tailwinds (new programs, expanded scope)',
-        probability: '25%'
-      },
-      confidence: {
-        lower: baseline - (1.645 * stdDev), // 90% CI
-        upper: baseline + (1.645 * stdDev),
-        level: '90%'
-      }
+      conservative: { value: baseline * (1 - scaleFactor) },
+      base: { value: baseline },
+      aggressive: { value: baseline * (1 + scaleFactor) }
     };
   },
 
-  // Analyze vendor landscape for competitive positioning
+  // Analyze vendor landscape for competitive rivalry assessment
   analyzeVendorLandscape(awards) {
     const vendorMap = {};
     let totalSpend = 0;
@@ -2040,61 +1971,26 @@ const ForecastEngine = {
     awards.forEach(a => {
       const vendor = a['Recipient Name'] || 'Unknown';
       const amt = parseFloat(a['Award Amount']) || 0;
-      
       if (amt > 0) {
-        if (!vendorMap[vendor]) {
-          vendorMap[vendor] = { name: vendor, spend: 0, count: 0, agencies: new Set() };
-        }
-        vendorMap[vendor].spend += amt;
-        vendorMap[vendor].count++;
-        vendorMap[vendor].agencies.add(a['Awarding Agency'] || 'Unknown');
+        vendorMap[vendor] = (vendorMap[vendor] || 0) + amt;
         totalSpend += amt;
       }
     });
     
-    const vendorList = Object.values(vendorMap)
-      .map(v => ({
-        ...v,
-        agencies: v.agencies.size,
-        share: totalSpend > 0 ? (v.spend / totalSpend) * 100 : 0
-      }))
-      .sort((a, b) => b.spend - a.spend);
-    
     // Calculate CR4 (4-firm concentration ratio)
-    const cr4 = vendorList.slice(0, 4).reduce((s, v) => s + v.share, 0);
+    const shares = Object.values(vendorMap)
+      .map(spend => totalSpend > 0 ? (spend / totalSpend) * 100 : 0)
+      .sort((a, b) => b - a);
+    const cr4 = shares.slice(0, 4).reduce((s, v) => s + v, 0);
     
-    // Identify vendor tiers
-    const tier1 = vendorList.filter(v => v.share >= 15);
-    const tier2 = vendorList.filter(v => v.share >= 5 && v.share < 15);
-    const tier3 = vendorList.filter(v => v.share >= 1 && v.share < 5);
-    const longTail = vendorList.filter(v => v.share < 1);
-    
-    // Porter's Five Forces - Competitive Rivalry assessment
+    // Determine rivalry level
     let rivalryLevel = 'Moderate';
-    let rivalryInsight = '';
+    if (cr4 > 80) rivalryLevel = 'Low (Oligopoly)';
+    else if (cr4 > 60) rivalryLevel = 'Moderate';
+    else if (cr4 > 40) rivalryLevel = 'High';
+    else rivalryLevel = 'Very High';
     
-    if (cr4 > 80) {
-      rivalryLevel = 'Low (Oligopoly)';
-      rivalryInsight = 'Top 4 vendors control >80% of spend. Incumbent relationships dominate. New entrants face high barriers.';
-    } else if (cr4 > 60) {
-      rivalryLevel = 'Moderate';
-      rivalryInsight = 'Established leaders but room for challengers. Teaming with Tier 2 vendors may provide entry points.';
-    } else if (cr4 > 40) {
-      rivalryLevel = 'High';
-      rivalryInsight = 'Fragmented market with active competition. Differentiation and aggressive pricing can win share.';
-    } else {
-      rivalryLevel = 'Very High';
-      rivalryInsight = 'Highly fragmented. Many small players. Low barriers to entry but also low switching costs for buyers.';
-    }
-    
-    return {
-      top10: vendorList.slice(0, 10),
-      total: vendorList.length,
-      cr4,
-      tiers: { tier1, tier2, tier3, longTail },
-      rivalryLevel,
-      rivalryInsight
-    };
+    return { rivalryLevel };
   },
 
   analyzeMarketConcentration(agencyData) {
@@ -2250,20 +2146,6 @@ const ForecastEngine = {
     if (hhi > 2500) marketType = "Concentrated";
     else if (hhi < 1500) marketType = "Competitive";
 
-    // BCG-style market positioning
-    let bcgPosition = '';
-    if (growthSignal === 'High Growth' && marketType === 'Competitive') {
-      bcgPosition = 'Star Potential';
-    } else if (growthSignal === 'High Growth' && marketType === 'Concentrated') {
-      bcgPosition = 'Question Mark';
-    } else if (growthSignal !== 'Decline' && marketType === 'Concentrated') {
-      bcgPosition = 'Cash Cow Territory';
-    } else if (growthSignal === 'Decline') {
-      bcgPosition = 'Dog Risk';
-    } else {
-      bcgPosition = 'Core Business';
-    }
-
     // Strategic framework text
     let outlook = "";
     let action = "";
@@ -2313,7 +2195,6 @@ const ForecastEngine = {
         text: outlook,
         action: action,
         matrix: matrix,
-        bcgPosition,
         growthSignal,
         marketType
     };
@@ -3854,153 +3735,123 @@ const PromptPackageGenerator = {
       .sort((a, b) => b.spend - a.spend);
   },
 
-  // Generate the territory plan prompt
+// Generate the territory plan prompt
   generatePrompt(extracted, config) {
     const mf = v => Utils.money(v);
     const pct = v => v.toFixed(1) + '%';
     const query = extracted.query.toUpperCase();
-    const today = new Date().toISOString().split('T')[0];
     const fy = Utils.getCurrentFY();
-    
-    // Separate competitors from channels
-    const competitors = extracted.vendors.filter(v => !v.isChannel).slice(0, 8);
+
+    // 1. Separate vendors based on UI classification
+    const competitors = extracted.vendors.filter(v => !v.isChannel);
     const channels = extracted.vendors.filter(v => v.isChannel);
+    
     const agencies = extracted.agencies.slice(0, 6);
     const metrics = extracted.metrics;
 
-    return `# FY${fy} TERRITORY PLAN: ${query}
-Generated: ${today} | Data Source: USASpending.gov (Last 12 Months)
+    // 2. Formatting strings for the prompt
+    const partnerList = channels.length > 0
+      ? channels.map(c => `- ${c.name}`).join('\n')
+      : "None identified.";
+
+    return `# ROLE
+
+Act as a Senior Federal Sales Director at a Tier-1 Defense Prime or Cloud Service Provider (CSP).
+
+You are producing an FY${fy} Federal Go-To-Market (GTM) Plan for ${query}. 
 
 ---
 
-## INSTRUCTIONS FOR AI
+## DOCUMENT IDENTITY (MANDATORY)
 
-You are a senior sales strategist at a major federal contractor. Using the market data below, produce a **territory plan that would pass review at AWS, Oracle, or Lockheed Martin**. 
-
-This is NOT a strategy deck. This is an operational document with:
-- Specific dollar targets tied to the data
-- Named accounts and incumbents
-- Actionable next steps with owners
-- Realistic timelines based on federal procurement cycles
-
-Be direct. No filler. Every recommendation must trace back to a number in the data.
+1) Document Title: Federal Go-To-Market Plan: ${query}
+2) Scope Section: Define plan coverage and usage.
 
 ---
 
-## SECTION 1: TERRITORY SNAPSHOT
+## OUTPUT STYLE AND RULES
 
-**Market:** ${query}
-**Addressable Spend (12mo):** ${mf(metrics.totalValue)}
-**Contract Count:** ${metrics.contractCount}
-**Avg Deal Size:** ${mf(metrics.avgDealSize)} | **Median:** ${mf(metrics.medianDealSize)}
-
-**Deal Size Distribution:**
-- Large ($1M+): ${metrics.largeDeals} contracts
-- Mid ($100K-$1M): ${metrics.midDeals} contracts  
-- Small (<$100K): ${metrics.smallDeals} contracts
-
-**Recompete Pipeline (Next 18mo):** ${mf(metrics.expiringValue)} across ${metrics.expiringCount} contracts
+- Execution-oriented GTM plan. Direct, factual, concise.
+- No marketing language or meta-commentary.
+- Make explicit choices: what we will do and what we will not do.
+- Treat USASpending data as awarded-spend signals, not a full market view.
 
 ---
 
-## SECTION 2: COMPETITIVE LANDSCAPE
+## DATA INPUTS
 
-**Market Concentration:** ${competitors.length > 0 && competitors[0].share > 40 ? 'HIGH - Top vendor controls ' + pct(competitors[0].share) : competitors.slice(0, 3).reduce((s, c) => s + c.share, 0) > 70 ? 'MODERATE - Top 3 control ' + pct(competitors.slice(0, 3).reduce((s, c) => s + c.share, 0)) : 'FRAGMENTED - Opportunity for displacement'}
+Market: ${query}  
+Total Awarded Value (12mo): ${mf(metrics.totalValue)}  
+Contract Count: ${metrics.contractCount}  
+Median Deal Size: ${mf(metrics.medianDealSize)}  
+Recompete Signal (18mo): ${mf(metrics.expiringValue)}
 
-### Incumbent Analysis
+---
+
+## REQUIRED SECTIONS AND CONTENT
+
+### 1) EXECUTIVE SUMMARY
+One high-density paragraph stating the FY target revenue range, primary risk, and focus.
+
+### 2) MARKET DYNAMICS & FRICTION
+Four sentences explaining how revenue is won and the role of incumbency.
+
+### 3) COMPETITIVE LANDSCAPE (NON-CHANNEL VENDORS)
+Output the following table for identified competitors ONLY.
+
 | Vendor | Spend | Share | Contracts | Agencies | Recompete Exposure |
-|--------|-------|-------|-----------|----------|-------------------|
-${competitors.slice(0, 6).map(c => `| ${c.name} | ${mf(c.spend)} | ${pct(c.share)} | ${c.contracts} | ${c.agencies} | ${mf(c.expiring)} |`).join('\n')}
+|---|---:|---:|---:|---:|---:|
+${competitors.slice(0,6).map(c =>
+`| ${c.name} | ${mf(c.spend)} | ${pct(c.share)} | ${c.contracts} | ${c.agencies} | ${mf(c.expiring)} |`
+).join('\n')}
 
-${channels.length > 0 ? `### Channel Partners in Market
-${channels.slice(0, 4).map(c => `- **${c.name}**: ${mf(c.spend)} (${pct(c.share)})`).join('\n')}
-` : ''}
+Include 3–6 bullets on vulnerability and gatekeepers.
 
-**Key Question for AI:** Based on the recompete exposure column, which incumbent is most vulnerable in the next 18 months? What is the displacement strategy?
+### 4) CHANNEL PARTNER LANDSCAPE (IDENTIFIED PARTNERS)
+Output the following table for our identified friendly channel partners ONLY.
 
----
+| Partner Vendor | Partner Spend | Share | Contracts | Agencies | Current Exposure |
+|---|---:|---:|---:|---:|---:|
+${channels.slice(0,6).map(c =>
+`| ${c.name} | ${mf(c.spend)} | ${pct(c.share)} | ${c.contracts} | ${c.agencies} | ${mf(c.expiring)} |`
+).join('\n')}
 
-## SECTION 3: ACCOUNT PRIORITIZATION
+Include 2–3 bullets on where these partners provide the most "speed to contract".
 
-### Target Accounts (Ranked by Spend)
-| Agency | Spend | Share | Incumbent | Sub-Agency Focus |
-|--------|-------|-------|-----------|------------------|
-${agencies.map(a => `| ${a.name} | ${mf(a.spend)} | ${pct(a.share)} | ${a.incumbent} | ${a.topSubs[0]?.name || 'N/A'} |`).join('\n')}
+### 5) PARTNER-TO-INCUMBENT ATTACK MAP
+Output a markdown table mapping identified incumbents (from Section 3) to identified Channel Partners (from Section 4).
 
-**Key Question for AI:** Given deal size distribution and agency spend, which 3 accounts should be Tier 1 (active pursuit) vs Tier 2 (nurture) vs Tier 3 (opportunistic)?
+| Target Incumbent | Vulnerability | Recommended Partner Path | Strategic Rationale |
+|---|---|---|---|
 
----
+### 6) ACCOUNT PRIORITIZATION
+| Account / Component | Priority | Decision |
+|---|---|---|
+${agencies.map(a =>
+`| ${a.name} - ${a.topSubs[0]?.name || 'Primary Component'} | TBD | TBD |`
+).join('\n')}
 
-## SECTION 4: REQUIRED OUTPUT
+### 7) STRATEGIC DECISIONS (PRIMARY ACCOUNTS ONLY)
+Focus on target outcome, deal shape, and specific partner access path.
 
-Using the data above, generate a territory plan with these exact sections:
+### 8) PIPELINE AND TARGETS
+Revenue range and required deal count logic.
 
-### 4.1 EXECUTIVE SUMMARY (1 paragraph)
-- Total addressable pipeline in dollars
-- Primary competitive threat
-- #1 strategic priority for the year
+### 9) GO-TO-MARKET MOTION
+State clearly if execution is Partner-Led or Direct-Led. Use the names from Section 4.
 
-### 4.2 ACCOUNT TIERING
-Create a table with columns: Account | Tier (1/2/3) | Rationale | Target Deal Size | Incumbent to Displace | Win Probability
+### 10) RESOURCE PLAN
+List requirements for Sponsorship, Sales, Technical coverage, and Legal.
 
-Tier 1 = Active pursuit, executive engagement
-Tier 2 = Nurture, respond to RFPs
-Tier 3 = Opportunistic only
+### 11) RISKS AND MITIGATION
+Markdown table covering lock, dependency, vehicles, and timing.
 
-### 4.3 PIPELINE TARGETS
-Based on the market data, calculate realistic targets:
-- **Coverage Model:** To close $X, need $Y in pipeline at Z% win rate
-- **Quarterly Breakdown:** Q1/Q2/Q3/Q4 targets accounting for federal Q4 surge
-- **Deal Mix:** How many large/mid/small deals needed to hit target
+### 12) NEXT 30 DAYS: EXECUTION SPRINT
+Markdown table with verifiable milestones and a Kill/No-Go decision point.
 
-### 4.4 COMPETITIVE DISPLACEMENT PLAYS
-For each Tier 1 account, identify:
-- Current incumbent and their contract value
-- Recompete timing (if expiring in 18mo window)
-- Displacement angle (price, capability, compliance, relationship)
-- Proof points needed
-
-### 4.5 CHANNEL STRATEGY
-${channels.length > 0 ? `Channels already winning in this market: ${channels.slice(0, 3).map(c => c.name).join(', ')}` : 'No identified channel partners in current data.'}
-- Partner or compete? 
-- Which contracts are better pursued through channel vs direct?
-
-### 4.6 90-DAY ACTION PLAN
-Week 1-4: [Specific actions with named accounts]
-Week 5-8: [Specific actions]
-Week 9-12: [Specific actions]
-
-Each action must specify: Account, Action, Owner placeholder, Success criteria
-
-### 4.7 RESOURCE REQUIREMENTS
-What is needed from leadership/organization:
-- Executive sponsorship for which accounts?
-- SE/technical resource allocation
-- Marketing/event support
-- Partner development investment
-- Legal/contracts support for which vehicles?
-
-### 4.8 RISKS & CONTINGENCIES
-| Risk | Probability | Impact | Mitigation |
-Create 5 rows for: Budget/CR risk, Incumbent lock-in, Technical gaps, Resource constraints, Timeline slippage
-
----
-
-## VALIDATION CHECKLIST
-
-Before submitting, verify:
-☐ All dollar targets trace back to market data
-☐ Account tiers have clear rationale
-☐ Displacement plays are specific to named incumbents  
-☐ 90-day actions are concrete, not generic
-☐ Resource asks are specific enough to action
-☐ Win probabilities are realistic (not all 50%)
-
----
-
-**Output Format:** Structured markdown, ready for copy/paste into internal planning docs.`;
+### 13) APPENDIX: EXECUTION PRECONDITIONS
+Succinctly state required leadership support and the alternative if withheld.`;
   },
-
   buildPackage(data, analysis, config = {}) {
     const metrics = this.calculateMetrics(data, analysis);
     const vendors = this.buildVendorIntel(data);
