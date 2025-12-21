@@ -372,13 +372,13 @@ body {
 
 .channel-marking-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0); z-index: 500; padding: 2rem; overflow-y: auto; display: flex; align-items: flex-start; justify-content: center; opacity: 0; visibility: hidden; transition: opacity 0.25s ease, background 0.25s ease, visibility 0.25s; }
 .channel-marking-modal.active { opacity: 1; visibility: visible; background: rgba(0, 0, 0, 0.9); }
-.channel-modal-content { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; max-width: 800px; width: 100%; margin: 2rem auto; transform: translateY(-20px) scale(0.98); transition: transform 0.25s ease-out; }
+.channel-modal-content { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; max-width: 800px; width: 100%; margin: 2rem auto; transform: translateY(-20px) scale(0.98); transition: transform 0.25s ease-out; display: flex; flex-direction: column; max-height: 85vh; }
 .channel-marking-modal.active .channel-modal-content { transform: translateY(0) scale(1); }
 .channel-modal-header { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
 .channel-modal-title { font-size: 1.3rem; font-weight: 700; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
 .channel-modal-close { background: transparent; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
 .channel-modal-close:hover { background: rgba(255, 255, 255, 0.05); color: var(--accent); }
-.channel-modal-body { padding: 1.5rem; max-height: 60vh; overflow-y: auto; }
+.channel-modal-body { padding: 1.5rem; flex: 1; overflow-y: auto; min-height: 0; }
 .channel-explanation { background: rgba(212, 196, 168, 0.1); border-left: 3px solid var(--accent); padding: 1rem; margin-bottom: 1.5rem; font-size: 0.9rem; color: var(--text-primary); line-height: 1.6; }
 .vendor-list-item { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 0.5rem; transition: all 0.2s; }
 .vendor-list-item:hover { background: rgba(255, 255, 255, 0.02); border-color: var(--accent); }
@@ -392,7 +392,10 @@ body {
 .toggle-switch.active .toggle-slider { transform: translateX(24px); }
 .toggle-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; min-width: 80px; }
 .toggle-switch.active + .toggle-label { color: var(--accent); font-weight: 600; }
-.channel-modal-footer { padding: 1.5rem; border-top: 1px solid var(--border); display: flex; gap: 1rem; justify-content: flex-end; }
+.channel-modal-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border); display: flex; gap: 1rem; justify-content: space-between; align-items: center; flex-shrink: 0; background: var(--bg-card); }
+.modal-footer-buttons { display: flex; gap: 0.75rem; align-items: center; }
+.modal-footer-secondary { display: flex; gap: 0.5rem; }
+.modal-status-line { font-size: 0.75rem; color: var(--text-muted); }
 .modal-btn { padding: 0.75rem 1.5rem; border-radius: 4px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem; }
 .modal-btn-cancel { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
 .modal-btn-cancel:hover { border-color: var(--accent); color: var(--accent); }
@@ -468,10 +471,60 @@ body {
 
 @media (max-width: 600px) {
   .mode-toggle { flex-direction: column; }
+  .app-header { gap: 0.5rem; padding: 0.5rem 0.75rem; }
+  .header-left { gap: 0.5rem; }
+  .mini-search { 
+    max-width: 140px; 
+    padding: 0.5rem 0.6rem; 
+    font-size: 0.8rem; 
+  }
+  .logo-btn { font-size: 0.9rem; }
+  .icon-btn { width: 32px; height: 32px; }
+  .header-actions { gap: 0.35rem; }
   .channel-marking-modal { padding: 0; }
-  .channel-modal-content { margin: 0; border-radius: 0; height: 100vh; max-height: 100vh; max-width: 100%; }
-  .channel-modal-body { max-height: calc(100vh - 180px); }
-  .channel-modal-footer { flex-wrap: wrap; gap: 0.5rem; padding: 1rem; }
+  .channel-modal-content { 
+    margin: 0; 
+    border-radius: 0; 
+    height: 100vh; 
+    height: 100dvh;
+    max-height: 100vh; 
+    max-width: 100%; 
+    display: flex; 
+    flex-direction: column;
+  }
+  .channel-modal-header { flex-shrink: 0; padding: 1rem; }
+  .channel-modal-title { font-size: 1.1rem; }
+  .channel-modal-body { flex: 1; overflow-y: auto; min-height: 0; }
+  .channel-modal-footer { 
+    flex-direction: column;
+    gap: 0.75rem; 
+    padding: 1rem;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  .modal-footer-buttons {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.5rem;
+  }
+  .modal-footer-buttons .modal-btn-primary {
+    width: 100%;
+    padding: 0.875rem;
+  }
+  .modal-footer-secondary {
+    width: 100%;
+    gap: 0.5rem;
+  }
+  .modal-footer-secondary .modal-btn {
+    flex: 1;
+    padding: 0.75rem;
+  }
+  .modal-status-line {
+    text-align: center;
+    font-size: 0.7rem;
+    opacity: 0.7;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border);
+  }
   .step-grid { grid-template-columns: 1fr !important; }
 }
 
@@ -1169,7 +1222,7 @@ body {
 </div>
 
 <div id="salesPlanModal" class="channel-marking-modal">
-  <div class="channel-modal-content" style="max-width: 900px; height: 85vh; display:flex; flex-direction:column;">
+  <div class="channel-modal-content" style="max-width: 900px;">
     <div class="channel-modal-header">
       <div class="channel-modal-title"><i class="fas fa-rocket"></i> GENERATE SALES PLAN</div>
       <button class="channel-modal-close" onclick="SalesPlanManager.close()"><i class="fas fa-times"></i></button>
@@ -1229,23 +1282,20 @@ body {
       </div>
     </div>
 
-    <!-- Updated Footer with Better Labels -->
-    <div class="channel-modal-footer" style="background:var(--bg-card); border-top:1px solid var(--border);">
-      <div style="flex:1; font-size:0.75rem; color:var(--text-muted); display:flex; align-items:center; gap:0.5rem;">
-        <div id="spDataStatus"></div>
+    <!-- Footer -->
+    <div class="channel-modal-footer">
+      <div class="modal-footer-buttons">
+        <button id="btnCopyPrompt" class="modal-btn modal-btn-primary" onclick="SalesPlanManager.copyPrompt()">
+          <i class="fas fa-copy"></i> Copy Prompt
+        </button>
+        <div class="modal-footer-secondary">
+          <button class="modal-btn modal-btn-cancel" onclick="SalesPlanManager.close()">Cancel</button>
+          <button class="modal-btn modal-btn-cancel" onclick="SalesPlanManager.generate()" title="Download as .txt file">
+            <i class="fas fa-download"></i> .TXT
+          </button>
+        </div>
       </div>
-      
-      <button class="modal-btn modal-btn-cancel" onclick="SalesPlanManager.close()">
-        Cancel
-      </button>
-      
-      <button class="modal-btn modal-btn-cancel" onclick="SalesPlanManager.generate()" title="Download as .txt file">
-        <i class="fas fa-download"></i> Download .txt
-      </button>
-      
-      <button id="btnCopyPrompt" class="modal-btn modal-btn-primary" onclick="SalesPlanManager.copyPrompt()" style="min-width: 180px;">
-        <i class="fas fa-copy"></i> Copy → Paste to AI
-      </button>
+      <div id="spDataStatus" class="modal-status-line"></div>
     </div>
   </div>
 </div>
@@ -2656,15 +2706,8 @@ const SalesPlanManager = {
     const totalVendors = this.currentVendors.length;
     
     statusEl.innerHTML = `
-      <span style="color:var(--success); display:flex; align-items:center; gap:6px;">
-        <i class="fas fa-check-circle"></i> Ready
-      </span>
-      <span style="margin-left:8px; opacity:0.3;">|</span>
-      <span style="margin-left:8px;">${scopeName}</span>
-      <span style="margin-left:8px; opacity:0.3;">|</span>
-      <span style="margin-left:8px;">${count} awards</span>
-      <span style="margin-left:8px; opacity:0.3;">|</span>
-      <span style="margin-left:8px; color: var(--accent);">${channelCount}/${totalVendors} channels</span>
+      <span style="color:var(--success);"><i class="fas fa-check-circle"></i></span>
+      Ready · ${count} awards · ${channelCount}/${totalVendors} channels
     `;
   },
 
@@ -3734,7 +3777,6 @@ const PromptPackageGenerator = {
       })
       .sort((a, b) => b.spend - a.spend);
   },
-
 // Generate the territory plan prompt
   generatePrompt(extracted, config) {
     const mf = v => Utils.money(v);
