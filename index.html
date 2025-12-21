@@ -245,6 +245,16 @@ body {
 .deal-meta { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
 .meta-tag { font-size: 0.65rem; font-family: 'JetBrains Mono', monospace; padding: 3px 8px; border-radius: 3px; background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid var(--border); }
 .meta-tag.psc { background: rgba(143, 182, 208, 0.15); border-color: rgba(143, 182, 208, 0.3); color: #8FB6D0; }
+.meta-tag.mission-gap { font-weight: 600; }
+.meta-tag.mission-gap.high { background: rgba(251, 128, 114, 0.15); border-color: rgba(251, 128, 114, 0.4); color: var(--danger); }
+.meta-tag.mission-gap.medium { background: rgba(253, 216, 53, 0.15); border-color: rgba(253, 216, 53, 0.4); color: #FDD835; }
+.meta-tag.mission-gap.low { background: rgba(255, 255, 255, 0.05); border-color: var(--border); color: var(--text-muted); }
+.mission-gap-signals { font-size: 0.7rem; color: var(--text-muted); margin-top: 6px; font-style: italic; }
+.mission-gap-filter { display: flex; align-items: center; gap: 0.5rem; }
+.mission-gap-toggle { display: flex; align-items: center; gap: 0.4rem; padding: 4px 10px; background: transparent; border: 1px solid var(--border); border-radius: 4px; font-size: 0.7rem; font-family: 'JetBrains Mono', monospace; color: var(--text-muted); cursor: pointer; transition: all 0.2s; }
+.mission-gap-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.mission-gap-toggle.active { background: rgba(251, 128, 114, 0.15); border-color: var(--danger); color: var(--danger); }
+.mission-gap-toggle i { font-size: 0.65rem; }
 .deal-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid #222; }
 .deal-date { font-size: 0.75rem; color: var(--text-muted); }
 .action-btn { background: var(--bg-input); color: var(--accent); text-decoration: none; padding: 0.5rem 1rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600; border: 1px solid var(--border); display: flex; align-items: center; gap: 6px; }
@@ -1354,6 +1364,46 @@ const Utils = {
       hash = name.charCodeAt(i) + ((hash << 5) - hash);
     }
     return palette[Math.abs(hash) % palette.length];
+  },
+
+  // Mission Gap Risk Assessment
+  // Flags expiring contracts likely tied to ongoing operational support
+  missionGapRisk(award) {
+    const endDate = new Date(award['End Date']);
+    const daysUntil = Math.ceil((endDate - new Date()) / (1000 * 60 * 60 * 24));
+
+    const amt = parseFloat(award['Award Amount']) || 0;
+
+    const desc = (award['Description'] || '').toLowerCase();
+    const pscDesc = (award['PSC Description'] || '').toLowerCase();
+    const naicsDesc = (award['NAICS Description'] || '').toLowerCase();
+    const psc = (award['PSC Code'] || '').toUpperCase();
+
+    // Ongoing support signals - tune this list over time
+    const supportTerms = [
+      'operations', 'o&m', 'maintenance', 'sustainment', 'help desk', 'service desk',
+      'support services', 'managed services', 'hosting', 'cloud', 'network',
+      'cyber', 'security', 'monitoring', 'soc', 'continuity', 'backup', 'dr', 'patch',
+      'infrastructure', 'enterprise', 'mission', 'critical', '24/7', 'production'
+    ];
+
+    const text = `${desc} ${pscDesc} ${naicsDesc}`;
+    const supportHits = supportTerms.filter(t => text.includes(t));
+    const looksOperational = supportHits.length >= 2;
+
+    // PSC shortcuts - common federal service families
+    // D = IT/Data Processing, R = Professional Services, J = Maintenance/Repair
+    const servicePscPrefixes = ['D', 'R', 'J'];
+    const isServicePsc = servicePscPrefixes.includes(psc.slice(0, 1));
+
+    // Risk logic
+    if (daysUntil <= 180 && (looksOperational || isServicePsc) && amt >= 250000) {
+      return { level: 'high', daysUntil, reasons: supportHits.slice(0, 4) };
+    }
+    if (daysUntil <= 365 && (looksOperational || isServicePsc) && amt >= 100000) {
+      return { level: 'medium', daysUntil, reasons: supportHits.slice(0, 3) };
+    }
+    return { level: 'low', daysUntil, reasons: supportHits.slice(0, 2) };
   }
 };
 
@@ -2923,6 +2973,7 @@ const App = {
   searchData: { raw: [], active: [], filter: null, loaded: false },
   forecastData: { spending: null, agencies: null, awards: null, analysis: null, loaded: false },
   drillState: { level: 0, path: [], currentAgency: null, currentSubAgency: null },
+  onlyHighMissionGap: false,
 
   init() {
     SalesPlanManager.init();
@@ -3365,8 +3416,28 @@ new Chart(ctx, {
       return;
     }
     
-    // Calculate total value of recompetes
-    const totalRecompeteValue = recompetes.reduce((sum, r) => sum + (parseFloat(r['Award Amount']) || 0), 0);
+    // Calculate mission gap risk for all recompetes
+    const withRisk = recompetes.map(r => ({
+      ...r,
+      risk: Utils.missionGapRisk(r)
+    }));
+    
+    // Calculate metrics
+    const totalRecompeteValue = withRisk.reduce((sum, r) => sum + (parseFloat(r['Award Amount']) || 0), 0);
+    const highRiskContracts = withRisk.filter(r => r.risk.level === 'high');
+    const highRiskValue = highRiskContracts.reduce((sum, r) => sum + (parseFloat(r['Award Amount']) || 0), 0);
+    const mediumRiskContracts = withRisk.filter(r => r.risk.level === 'medium');
+    
+    // Apply filter if enabled
+    const filtered = App.onlyHighMissionGap 
+      ? withRisk.filter(r => r.risk.level === 'high')
+      : withRisk;
+    
+    // Build subtitle with mission gap metrics
+    let subtitleText = `${Utils.money(totalRecompeteValue)} in ${recompetes.length} contracts expiring within 24 months`;
+    if (highRiskContracts.length > 0) {
+      subtitleText += ` · <span style="color:var(--danger); font-weight:600;">${highRiskContracts.length} high-risk (${Utils.money(highRiskValue)})</span>`;
+    }
     
     container.innerHTML = `
       <div class="section-header">
@@ -3374,9 +3445,22 @@ new Chart(ctx, {
           <i class="fas fa-clock" style="color:var(--danger)"></i>
           <span class="section-title">Expiring Contracts</span>
         </div>
-        <span class="section-subtitle">${Utils.money(totalRecompeteValue)} in ${recompetes.length} contracts expiring within 24 months</span>
+        <div class="mission-gap-filter">
+          <span class="section-subtitle">${subtitleText}</span>
+          ${highRiskContracts.length > 0 ? `
+            <button class="mission-gap-toggle ${App.onlyHighMissionGap ? 'active' : ''}" onclick="App.toggleMissionGapFilter()" title="Show only contracts with high mission continuity risk">
+              <i class="fas fa-exclamation-triangle"></i>
+              High Risk Only
+            </button>
+          ` : ''}
+        </div>
       </div>
-      ${recompetes.map(r => {
+      ${filtered.length === 0 ? `
+        <div style="text-align:center; padding:2rem; color:var(--text-muted);">
+          No contracts match the current filter.
+          <a href="#" onclick="App.toggleMissionGapFilter(); return false;" style="color:var(--accent); margin-left:0.5rem;">Show all</a>
+        </div>
+      ` : filtered.map(r => {
         const internalId = r['generated_internal_id'];
         const awardUrl = internalId 
           ? `https://www.usaspending.gov/award/${internalId}`
@@ -3388,13 +3472,24 @@ new Chart(ctx, {
         const daysUntil = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
         const urgency = daysUntil < 180 ? 'urgent' : daysUntil < 365 ? 'soon' : 'later';
         
+        // Mission gap risk info
+        const risk = r.risk;
+        const riskLabel = risk.level === 'high' ? 'Mission Gap: High'
+          : risk.level === 'medium' ? 'Mission Gap: Medium'
+          : 'Mission Gap: Low';
+        
         return `
-        <div class="deal-card" style="margin-bottom:1rem">
+        <div class="deal-card" style="margin-bottom:1rem; ${risk.level === 'high' ? 'border-left: 3px solid var(--danger);' : risk.level === 'medium' ? 'border-left: 3px solid #FDD835;' : ''}">
           <div class="deal-header">
             <span class="deal-agency">${Utils.trunc(r['Awarding Agency'], 40)}</span>
             <span class="deal-amount">${Utils.money(r['Award Amount'])}</span>
           </div>
           <div class="deal-desc">${Utils.trunc(r['Description'], 100)}</div>
+          <div class="deal-meta">
+            <span class="meta-tag mission-gap ${risk.level}" title="Flags contracts likely tied to ongoing operational support">${riskLabel}</span>
+            ${r['PSC Code'] ? `<span class="meta-tag psc" title="${r['PSC Description'] || ''}">PSC: ${r['PSC Code']}</span>` : ''}
+          </div>
+          ${risk.reasons.length > 0 && risk.level !== 'low' ? `<div class="mission-gap-signals">Signals: ${risk.reasons.join(', ')}</div>` : ''}
           <div class="deal-footer">
             <div>
               <div style="font-size:0.8rem; color:${urgency === 'urgent' ? 'var(--danger)' : urgency === 'soon' ? '#FDD835' : 'var(--text-muted)'}">
@@ -3407,6 +3502,14 @@ new Chart(ctx, {
         </div>`;
       }).join('')}
     `;
+  },
+
+  toggleMissionGapFilter() {
+    App.onlyHighMissionGap = !App.onlyHighMissionGap;
+    // Re-render with current recompetes data
+    if (App.forecastData.analysis && App.forecastData.analysis.recompetes) {
+      this.renderRecompetes(App.forecastData.analysis.recompetes);
+    }
   },
 
 // Calculate rolling 4-quarter projection using quarter-specific growth rates
@@ -3808,9 +3911,9 @@ const PromptPackageGenerator = {
       .sort((a, b) => b.spend - a.spend);
   },
 // Generate the territory plan prompt
-  generatePrompt(extracted, config) {
+generatePrompt(extracted, config) {
     const mf = v => Utils.money(v);
-    const pct = v => v.toFixed(1) + '%';
+    const pct = v => (v && !isNaN(v)) ? v.toFixed(1) + '%' : '0.0%';
     const query = extracted.query.toUpperCase();
     const fy = Utils.getCurrentFY();
 
@@ -3895,6 +3998,9 @@ Output a markdown table mapping identified incumbents (from Section 3) to identi
 
 | Target Incumbent | Vulnerability | Recommended Partner Path | Strategic Rationale |
 |---|---|---|---|
+${competitors.slice(0,3).map(comp => 
+`| ${comp.name} | ${mf(comp.expiring)} Recompete | ${channels[0]?.name || 'TBD Channel'} | Leverage existing contract vehicle |`
+).join('\n')}
 
 ### 6) ACCOUNT PRIORITIZATION
 | Account / Component | Priority | Decision |
@@ -3923,7 +4029,7 @@ Markdown table with verifiable milestones and a Kill/No-Go decision point.
 
 ### 13) APPENDIX: EXECUTION PRECONDITIONS
 Succinctly state required leadership support and the alternative if withheld.`;
-  },
+},
   buildPackage(data, analysis, config = {}) {
     const metrics = this.calculateMetrics(data, analysis);
     const vendors = this.buildVendorIntel(data);
