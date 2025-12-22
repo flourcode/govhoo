@@ -486,7 +486,14 @@ body {
     width: 100% !important;
     max-width: 100% !important;
   }
-
+.forecast-table th, .forecast-table td {
+    padding: 0.75rem 0.25rem !important; 
+    font-size: 0.75rem; 
+  }
+  
+  .forecast-table td:last-child {
+    padding-right: 0 !important;
+  }
   .geo-states-grid { grid-template-columns: 1fr !important; }
   .btn-row { flex-direction: column; }
   .chart-container { min-width: 600px; }
@@ -521,9 +528,8 @@ body {
   .channel-modal-content { 
     margin: 0; 
     border-radius: 0; 
-    height: 100vh; 
-    height: 100dvh;
-    max-height: 100vh; 
+    height: 100%; 
+    max-height: 100%; 
     max-width: 100%; 
     display: flex; 
     flex-direction: column;
