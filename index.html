@@ -214,44 +214,6 @@
         <i class="fas fa-eye"></i> Forecast & Strategy
       </button>
     </div>
-	
-<!-- Help CTA - Matches Conversation Starters layout -->
-<div id="helpSessionPanel" style="margin: 1.5rem 0; padding: 1rem 1.25rem; background: linear-gradient(135deg, rgba(95, 128, 85, 0.12) 0%, rgba(95, 128, 85, 0.06) 100%); border: 1px solid rgba(95, 128, 85, 0.35); border-radius: 6px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
-
-  <div style="display: flex; align-items: center; gap: 1rem;">
-    <div style="width: 44px; height: 44px; background: rgba(95, 128, 85, 0.18); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-      <i class="fas fa-life-ring" style="color: #5f8055; font-size: 1.25rem;"></i>
-    </div>
-    <div>
-       <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700; color: #5f8055; text-transform: uppercase; letter-spacing: 0.5px;">
-        Need help?
-      </div>
-      <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
-        Book 30 minutes with me. Just $19. We'll look at an agency, vendor, or market and figure out what to do next for your GTM or pipeline.
-      </div>
-    </div>
-  </div>
-
-  <a
-    href="https://calendly.com/markflournoy/govhoo"
-    target="_blank"
-    style="text-decoration:none;"
-  >
-    <button class="convo-starters-btn"
-      style="
-        padding: 0.75rem 1.5rem;
-        font-size: 0.85rem;
-        background: #5f8055;
-        border: 1px solid #5f8055;
-        color: #ffffff;
-        border-radius: 6px;
-        cursor: pointer;
-      ">
-      <i class="fas fa-calendar-check"></i> Book 30 minutes
-    </button>
-  </a>
-</div>
-
     <div id="searchModeView" class="view-section active">
       
       <!-- Drill Navigation Controls - Separate from main visualization -->
@@ -288,8 +250,15 @@
           <div class="time-badge mono text-xs muted" style="flex-shrink: 0;">PAST 12 MONTHS</div>
         </div>
         
-        <!-- Stats Row - Clean and Compact -->
-        <div class="stats-row" id="searchStats" style="margin-bottom: 1.25rem;">
+      
+        
+        <!-- Sankey Chart -->
+        <div class="chart-wrapper" style="border: none; padding: 0; background: transparent; overflow-x: auto; overflow-y: visible;">
+          <div id="chartContainer" class="chart-container"></div>
+        </div>
+		
+          <!-- Stats Row - Clean and Compact -->
+        <div class="stats-row" id="searchStats" style="margin-bottom: 1rem; margin-top: 1rem;">
           <div class="stat-item">
             <div class="stat-label">Agencies</div>
             <div class="stat-val" id="stat-agencies">-</div>   
@@ -307,12 +276,6 @@
             <div class="stat-val" id="stat-vol">-</div>
           </div>
         </div>
-        
-        <!-- Sankey Chart -->
-        <div class="chart-wrapper" style="border: none; padding: 0; background: transparent; overflow-x: auto; overflow-y: visible;">
-          <div id="chartContainer" class="chart-container"></div>
-        </div>
-        
         <!-- Subtle Branding for Screenshots -->
         <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border); font-size: 0.65rem; color: var(--text-muted);">
           <span>Data: USASpending.gov</span>
