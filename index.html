@@ -2549,16 +2549,16 @@ const Utils = {
   
 getColor: (() => {
   const palette = [
-    '#5A7D6F', // 1. Faded Fern
-    '#B86B63', // 2. Washed Brick
-    '#405563', // 3. Archival Blue
-    '#949AA1', // 4. Old Pewter
-    '#B59292', // 5. Dried Rose
-    '#67756D', // 6. Slate Green
-    '#657F8F', // 7. Weathered Steel
-    '#C2BDB5', // 8. Parchment Grey
-    '#856060', // 9. Faded Oxblood
-    '#425759'  // 10. Deep Sea
+    '#5C8070', // 1. Faded Ranger Green (Base)
+    '#C49A9A', // 2. Dusty Rose (Replaces Clay - Soft, pressed flower pink)
+    '#6C86A8', // 3. Hazy Lake Blue (Vintage denim)
+    '#9AA0A3', // 4. Granite Rock (Neutral cool grey)
+    '#D6CFC2', // 5. Old Topo Map (Paper beige)
+    '#8F705C', // 6. Worn Leather (Brown)
+    '#6E8DA6', // 7. Weathered Steel Sign
+    '#7C8A6B', // 8. Dry Grass (Muted Olive)
+    '#9E6B6B', // 9. Old Brick (Darker red-brown to contrast with Rose)
+    '#8596A3'  // 10. Foggy Slate
   ];
 
   const assigned = new Map();
@@ -2568,10 +2568,9 @@ getColor: (() => {
     // Safety check
     if (!name) return '#4A4A4A';
 
-    // The "Ink Stain" Logic:
-    // Unknowns get a deep, warm charcoal to recede into the paper
+    // "Unknowns" get a deep charcoal like old printer ink
     if (name.includes('Other') || name.includes('Unknown')) return '#363330';
-
+    
     if (!assigned.has(name)) assigned.set(name, nextIdx++);
     return palette[assigned.get(name) % palette.length];
   };
@@ -2579,7 +2578,6 @@ getColor: (() => {
   fn.reset = () => { assigned.clear(); nextIdx = 0; };
   return fn;
 })(),
-
 queryAliases: {
   // Big Tech & Defense Primes
   'aws': 'Amazon',
