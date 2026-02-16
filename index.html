@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="dark">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%23000000%22/><text y=%2250%%22 x=%2250%%22 font-size=%2265%22 font-family=%22'JetBrains Mono', monospace%22 font-weight=%22700%22 fill=%22%23426a5a%22 text-anchor=%22middle%22 dominant-baseline=%22central%22>>_</text></svg>">
   <title>Govhoo - Federal Contract Intelligence & Sales Planning</title>
   <meta name="title" content="Govhoo - Federal Contract Intelligence & Sales Planning">
@@ -20,7 +21,7 @@
   <link rel="canonical" href="https://govhoo.com/">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://kit.fontawesome.com/8ef6ca8a5d.js" crossorigin="anonymous"></script>
   <link rel="preconnect" href="https://api.usaspending.gov">
   <link rel="dns-prefetch" href="https://api.usaspending.gov">
@@ -52,9 +53,9 @@
   /* ACCENT: Alpine Fern (Lexington Ave Green) */
   --accent: #426a5a;
   --accent-light: #7BB594;
-  --accent-dark: #427357;
+  --accent-dark: #355a4c;
   --accent-dim: rgba(66, 106, 90, 0.15);
-  --accent-glow: rgba(131, 158, 142, 0.25);
+  --accent-glow: rgba(66, 106, 90, 0.25);
   
   /* BORDERS: Subtle Etched Slate */
   --border: rgba(251, 247, 245, 0.12);
@@ -82,7 +83,7 @@
 
 body {
   margin: 0; padding: 0;
-  font-family: 'Helvetica Neue', 'Inter', -apple-system, sans-serif;
+  font-family: 'JetBrains Mono', monospace;
   background: var(--bg-app);
   color: var(--text-primary);
   min-height: 100vh;
@@ -123,8 +124,8 @@ body {
 @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes panelSlideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes subtlePulse { 
-  0%, 100% { box-shadow: 0 0 0 0 rgba(131, 158, 142, 0); }
-  50% { box-shadow: 0 0 0 4px rgba(131, 158, 142, 0.08); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(66, 106, 90, 0); }
+  50% { box-shadow: 0 0 0 4px rgba(66, 106, 90, 0.08); }
 }
 
 /* Stagger Animations for Intelligence Panels */
@@ -149,7 +150,7 @@ body {
   padding: 1.25rem 1rem;
   font-size: 1.1rem;
   border-radius: 4px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'JetBrains Mono', monospace;
   transition: border-color 0.2s;
   -webkit-appearance: none;
 }
@@ -179,6 +180,7 @@ body {
   display: flex; align-items: center; justify-content: center; gap: 0.5rem;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
   transition: all 0.2s ease;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 .btn-primary:hover, .pipeline-builder-btn:hover, .convo-starters-btn:hover, #searchBtn:hover {
@@ -332,7 +334,7 @@ body {
   color: #FFFFFF !important; width: 34px; height: 34px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center; cursor: pointer;
   font-size: 14px; transition: opacity 0.15s, transform 0.15s;
-  font-family: 'Helvetica Neue', 'Arial', sans-serif;
+  font-family: 'JetBrains Mono', monospace;
 }
 .icon-btn:hover { opacity: 0.82 !important; transform: scale(1.08); color: #FFFFFF !important; }
 .icon-btn.active { background: var(--accent-light) !important; color: #FFFFFF !important; }
@@ -472,14 +474,16 @@ body {
 .mission-gap-signals { font-size: 0.7rem; color: var(--text-muted); margin-top: 6px; font-style: italic; }
 .mission-gap-filter { display: flex; align-items: center; gap: 0.5rem; }
 .mission-gap-toggle {
-  display: flex; align-items: center; gap: 0.4rem; padding: 10px 14px; min-height: 44px;
-  background: transparent; border: 1px solid var(--border); border-radius: 4px;
-  font-size: 0.7rem; font-family: 'JetBrains Mono', monospace; color: var(--text-muted);
-  cursor: pointer; transition: all 0.2s;
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+  padding: 0 12px; height: 34px; min-width: 34px;
+  background: var(--danger) !important; border: none !important; border-radius: 34px;
+  font-size: 0.7rem; font-family: 'JetBrains Mono', monospace; color: #FFFFFF !important;
+  font-weight: 700; cursor: pointer; transition: opacity 0.15s, transform 0.15s;
+  white-space: nowrap;
 }
-.mission-gap-toggle:hover { border-color: var(--accent); color: var(--accent); }
-.mission-gap-toggle.active { background: rgba(251, 128, 114, 0.15); border-color: var(--danger); color: var(--danger); }
-.mission-gap-toggle i { font-size: 0.65rem; }
+.mission-gap-toggle:hover { opacity: 0.82; transform: scale(1.04); color: #FFFFFF !important; }
+.mission-gap-toggle.active { background: var(--danger) !important; color: #FFFFFF !important; opacity: 1; }
+.mission-gap-toggle i { font-size: 0.65rem; color: #FFFFFF !important; }
 
 /* Buyers List */
 .buyer-list { display: flex; flex-direction: column; gap: 0; width: 100%; }
@@ -491,7 +495,7 @@ body {
 .buyer-rank {
   width: 34px; height: 34px; background: var(--accent) !important;
   color: #FFFFFF !important; border-radius: 50%; display: flex; align-items: center;
-  justify-content: center; font-family: 'Helvetica Neue', 'Arial', sans-serif;
+  justify-content: center; font-family: 'JetBrains Mono', monospace;
   font-size: 15px !important; font-weight: 700; flex-shrink: 0; border: none !important;
 }
 .buyer-info { flex: 1; min-width: 0; }
@@ -523,7 +527,7 @@ body {
   padding: 2px 6px; border-radius: 2px; font-size: 0.7rem; font-weight: 700;
   white-space: nowrap; display: inline-flex; align-items: center; gap: 2px;
 }
-.trend-up { color: var(--success); background: rgba(102, 194, 165, 0.1); }
+.trend-up { color: var(--success); background: rgba(66, 106, 90, 0.1); }
 .trend-down { color: var(--danger); background: rgba(251, 128, 114, 0.1); }
 
 /* Insight Cards */
@@ -593,7 +597,7 @@ body {
   font-size: 0.65rem; padding: 2px 8px; border-radius: 10px;
   font-weight: 600; font-family: 'JetBrains Mono', monospace;
 }
-.analysis-panel-badge.high { background: rgba(102, 194, 165, 0.2); color: var(--success); }
+.analysis-panel-badge.high { background: rgba(66, 106, 90, 0.2); color: var(--success); }
 .analysis-panel-badge.medium { background: rgba(253, 216, 53, 0.2); color: #FDD835; }
 .analysis-panel-badge.low { background: rgba(239, 83, 80, 0.2); color: var(--danger); }
 .analysis-panel-badge.neutral { background: rgba(255, 255, 255, 0.1); color: var(--text-muted); }
@@ -666,7 +670,7 @@ body {
 .subagency-rank {
   width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
   background: var(--accent) !important; color: #FFFFFF !important; border-radius: 50%;
-  font-family: 'Helvetica Neue', 'Arial', sans-serif; font-size: 15px !important; font-weight: 700; flex-shrink: 0; border: none !important;
+  font-family: 'JetBrains Mono', monospace; font-size: 15px !important; font-weight: 700; flex-shrink: 0; border: none !important;
 }
 .subagency-info { flex: 1; min-width: 0; }
 .subagency-name { font-size: 0.95rem; color: var(--text-primary); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -682,7 +686,7 @@ body {
 .subagency-item:hover .subagency-drill-icon { opacity: 1; color: var(--accent); transform: translateX(2px); }
 .drill-level-indicator {
   display: inline-flex; align-items: center; gap: 0.25rem; padding: 2px 6px;
-  background: rgba(102, 194, 165, 0.1); border: 1px solid rgba(102, 194, 165, 0.3);
+  background: rgba(66, 106, 90, 0.1); border: 1px solid rgba(66, 106, 90, 0.3);
   border-radius: 4px; font-size: 0.65rem; color: var(--success); margin-left: 0.5rem;
 }
 .node-drillable { cursor: pointer; }
@@ -774,7 +778,7 @@ body {
 .compact-winner-rank {
   width: 34px; height: 34px; background: var(--accent) !important; color: #FFFFFF !important;
   border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  font-family: 'Helvetica Neue', 'Arial', sans-serif; font-size: 15px !important; font-weight: 700;
+  font-family: 'JetBrains Mono', monospace; font-size: 15px !important; font-weight: 700;
   flex-shrink: 0; margin-top: 2px; border: none !important;
 }
 .compact-winner-info { flex: 1; min-width: 0; }
@@ -792,7 +796,7 @@ body {
 .compact-location-rank {
   width: 34px; height: 34px; background: var(--accent) !important; color: #FFFFFF !important;
   border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  font-family: 'Helvetica Neue', 'Arial', sans-serif; font-size: 15px !important; font-weight: 700;
+  font-family: 'JetBrains Mono', monospace; font-size: 15px !important; font-weight: 700;
   flex-shrink: 0; border: none !important;
 }
 .compact-location-info { flex: 1; min-width: 0; }
@@ -870,7 +874,7 @@ body {
   transform: translateY(16px) scale(0.98); opacity: 0;
   transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
   display: flex; flex-direction: column; max-height: 85vh;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5), 0 0 1px rgba(131, 158, 142, 0.3);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5), 0 0 1px rgba(66, 106, 90, 0.3);
 }
 .channel-marking-modal.active .channel-modal-content { transform: translateY(0) scale(1); opacity: 1; }
 .channel-modal-header {
@@ -947,7 +951,7 @@ body {
 .ai-link-btn {
   display: flex; align-items: center; justify-content: center; gap: 0.5rem;
   padding: 0.75rem 1rem; border-radius: 4px; color: var(--text-primary);
-  text-decoration: none; font-family: 'Inter', sans-serif; font-size: 0.8rem;
+  text-decoration: none; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
   font-weight: 600; border: 1px solid var(--border); background: rgba(255,255,255,0.05);
   transition: transform 0.1s, opacity 0.2s;
 }
@@ -982,7 +986,7 @@ body {
   transform: translateY(16px) scale(0.98); opacity: 0;
   transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
   display: flex; flex-direction: column; max-height: 90vh;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5), 0 0 1px rgba(131, 158, 142, 0.3);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5), 0 0 1px rgba(66, 106, 90, 0.3);
 }
 .pipeline-modal.active .pipeline-modal-content { transform: translateY(0) scale(1); opacity: 1; }
 .pipeline-progress {
@@ -1032,7 +1036,7 @@ body {
 .pipeline-table .stage.qualification { background: rgba(233, 196, 106, 0.2); color: #E9C46A; }
 .pipeline-quarter-badge {
   display: inline-block; padding: 2px 6px; border-radius: 3px;
-  font-size: 0.65rem; font-weight: 600; background: rgba(95, 128, 85, 0.2);
+  font-size: 0.65rem; font-weight: 600; background: rgba(66, 106, 90, 0.2);
   color: var(--success); font-family: 'JetBrains Mono', monospace;
 }
 .pipeline-source-tag {
@@ -1100,7 +1104,7 @@ body {
   justify-content: center; font-size: 0.75rem; transition: all 0.15s;
 }
 .convo-card-copy:hover { border-color: var(--info); color: var(--info); background: rgba(141, 160, 203, 0.1); }
-.convo-card-copy.copied { border-color: var(--success); color: var(--success); background: rgba(95, 128, 85, 0.1); }
+.convo-card-copy.copied { border-color: var(--success); color: var(--success); background: rgba(66, 106, 90, 0.1); }
 .convo-empty { text-align: center; padding: 2rem; color: var(--text-muted); }
 .convo-empty i { font-size: 2rem; margin-bottom: 1rem; opacity: 0.5; }
 .convo-focus-toggle { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
@@ -1216,7 +1220,7 @@ body {
   background-color: var(--accent) !important; color: #FFFFFF !important;
   border-radius: 50% !important; width: 34px !important; height: 34px !important;
   font-size: 15px !important; font-weight: 700 !important;
-  font-family: 'Helvetica Neue', 'Arial', sans-serif !important;
+  font-family: 'JetBrains Mono', monospace !important;
   display: flex; align-items: center; justify-content: center;
   border: none !important;
 }
@@ -1237,13 +1241,13 @@ body {
 .modal-step-section { padding: 1.5rem; border-bottom: 1px solid var(--border); background: rgba(255, 255, 255, 0.02); }
 .modal-step-section:last-child { border-bottom: none; }
 .modal-info-box {
-  background: rgba(131, 158, 142, 0.06); border-left: 2px solid var(--accent);
+  background: rgba(66, 106, 90, 0.06); border-left: 2px solid var(--accent);
   padding: 0.75rem 1rem; border-radius: 0 4px 4px 0; margin-bottom: 1.5rem;
   font-size: 0.8rem; color: var(--text-muted); line-height: 1.6;
 }
 .modal-info-box strong { color: var(--text-primary); }
 .modal-info-box i { color: var(--accent); }
-.modal-info-box.success { background: rgba(95, 128, 85, 0.08); border-color: var(--success); }
+.modal-info-box.success { background: rgba(66, 106, 90, 0.08); border-color: var(--success); }
 .modal-info-box.success i { color: var(--success); }
 .modal-form-label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem; font-weight: 600; }
 .modal-step-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
@@ -1363,9 +1367,9 @@ body {
   letter-spacing: 0.5px;
 }
 
-/* Ensure the number inside the circle uses Helvetica (subway style) */
+/* Ensure the number inside the circle uses JetBrains Mono */
 .steps-list li::before {
-  font-family: 'Helvetica Neue', 'Arial', sans-serif !important;
+  font-family: 'JetBrains Mono', monospace !important;
   font-weight: 700 !important;
 }
 
@@ -1739,10 +1743,9 @@ body {
 
       <div id="recompetesList" style="margin-bottom: 1.5rem;"></div>
 
-      <div class="section-header" style="opacity: 0.6; border-bottom-style: dashed;">
+      <div class="section-header">
         <div class="section-title-group">
-          <span class="section-title mono bold upper" style="color: var(--text-muted);">Recent Awards</span>
-          <span class="section-subtitle">Individual contracts</span>
+          <span class="section-title">Recent Awards</span>
         </div>
       </div>
       <div id="feedGrid" class="feed-grid"></div>
@@ -1779,14 +1782,8 @@ body {
       </div>
 
       <div id="subConvoStartersPanel" style="margin: 1.5rem 0; padding: 1.25rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; display: none; align-items: center; justify-content: space-between; gap: 1rem;">
-  <div style="display: flex; align-items: center; gap: 1rem;">
-    <div style="width: 44px; height: 44px; background: var(--accent-dim); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-      <span class="sub-bullet lg"><i class="fas fa-handshake"></i></span>
-    </div>
-    <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; letter-spacing: 1px;">Teaming Prep</div>
-  </div>
   <button class="convo-starters-btn" data-action="openSubConvoStarters" id="subConvoStartersBtn">
-    <i class="fas fa-magic"></i> Teaming Starters
+    Conversation Starters
   </button>
 </div>
 
@@ -1823,9 +1820,9 @@ body {
 </div>
 
       <div id="subFeedWrapper" style="display: none; margin-top: 1.5rem;">
-        <div class="section-header" style="opacity: 0.6; border-bottom-style: dashed;">
+        <div class="section-header">
           <div class="section-title-group">
-            <span class="section-title mono bold upper" style="color: var(--text-muted);">Recent Subcontracts</span>
+            <span class="section-title">Recent Subcontracts</span>
           </div>
         </div>
         <div id="subFeedGrid" class="feed-grid"></div>
@@ -5879,10 +5876,12 @@ renderRecompetes(recompetes, showAll = false) {
       <div class="mission-gap-filter">
         <span class="section-subtitle">${subtitleText}</span>
         ${highRiskContracts.length > 0 ? `
-          <button class="mission-gap-toggle ${App.onlyHighMissionGap ? 'active' : ''}" onclick="App.toggleMissionGapFilter()" title="Show only contracts with high mission continuity risk">
-            <i class="fas fa-exclamation-triangle"></i>
-            High Risk Only
-          </button>
+          <button class="mission-gap-toggle ${App.onlyHighMissionGap ? 'active' : ''}"
+        onclick="App.toggleMissionGapFilter()"
+        title="Show only contracts with high mission continuity risk">
+  ☰
+</button>
+
         ` : ''}
       </div>
     </div>`;
