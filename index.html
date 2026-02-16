@@ -1746,6 +1746,32 @@ background: var(--accent);
     font-size: 0.95rem !important;
   }
 }
+@media (max-width: 768px) {
+  /* Prevent iOS zoom on focus */
+  input, select, textarea {
+    font-size: 16px !important; 
+  }
+}
+/* Custom "Midnight" Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-app); 
+}
+::-webkit-scrollbar-thumb {
+  background: var(--bg-elevated); 
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-dim); 
+}
+.pipeline-modal-body {
+  overflow-x: auto; /* Adds scroll bar if table is too wide */
+  -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
+}
 </style>
 </head>
 <body>
@@ -2722,89 +2748,122 @@ normalizeQuery(query) {
 const ModalUtils = {
   activeModal: null,
   previousFocus: null,
-  
+  _boundKeydown: null,
+  _boundClick: null,
+
   open(modalId) {
     const modal = document.getElementById(modalId);
     if (!modal) return;
-    
-    // Store previous focus for restoration
+
+    // 1. Safety: If another modal is open, close it first to prevent overlap
+    if (this.activeModal && this.activeModal !== modal) {
+      this.close();
+    }
+
+    // 2. Store trigger element to restore focus later
     this.previousFocus = document.activeElement;
-    
-    // Lock body scroll
+
+    // 3. Lock Body Scroll (Prevents background scrolling while modal is open)
     document.body.style.overflow = 'hidden';
-    
-    // Show modal
-    modal.classList.add('active');
+
+    // 4. Activate Modal
+    // We use requestAnimationFrame to ensure the CSS transition triggers beautifully
+    requestAnimationFrame(() => {
+      modal.classList.add('active');
+    });
+
     this.activeModal = modal;
-    
-    // Focus first focusable element
-    const focusable = modal.querySelector('button, input, select, textarea');
-    if (focusable) setTimeout(() => focusable.focus(), 50);
-    
-    // Add event listeners
+
+    // 5. Smart Focus
+    // We focus the first input, but use preventScroll to stop the page jumping on mobile
+    const focusable = modal.querySelector('input, select, textarea, button:not(.modal-close)');
+    if (focusable) {
+      // Small delay ensures the modal is visible before we try to focus
+      setTimeout(() => {
+        focusable.focus({ preventScroll: true });
+      }, 50);
+    }
+
+    // 6. Bind Events
     this._boundKeydown = this.handleKeydown.bind(this);
-    this._boundBackdrop = this.handleBackdropClick.bind(this);
+    this._boundClick = this.handleClick.bind(this);
+
     document.addEventListener('keydown', this._boundKeydown);
-    modal.addEventListener('click', this._boundBackdrop);
+    modal.addEventListener('click', this._boundClick);
   },
-  
+
   close() {
     if (!this.activeModal) return;
-    
+
     const modal = this.activeModal;
-    
-    // Hide modal
+
+    // 1. Deactivate
     modal.classList.remove('active');
-    
-    // Restore body scroll
+
+    // 2. Unlock Body Scroll
     document.body.style.overflow = '';
-    
-    // Restore previous focus
-    if (this.previousFocus && this.previousFocus.focus) {
-      this.previousFocus.focus();
-    }
-    
-    // Remove event listeners
+
+    // 3. Cleanup Events
     document.removeEventListener('keydown', this._boundKeydown);
-    modal.removeEventListener('click', this._boundBackdrop);
-    
+    modal.removeEventListener('click', this._boundClick);
+
+    // 4. Restore Focus to the button that opened the modal
+    if (this.previousFocus && typeof this.previousFocus.focus === 'function') {
+      this.previousFocus.focus({ preventScroll: true });
+    }
+
+    // Reset state
     this.activeModal = null;
+    this.previousFocus = null;
   },
-  
+
+  // Centralized Click Handler
+  // Handles both Backdrop clicks AND "Close/Cancel" buttons automatically
+  handleClick(e) {
+    // 1. Backdrop Click (Close if clicking outside content)
+    if (e.target === this.activeModal) {
+      this.close();
+      return;
+    }
+
+    // 2. Auto-Close for any element with these classes
+    // This saves you from writing manual onclick="" handlers for every X button
+    if (e.target.closest('.modal-close') || e.target.closest('.modal-btn-cancel')) {
+      this.close();
+    }
+  },
+
   handleKeydown(e) {
+    // 1. ESC to Close
     if (e.key === 'Escape') {
       this.close();
       return;
     }
-    
-    // Focus trap - keep Tab within modal
+
+    // 2. Focus Trap (Keeps Tab cycle inside the modal)
     if (e.key === 'Tab' && this.activeModal) {
       const focusables = this.activeModal.querySelectorAll(
         'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
       );
-      if (focusables.length === 0) return;
       
+      if (focusables.length === 0) return;
+
       const first = focusables[0];
       const last = focusables[focusables.length - 1];
-      
+
+      // Shift+Tab on first element -> wrap to last
       if (e.shiftKey && document.activeElement === first) {
         e.preventDefault();
         last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
+      } 
+      // Tab on last element -> wrap to first
+      else if (!e.shiftKey && document.activeElement === last) {
         e.preventDefault();
         first.focus();
       }
     }
-  },
-  
-  handleBackdropClick(e) {
-    // Close only if clicking the backdrop itself, not the content
-    if (e.target === this.activeModal) {
-      this.close();
-    }
   }
 };
-
 // ==================== AUTOCOMPLETE ====================
 const VehicleDetector = {
   // GWAC/IDIQ/Vehicle detection from Award ID (PIID) prefixes
