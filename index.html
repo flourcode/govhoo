@@ -887,285 +887,305 @@ background: var(--accent);
 .focus-tag::before { content: '•'; margin-right: 0.35rem; color: var(--accent); }
 
 /* =========================================
-   10. MODALS & OVERLAYS
+   10. MODALS & OVERLAYS (MONOCHROMATIC GREEN)
    ========================================= */
-/* Channel Marking Modal */
-.channel-marking-modal {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(14, 18, 17, 0.9) !important; z-index: 500;
-  padding: 2rem; overflow-y: auto; display: flex; align-items: flex-start; justify-content: center;
-  opacity: 0; visibility: hidden; transition: opacity 0.25s ease, background 0.25s ease, visibility 0.25s;
-  backdrop-filter: blur(8px);
-}
-.channel-marking-modal.active { opacity: 1; visibility: visible; }
-.channel-modal-content {
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-top: 2px solid var(--accent) !important; border-radius: 8px;
-  max-width: 800px; width: 100%; margin: 2rem auto;
-  transform: translateY(16px) scale(0.98); opacity: 0;
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
-  display: flex; flex-direction: column; max-height: 85vh;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5), 0 0 1px rgba(66, 106, 90, 0.3);
-}
-.channel-marking-modal.active .channel-modal-content { transform: translateY(0) scale(1); opacity: 1; }
-.channel-modal-header {
-  padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.015); display: flex; justify-content: space-between; align-items: center;
-}
-.channel-modal-title {
-  font-size: 1.3rem; font-weight: 700; color: #F1EEE9 !important;
-  font-family: 'JetBrains Mono', monospace;
-}
-.channel-modal-close {
-  background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border);
-  color: var(--text-muted); font-size: 1.1rem; cursor: pointer;
-  width: 36px; height: 36px; display: flex; align-items: center;
-  justify-content: center; border-radius: 6px; transition: all 0.2s ease;
-}
-.channel-modal-close:hover {
-  background: rgba(214, 106, 106, 0.12); border-color: var(--danger); color: var(--danger);
-}
-.channel-modal-body { padding: 1.5rem; flex: 1; overflow-y: auto; min-height: 0; }
-.channel-explanation {
-  background: rgba(212, 196, 168, 0.1); border-left: 3px solid var(--accent);
-  padding: 1rem; margin-bottom: 1.5rem; font-size: 0.9rem; color: var(--text-primary); line-height: 1.6;
-}
-.vendor-list-item {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0.75rem 1rem; border: 1px solid var(--border);
-  border-radius: 4px; margin-bottom: 0.5rem; transition: all 0.2s;
-}
-.vendor-list-item:hover {
-  background: rgba(255, 255, 255, 0.025); border-color: var(--accent); transform: translateX(2px);
-}
-.vendor-info { flex: 1; min-width: 0; }
-.vendor-name { font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem; }
-.vendor-stats { font-size: 0.75rem; color: var(--text-muted); }
-.vendor-toggle { display: flex; align-items: center; gap: 0.5rem; }
 
-.toggle-switch {
-  position: relative; width: 50px; height: 26px; background: #333;
-  border-radius: 13px; cursor: pointer; transition: background 0.3s;
+/* --- Base Modal Container --- */
+.channel-marking-modal, .pipeline-modal, .convo-modal {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(14, 18, 17, 0.95) !important; /* Darker, richer backdrop */
+  z-index: 500;
+  padding: 2rem; 
+  overflow-y: auto; 
+  display: flex; align-items: flex-start; justify-content: center;
+  opacity: 0; visibility: hidden; 
+  transition: opacity 0.2s ease, visibility 0.2s;
+  backdrop-filter: blur(5px);
 }
-.toggle-switch.active { background: var(--accent) !important; }
-.toggle-slider {
-  position: absolute; top: 3px; left: 3px; width: 20px; height: 20px;
-  background: white; border-radius: 50%; transition: transform 0.3s;
+
+.channel-marking-modal.active, .pipeline-modal.active, .convo-modal.active { 
+  opacity: 1; visibility: visible; 
 }
-.toggle-switch.active .toggle-slider { transform: translateX(24px); }
-.toggle-label {
-  font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;
-  letter-spacing: 0.5px; min-width: 80px;
+
+/* --- Unified Modal Content Card --- */
+.channel-modal-content, .pipeline-modal-content, .convo-modal-content {
+  background: var(--bg-card); 
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--accent) !important; /* UNIFIED GREEN TOP */
+  border-radius: 8px;
+  width: 100%; margin: 2rem auto;
+  
+  /* Smooth Entry Animation */
+  transform: translateY(12px) scale(0.99); 
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  
+  display: flex; flex-direction: column; 
+  box-shadow: 0 24px 60px rgba(0,0,0,0.6);
 }
-.toggle-switch.active + .toggle-label { color: var(--accent); font-weight: 600; }
+
+.channel-marking-modal.active .channel-modal-content, 
+.pipeline-modal.active .pipeline-modal-content, 
+.convo-modal.active .convo-modal-content { 
+  transform: translateY(0) scale(1); 
+  opacity: 1; 
+}
+
+/* Max Widths */
+.channel-modal-content { max-width: 800px; max-height: 85vh; }
+.pipeline-modal-content { max-width: 1100px; max-height: 90vh; }
+.convo-modal-content { max-width: 700px; max-height: 90vh; }
+
+/* --- Modal Header --- */
+.channel-modal-header {
+  padding: 1.25rem 1.5rem; 
+  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02); 
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+.channel-modal-title {
+  font-size: 1.1rem; font-weight: 700; color: #F1EEE9 !important;
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase; letter-spacing: 1px;
+  display: flex; align-items: center; gap: 0.75rem;
+}
+
+/* Force header bullets to green */
+.channel-modal-title .sub-bullet {
+  background: var(--accent) !important;
+  color: #F1EEE9 !important;
+  box-shadow: 0 0 0 2px var(--bg-card); /* Cutout effect */
+}
+
+/* Close Button (Muted until hover) */
+.channel-modal-close {
+  background: transparent; 
+  border: 1px solid transparent;
+  color: var(--text-muted); 
+  font-size: 1.1rem; 
+  cursor: pointer;
+  width: 32px; height: 32px; 
+  display: flex; align-items: center; justify-content: center; 
+  border-radius: 4px; 
+  transition: all 0.2s ease;
+}
+
+.channel-modal-close:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #F1EEE9;
+}
+
+/* --- Modal Body & Footer --- */
+.channel-modal-body { padding: 1.5rem; flex: 1; overflow-y: auto; min-height: 0; }
 
 .channel-modal-footer {
-  padding: 1rem 1.5rem; border-top: 1px solid var(--border);
-  display: flex; gap: 1rem; justify-content: space-between;
-  align-items: center; flex-shrink: 0; background: var(--bg-card);
+  padding: 1rem 1.5rem; 
+  border-top: 1px solid var(--border);
+  display: flex; gap: 1rem; justify-content: space-between; align-items: center; 
+  flex-shrink: 0; 
+  background: var(--bg-elevated);
 }
+
 .modal-footer-buttons { display: flex; gap: 0.75rem; align-items: center; }
 .modal-footer-secondary { display: flex; gap: 0.5rem; }
-.modal-status-line { font-size: 0.75rem; color: var(--text-muted); }
+.modal-status-line { font-size: 0.75rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+
+/* Modal Buttons */
 .modal-btn {
-  padding: 0.75rem 1.5rem; border-radius: 4px; font-weight: 600;
+  padding: 0.65rem 1.25rem; border-radius: 4px; font-weight: 600;
   cursor: pointer; transition: all 0.2s; text-transform: uppercase;
-  letter-spacing: 1px; font-size: 0.85rem;
+  letter-spacing: 1px; font-size: 0.75rem; font-family: 'JetBrains Mono', monospace;
 }
-.channel-link {
-  display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.75rem;
-  color: var(--text-muted); margin-top: 0.5rem; cursor: pointer; text-decoration: underline;
-}
-.channel-link:hover { color: var(--accent); }
 
-/* AI Link Buttons in Success Modal */
-.ai-link-btn {
-  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-  padding: 0.75rem 1rem; border-radius: 4px; color: var(--text-primary);
-  text-decoration: none; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
-  font-weight: 600; border: 1px solid var(--border); background: rgba(255,255,255,0.05);
-  transition: transform 0.1s, opacity 0.2s;
+/* Primary = Green */
+.modal-btn-primary {
+  background: var(--accent) !important;
+  border: 1px solid var(--accent) !important;
+  color: #F1EEE9 !important;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }
-.ai-link-btn:hover { opacity: 1; background: var(--accent); border-color: var(--accent); }
-.ai-link-btn.claude { background: rgba(193, 95, 60, 0.85); border: 1px solid rgba(193, 95, 60, 0.4); }
-.ai-link-btn.chatgpt { background: rgba(71, 150, 227, 0.75); border: 1px solid rgba(71, 150, 227, 0.35); }
-.ai-link-btn.gemini { background: rgba(145, 119, 199, 0.75); border: 1px solid rgba(145, 119, 199, 0.35); }
+.modal-btn-primary:hover {
+  background: var(--accent-dark) !important;
+  transform: translateY(-1px);
+}
 
-/* Pipeline Modal */
-.pipeline-builder-btn {
-  display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.25rem;
-  border-radius: 4px; background: var(--accent) !important; color: #0a0e0d;
-  border: 1px solid var(--accent); cursor: pointer; font-family: 'JetBrains Mono', monospace;
-  font-size: 0.8rem; font-weight: 600; text-transform: uppercase;
-  letter-spacing: 0.5px; transition: all 0.2s ease;
+/* Cancel/Secondary = Muted Glass */
+.modal-btn-cancel {
+  background: rgba(255,255,255,0.03) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-muted) !important;
 }
-.pipeline-builder-btn:hover { transform: none; box-shadow: none; }
-.pipeline-builder-btn i { font-size: 1rem; }
-.pipeline-modal {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(14, 18, 17, 0.9) !important; z-index: 500;
-  padding: 2rem; overflow-y: auto; display: flex; align-items: flex-start;
-  justify-content: center; opacity: 0; visibility: hidden;
-  transition: opacity 0.25s ease, background 0.25s ease, visibility 0.25s;
-  backdrop-filter: blur(8px);
+.modal-btn-cancel:hover {
+  background: rgba(255,255,255,0.08) !important;
+  color: var(--text-primary) !important;
 }
-.pipeline-modal.active { opacity: 1; visibility: visible; }
-.pipeline-modal-content {
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-top: 2px solid var(--accent) !important; border-radius: 8px;
-  max-width: 1100px; width: 100%; margin: 2rem auto;
-  transform: translateY(16px) scale(0.98); opacity: 0;
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
-  display: flex; flex-direction: column; max-height: 90vh;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5), 0 0 1px rgba(66, 106, 90, 0.3);
+
+/* --- Vendor List & Toggles --- */
+.vendor-list-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.75rem 1rem; 
+  border: 1px solid var(--border);
+  border-radius: 4px; margin-bottom: 0.5rem; 
+  background: rgba(255,255,255,0.01);
+  transition: all 0.2s;
 }
-.pipeline-modal.active .pipeline-modal-content { transform: translateY(0) scale(1); opacity: 1; }
-.pipeline-progress {
-  display: flex; align-items: center; justify-content: center;
-  gap: 0.5rem; padding: 2rem; color: var(--accent);
+.vendor-list-item:hover {
+  background: rgba(255, 255, 255, 0.03); 
+  border-color: var(--accent-light);
 }
-.pipeline-progress .spinner {
-  width: 24px; height: 24px; border: 2px solid var(--border);
-  border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite;
+
+.toggle-switch {
+  position: relative; width: 44px; height: 24px; 
+  background: #2a2a2a; /* Dark gray off state */
+  border-radius: 12px; cursor: pointer; transition: background 0.3s;
 }
-.pipeline-results-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
-.pipeline-stat {
-  background: var(--bg-card); border: 1px solid var(--border) !important;
-  border-radius: 4px; padding: 1rem; text-align: center;
+.toggle-switch.active { background: var(--accent) !important; } /* Green on state */
+
+.toggle-slider {
+  position: absolute; top: 3px; left: 3px; width: 18px; height: 18px;
+  background: #F1EEE9; border-radius: 50%; transition: transform 0.3s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
-.pipeline-stat-label {
-  font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;
-  letter-spacing: 1px; margin-bottom: 0.5rem;
+.toggle-switch.active .toggle-slider { transform: translateX(20px); }
+
+/* --- CONVERSATION STARTERS (The "Blue" Fix) --- */
+.convo-card {
+  background: var(--bg-card); 
+  border: 1px solid var(--border) !important;
+  border-left: 3px solid var(--accent) !important; /* Green, not Blue */
+  border-radius: 4px;
+  padding: 1.25rem; margin-bottom: 0.75rem; position: relative;
+  transition: transform 0.2s ease;
 }
-.pipeline-stat-value {
-  font-family: 'JetBrains Mono', monospace; font-size: 1.25rem; font-weight: 700; color: #F1EEE9 !important;
+.convo-card:hover { 
+  border-color: var(--accent-light) !important; 
+  transform: translateX(4px); 
 }
-.pipeline-stat-sub { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.25rem; }
-.pipeline-table-wrapper {
-  overflow-x: auto; max-height: 400px; overflow-y: auto;
-  border: 1px solid var(--border); border-radius: 4px;
+
+.convo-card-label {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; 
+  color: var(--accent-light) !important; /* Green text */
+  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.75rem;
+  display: flex; align-items: center; gap: 0.5rem; font-weight: 700;
 }
-.pipeline-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; }
-.pipeline-table th {
-  position: sticky; top: 0; background: var(--bg-card); padding: 0.75rem 0.5rem;
-  text-align: left; font-weight: 600; color: var(--accent-light);
-  border-bottom: 2px solid var(--border); font-size: 0.7rem;
-  text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;
+
+.convo-card-copy {
+  position: absolute; top: 1rem; right: 1rem; 
+  background: transparent;
+  border: 1px solid var(--border); 
+  color: var(--text-muted); 
+  width: 32px; height: 32px;
+  border-radius: 4px; cursor: pointer; 
+  display: flex; align-items: center; justify-content: center; 
+  transition: all 0.15s;
 }
-.pipeline-table td {
-  padding: 0.6rem 0.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); color: var(--text-primary);
+.convo-card-copy:hover { 
+  border-color: var(--accent); 
+  color: var(--accent); 
+  background: var(--accent-dim); 
 }
-.pipeline-table tr:hover { background: rgba(255, 255, 255, 0.02); }
-.pipeline-table .amount { font-family: 'JetBrains Mono', monospace; color: var(--success); font-weight: 600; }
-.pipeline-table .date { font-family: 'JetBrains Mono', monospace; color: var(--text-muted); font-size: 0.75rem; }
-.pipeline-table .agency { color: var(--link); }
-.pipeline-table .stage {
-  display: inline-block; padding: 2px 6px; border-radius: 3px;
-  font-size: 0.65rem; font-weight: 600; text-transform: uppercase;
+
+/* Convo Toggles - Green Active State */
+.convo-focus-toggle { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; }
+.convo-focus-btn {
+  flex: 1; padding: 0.6rem; 
+  background: transparent; 
+  border: 1px solid var(--border);
+  color: var(--text-muted); 
+  border-radius: 4px; cursor: pointer;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+  text-transform: uppercase; transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
 }
-.pipeline-table .stage.prospecting { background: rgba(141, 160, 203, 0.2); color: var(--info); }
-.pipeline-table .stage.qualification { background: rgba(233, 196, 106, 0.2); color: #E9C46A; }
-.pipeline-quarter-badge {
-  display: inline-block; padding: 2px 6px; border-radius: 3px;
-  font-size: 0.65rem; font-weight: 600; background: rgba(66, 106, 90, 0.2);
-  color: var(--success); font-family: 'JetBrains Mono', monospace;
+.convo-focus-btn:hover { color: var(--text-primary); border-color: var(--text-muted); }
+
+.convo-focus-btn.active { 
+  background: var(--accent-dim) !important; 
+  border-color: var(--accent) !important; 
+  color: var(--text-primary) !important; 
 }
-.pipeline-source-tag {
-  display: inline-block; padding: 1px 4px; border-radius: 2px;
-  font-size: 0.6rem; background: rgba(212, 196, 168, 0.1); color: var(--text-muted); margin-left: 4px;
-}
+/* Force icons inside active buttons to be green */
+.convo-focus-btn.active .sub-bullet { background: var(--accent) !important; }
+
+/* --- PIPELINE BUILDER (The "Yellow" Fix) --- */
 .pipeline-config-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
 .pipeline-config-item label {
   display: block; font-size: 0.7rem; color: var(--text-muted);
   text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; font-weight: 600;
 }
+
 .pipeline-config-item select, .pipeline-config-item input {
-  width: 100%; padding: 0.6rem; background: var(--bg-app);
-  border: 1px solid var(--border); border-radius: 4px; color: var(--text-primary); font-size: 0.85rem;
+  width: 100%; padding: 0.7rem; 
+  background: var(--bg-input);
+  border: 1px solid var(--border); 
+  border-radius: 4px; 
+  color: var(--text-primary); font-size: 0.85rem;
+  font-family: 'JetBrains Mono', monospace;
 }
-.pipeline-config-item select:focus, .pipeline-config-item input:focus { outline: none; border-color: var(--accent); }
+.pipeline-config-item select:focus { border-color: var(--accent); outline: none; }
 
-/* Conversation Starters Modal */
-.convo-starters-btn {
-  display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1rem;
-  border-radius: 4px; background: var(--accent) !important; color: #0a0e0d;
-  border: 1px solid var(--accent); cursor: pointer; font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
-  letter-spacing: 0.5px; transition: all 0.2s ease; white-space: nowrap;
-}
-.convo-starters-btn:hover { transform: none; box-shadow: none; }
-.convo-starters-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-.convo-modal {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(14, 18, 17, 0.9) !important; z-index: 500;
-  padding: 1rem; overflow-y: auto; display: flex; align-items: flex-start;
-  justify-content: center; opacity: 0; visibility: hidden;
-  transition: opacity 0.25s ease, background 0.25s ease, visibility 0.25s;
-  backdrop-filter: blur(8px);
-}
-.convo-modal.active { opacity: 1; visibility: visible; }
-.convo-modal-content {
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-top: 2px solid var(--info); border-radius: 8px;
-  max-width: 700px; width: 100%; margin: 1rem auto;
-  transform: translateY(16px) scale(0.98); opacity: 0;
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
-  display: flex; flex-direction: column; max-height: 90vh;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5), 0 0 1px rgba(92, 139, 201, 0.3);
-}
-.convo-modal.active .convo-modal-content { transform: translateY(0) scale(1); opacity: 1; }
-.convo-card {
-  background: var(--bg-card); border: 1px solid var(--border) !important;
-  border-left: 3px solid var(--info); border-radius: 4px;
-  padding: 1rem; margin-bottom: 0.75rem; position: relative;
-  transition: all 0.15s ease;
-}
-.convo-card:hover { border-color: rgba(92, 139, 201, 0.3); transform: translateX(2px); }
-.convo-card-label {
-  font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--info);
-  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;
-  display: flex; align-items: center; gap: 0.5rem;
-}
-.convo-card-label i { font-size: 0.7rem; }
-.convo-card-text { font-size: 0.9rem; color: var(--text-primary); line-height: 1.5; padding-right: 2rem; }
-.convo-card-copy {
-  position: absolute; top: 0.75rem; right: 0.75rem; background: transparent;
-  border: 1px solid var(--border); color: var(--text-muted); width: 44px; height: 44px;
-  border-radius: 4px; cursor: pointer; display: flex; align-items: center;
-  justify-content: center; font-size: 0.75rem; transition: all 0.15s;
-}
-.convo-card-copy:hover { border-color: var(--info); color: var(--info); background: rgba(141, 160, 203, 0.1); }
-.convo-card-copy.copied { border-color: var(--success); color: var(--success); background: rgba(66, 106, 90, 0.1); }
-.convo-empty { text-align: center; padding: 2rem; color: var(--text-muted); }
-.convo-empty i { font-size: 2rem; margin-bottom: 1rem; opacity: 0.5; }
-.convo-focus-toggle { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
-.convo-focus-btn {
-  flex: 1; padding: 0.6rem; background: var(--bg-input); border: 1px solid var(--border);
-  color: var(--text-muted); border-radius: 4px; cursor: pointer;
-  font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
-  text-transform: uppercase; transition: all 0.15s;
-}
-.convo-focus-btn.active { background: rgba(141, 160, 203, 0.15); border-color: var(--info); color: var(--info); }
-.convo-focus-btn:hover:not(.active) { border-color: var(--text-muted); color: var(--text-primary); }
-.convo-results-scroll { max-height: 400px; overflow-y: auto; padding-right: 0.5rem; }
-#copySuccessModal .channel-modal-content { border: 1px solid var(--border); box-shadow: none; }
-#copySuccessModal kbd {
-  background: var(--bg-app); border: 1px solid var(--border);
-  color: var(--accent); font-family: 'JetBrains Mono', monospace;
-  padding: 2px 4px; border-radius: 3px;
-}
-#subConvoStartersPanel {
-  border: 1px solid var(--border) !important;
-  background: var(--bg-card) !important;
+/* Pipeline Table - Monochromatic Badges */
+.pipeline-table th {
+  background: var(--bg-card); color: var(--accent); /* Green Headers */
+  font-family: 'JetBrains Mono', monospace;
+  padding: 0.75rem 0.5rem; text-align: left;
+  border-bottom: 2px solid var(--border); font-size: 0.7rem;
+  text-transform: uppercase;
 }
 
-#subConvoStartersBtn {
-  background: var(--accent) !important;
-  color: #F1EEE9 !important;
-  border: none !important;
-  padding: 0.75rem 1.5rem !important;
+.pipeline-table .stage {
+  display: inline-block; padding: 2px 8px; border-radius: 4px;
+  font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+}
+/* Prospecting = Muted Green */
+.pipeline-table .stage.prospecting { 
+  background: rgba(255, 255, 255, 0.05); 
+  color: var(--text-muted); 
+  border: 1px solid var(--border);
+}
+/* Qualification = Active Green */
+.pipeline-table .stage.qualification { 
+  background: var(--accent-dim); 
+  color: var(--accent-light); 
+  border: 1px solid var(--accent);
 }
 
+.pipeline-quarter-badge {
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  padding: 2px 6px; border-radius: 3px; font-size: 0.65rem;
+}
+
+/* --- Info/Success Banners --- */
+/* Replaces the "Beige" and "Red" boxes */
+.modal-info-box, .channel-explanation, .intelligence-banner {
+  background: var(--accent-dim) !important;
+  border-left: 3px solid var(--accent) !important;
+  padding: 1rem; margin-bottom: 1.5rem; 
+  font-size: 0.85rem; color: var(--text-primary); 
+  line-height: 1.6; border-radius: 0 4px 4px 0;
+}
+.modal-info-box i, .intelligence-banner i { color: var(--accent); margin-right: 8px; }
+
+/* --- AI Link Buttons (Success Modal) --- */
+.ai-link-btn {
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  padding: 0.75rem 1rem; border-radius: 4px; 
+  color: var(--text-muted); text-decoration: none; 
+  font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+  font-weight: 600; 
+  border: 1px solid var(--border); 
+  background: rgba(255,255,255,0.02);
+  transition: all 0.2s;
+}
+/* Monochromatic Hover: All turn Green */
+.ai-link-btn:hover { 
+  color: #F1EEE9; 
+  background: var(--accent); 
+  border-color: var(--accent); 
+}
 /* =========================================
    11. FOOTER & MISC
    ========================================= */
@@ -1677,6 +1697,54 @@ background: var(--accent);
 .meta-tag.naics { 
   background: rgba(155, 142, 169, 0.15); 
   color: #9B8EA9; 
+}
+/* =========================================
+   MOBILE MODAL FIXES (Add to end of CSS)
+   ========================================= */
+@media (max-width: 768px) {
+  
+  /* 1. Tighten the outer container padding */
+  /* Was 2rem, which is too wide for iPhone. Reduces wasted edge space. */
+  .channel-marking-modal, .pipeline-modal, .convo-modal {
+    padding: 0.75rem !important;
+    align-items: center !important; /* Centers small modals vertically */
+  }
+
+  /* 2. Fix GTM & General Modals */
+  /* Allows them to fit on screen without being forced 100% height if not needed */
+  .channel-modal-content, .pipeline-modal-content, .convo-modal-content {
+    margin: 0 !important;
+    width: 100% !important;
+    max-height: 95vh !important;
+    border-radius: 8px !important; /* Keep rounded corners on mobile */
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* 3. FIX: COPY SUCCESS MODAL (Stop it from being huge) */
+  /* This specific ID override prevents the success message from filling the screen */
+  #copySuccessModal .channel-modal-content {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: auto !important;
+    flex: 0 0 auto !important; /* Don't grow */
+    margin: auto !important;   /* Center in view */
+    transform: none !important;
+  }
+
+  /* 4. Optimize GTM/Pipeline Internal Spacing */
+  .channel-modal-header, .channel-modal-footer {
+    padding: 1rem !important; /* Shrink header/footer height */
+  }
+  
+  .channel-modal-body {
+    padding: 1rem !important;
+  }
+
+  /* 5. Shrink large titles on mobile */
+  .channel-modal-title {
+    font-size: 0.95rem !important;
+  }
 }
 </style>
 </head>
