@@ -36,38 +36,39 @@
   </script>
 <style>
 :root {
-  /* SURFACES */
-  --bg-app: #0E1211;
-  --bg-card: #141B18;
-  --bg-input: #17201D;
-  --bg-elevated: #1B2521;
+  /* SURFACES - Warm, Deep Charcoal (Less "Electronic", more "Ink") */
+  --bg-app: #0E1111;      /* Deepest Black-Green */
+  --bg-card: #161B18;     /* Soft Charcoal */
+  --bg-input: #1A211E;
+  --bg-elevated: #232D29;
 
-  /* TEXT */
-  --text-primary: #F1EEE9;
-  --text-muted: #9BA8A2;
-  --text-subtle: #7F8C86;
+  /* TEXT - Softened contrast to reduce eye strain */
+  --text-primary: #E8E6E1; /* Parchment White (Not harsh #FFF) */
+  --text-muted: #8F9E98;   /* Faded Slate */
+  --text-subtle: #5A6660;  /* Deep Graphite */
+  --link: #7DAF9C;         /* Muted Teal link color */
 
-  /* ACCENT (ANCHOR) */
-  --accent: #426A5A;
-  --accent-dark: #355A4C;
-  --accent-light: #6F9A84;
-  --accent-dim: rgba(66, 106, 90, 0.14);
+  /* ACCENT - "Antique Fern" */
+  --accent: #4A7A67;       
+  --accent-dark: #365C4C;
+  --accent-light: #7DAF9C; 
+  --accent-dim: rgba(74, 122, 103, 0.15);
+
+  /* FUNCTIONAL CHALK COLORS - The key to "Relaxing" */
+  /* These replace standard neon colors with "pastel" versions */
+  --success: #78A890; /* Sage instead of Green */
+  --warning: #D1Bfa7; /* Sand instead of Yellow */
+  --danger: #B87E7E;  /* Faded Rose instead of Red */
+  --info: #7E9CB8;    /* Steel Blue instead of Blue */
 
   /* BORDERS */
-  --border: rgba(155, 168, 162, 0.22);
-  --border-hover: rgba(155, 168, 162, 0.36);
-  --paper-dim: rgba(241, 238, 233, 0.035);
-
-  /* STATUS (same family, no shouting) */
-  --success: var(--accent-light);
-  --warning: #8E8B6B; /* olive ledger */
-  --danger: #7A5F66;  /* inked rose */
-
-
+  --border: rgba(143, 158, 152, 0.15);
+  --border-hover: rgba(143, 158, 152, 0.3);
+  
+  /* SIZING */
   --safe-top: env(safe-area-inset-top, 20px);
   --safe-bottom: env(safe-area-inset-bottom, 20px);
 }
-
 /* =========================================
    2. GLOBAL RESET & SCROLLBAR
    ========================================= */
@@ -323,7 +324,7 @@ body {
 
 /* Base icon button — same behavior, neutral ink */
 .icon-btn {
-  background: rgba(155, 168, 162, 0.22);
+ background: var(--accent);
   border: none;
   color: #F1EEE9;
 
@@ -355,17 +356,17 @@ body {
 }
 /* Share – Faded Treasury Blue */
 .icon-btn-share {
-  background: #6E86A0;
+background: var(--accent);
 }
 
 /* Details / Slack – Dusty Archive Violet */
 .icon-btn-slack {
-  background: #8A7F9A;
+ background: var(--accent);
 }
 
 /* CSV – Accounting Slate */
 .icon-btn-csv {
-  background: #6F7F8A;
+ background: var(--accent);
 }
 
 
@@ -1611,7 +1612,72 @@ body {
 #filterBadge {
   display: none !important;
 }
+/* 1. SOFTEN THE SEARCH BOX */
+.main-input, .mini-search {
+  border-radius: 8px; /* Softer corners */
+  background: var(--bg-input) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2); /* Deep shadow, not harsh */
+}
+.main-input:focus {
+  border-color: var(--accent-light) !important;
+  box-shadow: 0 0 0 3px var(--accent-dim); /* Soft glow instead of hard outline */
+}
 
+/* 2. RELAX THE "QUICK START" CHIPS */
+/* Makes them look like paper tickets */
+#heroView a[href^="?q="] {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-muted) !important;
+  border-radius: 20px !important; /* Pill shape is friendlier */
+  padding: 6px 16px !important;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+}
+#heroView a[href^="?q="]:hover {
+  background: var(--accent-dim) !important;
+  color: var(--accent-light) !important;
+  border-color: var(--accent) !important;
+  transform: translateY(-1px);
+}
+
+/* 3. MUTED SUBWAY BULLETS */
+/* Instead of hardcoded orange/blue, use the palette variables */
+.sub-bullet.blue { background: var(--info); }
+.sub-bullet.orange { background: var(--warning); color: var(--bg-app); } /* Dark text on light background for contrast */
+.sub-bullet.red { background: var(--danger); }
+.sub-bullet.purple { background: #9B8EA9; } 
+
+/* 4. CARD STYLING - "Matte" finish */
+.deal-card, .stat-item, .analysis-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15); /* Subtle depth */
+}
+
+/* 5. TEXT HIERARCHY */
+/* Ensure big numbers don't dazzle the eyes */
+.hero-growth-value, #stat-vol, .deal-amount {
+  color: var(--text-primary) !important;
+  text-shadow: none; /* Remove any hard shadows */
+  letter-spacing: -1px; /* Tighten for a modern look */
+}
+
+/* 6. TAGS - Pastel Chalk look */
+.meta-tag {
+  border-radius: 4px;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+.meta-tag.psc { 
+  background: rgba(126, 156, 184, 0.15); 
+  color: var(--info); 
+}
+.meta-tag.naics { 
+  background: rgba(155, 142, 169, 0.15); 
+  color: #9B8EA9; 
+}
 </style>
 </head>
 <body>
@@ -2377,17 +2443,17 @@ const Utils = {
   
 getColor: (() => {
   const palette = [
-  '#DADFD6', // 1. Ledger Paper – neutral base, background money tone
-  '#9FAE9C', // 2. Sterling Green – classic cash / accounting
-  '#7F8F7A', // 3. Olive Note – European banknote green
-  '#6F8A8F', // 4. Slate Franc – blue-gray ink, trust & structure
-  '#8A7F6F', // 5. Sepia Peso – aged paper, receipts, records
-  '#7C6E86', // 6. Ink Violet – stamps, seals, authority marks
-  '#8F7A7A', // 7. Ruble Rose – muted red for deficits / variance
-  '#8A8468', // 8. Brass Ledger – subdued gold without shine
-  '#6F7F8A', // 9. Bond Blue – institutional, international finance
-  '#5A6F63'  // 10. Vault Pine – deep reserve, stored value
-];
+  '#4A7A67', // 1. Your Accent (Fern) - The hero color
+    '#5D8A82', // 2. Blue Spruce (Cooler, distinctly blue-green)
+    '#8C8568', // 3. Dried Moss (Warmer, yellow-green/brown)
+    '#5A6B7C', // 4. Storm Slate (Blue-Grey contrast)
+    '#8F7068', // 5. Muted Terracotta (Earth tone for high contrast)
+    '#355C4D', // 6. Deep Pine (Darker version of accent)
+    '#7D9E92', // 7. Sage Mist (Lighter version of accent)
+    '#7C6E5A', // 8. Raw Umber (Neutral Brown)
+    '#4F758B', // 9. Steel (Cool Blue)
+    '#6E7A55'  // 10. Olive Drab (Distinct from Fern)
+  ];
 
   const assigned = new Map();
   let nextIdx = 0;
