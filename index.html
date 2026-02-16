@@ -1972,12 +1972,13 @@ svg {
       
       <div style="margin-bottom: 1rem;">
         <ol class="steps-list" style="list-style: none; padding-left: 0;">
-          <li style="margin-bottom: 1rem;">
+        <li style="margin-bottom: 1rem;">
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
               <strong style="color: var(--text-primary);">Explore the Data</strong> 
             </div>
             <div style="font-size: 0.75rem; color: var(--text-primary); opacity: 0.7; line-height: 1.5;">
-              Just type a keyword or a company name. If you want to be precise, you can use PSC or NAICS codes like <a href="?q=541512" style="color: var(--accent-light); text-decoration: underline;">541512</a>. Think of it as opening a map of where the work is currently happening.
+              Type a keyword, company, or software (e.g. "Splunk", "Dell"). Results rely on literal text matching, so if a specific product yields zero results, try the broader category (e.g. use "Cloud Hosting" if "Azure Gov" returns nothing). For precision, use PSC or NAICS codes like 
+              <a href="?q=541512" style="color: var(--accent-light); text-decoration: underline; background: none !important; border: none !important; padding: 0 !important; display: inline !important; box-shadow: none !important;">541512</a>.
             </div>
           </li>
           
@@ -5348,17 +5349,24 @@ renderSankey() {
        return `${d.name}\n${Utils.money(d.value)}\n${action}`;
      });
 
-  // Render Labels
+// Render Labels
+  const isNarrow = w < 600; // Detect mobile width
   svg.append("g")
     .selectAll("text")
     .data(gn)
     .join("text")
     .attr("x", d => (d.x0 < w / 2 ? d.x1 + 6 : d.x0 - 6))
     .attr("y", d => (d.y1 + d.y0) / 2)
-    .attr("dy", "0.35em")
+    .attr("dy", d => {
+      if (d.y1 - d.y0 > 30) {
+        return d.x0 < w / 2 ? "-0.5em" : "1.1em"; 
+      }
+      return "0.35em"; 
+    })
     .attr("text-anchor", d => (d.x0 < w / 2 ? "start" : "end"))
-    .text(d => Utils.trunc(d.name, 40))
+    .text(d => Utils.trunc(d.name, isNarrow ? 25 : 40)) // Tighter truncation on mobile
     .style("font-size", "11px")
+    .style("font-weight", d => (d.y1 - d.y0 > 30) ? "700" : "400") // Bold the major players
     .style("fill", "#F1EEE9")
     .style("pointer-events", "none");
 },
