@@ -4952,10 +4952,9 @@ const linkPaths = linkGroup
   .attr("d", d3.sankeyLinkHorizontal())
   .attr("stroke", (d, i) => "url(#g" + i + ")")
   .attr("stroke-width", d => Math.max(1, d.width))
-  .attr("stroke-opacity", 0.38)
+  .attr("stroke-opacity", 0.40)
   .attr("stroke-linecap", "butt")
-  .attr("stroke-linejoin", "round")
-  .style("mix-blend-mode", "multiply");
+  .attr("stroke-linejoin", "round");
 
 // Optional: subtle hover lift (does not affect layout)
 linkPaths
