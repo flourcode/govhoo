@@ -354,21 +354,40 @@ body {
   background: var(--accent-light);
   color: #F1EEE9;
 }
-/* Share – Faded Treasury Blue */
+/* --- VINTAGE COMIC BUTTONS (No Borders) --- */
+
+/* Share – Spidey Blue (Matte Cyan) */
 .icon-btn-share {
-background: var(--accent);
+  background: #5B7C99 !important; 
+  border: none !important;
+  color: #F1EEE9;
+}
+.icon-btn-share:hover {
+  background: #6C8DAA !important; 
+  transform: translateY(-1px);
 }
 
-/* Details / Slack – Dusty Archive Violet */
+/* Details / Slack – Villain Purple (Dusty Indigo) */
 .icon-btn-slack {
- background: var(--accent);
+  background: #7B6D8D !important; 
+  border: none !important;
+  color: #F1EEE9;
+}
+.icon-btn-slack:hover {
+  background: #8C7E9E !important;
+  transform: translateY(-1px);
 }
 
-/* CSV – Accounting Slate */
+/* CSV – Advertisement Orange (Retro Ink) */
 .icon-btn-csv {
- background: var(--accent);
+  background: #E07A5F !important; 
+  border: none !important;
+  color: #F1EEE9;
 }
-
+.icon-btn-csv:hover {
+  background: #F18B70 !important;
+  transform: translateY(-1px);
+}
 
 /* =========================================
    8. DASHBOARD LAYOUT & HEADERS
@@ -507,7 +526,7 @@ background: var(--accent);
 .mission-gap-toggle {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
   padding: 0 12px; height: 34px; min-width: 34px;
-  background: #A7A9AC !important; border: none !important; border-radius: 34px;
+  background: #E07A5F !important; border: none !important; border-radius: 34px;
   font-size: 0.7rem; font-family: 'JetBrains Mono', monospace; color: #F1EEE9 !important;
   font-weight: 700; cursor: pointer; transition: opacity 0.15s, transform 0.15s;
   white-space: nowrap;
@@ -2549,15 +2568,15 @@ const Utils = {
   
 getColor: (() => {
   const palette = [
-    '#466D5C', // 1. Gotham Green (Your Base - A moody, noir green)
-    '#D98895', // 2. "POW!" Pink (Faded Magenta - Old comic sound effect color)
+    '#466D5C', // 1. Gotham Green (The Hero - Base)
+    '#7B6D8D', // 2. Villain Purple (Button Color - Promoted to top spot)
+    '#5B7C99', // 3. Spidey Blue (Button Color - Promoted)
+    '#E07A5F', // 4. Advertisement Orange (Button Color - Promoted)
+    '#D98895', // 5. POW! Pink (Faded Magenta)
+    '#3D405B', // 6. Inker's Navy (Dark Anchor)
     '#F2E8CF', // 3. Newsprint (The perfect Off-White/Cream paper)
-    '#5B7C99', // 4. Hero Blue (Spiderman's faded tights - Matte Cyan/Blue)
-    '#7B6D8D', // 5. Villain Purple (Joker's suit, but desaturated by time)
-    '#3D405B', // 6. Inker's Navy (Dark, "Key" line color)
-    '#E07A5F', // 7. Faded Orange (Muted, like old advertisement ink)
-    '#81B29A', // 8. Kryptonite Mist (Soft, dusty green)
-    '#F4F1DE', // 9. Bone White (Lighter background accent)
+    '#81B29A', // 8. Kryptonite Mist (Soft Green)
+    '#778DA9', // 9. Blue-Grey Shadow (Halftone shading)
     '#606C38'  // 10. Army Surplus (Drab Olive)
   ];
 
@@ -2565,10 +2584,10 @@ getColor: (() => {
   let nextIdx = 0;
 
   const fn = name => {
-    // Safety check
+    // Safety Check
     if (!name) return '#4A4A4A';
 
-    // "Unknowns" get "Halftone Grey" (The dots in the background)
+    // "Unknowns" get "Ink Stain" (Deep Charcoal)
     if (name.includes('Other') || name.includes('Unknown')) return '#353A40';
     
     if (!assigned.has(name)) assigned.set(name, nextIdx++);
