@@ -1772,6 +1772,18 @@ background: var(--accent);
   overflow-x: auto; /* Adds scroll bar if table is too wide */
   -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
 }
+/* Remove border from Sankey containers to make them 'float' */
+#sankey, #sankey-sub, .sankey-container, .chart-wrapper {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* If the SVG itself has a border class */
+svg {
+  border: none !important;
+  outline: none !important;
+}
 </style>
 </head>
 <body>
@@ -2537,22 +2549,29 @@ const Utils = {
   
 getColor: (() => {
   const palette = [
-  '#4A7A67', // 1. Your Accent (Fern) - The hero color
-    '#5D8A82', // 2. Blue Spruce (Cooler, distinctly blue-green)
-    '#8C8568', // 3. Dried Moss (Warmer, yellow-green/brown)
-    '#5A6B7C', // 4. Storm Slate (Blue-Grey contrast)
-    '#8F7068', // 5. Muted Terracotta (Earth tone for high contrast)
-    '#355C4D', // 6. Deep Pine (Darker version of accent)
-    '#7D9E92', // 7. Sage Mist (Lighter version of accent)
-    '#7C6E5A', // 8. Raw Umber (Neutral Brown)
-    '#4F758B', // 9. Steel (Cool Blue)
-    '#6E7A55'  // 10. Olive Drab (Distinct from Fern)
+    '#5A7D6F', // 1. Faded Fern
+    '#B86B63', // 2. Washed Brick
+    '#405563', // 3. Archival Blue
+    '#949AA1', // 4. Old Pewter
+    '#B59292', // 5. Dried Rose
+    '#67756D', // 6. Slate Green
+    '#657F8F', // 7. Weathered Steel
+    '#C2BDB5', // 8. Parchment Grey
+    '#856060', // 9. Faded Oxblood
+    '#425759'  // 10. Deep Sea
   ];
 
   const assigned = new Map();
   let nextIdx = 0;
 
   const fn = name => {
+    // Safety check
+    if (!name) return '#4A4A4A';
+
+    // The "Ink Stain" Logic:
+    // Unknowns get a deep, warm charcoal to recede into the paper
+    if (name.includes('Other') || name.includes('Unknown')) return '#363330';
+
     if (!assigned.has(name)) assigned.set(name, nextIdx++);
     return palette[assigned.get(name) % palette.length];
   };
@@ -2560,7 +2579,6 @@ getColor: (() => {
   fn.reset = () => { assigned.clear(); nextIdx = 0; };
   return fn;
 })(),
-
 
 queryAliases: {
   // Big Tech & Defense Primes
