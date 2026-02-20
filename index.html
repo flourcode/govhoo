@@ -166,7 +166,7 @@
     </div>
     <a href="https://calendly.com/markflournoy/govhoo" target="_blank" style="text-decoration:none;">
       <button class="btn-primary" style="width: 100%; padding: 0.6rem; font-size: 0.75rem; justify-content: center;">
-        <i class="fas fa-mug-hot"></i> Book a 30-minute working session
+        <i class="fas fa-mug-hot"></i> Book a working session
       </button>
     </a>
   </div>
@@ -290,8 +290,8 @@
               <button class="bubble-toggle-btn" onclick="App.setBubbleMode('agencies')" id="bubbleToggleAgencies">Agencies</button>
               <button class="bubble-toggle-btn" onclick="App.setBubbleMode('subagencies')" id="bubbleToggleSubAgencies" style="display:none;">Sub-Agencies</button>
               <span style="border-left: 1px solid var(--border); height: 1.2rem; margin: 0 0.25rem;"></span>
-              <button class="bubble-toggle-btn active" onclick="App.setBubbleChartType('bubbles')" id="chartTypeBubbles"><i class="fas fa-circle" style="font-size: 0.5rem;"></i> Bubbles</button>
-              <button class="bubble-toggle-btn" onclick="App.setBubbleChartType('treemap')" id="chartTypeTreemap"><i class="fas fa-th-large" style="font-size: 0.55rem;"></i> Treemap</button>
+              <button class="bubble-toggle-btn active" onclick="App.setBubbleChartType('bubbles')" id="chartTypeBubbles">Bubbles</button>
+              <button class="bubble-toggle-btn" onclick="App.setBubbleChartType('treemap')" id="chartTypeTreemap">Treemap</button>
             </div>
           </div>
           <div style="display: flex; align-items: baseline; gap: 1.5rem; flex-wrap: wrap;">
@@ -446,7 +446,6 @@
         <!-- Data Explainer: Subcontracts -->
         <div id="subExplainerBox" style="background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(99,102,241,0.03)); border: 1px solid rgba(99,102,241,0.2); border-radius: 8px; padding: 1rem 1.25rem; margin-top: 1rem; display: none;">
           <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
-            <div style="font-size: 1.1rem; margin-top: 1px;"><i class="fas fa-info-circle" style="color: var(--accent);"></i></div>
             <div style="flex: 1; font-size: 0.75rem; color: var(--text-muted); line-height: 1.6;">
               <strong style="color: var(--text-primary); font-size: 0.8rem;">How to read these numbers</strong><br>
               This shows subcontracting activity matching your search from the past 12 months. Unlike prime contracts, the dollar amounts here represent <strong style="color: var(--text-primary);">individual subcontract transactions</strong>, rather than cumulative obligations over the life of the contract.<br><br>
@@ -470,8 +469,8 @@
                 <button class="bubble-toggle-btn active" onclick="App.setSubBubbleMode('primes')" id="subBubbleTogglePrimes">Primes</button>
                 <button class="bubble-toggle-btn" onclick="App.setSubBubbleMode('subs')" id="subBubbleToggleSubs">Subs</button>
                 <span style="border-left: 1px solid var(--border); height: 1.2rem; margin: 0 0.25rem;"></span>
-                <button class="bubble-toggle-btn active" onclick="App.setSubBubbleChartType('bubbles')" id="subChartTypeBubbles"><i class="fas fa-circle" style="font-size: 0.5rem;"></i> Bubbles</button>
-                <button class="bubble-toggle-btn" onclick="App.setSubBubbleChartType('treemap')" id="subChartTypeTreemap"><i class="fas fa-th-large" style="font-size: 0.55rem;"></i> Treemap</button>
+                <button class="bubble-toggle-btn active" onclick="App.setSubBubbleChartType('bubbles')" id="subChartTypeBubbles">Bubbles</button>
+                <button class="bubble-toggle-btn" onclick="App.setSubBubbleChartType('treemap')" id="subChartTypeTreemap">Treemap</button>
               </div>
             </div>
             <div style="display: flex; align-items: baseline; gap: 1.5rem; flex-wrap: wrap;">
