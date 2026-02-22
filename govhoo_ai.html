@@ -3721,6 +3721,28 @@ ${escapeHtml(strategicText)}
       btn.disabled = false;
   }
 },
+copyAiPlan() {
+  const container = document.getElementById('aiContentContainer');
+  if (!container) return;
+
+  const text = container.dataset.rawPlan;
+  if (!text) return;
+
+  navigator.clipboard.writeText(text)
+    .then(() => {
+      const btn = document.getElementById('copyAiBtn');
+      const original = btn.innerHTML;
+
+      btn.innerHTML = '<i class="fas fa-check"></i> Copied';
+      setTimeout(() => {
+        btn.innerHTML = original;
+      }, 1500);
+    })
+    .catch(err => {
+      console.error('Clipboard failed:', err);
+      alert('Copy failed.');
+    });
+},
   init() {
 
     
