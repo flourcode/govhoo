@@ -27,6 +27,7 @@
   <link rel="dns-prefetch" href="https://api.usaspending.gov">
   <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js" as="script">
   <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/d3-sankey/0.12.3/d3-sankey.min.js" as="script">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-T343V4RFHV"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -1661,6 +1662,20 @@ svg {
     padding: 12px 16px;
     border-radius: 0 4px 4px 0;
     font-style: italic;
+}
+.strategic-read h2 {
+  font-size: 16px;
+  margin-top: 18px;
+  margin-bottom: 8px;
+  color: #8fbc8f;
+}
+
+.strategic-read ul {
+  padding-left: 18px;
+}
+
+.strategic-read li {
+  margin-bottom: 6px;
 }
 </style>
 </head>
@@ -3649,21 +3664,33 @@ const App = {
 
       let renderedHtml;
 
-      if (window.marked) {
-          renderedHtml = marked.parse(strategicText);
-      } else {
-          const escape = (str) =>
-              str.replace(/[&<>"']/g, m =>
-                  ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;' }[m])
-              );
+if (window.marked && typeof window.marked.parse === 'function') {
+    // Configure marked safely (run once globally if you prefer)
+    marked.setOptions({
+        breaks: true,
+        gfm: true
+    });
 
-          renderedHtml = `
-              <pre style="white-space: pre-wrap; font-family: 'JetBrains Mono', monospace;">
-              ${escape(strategicText)}
-              </pre>
-          `;
-      }
+    renderedHtml = marked.parse(strategicText);
+} else {
+    // Safe fallback if marked is not loaded
+    const escapeHtml = (str) =>
+        str.replace(/[&<>"']/g, (m) =>
+            ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[m])
+        );
 
+    renderedHtml = `
+        <pre style="white-space: pre-wrap; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.5;">
+${escapeHtml(strategicText)}
+        </pre>
+    `;
+}
       content.innerHTML = `
           <div class="ai-result-section strategic-read">
               ${renderedHtml}
