@@ -3625,10 +3625,7 @@ const App = {
 
   content.innerHTML = `...loading skeleton...`;
 
-  const summaryPayload = PromptPackageGenerator.buildPackage(
-      App.searchData.active,
-      App.forecastData?.analysis
-  );
+  const summaryPayload = App.searchData.active;
 
   try {
 
