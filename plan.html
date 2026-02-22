@@ -1851,44 +1851,29 @@ svg {
       </div>
 <div style="display: flex; justify-content: flex-end; margin-bottom: 16px; position: relative; z-index: 50;">
     <button id="triggerAiPlanBtn" onclick="App.toggleAiPopover()" style="padding: 8px 16px; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; background: #111; border: 1px solid #426a5a; color: #8fbc8f; border-radius: 4px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
-        ⚡ GENERATE 30-DAY ACTION PLAN
+        🤝 GENERATE TEAMING MAPPER
     </button>
   
     <div id="aiFrictionPopover" class="smart-friction-popover">
-        <label class="sf-label">What is your objective?</label>
-        <div class="sf-radio-group">
-            <label class="sf-radio-label">
-                <input type="radio" name="ai_objective" value="Displacement (Attacking Incumbents)" checked> 
-                🎯 Displacement
-            </label>
-            <label class="sf-radio-label">
-                <input type="radio" name="ai_objective" value="Teaming (Partnering with Primes)"> 
-                🤝 Teaming
-            </label>
-            <label class="sf-radio-label">
-                <input type="radio" name="ai_objective" value="Defense (Protecting our Contracts)"> 
-                🛡️ Defense
-            </label>
-        </div>
+        <label class="sf-label">Provide Context for the AI</label>
+        <p style="font-size: 12px; color: #A0A0A0; margin-bottom: 12px;">What technology or service are you trying to sell to this agency?</p>
         
-        <label class="sf-label">Who are you selling for? (Optional)</label>
-        <input type="text" id="aiUserCompany" class="sf-input" placeholder="e.g. Datadog, AWS, Booz Allen">
+        <input type="text" id="aiUserCompany" class="sf-input" placeholder="e.g. Cloud Security, Datadog, IT Services">
         
         <button onclick="App.runAiActionPlan()" style="width: 100%; padding: 10px; background: #8fbc8f; color: #000; font-family: 'JetBrains Mono', monospace; font-weight: 700; border: none; border-radius: 4px; cursor: pointer;">
-            Run Analysis
+            Map Vehicles & Primes
         </button>
     </div>
 </div>
 
 <div id="aiActionPanel" class="ai-action-panel">
     <div class="ai-header">
-        <h3>⚡ 30-Day Commit Plan</h3>
+        <h3>🤝 Vehicle & Teaming Brief</h3>
         <button onclick="App.copyAiPlan()" id="copyAiBtn" style="display: none; background: transparent; border: 1px solid #555; color: #ccc; padding: 4px 12px; font-family: 'JetBrains Mono', monospace; font-size: 11px; cursor: pointer; border-radius: 4px;">
-            Copy Memo
+            Copy Brief
         </button>
     </div>
-    <div id="aiContentContainer">
-        </div>
+    <div id="aiContentContainer"></div>
 </div>
       <!-- Agency Award Flow Sankey -->
       <div id="sankeyPanel" class="sankey-panel" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin-bottom: 1rem; overflow: hidden;">
@@ -3625,7 +3610,7 @@ const App = {
     popover.classList.toggle('active');
   },
 
-  async runAiActionPlan() {
+async runAiActionPlan() {
     // 1. Hide popover and setup UI loading state
     document.getElementById('aiFrictionPopover').classList.remove('active');
     const panel = document.getElementById('aiActionPanel');
@@ -3641,7 +3626,7 @@ const App = {
 
     panel.style.display = 'block';
     copyBtn.style.display = 'none';
-    btn.innerHTML = 'Synthesizing...';
+    btn.innerHTML = 'Mapping Landscape...';
     btn.style.opacity = '0.7';
     btn.disabled = true;
 
@@ -3656,13 +3641,14 @@ const App = {
         <div class="skeleton-line" style="width: 80%;"></div>
       </div>
       <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #426a5a; text-align: center; margin-top: 16px;">
-        Applying Federal Sales Framework to Live Data...
+        Extracting dominant vehicles and channel partners...
       </div>
     `;
 
     // 2. Gather context and payload
-    const objective = document.querySelector('input[name="ai_objective"]:checked').value;
-    const company = document.getElementById('aiUserCompany').value.trim();
+    // We safely grab the input (ignoring radio buttons since we removed them from the HTML)
+    const companyInput = document.getElementById('aiUserCompany');
+    const company = companyInput ? companyInput.value.trim() : '';
     
     // Leverage the existing export function to build a dense text summary for the AI
     const summaryPayload = PromptPackageGenerator.buildPackage(App.searchData.active, App.forecastData?.analysis);
@@ -3673,9 +3659,9 @@ const App = {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
-              request_type: 'govhoo_action_plan', // Maps to the new Lambda block
+              request_type: 'govhoo_action_plan',
               market_data: summaryPayload,
-              objective: objective,
+              objective: 'Teaming', // Hardcoded safely for the lambda
               user_company: company
           })
       });
@@ -3686,54 +3672,55 @@ const App = {
       if (data.error) throw new Error(data.error);
 
       // 4. Render the returned JSON beautifully
-      // Make sure Autocomplete.escapeHtml is available, or use a custom one if needed.
       const escape = Autocomplete.escapeHtml || ((str) => str.replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;' })[m]));
 
       content.innerHTML = `
         <div class="ai-result-section">
-          <div class="ai-result-title">The Signal</div>
+          <div class="ai-result-title">Buying Behavior</div>
           <div class="ai-result-content" style="font-weight: 500; color: #8fbc8f;">
-            ${escape(data.the_signal)}
+            ${escape(data.executive_summary)}
           </div>
         </div>
         
-        <div class="ai-result-section">
-          <div class="ai-result-title">Primary Targets</div>
-          <div class="ai-result-content">
-            <ul>
-              ${data.primary_targets.map(t => `<li>${escape(t)}</li>`).join('')}
-            </ul>
-          </div>
-        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <div class="ai-result-section" style="margin-bottom: 0;">
+              <div class="ai-result-title">Top Vehicles</div>
+              <div class="ai-result-content">
+                <ul style="padding-left: 16px; margin-top: 8px;">
+                  ${data.top_vehicles.map(v => `<li style="margin-bottom: 8px;"><strong>${escape(v.name)}:</strong> <span style="opacity:0.8; font-size:13px;">${escape(v.insight)}</span></li>`).join('')}
+                </ul>
+              </div>
+            </div>
 
-        <div class="ai-result-section">
-          <div class="ai-result-title">30-Day Commit</div>
-          <div class="ai-result-content">
-            <ul>
-              ${data.thirty_day_commit.map(t => `<li>${escape(t)}</li>`).join('')}
-            </ul>
-          </div>
+            <div class="ai-result-section" style="margin-bottom: 0;">
+              <div class="ai-result-title">Top Primes / VARs</div>
+              <div class="ai-result-content">
+                <ul style="padding-left: 16px; margin-top: 8px;">
+                  ${data.top_primes.map(p => `<li style="margin-bottom: 8px;"><strong>${escape(p.name)}:</strong> <span style="opacity:0.8; font-size:13px;">${escape(p.insight)}</span></li>`).join('')}
+                </ul>
+              </div>
+            </div>
         </div>
 
         <div class="ai-result-section" style="margin-bottom: 0;">
-          <div class="ai-result-title">The Internal Ask</div>
+          <div class="ai-result-title">Teaming Strategy</div>
           <div class="ai-result-content ai-internal-ask">
-            ${escape(data.the_internal_ask)}
+            ${escape(data.teaming_strategy)}
           </div>
         </div>
       `;
 
       // Store raw text format so they can copy it for Slack/Email easily
-      content.dataset.rawPlan = `GOVHOO 30-DAY COMMIT PLAN\n\nTHE SIGNAL:\n${data.the_signal}\n\nTARGETS:\n${data.primary_targets.join('\n')}\n\n30-DAY EXECUTION:\n${data.thirty_day_commit.join('\n')}\n\nTHE ASK:\n${data.the_internal_ask}`;
+      content.dataset.rawPlan = `GOVHOO TEAMING BRIEF\n\nBUYING BEHAVIOR:\n${data.executive_summary}\n\nTOP VEHICLES:\n${data.top_vehicles.map(v => `- ${v.name}: ${v.insight}`).join('\n')}\n\nTOP PRIMES:\n${data.top_primes.map(p => `- ${p.name}: ${p.insight}`).join('\n')}\n\nSTRATEGY:\n${data.teaming_strategy}`;
       
       copyBtn.style.display = 'inline-block';
 
     } catch (e) {
       console.error("AI Plan Error:", e);
-      content.innerHTML = `<div style="color: #ff6b6b; font-size: 13px; font-family: 'JetBrains Mono', monospace;">Failed to generate plan: ${e.message}. Please check your AWS Lambda logs or try again.</div>`;
+      content.innerHTML = `<div style="color: #ff6b6b; font-size: 13px; font-family: 'JetBrains Mono', monospace;">Failed to map teaming: ${e.message}. Please check your AWS Lambda logs or try again.</div>`;
     } finally {
       // Reset button
-      btn.innerHTML = '⚡ GENERATE 30-DAY ACTION PLAN';
+      btn.innerHTML = '🤝 GENERATE TEAMING MAPPER';
       btn.style.opacity = '1';
       btn.disabled = false;
     }
@@ -3757,8 +3744,7 @@ const App = {
         }, 2000);
       });
     }
-  },
-
+  },  
   init() {
 
     
