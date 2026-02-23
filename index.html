@@ -1649,7 +1649,26 @@ svg {
     align-items: center; 
     gap: 1rem; /* Slightly increased gap */
 }
+/* Arti's Secondary/Outline Button */
+.btn-ai-outline {
+    background: transparent;
+    border: 1px solid rgba(123, 109, 141, 0.4); /* Faded Villain Purple */
+    color: #9B8EA9;
+    border-radius: 4px;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 1px;
+}
 
+.btn-ai-outline:hover {
+    background: rgba(123, 109, 141, 0.15);
+    border-color: #7B6D8D;
+    color: #F1EEE9;
+}
 @media (max-width: 600px) {
     .ai-banner { flex-direction: column; align-items: flex-start; gap: 1rem; }
     .ai-banner-content { align-items: flex-start; padding-right: 0 !important; }
@@ -1894,10 +1913,10 @@ svg {
     <div class="ai-header">
         <div class="ai-header-title">
             <img src="images/arti.png" alt="Arti" class="ai-avatar">
-            <h3>STRATEGIC READ</h3>
+            <h3>ARTI'S TAKE</h3>
         </div>
-        <button id="copyAiBtn" class="action-btn" onclick="App.copyAiPlan()" style="display: none; font-size: 0.7rem; border-color: var(--border); font-weight: 700; letter-spacing: 1px;">
-            COPY BRIEF
+        <button id="copyAiBtn" class="btn-ai-outline" onclick="App.copyAiPlan()" style="display: none;">
+            COPY
         </button>
     </div>
     <div id="aiContentContainer" class="ai-result-content"></div>
