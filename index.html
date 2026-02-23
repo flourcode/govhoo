@@ -1505,10 +1505,10 @@ svg {
   color: #F1EEE9 !important;
 }
 /* ==========================================================================
-   AI ACTION PLAN PANEL (Arti Theme - Gotham Green)
+   AI ACTION PLAN PANEL (Arti Theme - Villain Purple)
    ========================================================================== */
 .ai-banner {
-    background: linear-gradient(135deg, rgba(74, 122, 103, 0.15), rgba(242, 232, 207, 0.05));
+    background: linear-gradient(135deg, rgba(123, 109, 141, 0.15), rgba(242, 232, 207, 0.05));
     border: none;
     border-radius: 8px;
     padding: 1.25rem 1.5rem;
@@ -1522,7 +1522,7 @@ svg {
 
 .ai-banner-text h4 {
     margin: 0;
-    color: var(--accent);
+    color: #9B8EA9; /* Light Villain Purple */
     font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -1537,19 +1537,20 @@ svg {
 
 /* Arti's Custom Button */
 .btn-ai {
-    background: var(--accent) !important;
+    background: #7B6D8D !important; /* Villain Purple */
     border: none !important;
     color: #F1EEE9 !important;
     border-radius: 6px;
     cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 12px rgba(74, 122, 103, 0.25) !important;
+    box-shadow: 0 4px 12px rgba(123, 109, 141, 0.25) !important;
 }
 
 .btn-ai:hover {
-    background: var(--accent-dark) !important;
+    background: #8A7B9C !important;
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(74, 122, 103, 0.4) !important;
+    box-shadow: 0 6px 16px rgba(123, 109, 141, 0.4) !important;
 }
 
 /* The Results Panel */
@@ -1562,8 +1563,7 @@ svg {
     display: none;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
     position: relative;
-    /* THE SCROLL FIX */
-    scroll-margin-top: 90px; 
+    scroll-margin-top: 90px; /* Prevents sticky header overlap */
 }
 
 .ai-header {
@@ -1578,7 +1578,7 @@ svg {
 .ai-header h3 {
     margin: 0;
     font-size: 0.9rem;
-    color: var(--accent);
+    color: #9B8EA9;
     text-transform: uppercase;
     letter-spacing: 1px;
     font-weight: 700;
@@ -1594,7 +1594,7 @@ svg {
 .strategic-read h1, 
 .strategic-read h2, 
 .strategic-read h3 {
-    color: var(--accent-light);
+    color: #9B8EA9;
     margin-top: 1.5rem;
     margin-bottom: 0.75rem;
     font-size: 0.9rem;
@@ -1609,16 +1609,6 @@ svg {
 .strategic-read ul { padding-left: 1.25rem; margin-bottom: 1.25rem; }
 .strategic-read li { margin-bottom: 0.5rem; color: var(--text-muted); }
 .strategic-read strong { color: #F1EEE9; font-weight: 700; }
-
-.ai-loader {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: var(--accent);
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
 
 /* Avatar Layouts */
 .ai-avatar { 
@@ -1639,32 +1629,30 @@ svg {
 /* Arti's Secondary/Outline Button */
 .btn-ai-outline {
     background: transparent;
-    border: 1px solid rgba(74, 122, 103, 0.4);
-    color: var(--accent-light);
+    border: 1px solid rgba(123, 109, 141, 0.4);
+    color: #9B8EA9;
     border-radius: 4px;
     padding: 0.4rem 0.75rem;
     font-size: 0.7rem;
     font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
     cursor: pointer;
     transition: all 0.2s ease;
     letter-spacing: 1px;
 }
 
 .btn-ai-outline:hover {
-    background: rgba(74, 122, 103, 0.15);
-    border-color: var(--accent);
+    background: rgba(123, 109, 141, 0.15);
+    border-color: #7B6D8D;
     color: #F1EEE9;
 }
 
-@media (max-width: 600px) {
-    .ai-banner { flex-direction: column; align-items: flex-start; gap: 1rem; }
-    .ai-banner-content { align-items: flex-start; padding-right: 0 !important; }
-    .ai-banner button { width: 100%; justify-content: center; }
-}
-/* AI Chat Interface */
+/* =========================================
+   AI CHAT INTERFACE & MICRO-INTERACTIONS
+   ========================================= */
 .ai-chat-history {
     margin-top: 1.5rem;
-    border-top: 1px dashed var(--border);
+    border-top: 1px dashed rgba(123, 109, 141, 0.3); /* Purple dashed line */
     padding-top: 1.5rem;
     display: flex;
     flex-direction: column;
@@ -1697,6 +1685,18 @@ svg {
     min-width: 0;
 }
 
+/* Tighten markdown spacing ONLY inside chat bubbles */
+.ai-msg-arti .strategic-read h1, 
+.ai-msg-arti .strategic-read h2, 
+.ai-msg-arti .strategic-read h3 {
+    margin-top: 0.75rem; 
+    font-size: 0.8rem; 
+    padding-bottom: 0.15rem;
+}
+.ai-msg-arti .strategic-read p:first-child { margin-top: 0; }
+.ai-msg-arti .strategic-read p:last-child { margin-bottom: 0; }
+.ai-msg-arti .strategic-read ul { margin-bottom: 0.5rem; }
+
 .ai-chat-input-wrapper {
     display: flex;
     gap: 0.5rem;
@@ -1710,23 +1710,10 @@ svg {
     margin-top: 0.5rem;
     font-family: 'JetBrains Mono', monospace;
     opacity: 0.7;
-}
-/* Tighten markdown spacing ONLY inside chat bubbles */
-.ai-msg-arti .strategic-read {
-    margin-top: 0;
+    transition: color 0.3s ease;
 }
 
-.ai-msg-arti .strategic-read h1, 
-.ai-msg-arti .strategic-read h2, 
-.ai-msg-arti .strategic-read h3 {
-    margin-top: 0.75rem; 
-    font-size: 0.8rem; /* Slightly smaller than main report headers */
-    padding-bottom: 0.15rem;
-}
-
-.ai-msg-arti .strategic-read p:first-child { margin-top: 0; }
-.ai-msg-arti .strategic-read p:last-child { margin-bottom: 0; }
-.ai-msg-arti .strategic-read ul { margin-bottom: 0.5rem; }
+/* Pulse Animation for Loading State */
 @keyframes artiPulse {
     0% { opacity: 0.4; transform: scale(0.95); }
     50% { opacity: 1; transform: scale(1.05); }
@@ -1742,6 +1729,51 @@ svg {
 .ai-chat-input-wrapper button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+/* =========================================
+   MOBILE POLISH (WRAP LAYOUT)
+   ========================================= */
+@media (max-width: 600px) {
+    .ai-banner { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    .ai-banner-content { align-items: flex-start; padding-right: 0 !important; }
+    .ai-banner button { width: 100%; justify-content: center; }
+
+    /* Stack the avatar and the text vertically */
+    .ai-msg-arti {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+        max-width: 100%;
+    }
+    
+    /* Remove the negative margin used for side-by-side alignment */
+    .ai-msg-arti .strategic-read {
+        margin-top: 0;
+        width: 100%;
+    }
+
+    /* Shrink the avatar slightly so it doesn't eat up vertical space */
+    .ai-chat-history .ai-avatar.small {
+        width: 32px;
+        height: 32px;
+    }
+
+    /* Give the user's text bubble a bit more horizontal room */
+    .ai-msg-user {
+        max-width: 95%;
+        padding: 0.6rem 0.85rem;
+    }
+
+    /* Tighten the input bar so the Send button fits perfectly */
+    .ai-chat-input-wrapper {
+        gap: 0.4rem;
+    }
+    
+    #aiChatSendBtn {
+        padding: 0 0.8rem;
+        font-size: 0.8rem;
+    }
 }
 </style>
 </head>
