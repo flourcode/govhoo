@@ -1900,22 +1900,22 @@ svg {
 <div id="aiIntelligenceBanner" style="background: rgba(66, 106, 90, 0.1); border: 1px solid #426a5a; border-radius: 6px; padding: 12px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; transition: all 0.3s;">
     <div>
         <h4 style="margin: 0; color: #8fbc8f; font-family: 'JetBrains Mono', monospace; font-size: 13px;">
-            <i class="fas fa-brain"></i> AI Analysis
+           Get a quick take analysis via AI.
         </h4>
         <p style="margin: 4px 0 0 0; color: #A0A0A0; font-size: 12px;">
             Synthesize raw contract descriptions, buying patterns, and major players for this search.
         </p>
     </div>
     <button id="triggerAiPlanBtn" onclick="App.runAiActionPlan()" style="background: #8fbc8f; color: #000; border: none; padding: 8px 16px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 12px; cursor: pointer; white-space: nowrap;">
-        Fetch Brief
+        ANALYZE
     </button>
 </div>
 
 <div id="aiActionPanel" class="ai-action-panel" style="display: none;">
     <div class="ai-header">
-        <h3><i class="fas fa-brain"></i> Account Intelligence Brief</h3>
+        <h3>Quick Take</h3>
         <button id="copyAiBtn" onclick="App.copyAiPlan()" style="display: none; background: transparent; border: 1px solid #555; color: #ccc; padding: 6px 12px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 11px; cursor: pointer;">
-            <i class="fas fa-copy"></i> Copy Brief
+            <i class="fas fa-copy"></i> COPY
         </button>
     </div>
     <div id="aiContentContainer"></div>
@@ -3743,6 +3743,30 @@ copyAiPlan() {
       alert('Copy failed.');
     });
 },
+resetAiPanel() {
+    const banner = document.getElementById('aiIntelligenceBanner');
+    const panel = document.getElementById('aiActionPanel');
+    const content = document.getElementById('aiContentContainer');
+    const btn = document.getElementById('triggerAiPlanBtn');
+    const copyBtn = document.getElementById('copyAiBtn');
+
+    // Reset visibility
+    if (banner) banner.style.display = 'flex';
+    if (panel) panel.style.display = 'none';
+    if (copyBtn) copyBtn.style.display = 'none';
+
+    // Clear content and state
+    if (content) {
+        content.innerHTML = '';
+        delete content.dataset.rawPlan;
+    }
+
+    // Reset button text
+    if (btn) {
+        btn.innerHTML = 'Fetch Brief';
+        btn.disabled = false;
+    }
+  },
   init() {
 
     
@@ -3921,6 +3945,7 @@ setupClearButton('mainSearchInput', 'input-clear');
 
   // Re-fetch or re-use spending data based on drill state
   updateSearchDashboard() {
+	App.resetAiPanel();
     const data = App.searchData.active;
     const totalObligations = data.reduce((acc, c) => acc + (c['Award Amount']||0), 0);
     document.getElementById('stat-vol').innerText = Utils.money(totalObligations);
