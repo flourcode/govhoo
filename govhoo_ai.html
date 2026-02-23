@@ -1506,16 +1506,44 @@ svg {
   color: #F1EEE9 !important;
 }
 /* ==========================================================================
-   AI ACTION PLAN PANEL & SMART FRICTION
+   AI ACTION PLAN PANEL (Integrated Styling)
    ========================================================================== */
+.ai-banner {
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.ai-banner-text h4 {
+    margin: 0;
+    color: var(--accent-light);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.ai-banner-text p {
+    margin: 0.35rem 0 0 0;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    line-height: 1.4;
+}
+
 .ai-action-panel {
-    background: #111111; /* Deep dark background */
-    border: 1px solid #426a5a; /* Muted accent green */
+    background: var(--bg-card);
+    border: 1px solid var(--accent);
     border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 24px;
-    display: none; /* Hidden until triggered */
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    display: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     position: relative;
 }
 
@@ -1523,159 +1551,83 @@ svg {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px dashed #333333;
-    padding-bottom: 12px;
-    margin-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1rem;
+    margin-bottom: 1.25rem;
 }
 
 .ai-header h3 {
     margin: 0;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 14px;
-    color: #8fbc8f; /* Bright accent green */
+    font-size: 0.9rem;
+    color: var(--accent-light);
     text-transform: uppercase;
     letter-spacing: 1px;
+    font-weight: 700;
 }
 
-/* Smart Friction Popover */
-.smart-friction-popover {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    margin-top: 8px;
-    background: #1A1A1A;
-    border: 1px solid #426a5a;
-    border-radius: 8px;
-    padding: 16px;
-    width: 340px;
-    z-index: 100;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.8);
-    display: none;
+.ai-result-content {
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    line-height: 1.6;
 }
 
-.smart-friction-popover.active { 
-    display: block; 
-    animation: fadeInDown 0.2s ease-out; 
-}
-
-@keyframes fadeInDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.sf-label {
+.strategic-read h1, 
+.strategic-read h2, 
+.strategic-read h3 {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: #A0A0A0;
+    color: var(--accent-light);
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
     text-transform: uppercase;
-    margin-bottom: 10px;
-    display: block;
-    letter-spacing: 0.5px;
-}
-
-.sf-radio-group {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.sf-radio-label {
-    font-size: 13px;
-    color: #F1EEE9;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 4px;
-    background: #222222;
-    border: 1px solid #333;
-    transition: all 0.2s;
-}
-
-.sf-radio-label:hover {
-    background: #2a2a2a;
-    border-color: #426a5a;
-}
-
-.sf-input {
-    width: 100%;
-    padding: 10px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    background: #000000;
-    border: 1px solid #333333;
-    color: #F1EEE9;
-    border-radius: 4px;
-    margin-bottom: 16px;
-}
-
-.sf-input:focus {
-    outline: none;
-    border-color: #8fbc8f;
-}
-
-/* AI Skeleton Loader */
-.skeleton-loader {
-    animation: skeletonPulse 1.5s infinite ease-in-out;
-}
-
-.skeleton-line {
-    height: 14px;
-    background: #222222;
-    border-radius: 4px;
-    margin-bottom: 12px;
-}
-
-@keyframes skeletonPulse {
-    0% { opacity: 0.4; }
-    50% { opacity: 0.8; }
-    100% { opacity: 0.4; }
-}
-
-/* AI Results Formatting */
-.ai-result-section { margin-bottom: 20px; }
-.ai-result-title { 
-    font-size: 11px; 
-    color: #A0A0A0; 
-    text-transform: uppercase; 
-    margin-bottom: 8px; 
-    font-family: 'JetBrains Mono', monospace;
     letter-spacing: 1px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding-bottom: 0.25rem;
 }
-.ai-result-content { 
-    font-size: 14px; 
-    color: #F1EEE9; 
-    line-height: 1.6; 
-}
-.ai-result-content ul {
-    padding-left: 20px;
-    margin: 0;
-}
-.ai-result-content li { 
-    margin-bottom: 8px; 
-}
-.ai-internal-ask {
-    background: #1a1a00;
-    border-left: 3px solid #d4a84b; /* Gold warning accent */
-    padding: 12px 16px;
-    border-radius: 0 4px 4px 0;
-    font-style: italic;
-}
-.strategic-read h2 {
-  font-size: 16px;
-  margin-top: 18px;
-  margin-bottom: 8px;
-  color: #8fbc8f;
+
+.strategic-read h1:first-child, 
+.strategic-read h2:first-child {
+    margin-top: 0;
 }
 
 .strategic-read ul {
-  padding-left: 18px;
+    padding-left: 1.25rem;
+    margin-bottom: 1.25rem;
 }
 
 .strategic-read li {
-  margin-bottom: 6px;
+    margin-bottom: 0.5rem;
+    color: var(--text-muted);
+}
+
+.strategic-read strong {
+    color: #F1EEE9;
+    font-weight: 700;
+}
+
+/* Loader Animation for AI */
+.ai-loader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+@media (max-width: 600px) {
+    .ai-banner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    .ai-banner button {
+        width: 100%;
+        justify-content: center;
+    }
 }
 </style>
 </head>
@@ -1897,28 +1849,26 @@ svg {
           <span style="font-family: 'JetBrains Mono', monospace;"><span style="color: var(--accent);">>_</span>Govhoo.com</span>
         </div>
       </div>
-<div id="aiIntelligenceBanner" style="background: rgba(66, 106, 90, 0.1); border: 1px solid #426a5a; border-radius: 6px; padding: 12px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; transition: all 0.3s;">
-    <div>
-        <h4 style="margin: 0; color: #8fbc8f; font-family: 'JetBrains Mono', monospace; font-size: 13px;">
-           Get a quick take analysis via AI.
-        </h4>
-        <p style="margin: 4px 0 0 0; color: #A0A0A0; font-size: 12px;">
-            Synthesize raw contract descriptions, buying patterns, and major players for this search.
-        </p>
+<div id="aiIntelligenceBanner" class="ai-banner">
+    <div class="ai-banner-text">
+        <h4>STRATEGIC AI BRIEF</h4>
+        <p>Synthesize raw contract descriptions, buying patterns, and major players for this search.</p>
     </div>
-    <button id="triggerAiPlanBtn" onclick="App.runAiActionPlan()" style="background: #8fbc8f; color: #000; border: none; padding: 8px 16px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 12px; cursor: pointer; white-space: nowrap;">
-        ANALYZE
+    <button id="triggerAiPlanBtn" class="btn-primary" onclick="App.runAiActionPlan()" style="margin: 0; padding: 0.6rem 1rem; width: auto; font-size: 0.75rem; flex-shrink: 0; font-weight: 800; letter-spacing: 1px;">
+        GENERATE BRIEF
     </button>
 </div>
 
-<div id="aiActionPanel" class="ai-action-panel" style="display: none;">
+<div id="aiActionPanel" class="ai-action-panel">
     <div class="ai-header">
-        <h3>Quick Take</h3>
-        <button id="copyAiBtn" onclick="App.copyAiPlan()" style="display: none; background: transparent; border: 1px solid #555; color: #ccc; padding: 6px 12px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 11px; cursor: pointer;">
-            <i class="fas fa-copy"></i> COPY
+        <h3>STRATEGIC READ</h3>
+        <button id="copyAiBtn" class="action-btn" onclick="App.copyAiPlan()" style="display: none; font-size: 0.7rem; border-color: var(--border); font-weight: 700; letter-spacing: 1px;">
+            COPY BRIEF
         </button>
     </div>
-    <div id="aiContentContainer"></div>
+    <div id="aiContentContainer" class="ai-result-content"></div>
+</div>
+    <div id="aiContentContainer" class="ai-result-content"></div>
 </div>
       <!-- 1. Bubble Chart — visual market sizing, mobile-readable -->
       <div id="bubbleChartPanel" style="display: none;">
@@ -3635,10 +3585,14 @@ const App = {
   panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
   copyBtn.style.display = 'none';
 
-  btn.innerHTML = 'Synthesizing...';
+  // The loading state (keep the spinner here)
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 6px;"></i> SYNTHESIZING...';
   btn.disabled = true;
 
-  content.innerHTML = `...analyzing...`;
+  content.innerHTML = `
+      <div class="ai-loader">
+          <i class="fas fa-circle-notch fa-spin" style="margin-right: 8px;"></i> Analyzing market data & extracting patterns...
+      </div>`;
 
   const summaryPayload = App.searchData.active;
 
@@ -3716,8 +3670,7 @@ ${escapeHtml(strategicText)}
       `;
 
   } finally {
-
-      btn.innerHTML = 'Unlock Brief';
+      btn.innerHTML = 'GENERATE BRIEF';
       btn.disabled = false;
   }
 },
@@ -3733,7 +3686,7 @@ copyAiPlan() {
       const btn = document.getElementById('copyAiBtn');
       const original = btn.innerHTML;
 
-      btn.innerHTML = '<i class="fas fa-check"></i> Copied';
+      btn.innerHTML = 'COPIED'; // Removed the checkmark icon
       setTimeout(() => {
         btn.innerHTML = original;
       }, 1500);
@@ -3763,7 +3716,7 @@ resetAiPanel() {
 
     // Reset button text
     if (btn) {
-        btn.innerHTML = 'Fetch Brief';
+        btn.innerHTML = 'GENERATE BRIEF';
         btn.disabled = false;
     }
   },
