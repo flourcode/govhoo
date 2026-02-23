@@ -1505,10 +1505,10 @@ svg {
   color: #F1EEE9 !important;
 }
 /* ==========================================================================
-   AI ACTION PLAN PANEL (Arti Theme - Villain Purple)
+   AI ACTION PLAN PANEL (Arti Theme - Gotham Green)
    ========================================================================== */
 .ai-banner {
-    background: linear-gradient(135deg, rgba(123, 109, 141, 0.15), rgba(242, 232, 207, 0.05));
+    background: linear-gradient(135deg, rgba(74, 122, 103, 0.15), rgba(242, 232, 207, 0.05));
     border: none;
     border-radius: 8px;
     padding: 1.25rem 1.5rem;
@@ -1522,7 +1522,7 @@ svg {
 
 .ai-banner-text h4 {
     margin: 0;
-    color: #9B8EA9; /* Light Villain Purple */
+    color: var(--accent);
     font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -1535,22 +1535,20 @@ svg {
     line-height: 1.4;
 }
 
-/* Arti's Custom Button */
+/* Arti's Custom Button - Flat & Sharp (No Glow) */
 .btn-ai {
-    background: #7B6D8D !important; /* Villain Purple */
+    background: var(--accent) !important;
     border: none !important;
     color: #F1EEE9 !important;
     border-radius: 6px;
     cursor: pointer;
     font-family: 'JetBrains Mono', monospace;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 12px rgba(123, 109, 141, 0.25) !important;
+    transition: all 0.15s ease; /* Slightly faster, snappier transition */
 }
 
 .btn-ai:hover {
-    background: #8A7B9C !important;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(123, 109, 141, 0.4) !important;
+    background: var(--accent-dark) !important;
+    transform: translateY(-1px); /* Just a tiny, grounded lift instead of a float */
 }
 
 /* The Results Panel */
@@ -1578,7 +1576,7 @@ svg {
 .ai-header h3 {
     margin: 0;
     font-size: 0.9rem;
-    color: #9B8EA9;
+    color: var(--accent-light);
     text-transform: uppercase;
     letter-spacing: 1px;
     font-weight: 700;
@@ -1594,7 +1592,7 @@ svg {
 .strategic-read h1, 
 .strategic-read h2, 
 .strategic-read h3 {
-    color: #9B8EA9;
+    color: var(--accent-light);
     margin-top: 1.5rem;
     margin-bottom: 0.75rem;
     font-size: 0.9rem;
@@ -1629,8 +1627,8 @@ svg {
 /* Arti's Secondary/Outline Button */
 .btn-ai-outline {
     background: transparent;
-    border: 1px solid rgba(123, 109, 141, 0.4);
-    color: #9B8EA9;
+    border: 1px solid rgba(74, 122, 103, 0.4);
+    color: var(--accent-light);
     border-radius: 4px;
     padding: 0.4rem 0.75rem;
     font-size: 0.7rem;
@@ -1642,8 +1640,8 @@ svg {
 }
 
 .btn-ai-outline:hover {
-    background: rgba(123, 109, 141, 0.15);
-    border-color: #7B6D8D;
+    background: rgba(74, 122, 103, 0.15);
+    border-color: var(--accent);
     color: #F1EEE9;
 }
 
@@ -1652,7 +1650,7 @@ svg {
    ========================================= */
 .ai-chat-history {
     margin-top: 1.5rem;
-    border-top: 1px dashed rgba(123, 109, 141, 0.3); /* Purple dashed line */
+    border-top: 1px dashed rgba(74, 122, 103, 0.4); /* Green dashed line */
     padding-top: 1.5rem;
     display: flex;
     flex-direction: column;
@@ -1743,7 +1741,7 @@ svg {
     .ai-msg-arti {
         flex-direction: column;
         align-items: flex-start;
-        gap: 0.75rem; /* Slightly larger gap since the avatar is bigger */
+        gap: 0.75rem;
         max-width: 100%;
     }
     
@@ -1753,9 +1751,9 @@ svg {
         width: 100%;
     }
 
-    /* Let the avatar breathe at its normal size (or slightly bigger) on mobile */
+    /* Let the avatar breathe at its normal size on mobile */
     .ai-chat-history .ai-avatar.small {
-        width: 48px;  /* Bumped up from 32px for a stronger presence */
+        width: 48px;
         height: 48px;
     }
 
@@ -1774,6 +1772,15 @@ svg {
         padding: 0 0.8rem;
         font-size: 0.8rem;
     }
+}
+.ai-disclaimer {
+    font-size: 0.55rem;
+    color: var(--text-muted);
+    opacity: 0.5;
+    text-align: center;
+    margin-top: 0.75rem;
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1.4;
 }
 </style>
 </head>
@@ -2028,6 +2035,9 @@ svg {
         <button id="aiChatSendBtn" class="btn-ai" onclick="App.sendAiChatMessage()" style="padding: 0 1.25rem; font-weight: 700; letter-spacing: 1px;">SEND</button>
     </div>
     <div id="aiChatCounter" class="ai-chat-counter" style="display: none;">5 questions remaining</div>
+	<div id="aiDisclaimer" class="ai-disclaimer" style="display: none;">
+        Arti is an AI. Always verify USASpending data and use your own judgment before making strategic decisions.
+    </div>
 </div>
       <!-- 1. Bubble Chart — visual market sizing, mobile-readable -->
       <div id="bubbleChartPanel" style="display: none;">
@@ -3815,7 +3825,7 @@ ${escapeHtml(strategicText)}
 	  document.getElementById('aiChatInputWrapper').style.display = 'flex';
       document.getElementById('aiChatCounter').style.display = 'block';
       document.getElementById('aiChatCounter').innerText = `${App.aiState.max} questions remaining for this view.`;
-      
+      document.getElementById('aiDisclaimer').style.display = 'block';
       document.getElementById('aiChatInput').addEventListener('keypress', function(e) {
           if (e.key === 'Enter') App.sendAiChatMessage();
       });
@@ -3987,6 +3997,8 @@ App.aiState = { history: [], count: 0, max: 5 };
     if (inputWrap) inputWrap.style.display = 'none';
     const counterEl = document.getElementById('aiChatCounter');
     if (counterEl) counterEl.style.display = 'none';
+	const disclaimerEl = document.getElementById('aiDisclaimer');
+	if (disclaimerEl) disclaimerEl.style.display = 'none';
     // Reset visibility
     if (banner) banner.style.display = 'flex';
     if (panel) panel.style.display = 'none';
