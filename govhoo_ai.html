@@ -146,7 +146,7 @@ body {
 .btn-row { display: flex; gap: 0.75rem; margin-top: 1rem; }
 
 /* PRIMARY ACTIONS (Solid Fern) */
-#searchBtn {
+.btn-primary, #searchBtn {
   flex: 1;
   padding: 1rem;
   font-weight: 700;
@@ -164,13 +164,12 @@ body {
   font-family: 'JetBrains Mono', monospace;
 }
 
-.btn-primary:hover:hover, #searchBtn:hover {
+.btn-primary:hover, #searchBtn:hover {
   background: var(--accent-dark) !important;
   border-color: var(--accent-dark) !important;
   transform: translateY(-1px);
   opacity: 1;
 }
-
 /* SECONDARY ACTIONS (Transparent Chalk Outline) */
 .btn-secondary, .btn-secondary:hover {
   background: rgba(251, 247, 245, 0.08) !important;
@@ -1506,23 +1505,25 @@ svg {
   color: #F1EEE9 !important;
 }
 /* ==========================================================================
-   AI ACTION PLAN PANEL (Integrated Styling)
+   AI ACTION PLAN PANEL (Arti Theme)
    ========================================================================== */
 .ai-banner {
-    background: var(--accent-dim);
-    border: 1px solid var(--accent);
-    border-radius: 6px;
-    padding: 1rem 1.25rem;
+    /* Fun, borderless gradient using Villain Purple & Spidey Blue */
+    background: linear-gradient(135deg, rgba(123, 109, 141, 0.15), rgba(91, 124, 153, 0.15));
+    border: none;
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
     margin-bottom: 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     transition: all 0.2s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Soft float effect */
 }
 
 .ai-banner-text h4 {
     margin: 0;
-    color: var(--accent-light);
+    color: #9B8EA9; /* Lightened Villain Purple */
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.85rem;
     text-transform: uppercase;
@@ -1536,14 +1537,34 @@ svg {
     line-height: 1.4;
 }
 
+/* Arti's Custom Button */
+.btn-ai {
+    background: #7B6D8D !important; /* Villain Purple */
+    border: none !important;
+    color: #F1EEE9 !important;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(123, 109, 141, 0.25) !important; /* Purple glow */
+}
+
+.btn-ai:hover {
+    background: #8A7B9C !important; /* Brighter purple on hover */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(123, 109, 141, 0.4) !important;
+}
+
+/* The Results Panel */
 .ai-action-panel {
     background: var(--bg-card);
-    border: 1px solid var(--accent);
+    border: none;
+    border-top: 3px solid #7B6D8D; /* Distinct Arti branding line instead of full border */
     border-radius: 8px;
     padding: 1.5rem;
     margin-bottom: 1.5rem;
     display: none;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
     position: relative;
 }
 
@@ -1560,7 +1581,7 @@ svg {
     margin: 0;
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.9rem;
-    color: var(--accent-light);
+    color: #9B8EA9;
     text-transform: uppercase;
     letter-spacing: 1px;
     font-weight: 700;
@@ -1572,11 +1593,12 @@ svg {
     line-height: 1.6;
 }
 
+/* Style Arti's Markdown Output */
 .strategic-read h1, 
 .strategic-read h2, 
 .strategic-read h3 {
     font-family: 'JetBrains Mono', monospace;
-    color: var(--accent-light);
+    color: #9B8EA9;
     margin-top: 1.5rem;
     margin-bottom: 0.75rem;
     font-size: 0.9rem;
@@ -1587,47 +1609,51 @@ svg {
 }
 
 .strategic-read h1:first-child, 
-.strategic-read h2:first-child {
-    margin-top: 0;
-}
+.strategic-read h2:first-child { margin-top: 0; }
+.strategic-read ul { padding-left: 1.25rem; margin-bottom: 1.25rem; }
+.strategic-read li { margin-bottom: 0.5rem; color: var(--text-muted); }
+.strategic-read strong { color: #F1EEE9; font-weight: 700; }
 
-.strategic-read ul {
-    padding-left: 1.25rem;
-    margin-bottom: 1.25rem;
-}
-
-.strategic-read li {
-    margin-bottom: 0.5rem;
-    color: var(--text-muted);
-}
-
-.strategic-read strong {
-    color: #F1EEE9;
-    font-weight: 700;
-}
-
-/* Loader Animation for AI */
 .ai-loader {
     display: flex;
     align-items: center;
     gap: 10px;
-    color: var(--accent);
+    color: #9B8EA9;
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
+/* Avatar Layouts */
+.ai-avatar { 
+    width: 72px;  /* Increased from 48px */
+    height: 72px; 
+    object-fit: contain; 
+    flex-shrink: 0; 
+}
+
+.ai-avatar.small { 
+    width: 42px;  /* Increased from 34px */
+    height: 42px; 
+}
+
+.ai-banner-content { 
+    display: flex; 
+    align-items: center; 
+    gap: 1.5rem; /* Slightly increased gap so the bigger image breathes */
+}
+
+.ai-header-title { 
+    display: flex; 
+    align-items: center; 
+    gap: 1rem; /* Slightly increased gap */
+}
+
 @media (max-width: 600px) {
-    .ai-banner {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-    }
-    .ai-banner button {
-        width: 100%;
-        justify-content: center;
-    }
+    .ai-banner { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    .ai-banner-content { align-items: flex-start; padding-right: 0 !important; }
+    .ai-banner button { width: 100%; justify-content: center; }
 }
 </style>
 </head>
@@ -1850,24 +1876,30 @@ svg {
         </div>
       </div>
 <div id="aiIntelligenceBanner" class="ai-banner">
-    <div class="ai-banner-text">
-        <h4>STRATEGIC AI BRIEF</h4>
-        <p>Synthesize raw contract descriptions, buying patterns, and major players for this search.</p>
+    <div class="ai-banner-content" style="flex: 1; min-width: 0; padding-right: 1.5rem;">
+        <img src="images/arti.png" alt="Arti" class="ai-avatar">
+        <div class="ai-banner-text">
+            <h4>ASK ARTI</h4>
+            <p style="margin: 0.35rem 0 0 0; color: var(--text-muted); font-size: 0.75rem; line-height: 1.4;">
+                Want a quick analysis of all this data? Just ask Arti, your friendly AI sales guy.
+            </p>
+        </div>
     </div>
-    <button id="triggerAiPlanBtn" class="btn-primary" onclick="App.runAiActionPlan()" style="margin: 0; padding: 0.6rem 1rem; width: auto; font-size: 0.75rem; flex-shrink: 0; font-weight: 800; letter-spacing: 1px;">
-        GENERATE BRIEF
+    <button id="triggerAiPlanBtn" class="btn-ai" onclick="App.runAiActionPlan()" style="margin: 0; padding: 0.75rem 1.25rem; flex: none; width: auto; font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; white-space: nowrap;">
+        ASK ARTI
     </button>
 </div>
 
 <div id="aiActionPanel" class="ai-action-panel">
     <div class="ai-header">
-        <h3>STRATEGIC READ</h3>
+        <div class="ai-header-title">
+            <img src="images/arti.png" alt="Arti" class="ai-avatar small">
+            <h3>STRATEGIC READ</h3>
+        </div>
         <button id="copyAiBtn" class="action-btn" onclick="App.copyAiPlan()" style="display: none; font-size: 0.7rem; border-color: var(--border); font-weight: 700; letter-spacing: 1px;">
             COPY BRIEF
         </button>
     </div>
-    <div id="aiContentContainer" class="ai-result-content"></div>
-</div>
     <div id="aiContentContainer" class="ai-result-content"></div>
 </div>
       <!-- 1. Bubble Chart — visual market sizing, mobile-readable -->
@@ -3585,13 +3617,12 @@ const App = {
   panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
   copyBtn.style.display = 'none';
 
-  // The loading state (keep the spinner here)
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 6px;"></i> SYNTHESIZING...';
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 6px;"></i> ASKING ARTI...';
   btn.disabled = true;
 
   content.innerHTML = `
       <div class="ai-loader">
-          <i class="fas fa-circle-notch fa-spin" style="margin-right: 8px;"></i> Analyzing market data & extracting patterns...
+          <i class="fas fa-circle-notch fa-spin" style="margin-right: 8px;"></i> Arti is reviewing the data...
       </div>`;
 
   const summaryPayload = App.searchData.active;
@@ -3670,7 +3701,7 @@ ${escapeHtml(strategicText)}
       `;
 
   } finally {
-      btn.innerHTML = 'GENERATE BRIEF';
+      btn.innerHTML = 'ASK ARTI';
       btn.disabled = false;
   }
 },
@@ -3686,7 +3717,7 @@ copyAiPlan() {
       const btn = document.getElementById('copyAiBtn');
       const original = btn.innerHTML;
 
-      btn.innerHTML = 'COPIED'; // Removed the checkmark icon
+      btn.innerHTML = 'COPIED';
       setTimeout(() => {
         btn.innerHTML = original;
       }, 1500);
@@ -3716,7 +3747,7 @@ resetAiPanel() {
 
     // Reset button text
     if (btn) {
-        btn.innerHTML = 'GENERATE BRIEF';
+        btn.innerHTML = 'ASK ARTI';
         btn.disabled = false;
     }
   },
