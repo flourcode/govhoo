@@ -2041,7 +2041,7 @@ svg {
     <div id="aiChatHistory" class="ai-chat-history" style="display: none;"></div>
     
     <div id="aiChatInputWrapper" class="ai-chat-input-wrapper" style="display: none;">
-        <input type="text" id="aiChatInput" class="main-input" placeholder="Ask Arti up to 5 follow-up questions..." autocomplete="off" style="font-size: 0.85rem; padding: 0.75rem 1rem; height: auto;">
+        <input type="text" id="aiChatInput" class="main-input" placeholder="Ask follow-up questions..." autocomplete="off" style="font-size: 0.85rem; padding: 0.75rem 1rem; height: auto;">
         <button id="aiChatSendBtn" class="btn-ai" onclick="App.sendAiChatMessage()" style="padding: 0 1.25rem; font-weight: 700; letter-spacing: 1px;">SEND</button>
     </div>
     <div id="aiChatCounter" class="ai-chat-counter" style="display: none;">5 questions remaining</div>
@@ -3836,9 +3836,15 @@ ${escapeHtml(strategicText)}
       document.getElementById('aiChatCounter').style.display = 'block';
       document.getElementById('aiChatCounter').innerText = `${App.aiState.max} questions remaining for this view.`;
       document.getElementById('aiDisclaimer').style.display = 'block';
-      document.getElementById('aiChatInput').addEventListener('keypress', function(e) {
+
+      document.getElementById('aiChatInput').onkeypress = function(e) {
           if (e.key === 'Enter') App.sendAiChatMessage();
-      });
+      };
+
+      App.aiState.history = [
+          { role: 'user', content: 'Give me a strategic read on this market.' },
+          { role: 'model', content: strategicText }
+      ];
 	  
   } catch (e) {
 
