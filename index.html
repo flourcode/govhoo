@@ -1711,6 +1711,38 @@ svg {
     font-family: 'JetBrains Mono', monospace;
     opacity: 0.7;
 }
+/* Tighten markdown spacing ONLY inside chat bubbles */
+.ai-msg-arti .strategic-read {
+    margin-top: 0;
+}
+
+.ai-msg-arti .strategic-read h1, 
+.ai-msg-arti .strategic-read h2, 
+.ai-msg-arti .strategic-read h3 {
+    margin-top: 0.75rem; 
+    font-size: 0.8rem; /* Slightly smaller than main report headers */
+    padding-bottom: 0.15rem;
+}
+
+.ai-msg-arti .strategic-read p:first-child { margin-top: 0; }
+.ai-msg-arti .strategic-read p:last-child { margin-bottom: 0; }
+.ai-msg-arti .strategic-read ul { margin-bottom: 0.5rem; }
+@keyframes artiPulse {
+    0% { opacity: 0.4; transform: scale(0.95); }
+    50% { opacity: 1; transform: scale(1.05); }
+    100% { opacity: 0.4; transform: scale(0.95); }
+}
+
+.arti-thinking .ai-avatar {
+    animation: artiPulse 1.5s infinite ease-in-out;
+}
+
+/* Make disabled inputs look intentionally locked */
+.ai-chat-input-wrapper input:disabled,
+.ai-chat-input-wrapper button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
 </style>
 </head>
 <body>
@@ -1960,7 +1992,7 @@ svg {
     <div id="aiChatHistory" class="ai-chat-history" style="display: none;"></div>
     
     <div id="aiChatInputWrapper" class="ai-chat-input-wrapper" style="display: none;">
-        <input type="text" id="aiChatInput" class="main-input" placeholder="Ask a follow-up question..." autocomplete="off" style="font-size: 0.85rem; padding: 0.75rem 1rem; height: auto;">
+        <input type="text" id="aiChatInput" class="main-input" placeholder="Ask Arti up to 5 follow-up questions..." autocomplete="off" style="font-size: 0.85rem; padding: 0.75rem 1rem; height: auto;">
         <button id="aiChatSendBtn" class="btn-ai" onclick="App.sendAiChatMessage()" style="padding: 0 1.25rem; font-weight: 700; letter-spacing: 1px;">SEND</button>
     </div>
     <div id="aiChatCounter" class="ai-chat-counter" style="display: none;">5 questions remaining</div>
@@ -3796,17 +3828,20 @@ ${escapeHtml(strategicText)}
       inputEl.disabled = true;
       sendBtn.disabled = true;
 
-      // 2. Show loading bubble for Arti
+      // 2. Show loading bubble for Arti (with pulse animation class)
       const loaderId = 'arti-load-' + Date.now();
       historyEl.insertAdjacentHTML('beforeend', `
-          <div class="ai-msg-arti" id="${loaderId}">
-              <img src="images/arti.png" class="ai-avatar small" style="opacity: 0.5;">
-              <div style="padding-top: 8px; color: var(--accent); font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; text-transform: uppercase;">
-                  <i class="fas fa-circle-notch fa-spin"></i> Arti is thinking...
+          <div class="ai-msg-arti arti-thinking" id="${loaderId}">
+              <img src="images/arti.png" class="ai-avatar small">
+              <div style="padding-top: 8px; color: var(--text-muted); font-size: 0.75rem; font-style: italic;">
+                  Reviewing the data...
               </div>
           </div>
       `);
-      historyEl.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      
+      // Scroll to the loading bubble
+      const loaderEl = document.getElementById(loaderId);
+      loaderEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
       // 3. Push to history state
       App.aiState.history.push({ role: 'user', content: msg });
@@ -3826,7 +3861,7 @@ ${escapeHtml(strategicText)}
           const data = await res.json();
           if (data.error) throw new Error(data.error);
 
-          // 4. Safely parse markdown to HTML (matching your existing logic)
+          // 4. Safely parse markdown to HTML
           let renderedHtml;
           if (window.marked && typeof window.marked.parse === 'function') {
               renderedHtml = marked.parse(data.response);
@@ -3835,11 +3870,15 @@ ${escapeHtml(strategicText)}
               renderedHtml = `<pre style="white-space: pre-wrap; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.5;">${escapeHtml(data.response)}</pre>`;
           }
 
-          // 5. Replace loader with actual response
-          document.getElementById(loaderId).innerHTML = `
+          // 5. Replace loader with actual response and clean up animation
+          loaderEl.classList.remove('arti-thinking');
+          loaderEl.innerHTML = `
               <img src="images/arti.png" class="ai-avatar small">
               <div class="strategic-read">${renderedHtml}</div>
           `;
+
+          // NEW: Scroll down AFTER the content renders to perfectly frame the new long text
+          loaderEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
           // 6. Update State
           App.aiState.history.push({ role: 'model', content: data.response });
@@ -3848,19 +3887,33 @@ ${escapeHtml(strategicText)}
           const remaining = App.aiState.max - App.aiState.count;
           const counterEl = document.getElementById('aiChatCounter');
           
-          if (remaining > 0) {
-              counterEl.innerText = `${remaining} questions remaining.`;
+          if (remaining > 1) {
+              // Standard state
+              counterEl.innerText = `${remaining} questions remaining for this view.`;
+              counterEl.style.color = 'var(--text-muted)';
               inputEl.disabled = false;
               sendBtn.disabled = false;
-              setTimeout(() => inputEl.focus(), 100);
+              // NEW: Only auto-focus on desktop to prevent mobile keyboard layout jumps
+              if (window.innerWidth > 768) setTimeout(() => inputEl.focus(), 100);
+          } else if (remaining === 1) {
+              // Warning state: 1 left
+              counterEl.innerText = "Make it count. I've got time for one more question on this dataset.";
+              counterEl.style.color = '#E07A5F'; // Advertisement Orange
+              inputEl.disabled = false;
+              sendBtn.disabled = false;
+              if (window.innerWidth > 768) setTimeout(() => inputEl.focus(), 100);
           } else {
-              counterEl.innerText = 'Question limit reached. Adjust search to reset.';
-              inputEl.placeholder = 'Limit reached.';
+              // Final state: 0 left
+              counterEl.innerText = "That's all for this dataset. Run a new search or drill into an agency to reset my limits.";
+              counterEl.style.color = '#E07A5F';
+              inputEl.placeholder = "Limits reached for this view.";
+              // Input and send button remain disabled natively
           }
 
       } catch (e) {
           console.error("Chat Error:", e);
-          document.getElementById(loaderId).innerHTML = `<div style="color: #ff6b6b; font-size: 13px; padding-top: 8px;">Error fetching response. Try again.</div>`;
+          loaderEl.classList.remove('arti-thinking');
+          loaderEl.innerHTML = `<div style="color: #ff6b6b; font-size: 13px; padding-top: 8px;">Error fetching response. Try again.</div>`;
           inputEl.disabled = false;
           sendBtn.disabled = false;
           App.aiState.history.pop(); // Remove failed msg from history so they can retry
