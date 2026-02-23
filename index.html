@@ -1773,12 +1773,22 @@ svg {
         font-size: 0.8rem;
     }
 }
+.ai-chat-counter {
+    font-size: 0.7rem; /* Bumped up for readability */
+    color: #E07A5F; /* Advertisement Orange */
+    text-align: right;
+    margin-top: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    opacity: 0.9; /* Removed heavy transparency */
+    transition: color 0.3s ease;
+}
+
 .ai-disclaimer {
-    font-size: 0.55rem;
-    color: var(--text-muted);
-    opacity: 0.5;
+    font-size: 0.65rem; /* Bumped up from 0.55rem */
+    color: #E07A5F; /* Advertisement Orange */
+    opacity: 0.85; /* Removed heavy transparency */
     text-align: center;
-    margin-top: 0.75rem;
+    margin-top: 0.85rem;
     font-family: 'JetBrains Mono', monospace;
     line-height: 1.4;
 }
@@ -3932,7 +3942,7 @@ ${escapeHtml(strategicText)}
           if (remaining > 1) {
               // Standard state
               counterEl.innerText = `${remaining} questions remaining for this view.`;
-              counterEl.style.color = 'var(--text-muted)';
+              counterEl.style.color = '#E07A5F';
               inputEl.disabled = false;
               sendBtn.disabled = false;
               // NEW: Only auto-focus on desktop to prevent mobile keyboard layout jumps
