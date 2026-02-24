@@ -111,11 +111,6 @@ body {
   50% { box-shadow: 0 0 0 4px rgba(66, 106, 90, 0.08); }
 }
 
-/* Text Truncation Helpers */
-.buyer-name, .vendor-name {
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;
-}
-
 /* =========================================
    4. INPUTS & BUTTONS (UNIFIED SYSTEM)
    ========================================= */
@@ -417,46 +412,6 @@ body {
 .mission-gap-toggle.active { background: #A7A9AC !important; color: #F1EEE9 !important; opacity: 1; }
 .mission-gap-toggle i { font-size: 0.65rem; color: #F1EEE9 !important; }
 
-/* Buyers List */
-.buyer-list { display: flex; flex-direction: column; gap: 0; width: 100%; }
-.buyer-item {
-  display: flex; align-items: center; gap: 0.85rem; padding: 0.75rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05); width: 100%;
-}
-.buyer-item:last-child { border-bottom: none; }
-.buyer-rank {
-  width: 34px; height: 34px; background: var(--accent) !important;
-  color: #F1EEE9 !important; border-radius: 50%; display: flex; align-items: center;
-  justify-content: center; font-family: 'JetBrains Mono', monospace;
-  font-size: 15px !important; font-weight: 700; flex-shrink: 0; border: none !important;
-}
-.buyer-info { flex: 1; min-width: 0; }
-.buyer-name { font-size: 0.95rem; color: var(--text-primary); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.buyer-stats { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
-.buyer-amount { text-align: right; flex-shrink: 0; }
-.buyer-spend {
-  font-family: 'JetBrains Mono', monospace; font-size: 1.15rem; font-weight: 700;
-  color: #F1EEE9 !important; white-space: nowrap; line-height: 1.2;
-}
-
-/* Subagency Items (used in drill-down JS) */
-.subagency-item {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 1rem; border-bottom: 1px solid var(--border); cursor: pointer; transition: all 0.15s;
-}
-.subagency-item:hover { background: rgba(255, 255, 255, 0.02); }
-.subagency-item:last-child { border-bottom: none; }
-.subagency-item-left { display: flex; align-items: center; gap: 1rem; flex: 1; min-width: 0; }
-.subagency-rank {
-  width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
-  background: var(--accent) !important; color: #F1EEE9 !important; border-radius: 50%;
-  font-family: 'JetBrains Mono', monospace; font-size: 15px !important; font-weight: 700; flex-shrink: 0; border: none !important;
-}
-.subagency-info { flex: 1; min-width: 0; }
-.subagency-name { font-size: 0.95rem; color: var(--text-primary); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.subagency-contracts { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
-.subagency-item-right { display: flex; align-items: center; gap: 1rem; flex-shrink: 0; }
-
 /* Job Intel Panel specific */
 #searchJobPanel { overflow: hidden; max-width: 100%; box-sizing: border-box; }
 .job-intel-panel {
@@ -526,20 +481,6 @@ body {
 }
 .data-panel-body { padding: 0.35rem 1rem 0.75rem; }
 
-/* Skills Demand (generated in JS) */
-.skill-bar-container { margin-bottom: 0.5rem; }
-.skill-bar-label { display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px; }
-.skill-bar-name { color: var(--text-primary); font-weight: 600; font-size: 0.85rem; }
-.skill-bar-pct { color: #F1EEE9 !important; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700; }
-.skill-bar {
-  height: 8px; background: rgba(255, 255, 255, 0.05) !important;
-  border-radius: 4px; overflow: hidden; position: relative;
-}
-.skill-bar-fill {
-  height: 100%; background: var(--accent); border-radius: 4px;
-  transition: width 0.4s ease-out; min-width: 2px;
-}
-
 /* Subagency & Drill Down */
 .drill-breadcrumb {
   display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem;
@@ -604,13 +545,10 @@ body {
 }
 
 @media (max-width: 768px) {
-  .subagency-item-right { display: none; }
-  #forecastModeView div[style*="display: grid"] { grid-template-columns: 1fr !important; gap: 1rem !important; width: 100% !important; overflow: hidden !important; }
   .dashboard-container {
     width: 100% !important; max-width: 100% !important; padding-left: 1rem !important;
     padding-right: 1rem !important; overflow-x: hidden !important;
   }
-  .buyer-list { width: 100% !important; max-width: 100% !important; }
   .job-intel-panel > div { grid-template-columns: 1fr !important; }
   .btn-row { flex-direction: column; }
   .chart-container { min-width: auto; width: 100%; }
@@ -644,11 +582,7 @@ body {
   .mini-search { max-width: none; padding: 0.5rem 0.6rem; font-size: 16px; }
   .logo-btn { font-size: 0.9rem; }
   .header-actions { gap: 0.35rem; }
-  .buyer-spend { font-size: 1rem; }
-  .buyer-amount { min-width: 75px; }
   .job-links { gap: 6px; }
-  .buyer-rank { width: 36px; height: 36px; font-size: 15px !important; }
-  .subagency-rank { width: 36px; height: 36px; font-size: 15px !important; }
 }
 
 /* Sharp Chalk Overrides for Metadata */
@@ -752,43 +686,6 @@ body {
   color: var(--text-primary);
 }
 
-/* Drill level badge */
-.drill-level-indicator{
-  padding: 0.2rem 0.5rem;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,0.015);
-  color: var(--text-muted);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.70rem;
-  line-height: 1.1;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-/* Filter badge */
-.filter-badge{
-  padding: 0.2rem 0.55rem;
-  border-radius: 999px;
-  border: 1px solid rgba(66,106,90,0.45);
-  background: rgba(66,106,90,0.10);
-  color: var(--text-primary);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.70rem;
-  line-height: 1.1;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  cursor: pointer;
-  transition: opacity 0.15s ease, transform 0.15s ease;
-}
-
-.filter-badge:hover{
-  opacity: 0.92;
-  transform: scale(1.02);
-}
-
 /* Reduce spacing between left and right groups inside the bar */
 #drillControlsBar > div{
   gap: 0.5rem !important;
@@ -802,12 +699,6 @@ body {
     font-size: 0.70rem;
     padding: 0.22rem 0.45rem;
   }
-}
-
-/* Hide redundant drill badges */
-#drillLevelBadge,
-#filterBadge {
-  display: none !important;
 }
 
 /* Soften the search boxes */
@@ -883,8 +774,8 @@ body {
   background: var(--accent-dim); 
 }
 
-/* Remove border from Sankey containers to make them 'float' */
-#sankey, #sankey-sub, .sankey-container, .chart-wrapper {
+/* Remove border from chart containers to make them 'float' */
+.chart-wrapper {
   border: none !important;
   box-shadow: none !important;
   background: transparent !important;
@@ -1490,9 +1381,10 @@ svg {
    ========================================= */
 .arti-fab {
     position: fixed;
-    bottom: calc(20px + var(--safe-bottom));
+    /* Use max() to ensure a minimum of 24px, plus safe-area for iPhones */
+    bottom: max(24px, env(safe-area-inset-bottom, 24px));
     right: 20px;
-    z-index: 999;
+    z-index: 9999; /* Boosted z-index to ensure it sits above all charts */
     width: 64px;
     height: 64px;
     border-radius: 50%;
@@ -1500,7 +1392,7 @@ svg {
     border: 2px solid var(--accent-light);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
     cursor: pointer;
-    display: none; /* Hidden by default */
+    display: none; 
     align-items: center;
     justify-content: center;
     padding: 0;
@@ -1530,6 +1422,33 @@ svg {
     0% { opacity: 0; transform: scale(0.5) translateY(20px); }
     100% { opacity: 1; transform: scale(1) translateY(0); }
 }
+
+@keyframes govhooScan {
+                  0% { transform: translateX(-100%); }
+                  100% { transform: translateX(300%); }
+              }
+.govhoo-progress-bar {
+                  width: 100%; 
+                  height: 6px; 
+                  background: rgba(255,255,255,0.05); 
+                  border-radius: 4px; 
+                  overflow: hidden; 
+                  position: relative; 
+                  border: 1px solid var(--border); 
+                  margin-top: 1.25rem;
+              }
+.govhoo-progress-fill {
+                  position: absolute; top: 0; left: 0; height: 100%; width: 0%; 
+                  background: var(--accent); 
+                  border-radius: 4px; 
+                  transition: width 0.2s ease-out;
+              }
+.govhoo-progress-glow {
+                  position: absolute; top: 0; left: 0; width: 50%; height: 100%; 
+                  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); 
+                  animation: govhooScan 1.5s infinite linear;
+              }
+
 </style>
 </head>
 <body>
@@ -1706,15 +1625,6 @@ svg {
               <span>All Agencies</span>
             </div>
           </div>
-          <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span id="drillLevelBadge" class="drill-level-indicator">
-              
-              <span id="drillLevelText">Level 1</span>
-            </span>
-            <div id="filterBadge" class="filter-badge" data-action="clearFilter">
-              <span id="filterName">FILTER</span> 
-            </div>
-          </div>
         </div>
       </div>
 <div id="aiIntelligenceBanner" class="ai-banner">
@@ -1752,9 +1662,6 @@ svg {
         Arti is an AI. Always verify USASpending data and use your own judgment before making strategic decisions.
     </div>
 </div>
-<button id="artiFab" class="arti-fab" onclick="App.runAiActionPlan()" title="Ask Arti">
-    <img src="images/arti.png" alt="Arti">
-</button>
       <!-- Agency Award Flow Sankey -->
       <div id="sankeyPanel" class="sankey-panel" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin-bottom: 1rem; overflow: hidden;">
         
@@ -1900,10 +1807,6 @@ svg {
       <!-- 7. Expiring Contracts -->
       <div id="recompetesList" style="margin-bottom: 1.5rem;"></div>
 
-      <!-- Commit Board — scored opportunity list -->
-
-      <!-- Next Search suggestions -->
-
       <div class="section-header">
         <div class="section-title-group">
           <span class="section-title">Recent Awards</span>
@@ -2036,26 +1939,24 @@ svg {
 
     </div> </div>
 </div>
+<button id="artiFab" class="arti-fab" onclick="App.runAiActionPlan()" title="Ask Arti">
+    <img src="images/arti.png" alt="Arti">
+</button>
 <div id="loader" class="loader">
   <div class="spinner"></div>
   <p id="loaderText" style="margin-top:1rem; font-family:'JetBrains Mono'; color:var(--accent);">RETRIEVING DATA...</p>
   <p id="loaderSubtext" style="color:var(--text-subtle); font-size:0.8rem; margin-top:0.5rem;"></p>
 </div>
-
-
-
 <script>
 // ============================================================
 // GOVHOO APPLICATION — Module Index
 //
 //   Utils ........................ Formatting, query parsing, filters
 //   VehicleDetector ............. GWAC/IDIQ/Vehicle pattern detection
-//   VendorRelationships ......... Vendor tagging (mine/partner/competitor)
 //   Autocomplete ................ Search autocomplete for agencies/vendors
 //   API ......................... USASpending.gov API client
 //   ForecastEngine .............. Spending analysis & recompete detection
 //   JobLinks .................... LinkedIn/USAJobs URL generators
-//   SkillsExtractor ............. Award description keyword extraction
 //   App ......................... Core application state & rendering
 //   Bubble/Treemap Charts ....... D3 visualization renderers
 //   Presentation Mode ........... Light-theme screenshot toggle
@@ -2401,8 +2302,6 @@ normalizeQuery(query) {
       'naics_description': 'NAICS Description',
       'psc_code': 'PSC Code',
       'psc_description': 'PSC Description',
-      'pop_city_name': 'Place of Performance City',
-      'pop_state_code': 'Place of Performance State',
     };
     return awards.map(a => {
       const normalized = { ...a };
@@ -2574,23 +2473,6 @@ const VehicleDetector = {
   }
 };
 
-const VendorRelationships = {
-  // States: null (unset), 'mine', 'partner', 'competitor'
-  _map: {},
-  
-  get(vendorName) {
-    return this._map[vendorName.toUpperCase()] || null;
-  },
-  
-  // Get all tagged vendors grouped by relationship
-  getTagged() {
-    const result = { mine: [], partner: [], competitor: [] };
-    Object.entries(this._map).forEach(([name, rel]) => {
-      if (result[rel]) result[rel].push(name);
-    });
-    return result;
-  }
-};
 
 const Autocomplete = {
   activeInput: null,
@@ -2824,7 +2706,6 @@ const API = {
     'naics_code', 'naics_description', 'psc_code', 'psc_description',
     'parent_award_id',                          // Vehicle detection (SEWP, STARS, etc.)
     'recipient_parent_name',                    // Parent company rollup
-    'potential_total_value_of_award',           // Contract ceiling → burn rate
     'number_of_offers_received'                 // Actual bidder count on cards
   ],
   
@@ -2938,9 +2819,6 @@ const API = {
     return (await res.json()).results || [];
   },
 
-  // getAwardsForForecast REMOVED — searchAwards now fetches AWARD_FIELDS.
-  // getSBShare REMOVED — audience is senior federal BD, they know their vehicle landscape.
-
 
   async autocompleteAgency(searchText) {
     if (!searchText || searchText.length < 2) return [];
@@ -2952,43 +2830,6 @@ const API = {
     return (await res.json()).results || [];
   },
   
-  // Fetch contracting offices for a sub-agency
-  async fetchOfficesForSubAgency(subAgencyName) {
-    try {
-      const res = await this._fetch(`${this.baseUrl}/autocomplete/awarding_agency_office/`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ search_text: subAgencyName, limit: 50 })
-      }, 10000);
-      const data = await res.json();
-      // Extract offices from the response - structure has subtier_agency with offices array
-      const offices = [];
-      if (data.results) {
-        data.results.forEach(result => {
-          // Check if this is a subtier_agency match
-          if (result.subtier_agency && result.subtier_agency.name === subAgencyName && result.subtier_agency.offices) {
-            result.subtier_agency.offices.forEach(office => {
-              offices.push({ code: office.code, name: office.name });
-            });
-          }
-          // Also check toptier_agency offices
-          if (result.toptier_agency && result.toptier_agency.offices) {
-            result.toptier_agency.offices.forEach(office => {
-              offices.push({ code: office.code, name: office.name });
-            });
-          }
-          // Direct office match
-          if (result.office) {
-            offices.push({ code: result.office.code, name: result.office.name });
-          }
-        });
-      }
-      return offices;
-    } catch (e) {
-      console.error('Error fetching offices:', e);
-      return [];
-    }
-  },
 
   async autocompleteRecipient(searchText) {
     if (!searchText || searchText.length < 2) return [];
@@ -2999,8 +2840,6 @@ const API = {
     }, 8000);
     return (await res.json()).results || [];
   },
-
-  // ==================== SPENDING BY GEOGRAPHY ====================
 
   // ==================== SUBAWARDS ====================
   async getSubawards(keywords) {
@@ -3121,119 +2960,6 @@ getLinkedInNewsUrl(searchTerm) {
   return `https://www.linkedin.com/search/results/content/?keywords=${encodeURIComponent(cleanName)}`;
 }
 };
-const SkillsExtractor = {
-  // Stopwords and boilerplate terms to ignore
-  _stop: new Set([
-    'the','and','for','that','this','with','from','are','was','were','will','has','have','had',
-    'not','but','all','can','her','his','its','our','they','been','each','which','their','said',
-    'use','may','than','other','into','some','could','them','only','then','also','over','such',
-    'after','before','these','more','would','about','between','through','under','being','during',
-    'services','service','support','provide','providing','provides','provided','including','include',
-    'includes','based','related','various','shall','must','per','using','used','non','new','work',
-    'contract','contractor','government','agency','federal','award','acquisition','task','order',
-    'option','period','base','year','years','fiscal','fy24','fy25','fy23','fy22','fy26',
-    'igf','igt','igf::ot::igf','igf::ct::igf','continued','continue','exercise','modification',
-    'inc','llc','corp','ltd','company','group','systems','solutions','technologies',
-    'total','amount','funded','funding','obligated','estimated','approximately','pursuant',
-    'addition','additional','added','update','updated','existing','current','ensure',
-    'management','operations','operational','program','project','specific','require',
-    'required','requirements','department','office','national','center','united','states',
-    'necessary','needed','resources','within','without','above','below','following','general',
-    'activities','activity','efforts','effort','performance','mission','critical','executive'
-  ]),
-
-  // Extract the most frequent meaningful terms from award text
-  extract(awards) {
-    const phraseCounts = {};  // phrase -> number of awards containing it
-    const phraseExamples = {};
-    const total = awards.length;
-    if (!total) return [];
-
-    awards.forEach(award => {
-      const desc = (award['Description'] || '').toLowerCase();
-      const psc = (award['PSC Description'] || '').toLowerCase();
-      const naics = (award['NAICS Description'] || '').toLowerCase();
-      const text = `${desc} ${psc} ${naics}`;
-
-      // Tokenize: strip colons first (kills IGF::OT::IGF), then keep alphanumeric and hyphens
-      const words = text.replace(/:+/g, ' ').replace(/[^a-z0-9\-]+/g, ' ').split(/\s+/).filter(w => w.length > 2 && !this._stop.has(w));
-
-      // Collect unique bigrams and trigrams from this award
-      const seen = new Set();
-
-      // Meaningful single words (only longer domain-specific ones, 8+ chars to avoid generic noise)
-      words.forEach(w => {
-        if (w.length >= 8 && !this._stop.has(w)) {
-          seen.add(w);
-        }
-      });
-
-      // Bigrams
-      for (let i = 0; i < words.length - 1; i++) {
-        const bg = `${words[i]} ${words[i+1]}`;
-        if (!this._stop.has(words[i]) && !this._stop.has(words[i+1])) {
-          seen.add(bg);
-        }
-      }
-
-      // Trigrams
-      for (let i = 0; i < words.length - 2; i++) {
-        const tg = `${words[i]} ${words[i+1]} ${words[i+2]}`;
-        if (!this._stop.has(words[i]) && !this._stop.has(words[i+2])) {
-          seen.add(tg);
-        }
-      }
-
-      seen.forEach(phrase => {
-        phraseCounts[phrase] = (phraseCounts[phrase] || 0) + 1;
-        if (!phraseExamples[phrase]) {
-          phraseExamples[phrase] = (award['Description'] || '').substring(0, 100);
-        }
-      });
-    });
-
-    // Require phrase to appear in at least 2 awards or 5% of results (whichever is lower)
-    const minCount = Math.max(2, Math.ceil(total * 0.03));
-
-    // Score: prefer multi-word phrases, penalize very short single words
-    let candidates = Object.entries(phraseCounts)
-      .filter(([phrase, count]) => count >= Math.min(minCount, 2))
-      .map(([phrase, count]) => {
-        const wordCount = phrase.split(' ').length;
-        // Boost multi-word phrases so "jet engine maintenance" beats "maintenance"
-        const boost = wordCount >= 3 ? 1.5 : wordCount === 2 ? 1.2 : 1.0;
-        return { phrase, count, score: count * boost };
-      })
-      .sort((a, b) => b.score - a.score);
-
-    // Deduplicate: if a longer phrase contains a shorter one with similar count, drop the shorter
-    const results = [];
-    const used = new Set();
-    for (const c of candidates) {
-      if (results.length >= 5) break;
-      // Check if this phrase is a substring of an already-selected longer phrase
-      let dominated = false;
-      for (const r of results) {
-        if (r.phrase.includes(c.phrase) || c.phrase.includes(r.phrase)) {
-          // Keep the one with higher count, skip the other
-          if (c.count <= r.count * 1.3) { dominated = true; break; }
-        }
-      }
-      if (dominated) continue;
-      results.push(c);
-    }
-
-    // Titlecase the phrases for display
-    const titleCase = s => s.replace(/\b\w/g, c => c.toUpperCase());
-
-    return results.map(r => ({
-      skill: r.phrase.toUpperCase(),
-      count: r.count,
-      percentage: Math.round((r.count / total) * 100),
-      example: phraseExamples[r.phrase] || ''
-    }));
-  }
-};
 
 // ==================== APP CORE ====================
 // ==================== SIGNAL ENGINE ====================
@@ -3242,10 +2968,10 @@ const SkillsExtractor = {
 // not the full market. Framing reflects this honestly.
 
 const App = {
-  mode: 'search', 
+  mode: 'search', // Always 'search' — retained for URL sharing compatibility
   currentQuery: '',
   searchData: { raw: [], active: [], filter: null, loaded: false },
-  forecastData: { spending: null, agencies: null, awards: null, analysis: null, loaded: false },
+  forecastData: { analysis: null, subawards: null, loaded: false },
   drillState: { level: 0, path: [], currentAgency: null, currentSubAgency: null },
   subawardDrillState: { level: 0, path: [], filter: null, filterType: null },
   activeFeedSource: 'prime', // 'prime' or 'sub' - tracks which Sankey the user is interacting with
@@ -3281,25 +3007,63 @@ async runAiActionPlan() {
       btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 6px;"></i> ASKING ARTI...';
       btn.disabled = true;
 
-      // 3. Set Initial Phased Loader HTML
+      // 3. Set Initial Phased Loader HTML (Rich Progress Bar)
       content.innerHTML = `
-          <div class="ai-loader" id="aiLoaderText" style="padding: 1rem 0; color: var(--text-muted); font-size: 0.85rem; font-style: italic;">
-              <i class="fas fa-circle-notch fa-spin" style="margin-right: 8px; color: var(--accent);"></i> Arti is reviewing the data
+          <div style="padding: 0.5rem 0 1.5rem 0;">
+              <div style="display: flex; align-items: center; gap: 1rem;">
+                  <img src="images/arti.png" class="ai-avatar small" style="animation: artiPulse 1.5s infinite ease-in-out;" alt="Arti">
+                  <div>
+                      <div id="aiLoaderText" style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--accent-light); font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+                          INITIALIZING...
+                      </div>
+                      <div id="aiLoaderSubtext" style="font-size: 0.7rem; color: var(--text-muted); margin-top: 4px;">
+                          Connecting to Govhoo AI engine
+                      </div>
+                  </div>
+              </div>
+              
+              <div class="govhoo-progress-bar">
+                  <div id="aiProgressFill" class="govhoo-progress-fill"></div>
+                  <div class="govhoo-progress-glow"></div>
+              </div>
+              
+              <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem;">
+                  <span id="aiLoaderTimer" style="font-size: 0.65rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">0.0s</span>
+              </div>
           </div>`;
 
       // 4. Start Phased Animation Timer
       const briefStartTime = Date.now();
       const briefProgressTimer = setInterval(() => {
-          const el = document.getElementById('aiLoaderText');
-          if (!el) { clearInterval(briefProgressTimer); return; }
+          const titleEl = document.getElementById('aiLoaderText');
+          const subEl = document.getElementById('aiLoaderSubtext');
+          const fillEl = document.getElementById('aiProgressFill');
+          const timerEl = document.getElementById('aiLoaderTimer');
           
-          const elapsed = Math.floor((Date.now() - briefStartTime) / 1000);
-          const dots = '.'.repeat((elapsed % 3) + 1);
-          const phases = ['Arti is reviewing the data', 'Analyzing spending patterns', 'Building strategic assessment'];
-          const phase = phases[Math.min(Math.floor(elapsed / 6), phases.length - 1)];
+          if (!titleEl) { clearInterval(briefProgressTimer); return; }
           
-          el.innerHTML = `<i class="fas fa-circle-notch fa-spin" style="margin-right: 8px; color: var(--accent);"></i> ${phase}${dots} (${elapsed}s)`;
-      }, 500);
+          const elapsedSecs = (Date.now() - briefStartTime) / 1000;
+          timerEl.textContent = elapsedSecs.toFixed(1) + 's';
+
+          // Asymptotic progress calculation (Slows down as it gets closer to 100% so it never "stalls" completely)
+          const progress = Math.min(96, 100 * (1 - Math.exp(-elapsedSecs / 4)));
+          fillEl.style.width = `${progress}%`;
+
+          // Phased Text Logic
+          if (elapsedSecs < 2) {
+              titleEl.textContent = 'SCANNING DATASET';
+              subEl.textContent = `Processing ${App.searchData.active.length} active contracts`;
+          } else if (elapsedSecs < 5) {
+              titleEl.textContent = 'ANALYZING PATTERNS';
+              subEl.textContent = 'Identifying agency trends and vendor reach';
+          } else if (elapsedSecs < 8) {
+              titleEl.textContent = 'EVALUATING COMPETITION';
+              subEl.textContent = 'Cross-referencing prime and sub relationships';
+          } else {
+              titleEl.textContent = 'COMPOSING BRIEF';
+              subEl.textContent = 'Applying federal sales heuristics';
+          }
+      }, 100); // 100ms interval for ultra-smooth progress bar and timer updates
 
       const summaryPayload = App.searchData.active;
 
@@ -3516,9 +3280,15 @@ copyAiPlan() {
       const btn = document.getElementById('copyAiBtn');
       const original = btn.innerHTML;
 
+      // Add the success colors!
       btn.innerHTML = 'COPIED';
+      btn.style.color = 'var(--success)';
+      btn.style.borderColor = 'var(--success)';
+      
       setTimeout(() => {
         btn.innerHTML = original;
+        btn.style.color = '';
+        btn.style.borderColor = '';
       }, 1500);
     })
     .catch(err => {
@@ -3620,7 +3390,6 @@ setupClearButton('mainSearchInput', 'input-clear');
 
     const params = new URLSearchParams(window.location.search);
     const q = params.get('q');
-    const mode = params.get('mode');
 
     if (q) {
       document.getElementById('mainSearchInput').value = q;
@@ -3660,7 +3429,6 @@ setupClearButton('mainSearchInput', 'input-clear');
   },
 
   setMode() {
-    App.mode = 'search';
     document.getElementById('searchModeView')?.classList.add('active');
   },
 
@@ -3672,8 +3440,8 @@ setupClearButton('mainSearchInput', 'input-clear');
 	query = Utils.normalizeQuery(query.toUpperCase());
   document.getElementById('mainSearchInput').value = query;
   document.title = `Govhoo | ${query.toUpperCase()}`;
-    if(query !== App.currentQuery) { App.searchData = { raw: [], active: [], filter: null, loaded: false }; App.forecastData = { loaded: false }; App.searchGeoData = null; App.resetDrill(); App.subawardDrillState = { level: 0, path: [], filter: null, filterType: null }; }
-    App.currentQuery = query; App.mode = 'search'; App.showLoader('SCANNING ' + query.toUpperCase(), 'Pulling live awards from USASpending.gov');
+    if(query !== App.currentQuery) { App.searchData = { raw: [], active: [], filter: null, loaded: false }; App.forecastData = { loaded: false }; App.resetDrill(); App.subawardDrillState = { level: 0, path: [], filter: null, filterType: null }; }
+    App.currentQuery = query; App.showLoader('SCANNING ' + query.toUpperCase(), 'Pulling live awards from USASpending.gov');
     try {
       // Ensure D3 is loaded for Sankey (preloaded during idle, so usually instant)
       await LibLoader.loadD3();
@@ -3712,10 +3480,8 @@ setupClearButton('mainSearchInput', 'input-clear');
     } catch(e) { console.warn('Background data failure:', e); }
   },
 
-  // Background forecast loading — runs after search, populates strategy tools + spending chart + recompetes
-  // OPTIMIZATION: Reuses searchData.raw from searchAwards() instead of making a duplicate
-  // getAwardsForForecast call. searchAwards now fetches AWARD_FIELDS which includes
-  // 'Potential Total Value of Award' — the only field forecast previously needed separately.
+  // Background forecast loading — populates recompetes from existing search data
+  // OPTIMIZATION: Reuses searchData.raw from searchAwards() instead of making a duplicate API call.
   async loadForecastInBackground(query) {
     // Expiring contracts detection — uses searchData.raw directly, no extra API calls needed
     if (!query) return;
@@ -3795,7 +3561,7 @@ setupClearButton('mainSearchInput', 'input-clear');
     // Render Bubble Chart
     App.renderBubbleChart();
     
-    // Refresh strategy tools (spending chart from search data, recompetes if forecast loaded)
+    // Refresh strategy tools (recompetes if forecast loaded)
     App.renderStrategyTools();
     
     // Enable Conversation Starters button
@@ -3833,8 +3599,6 @@ setupClearButton('mainSearchInput', 'input-clear');
     App.activeFeedSource = 'prime';
     App.activeVehicleFilter = null;
     App.bubbleMode = 'auto';
-    const officesPanel = document.getElementById('officesPanel');
-    if (officesPanel) officesPanel.style.display = 'none'; 
     App.updateSearchDashboard(); 
     App.renderSankey(); 
   },
@@ -3842,7 +3606,7 @@ setupClearButton('mainSearchInput', 'input-clear');
   // === COMPETITIVE FOOTPRINT ===
   // Run a fresh search for a specific vendor — see their entire federal portfolio
   viewFootprint(vendorName) {
-    const clean = Utils.cleanVendorName ? Utils.cleanVendorName(vendorName) : vendorName.replace(/,?\s*(L\.?L\.?C\.?|INC\.?|CORP\.?|CORPORATION|INCORPORATED|COMPANY|CO\.?|LTD\.?|L\.?P\.?|P\.?C\.?|P\.?L\.?L\.?C\.?)\.?\s*$/gi, '').trim();
+    const clean = JobLinks.cleanVendorName(vendorName);
     if (!clean || clean.length < 2) return;
     document.getElementById('mainSearchInput').value = clean;
     document.getElementById('miniSearch').value = clean;
@@ -3888,7 +3652,7 @@ setupClearButton('mainSearchInput', 'input-clear');
     data.forEach(c => {
       const pid = c['parent_award_id'];
       if (!pid || pid === 'NONE') return;
-      const label = VehicleDetector.detectVehicle(pid)?.short || pid;
+      const label = VehicleDetector.detect(pid)?.short || pid;
       if (!vehicles[pid]) vehicles[pid] = { pid, label, count: 0, amount: 0 };
       vehicles[pid].count++;
       vehicles[pid].amount += parseFloat(c['Award Amount']) || 0;
@@ -3995,33 +3759,14 @@ setupClearButton('mainSearchInput', 'input-clear');
   updateDrillUI() {
   const bc = document.getElementById('drillBreadcrumb'); 
   const hint = document.getElementById('drillHint'); 
-  const lvl = document.getElementById('drillLevelBadge');
-  const levelText = document.getElementById('drillLevelText');
-  const officesPanel = document.getElementById('officesPanel');
   const drillControlsBar = document.getElementById('drillControlsBar');
-  const filterBadge = document.getElementById('filterBadge');
 
   if (App.drillState.level === 0) {
     if (drillControlsBar) drillControlsBar.style.display = 'none';
     hint.style.display = 'none'; 
-    const _sp = document.getElementById('subagencyPanel'); if(_sp) _sp.style.display = 'none';
-    if (officesPanel) officesPanel.style.display = 'none';
-    if (filterBadge) filterBadge.style.display = 'none';
   } else {
     if (drillControlsBar) drillControlsBar.style.display = 'block';
     bc.style.display = 'flex'; 
-    lvl.style.display = 'inline-flex';
-    if (filterBadge && App.searchData.filter) {
-      filterBadge.style.display = 'inline-flex';
-      document.getElementById('filterName').innerText = Utils.trunc(App.searchData.filter, 20);
-    } else if (filterBadge) {
-      filterBadge.style.display = 'none';
-    }
-    
-    // Set appropriate badge text
-    if (App.drillState.level === 1) levelText.innerText = 'Agency View';
-    else if (App.drillState.level === 2) levelText.innerText = 'Sub-Agency View';
-    else if (App.drillState.level === 3) levelText.innerText = 'Vendor Perspective';
 
     let html = `<div class="breadcrumb-item" data-action="resetDrill"><span>All Agencies</span></div>`;
     
@@ -4038,23 +3783,13 @@ setupClearButton('mainSearchInput', 'input-clear');
 
     if (App.drillState.level === 1) { 
       hint.innerHTML = `<span>Click a <strong>sub-agency</strong> or <strong>vendor</strong> to refine</span>`; 
-      App.renderSubAgencyPanel();
-      if (officesPanel) officesPanel.style.display = 'none';
     } else if (App.drillState.level === 2) {
-      App.renderSubAgencyPanel();
-      if (officesPanel) officesPanel.style.display = 'none';
       hint.innerHTML = `<span>Viewing <strong>sub-agency</strong> breakdown</span>`; 
     } else { 
-      const _sp = document.getElementById('subagencyPanel'); if(_sp) _sp.style.display = 'none';
-      if (officesPanel) officesPanel.style.display = 'none';
       hint.innerHTML = `<span>Viewing filtered breakdown</span>`; 
     }
   }
 },
-
-  renderSubAgencyPanel() {
-    // Sub-agency display now handled by Top Agency Buyers panel
-  },
 
   drillToAgency(name) {
   App.drillState = { 
@@ -4100,59 +3835,7 @@ drillToSubAgency(name) {
   App.renderSankey();
 },
 
-  // Load offices for sub-agency
-  async loadOfficesForSubAgency(subAgencyName) {
-    const panel = document.getElementById('officesPanel');
-    const list = document.getElementById('officesList');
-    
-    // Show loading state
-    panel.style.display = 'block';
-    document.getElementById('officesSubAgencyName').innerText = Utils.trunc(subAgencyName, 40);
-    list.innerHTML = '<div style="text-align:center; padding:1rem; color:var(--text-muted);"> Loading offices...</div>';
-    
-    try {
-      const offices = await API.fetchOfficesForSubAgency(subAgencyName);
-      
-      if (offices.length === 0) {
-        list.innerHTML = '<div style="text-align:center; padding:1rem; color:var(--text-muted);">No contracting offices found for this sub-agency</div>';
-        document.getElementById('officesCount').innerText = '0';
-        document.getElementById('officesTotalAmount').innerText = '$0';
-        return;
-      }
-      
-      // Deduplicate offices by code
-      const uniqueOffices = [];
-      const seenCodes = new Set();
-      offices.forEach(o => {
-        if (!seenCodes.has(o.code)) {
-          seenCodes.add(o.code);
-          uniqueOffices.push(o);
-        }
-      });
-      
-      document.getElementById('officesCount').innerText = uniqueOffices.length;
-      document.getElementById('officesTotalAmount').innerText = Utils.money(App.searchData.active.reduce((s, c) => s + (c['Award Amount'] || 0), 0));
-      
-      list.innerHTML = uniqueOffices.slice(0, 15).map((office, i) => `
-        <div class="subagency-item" style="cursor: default;">
-          <div class="subagency-item-left">
-            <div class="subagency-rank ${i < 3 ? 'top-3' : ''}">${i + 1}</div>
-            <div class="subagency-info">
-              <div class="subagency-name">${Autocomplete.escapeHtml(office.name)}</div>
-              <div class="subagency-contracts" style="font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;">${Autocomplete.escapeHtml(office.code || 'N/A')}</div>
-            </div>
-          </div>
-          <div class="subagency-item-right">
-            
-          </div>
-        </div>
-      `).join('');
-      
-    } catch (e) {
-      console.error('Error loading offices:', e);
-      list.innerHTML = '<div style="text-align:center; padding:1rem; color:var(--text-muted);">Error loading offices</div>';
-    }
-  },
+  
   drillToLevel(lvl) { 
   // Always restore full data before re-applying a level-specific filter
   App.searchData.active = App.searchData.raw;
@@ -4469,25 +4152,6 @@ const linkedInPeopleUrl = JobLinks.getLinkedInPeopleUrl(vendorNameRaw);
 const linkedInNewsUrl = JobLinks.getLinkedInNewsUrl(vendorNameRaw);
 return `<div class="deal-card">
     <div class="deal-header"><span class="deal-agency">${agencyDisplaySafe}</span><span class="deal-amount">${Utils.money(c['Award Amount'])}<span style="font-size:0.55rem;opacity:0.5;margin-left:0.25rem;">obligated</span></span></div>
-    ${(() => {
-      const obligated = parseFloat(c['Award Amount']) || 0;
-      if (obligated <= 0) return '';
-      
-      // Ceiling from detail endpoint enrichment (top 10 awards)
-      const ceiling = parseFloat(c['potential_total_value_of_award']) || 0;
-      if (ceiling <= obligated) return '';
-      
-      const burnPct = Math.min((obligated / ceiling) * 100, 100);
-      return `<div class="skill-bar-container" style="margin:0.35rem 0 0.15rem;">
-        <div class="skill-bar-label">
-          <span class="skill-bar-name">${burnPct.toFixed(0)}% burned</span>
-          <span class="skill-bar-pct">${Utils.money(obligated)} of ${Utils.money(ceiling)}</span>
-        </div>
-        <div class="skill-bar">
-          <div class="skill-bar-fill" style="width: ${burnPct}%"></div>
-        </div>
-      </div>`;
-    })()}
     <div class="deal-desc">${desc}</div>
     <div class="deal-vendor">${vendorName} <a href="${linkedInPeopleUrl}" target="_blank" class="job-link" style="margin-left:6px;" title="Find contacts at this company"> People</a> <a href="${linkedInUrl}" target="_blank" class="job-link" title="Search jobs at this company"> Jobs</a> <a href="${linkedInNewsUrl}" target="_blank" class="job-link" title="LinkedIn posts about this company"> News</a></div>
     ${metaTags ? `<div class="deal-meta">${metaTags}</div>` : ''}
@@ -4967,12 +4631,8 @@ renderSearchTopBuyers(data) {
     const wrapper = document.getElementById('subawardWrapper');
     const body = document.getElementById('subcontractingBody');
     const statsEl = document.getElementById('subcontractingStats');
-    const legendEl = document.getElementById('subcontractingLegend');
     
     if (!wrapper || !body) return;
-    
-    // 1. Hide the old legend (we use dynamic vintage colors now)
-    if (legendEl) legendEl.style.display = 'none';
 
     // 2. CHECK DATA EXISTENCE
     if (!subawards || subawards.length === 0) {
@@ -5510,7 +5170,7 @@ renderRecompetes(recompetes, showAll = false) {
 
 // --- Helpers ---
   exportCSV(btn) {
-    const data = App.mode === 'search' ? App.searchData.active : ([]);
+    const data = App.searchData.active;
     
     // IF NO DATA: Flash Red (Error)
     if (!data.length) {
