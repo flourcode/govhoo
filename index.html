@@ -3256,147 +3256,128 @@ const App = {
   // =======================================================================
   AI_ENDPOINT: 'https://76unm1rlj0.execute-api.us-east-1.amazonaws.com/default/grumpy2', 
 	aiState: { history: [], count: 0, max: 5 },
-  async runAiActionPlan() {
+async runAiActionPlan() {
+      const banner = document.getElementById('aiIntelligenceBanner');
+      const panel = document.getElementById('aiActionPanel');
+      const content = document.getElementById('aiContentContainer');
+      const btn = document.getElementById('triggerAiPlanBtn');
+      const copyBtn = document.getElementById('copyAiBtn');
 
-  const banner = document.getElementById('aiIntelligenceBanner');
-  const panel = document.getElementById('aiActionPanel');
-  const content = document.getElementById('aiContentContainer');
-  const btn = document.getElementById('triggerAiPlanBtn');
-  const copyBtn = document.getElementById('copyAiBtn');
+      if (!App.searchData || !App.searchData.active || App.searchData.active.length === 0) {
+          alert("Please run a search first to gather account data.");
+          return;
+      }
 
-  if (!App.searchData || !App.searchData.active || App.searchData.active.length === 0) {
-      alert("Please run a search first to gather account data.");
-      return;
-  }
+      // 1. UI Setup: Hide banner, show panel, hide FAB, scroll down
+      if (banner) banner.style.display = 'none';
+      panel.style.display = 'block';
+      document.getElementById('artiFab')?.classList.remove('visible');
+      setTimeout(() => {
+          panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+      copyBtn.style.display = 'none';
 
-  if (banner) banner.style.display = 'none';
-        panel.style.display = 'block';
-		document.getElementById('artiFab')?.classList.remove('visible');
-        setTimeout(() => {
-            panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
-        copyBtn.style.display = 'none';
+      // 2. Button Loading State
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 6px;"></i> ASKING ARTI...';
+      btn.disabled = true;
 
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 6px;"></i> ASKING ARTI...';
-  btn.disabled = true;
-
-  content.innerHTML = `
-      <div class="ai-loader" id="aiLoaderText">
-          <i class="fas fa-circle-notch fa-spin" style="margin-right: 8px;"></i> Arti is reviewing the data
-      </div>`;
-
-  // Animated progress for initial briefing
-  const briefStartTime = Date.now();
-  const briefProgressTimer = setInterval(() => {
-    const el = document.getElementById('aiLoaderText');
-    if (!el) { clearInterval(briefProgressTimer); return; }
-    const elapsed = Math.floor((Date.now() - briefStartTime) / 1000);
-    const dots = '.'.repeat((elapsed % 3) + 1);
-    const phases = ['Arti is reviewing the data', 'Analyzing spending patterns', 'Building strategic assessment'];
-    const phase = phases[Math.min(Math.floor(elapsed / 6), phases.length - 1)];
-    el.innerHTML = `<i class="fas fa-circle-notch fa-spin" style="margin-right: 8px;"></i> ${phase}${dots} (${elapsed}s)`;
-  }, 500);
-
-  const summaryPayload = App.searchData.active;
-
-  try {
-
-      const res = await fetch(App.AI_ENDPOINT, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-              request_type: 'govhoo_action_plan',
-              market_data: summaryPayload,
-              objective: 'Account Intelligence'
-          })
-      });
-
-      if (!res.ok) throw new Error(`Gateway Error: ${res.status}`);
-
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-
-      const strategicText = data.strategic_read;
-      if (!strategicText) throw new Error("Invalid AI response format.");
-
-      clearInterval(briefProgressTimer);
-      let renderedHtml;
-
-if (window.marked && typeof window.marked.parse === 'function') {
-    // Configure marked safely (run once globally if you prefer)
-    marked.setOptions({
-        breaks: true,
-        gfm: true
-    });
-
-    renderedHtml = marked.parse(strategicText);
-} else {
-    // Safe fallback if marked is not loaded
-    const escapeHtml = (str) =>
-        str.replace(/[&<>"']/g, (m) =>
-            ({
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#39;'
-            }[m])
-        );
-
-    renderedHtml = `
-        <pre style="white-space: pre-wrap; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.5;">
-${escapeHtml(strategicText)}
-        </pre>
-    `;
-}
+      // 3. Set Initial Phased Loader HTML
       content.innerHTML = `
-          <div class="ai-result-section strategic-read">
-              ${renderedHtml}
-          </div>
-      `;
+          <div class="ai-loader" id="aiLoaderText" style="padding: 1rem 0; color: var(--text-muted); font-size: 0.85rem; font-style: italic;">
+              <i class="fas fa-circle-notch fa-spin" style="margin-right: 8px; color: var(--accent);"></i> Arti is reviewing the data
+          </div>`;
 
-      content.dataset.rawPlan = strategicText;
-      copyBtn.style.display = 'inline-block';
+      // 4. Start Phased Animation Timer
+      const briefStartTime = Date.now();
+      const briefProgressTimer = setInterval(() => {
+          const el = document.getElementById('aiLoaderText');
+          if (!el) { clearInterval(briefProgressTimer); return; }
+          
+          const elapsed = Math.floor((Date.now() - briefStartTime) / 1000);
+          const dots = '.'.repeat((elapsed % 3) + 1);
+          const phases = ['Arti is reviewing the data', 'Analyzing spending patterns', 'Building strategic assessment'];
+          const phase = phases[Math.min(Math.floor(elapsed / 6), phases.length - 1)];
+          
+          el.innerHTML = `<i class="fas fa-circle-notch fa-spin" style="margin-right: 8px; color: var(--accent);"></i> ${phase}${dots} (${elapsed}s)`;
+      }, 500);
 
-	  document.getElementById('aiChatInputWrapper').style.display = 'flex';
-      document.getElementById('aiChatCounter').style.display = 'block';
-      document.getElementById('aiChatCounter').innerText = `${App.aiState.max} questions remaining for this view.`;
-      document.getElementById('aiDisclaimer').style.display = 'block';
+      const summaryPayload = App.searchData.active;
 
-      document.getElementById('aiChatInput').onkeydown = function(e) {
-          if (e.key === 'Enter') {
-              e.preventDefault(); // Prevents line breaks or page jumps
-              App.sendAiChatMessage();
+      try {
+          // 5. Fetch from Lambda
+          const res = await fetch(App.AI_ENDPOINT, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                  request_type: 'govhoo_action_plan',
+                  market_data: summaryPayload,
+                  objective: 'Account Intelligence'
+              })
+          });
+
+          if (!res.ok) throw new Error(`Gateway Error: ${res.status}`);
+
+          const data = await res.json();
+          if (data.error) throw new Error(data.error);
+
+          const strategicText = data.strategic_read;
+          if (!strategicText) throw new Error("Invalid AI response format.");
+
+          // >>> SUCCESS: STOP THE TIMER <<<
+          clearInterval(briefProgressTimer);
+
+          let renderedHtml;
+          if (window.marked && typeof window.marked.parse === 'function') {
+              marked.setOptions({ breaks: true, gfm: true });
+              renderedHtml = marked.parse(strategicText);
+          } else {
+              const escapeHtml = (str) => str.replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+              renderedHtml = `<pre style="white-space: pre-wrap; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.5;">${escapeHtml(strategicText)}</pre>`;
           }
-      };
+          
+          // 6. Inject the response
+          content.innerHTML = `<div class="ai-result-section strategic-read">${renderedHtml}</div>`;
+          content.dataset.rawPlan = strategicText;
+          copyBtn.style.display = 'inline-block';
 
-      App.aiState.history = [
-          { role: 'user', content: `Give me a strategic read on the "${App.currentQuery}" market.` },
-          { role: 'model', content: strategicText }
-      ];
-	  
-  } catch (e) {
+          // 7. Setup Chat Interface
+          document.getElementById('aiChatInputWrapper').style.display = 'flex';
+          document.getElementById('aiChatCounter').style.display = 'block';
+          document.getElementById('aiChatCounter').innerText = `${App.aiState.max} questions remaining for this view.`;
+          document.getElementById('aiDisclaimer').style.display = 'block';
 
-      console.error("AI Error:", e);
+          document.getElementById('aiChatInput').onkeydown = function(e) {
+              if (e.key === 'Enter') {
+                  e.preventDefault(); 
+                  App.sendAiChatMessage();
+              }
+          };
 
-      clearInterval(briefProgressTimer);
-      const safeMessage = (e.message || "Unknown error")
-          .replace(/[&<>"']/g, m =>
-              ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;' }[m])
-          );
+          App.aiState.history = [
+              { role: 'user', content: `Give me a strategic read on the "${App.currentQuery}" market.` },
+              { role: 'model', content: strategicText }
+          ];
+          
+      } catch (e) {
+          console.error("AI Error:", e);
 
-      content.innerHTML = `
-          <div style="color: #ff6b6b; font-size: 13px;">
-              Briefing failed: ${safeMessage}
-          </div>
-      `;
+          // >>> ERROR: STOP THE TIMER <<<
+          clearInterval(briefProgressTimer);
+          
+          const safeMessage = (e.message || "Unknown error").replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;' }[m]));
 
-  } finally {
-      btn.innerHTML = 'ASK ARTI';
-      btn.disabled = false;
-  }
-},
+          content.innerHTML = `
+              <div style="color: #ff6b6b; font-size: 13px; padding: 1rem 0;">
+                  Briefing failed: ${safeMessage}
+              </div>
+          `;
 
+      } finally {
+          // 8. Always reset the button state
+          btn.innerHTML = 'ASK ARTI';
+          btn.disabled = false;
+      }
+  },
 async sendAiChatMessage() {
       if (App.aiState.count >= App.aiState.max) return;
       const inputEl = document.getElementById('aiChatInput');
