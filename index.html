@@ -1621,17 +1621,6 @@ button, input, select, textarea,
     
     <div id="searchModeView" class="view-section active">
       
-      <!-- Drill Navigation Controls -->
-      <div id="drillControlsBar" class="drill-controls-bar" style="display: none; margin-bottom: 1rem; padding: 0.75rem 1rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 6px; overflow: hidden;">
-        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
-          <div id="drillBreadcrumb" class="drill-breadcrumb" style="display: flex; margin: 0; flex-wrap: wrap; min-width: 0;">
-            <div class="breadcrumb-item" data-action="resetDrill">
-              
-              <span>All Agencies</span>
-            </div>
-          </div>
-        </div>
-      </div>
 <div id="aiIntelligenceBanner" class="ai-banner">
     <div class="ai-banner-wrapper">
         <img src="images/arti.png" alt="Arti" class="ai-avatar-float">
@@ -1665,6 +1654,18 @@ button, input, select, textarea,
         Arti is an AI. Always verify USASpending data and use your own judgment before making strategic decisions.
     </div>
 </div>
+
+      <!-- Drill Navigation Controls -->
+      <div id="drillControlsBar" class="drill-controls-bar" style="display: none; margin-bottom: 1rem; padding: 0.75rem 1rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 6px; overflow: hidden;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+          <div id="drillBreadcrumb" class="drill-breadcrumb" style="display: flex; margin: 0; flex-wrap: wrap; min-width: 0;">
+            <div class="breadcrumb-item" data-action="resetDrill">
+              
+              <span>All Agencies</span>
+            </div>
+          </div>
+        </div>
+      </div>
       <!-- Agency Award Flow Sankey -->
       <div id="sankeyPanel" class="sankey-panel" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin-bottom: 1rem; overflow: hidden;">
         
@@ -2622,6 +2623,22 @@ const API = {
   
   // Forecast Mode APIs
 
+  // NAICS breakdown via spending_by_category/naics — the spending_by_award endpoint
+  // returns null for NAICS fields, so we use this dedicated aggregation endpoint.
+  async getNaicsBreakdown(keywords) {
+    const today = new Date();
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(today.getFullYear() - 1);
+    const timePeriod = [{ start_date: Utils.formatDateISO(oneYearAgo), end_date: Utils.formatDateISO(today) }];
+    const filters = Utils.buildFilters(keywords, timePeriod);
+    filters.award_type_codes = this.CONTRACT_TYPES;
+    const res = await fetch(`${this.baseUrl}/search/spending_by_category/naics`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ category: 'naics', filters, limit: 10 })
+    });
+    return (await res.json()).results || [];
+  },
+
   // Native sub-agency metrics from spending_by_category/awarding_subagency (sub_agency.py)
   // Returns REAL obligation totals per sub-agency — not derived from top-100 results.
   // Only called on agency drill-down, not on every search.
@@ -2770,6 +2787,7 @@ const App = {
   currentQuery: '',
   searchData: { raw: [], active: [], filter: null, loaded: false },
   forecastData: { analysis: null, subawards: null, loaded: false },
+  naicsData: null,
   drillState: { level: 0, path: [], currentAgency: null, currentSubAgency: null },
   subawardDrillState: { level: 0, path: [], filter: null, filterType: null },
   activeFeedSource: 'prime', // 'prime' or 'sub' - tracks which Sankey the user is interacting with
@@ -3244,7 +3262,7 @@ setupClearButton('mainSearchInput', 'input-clear');
 	query = Utils.normalizeQuery(query.toUpperCase());
   document.getElementById('mainSearchInput').value = query;
   document.title = `Govhoo | ${query.toUpperCase()}`;
-    if(query !== App.currentQuery) { App.searchData = { raw: [], active: [], filter: null, loaded: false }; App.forecastData = { loaded: false }; App.resetDrill(); App.subawardDrillState = { level: 0, path: [], filter: null, filterType: null }; }
+    if(query !== App.currentQuery) { App.searchData = { raw: [], active: [], filter: null, loaded: false }; App.forecastData = { loaded: false }; App.naicsData = null; App.resetDrill(); App.subawardDrillState = { level: 0, path: [], filter: null, filterType: null }; }
     App.currentQuery = query; App.showLoader('SCANNING ' + query.toUpperCase(), 'Pulling live awards from USASpending.gov');
     try {
       // OPTIMIZED: Load D3 and fetch API data in parallel instead of sequentially
@@ -3268,10 +3286,19 @@ setupClearButton('mainSearchInput', 'input-clear');
     // Expiring contracts — computed from existing search data, no API call
     this.loadForecastInBackground(query);
 
-    // Background API call: subs only
+    // Background API calls: NAICS breakdown + subs
+    try { this.loadNaicsBreakdown(query); } catch(e) { console.warn('NAICS load failed:', e); }
     try {
       setTimeout(() => this.loadSubcontractingData(query), 0);
     } catch(e) { console.warn('Background data failure:', e); }
+  },
+
+  async loadNaicsBreakdown(query) {
+    try {
+      const results = await API.getNaicsBreakdown(query);
+      App.naicsData = results;
+      App.renderNaicsMix();
+    } catch(e) { console.warn('[NAICS] API call failed:', e); }
   },
 
   // Background forecast loading — populates recompetes from existing search data
@@ -3350,7 +3377,7 @@ setupClearButton('mainSearchInput', 'input-clear');
     
     // Update Job Seeker Panels (dynamically based on active/filtered data)
 	App.renderSearchTopBuyers(data);
-    App.renderNaicsMix(data);
+    
     
     // OPTIMIZED: Defer heavy chart rendering to after initial paint
     requestAnimationFrame(() => {
@@ -4278,61 +4305,27 @@ renderSearchTopBuyers(data) {
   },
 
 
-  // --- NAICS Mix: Top codes by dollar value, clickable for drill or search ---
-  renderNaicsMix(data) {
+  // --- NAICS Mix: Uses spending_by_category/naics endpoint (App.naicsData) ---
+  renderNaicsMix() {
     const panel = document.getElementById('naicsPanel');
     const body = document.getElementById('naicsMixBody');
     if (!body || !panel) return;
+    
+    const data = App.naicsData;
     if (!data || data.length === 0) { panel.style.display = 'none'; return; }
 
-    const buckets = {};
-    let totalAmt = 0;
-    data.forEach(c => {
-      const code = c['NAICS Code'] || c['naics_code'];
-      if (!code) return;
-      const desc = c['NAICS Description'] || c['naics_description'] || '';
-      const amt = parseFloat(c['Award Amount']) || 0;
-      const vendor = c['Recipient Name'] || '';
-      const agency = c['Awarding Agency'] || '';
-      const offers = parseInt(c['number_of_offers_received']) || 0;
-
-      if (!buckets[code]) buckets[code] = { code, desc, count: 0, amount: 0, vendors: {}, agencies: {}, offersTotal: 0, offersCount: 0 };
-      buckets[code].count++;
-      buckets[code].amount += amt;
-      totalAmt += amt;
-
-      // Track vendors by spend
-      if (vendor) {
-        if (!buckets[code].vendors[vendor]) buckets[code].vendors[vendor] = 0;
-        buckets[code].vendors[vendor] += amt;
-      }
-      // Track agencies by spend
-      if (agency) {
-        if (!buckets[code].agencies[agency]) buckets[code].agencies[agency] = 0;
-        buckets[code].agencies[agency] += amt;
-      }
-      // Track offers
-      if (offers > 0) { buckets[code].offersTotal += offers; buckets[code].offersCount++; }
-    });
-
-    const sorted = Object.values(buckets).sort((a, b) => b.amount - a.amount).slice(0, 5);
+    const totalAmt = data.reduce((sum, d) => sum + (d.amount || 0), 0);
+    const sorted = data.slice(0, 5);
     if (sorted.length === 0) { panel.style.display = 'none'; return; }
 
     panel.style.display = 'block';
-    const maxAmt = sorted[0].amount;
+    const maxAmt = sorted[0].amount || 1;
     const q = App.currentQuery || '';
     const esc = (s) => s.replace(/'/g, "\\'");
 
     body.innerHTML = `<div style="display: flex; flex-direction: column; gap: 0.15rem;">
       ${sorted.map(s => {
         const pct = totalAmt > 0 ? ((s.amount / totalAmt) * 100).toFixed(0) : 0;
-
-        // Top vendor and agency for this NAICS
-        const topVendor = Object.entries(s.vendors).sort((a, b) => b[1] - a[1])[0];
-        const topAgency = Object.entries(s.agencies).sort((a, b) => b[1] - a[1])[0];
-        const avgOffers = s.offersCount > 0 ? (s.offersTotal / s.offersCount).toFixed(1) : null;
-        const agencyShort = topAgency ? topAgency[0].replace(/^Department of (the )?/i, '').replace(/^Office of (the )?/i, '') : '';
-
         const searchAction = q && !/^\d{6}$/.test(q.trim())
           ? `App.runSearch('${esc(q)} AND ${s.code}')`
           : `App.runSearch('${s.code}')`;
@@ -4346,10 +4339,9 @@ renderSearchTopBuyers(data) {
                   <div style="height: 100%; width: ${(s.amount / maxAmt) * 100}%; background: var(--accent); border-radius: 3px; opacity: 0.85;"></div>
                 </div>
               </div>
-              <span class="reach-badge accent">${s.count} contracts</span>
             </div>
             <div class="reach-meta" style="padding-left: 0;">
-              ${Utils.trunc(s.desc, 35)}${topVendor ? ` · ${Utils.trunc(topVendor[0], 18)} leads` : ''}${topAgency ? ` · ${Utils.trunc(agencyShort, 18)} buys` : ''}${avgOffers ? ` · ${avgOffers} avg offers` : ''}
+              ${Utils.trunc(s.name || '', 50)}
             </div>
           </div>
           <div style="text-align: right; flex-shrink: 0;">
