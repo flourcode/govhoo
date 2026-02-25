@@ -2503,183 +2503,8 @@ const VehicleDetector = {
 };
 
 
+// Autocomplete removed — savvy users don't need it, and it was firing 2 API calls per keystroke
 const Autocomplete = {
-  activeInput: null,
-  dropdown: null,
-  debounceTimer: null,
-  selectedIndex: -1,
-  results: { agencies: [], recipients: [] },
-  
-init(inputId) {
-  const input = document.getElementById(inputId);
-  if (!input) return;
-  
-  // Wrap input if not already wrapped
-  if (!input.parentElement.classList.contains('autocomplete-wrapper')) {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'autocomplete-wrapper';
-    input.parentNode.insertBefore(wrapper, input);
-    wrapper.appendChild(input);
-  }
-  
-  // Create dropdown
-  const dropdown = document.createElement('div');
-  dropdown.className = 'autocomplete-dropdown';
-  dropdown.id = `${inputId}-dropdown`;
-  input.parentElement.appendChild(dropdown);
-  
-  // Event listeners
-  input.addEventListener('input', (e) => this.handleInput(e, inputId));
-  input.addEventListener('keydown', (e) => this.handleKeydown(e, inputId));
-  input.addEventListener('focus', (e) => this.handleFocus(e, inputId));
-  input.addEventListener('blur', () => setTimeout(() => this.hide(inputId), 200));
-},
-  
-  handleInput(e, inputId) {
-    const query = e.target.value.trim();
-    clearTimeout(this.debounceTimer);
-    
-    if (query.length < 2) {
-      this.hide(inputId);
-      return;
-    }
-    
-    this.debounceTimer = setTimeout(() => this.search(query, inputId), 250);
-  },
-  
-  handleFocus(e, inputId) {
-    const query = e.target.value.trim();
-    if (query.length >= 2 && this.hasResults()) {
-      this.show(inputId);
-    }
-  },
-  
-  handleKeydown(e, inputId) {
-    const dropdown = document.getElementById(`${inputId}-dropdown`);
-    if (!dropdown || !dropdown.classList.contains('active')) {
-      if (e.key === 'ArrowDown' && e.target.value.length >= 2) {
-        this.search(e.target.value.trim(), inputId);
-      }
-      return;
-    }
-    
-    const items = dropdown.querySelectorAll('.autocomplete-item');
-    
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      this.selectedIndex = Math.min(this.selectedIndex + 1, items.length - 1);
-      this.updateSelection(items);
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      this.selectedIndex = Math.max(this.selectedIndex - 1, 0);
-      this.updateSelection(items);
-    } else if (e.key === 'Enter' && this.selectedIndex >= 0) {
-      e.preventDefault();
-      items[this.selectedIndex]?.click();
-    } else if (e.key === 'Escape') {
-      this.hide(inputId);
-    }
-  },
-  
-  updateSelection(items) {
-    items.forEach((item, i) => {
-      item.classList.toggle('selected', i === this.selectedIndex);
-    });
-    items[this.selectedIndex]?.scrollIntoView({ block: 'nearest' });
-  },
-  
-  async search(query, inputId) {
-    try {
-      const [agencies, recipients] = await Promise.all([
-        API.autocompleteAgency(query),
-        API.autocompleteRecipient(query)
-      ]);
-      
-      this.results = { agencies, recipients };
-      this.selectedIndex = -1;
-      this.render(inputId);
-    } catch (e) {
-      console.error('Autocomplete error:', e);
-    }
-  },
-  
-  hasResults() {
-    return this.results.agencies.length > 0 || 
-           this.results.recipients.length > 0;
-  },
-  
-  render(inputId) {
-    const dropdown = document.getElementById(`${inputId}-dropdown`);
-    if (!dropdown) return;
-    
-    const { agencies, recipients } = this.results;
-    
-    if (!this.hasResults()) {
-      dropdown.innerHTML = '<div class="autocomplete-empty">No matches found</div>';
-      this.show(inputId);
-      return;
-    }
-    
-    let html = '';
-    
-    if (agencies.length > 0) {
-      html += `<div class="autocomplete-section">
-        <div class="autocomplete-section-label mono muted upper"> Agencies</div>
-        ${agencies.slice(0, 5).map(a => `
-          <div class="autocomplete-item" data-type="agency" data-value="${this.escapeHtml(a.subtier_agency?.name || a.toptier_agency?.name || '')}">
-            
-            <div class="autocomplete-item-text">
-              <div class="autocomplete-item-main truncate">${this.escapeHtml(a.subtier_agency?.name || a.toptier_agency?.name || 'Unknown')}</div>
-              ${a.toptier_agency?.name && a.subtier_agency?.name ? `<div class="autocomplete-item-sub muted">${this.escapeHtml(a.toptier_agency.name)}</div>` : ''}
-            </div>
-          </div>
-        `).join('')}
-      </div>`;
-    }
-    
-    if (recipients.length > 0) {
-      html += `<div class="autocomplete-section">
-        <div class="autocomplete-section-label mono muted upper"> Vendors & Keywords</div>
-        ${recipients.slice(0, 5).map(r => `
-          <div class="autocomplete-item" data-type="recipient" data-value="${this.escapeHtml(r.recipient_name || '')}">
-            
-            <div class="autocomplete-item-text">
-              <div class="autocomplete-item-main truncate">${this.escapeHtml(r.recipient_name || 'Unknown')}</div>
-              ${r.uei ? `<div class="autocomplete-item-sub muted">UEI: ${r.uei}</div>` : ''}
-            </div>
-          </div>
-        `).join('')}
-      </div>`;
-    }
-    
-    dropdown.innerHTML = html;
-    
-    // Add click handlers
-    dropdown.querySelectorAll('.autocomplete-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const input = document.getElementById(inputId);
-        if (input) {
-          input.value = item.dataset.value;
-          input.focus();
-        }
-        this.hide(inputId);
-      });
-    });
-    
-    this.show(inputId);
-  },
-  
-  show(inputId) {
-    const dropdown = document.getElementById(`${inputId}-dropdown`);
-    if (dropdown) dropdown.classList.add('active');
-  },
-  
-  hide(inputId) {
-    const dropdown = document.getElementById(`${inputId}-dropdown`);
-    if (dropdown) dropdown.classList.remove('active');
-    this.selectedIndex = -1;
-  },
-  
   escapeHtml(str) {
     if (!str) return '';
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -2771,61 +2596,80 @@ const API = {
         });
         return Utils.filterActiveContracts(Utils.normalizeAwardFields((await res.json()).results || []));
       } else {
-        const andPromises = kws.map(term => {
-          const filters = { time_period: [period], award_type_codes: this.CONTRACT_TYPES, keywords: [term] };
-          return this._fetch(`${this.baseUrl}/search/spending_by_award/`, {
-            method: 'POST', headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })
-          }).then(res => res.json());
+        // OPTIMIZED: Send all AND keywords in a single request instead of N separate calls
+        const filters = { time_period: [period], award_type_codes: this.CONTRACT_TYPES, keywords: kws };
+        const res = await this._fetch(`${this.baseUrl}/search/spending_by_award/`, {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })
         });
-        const andResults = await Promise.all(andPromises);
-        const pool = new Map();
-        andResults.forEach(json => {
-          if (json.results) json.results.forEach(a => { if (!pool.has(a['Award ID'])) pool.set(a['Award ID'], a); });
-        });
-        const filtered = [];
-        pool.forEach(award => {
+        const pool = (await res.json()).results || [];
+        // Client-side AND filter: ensure every term appears in each result
+        const filtered = pool.filter(award => {
           const haystack = [
             award['Recipient Name'], award['Awarding Agency'], award['Awarding Sub Agency'],
             award['Description'], award['NAICS Description'], award['PSC Description'], award['Award ID']
           ].filter(Boolean).join(' ').toLowerCase();
-          if (kws.every(term => haystack.includes(term.toLowerCase()))) filtered.push(award);
+          return kws.every(term => haystack.includes(term.toLowerCase()));
         });
         return Utils.filterActiveContracts(Utils.normalizeAwardFields(filtered.sort((a,b) => b['Award Amount'] - a['Award Amount'])));
       }
     }
     
-    // Reverted to blazing-fast parallel fetching (1 term per request)
-    const searchTerms = [
-      ...pscCodes.map(t => ({ type: 'psc', value: t })),
-      ...naicsCodes.map(t => ({ type: 'naics', value: t })),
-      ...keywordTerms.map(t => ({ type: 'keyword', value: t }))
-    ];
-
-    const fetchPromises = searchTerms.map(({ type, value }) => {
+    // OPTIMIZED: Single API call when possible, parallel only when mixing types
+    const hasPsc = pscCodes.length > 0;
+    const hasNaics = naicsCodes.length > 0;
+    const hasKeywords = keywordTerms.length > 0;
+    const typeCount = (hasPsc ? 1 : 0) + (hasNaics ? 1 : 0) + (hasKeywords ? 1 : 0);
+    
+    // If all terms are the same type, send ONE request with all values
+    if (typeCount === 1) {
       const filters = { time_period: [period], award_type_codes: this.CONTRACT_TYPES };
+      if (hasPsc) filters.psc_codes = pscCodes;
+      else if (hasNaics) filters.naics_codes = naicsCodes;
+      else filters.keywords = keywordTerms;
       
-      // Pass a single-item array to avoid complex backend joins
-      if (type === 'psc') filters.psc_codes = [value];
-      else if (type === 'naics') filters.naics_codes = [value];
-      else filters.keywords = [value]; 
-      
-      return this._fetch(`${this.baseUrl}/search/spending_by_award/`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          filters,
-          fields: this.AWARD_FIELDS,
-          limit: 100,
-          sort: 'Award Amount',
-          order: 'desc'
-        })
-      }).then(res => res.json());
+      const res = await this._fetch(`${this.baseUrl}/search/spending_by_award/`, {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })
+      });
+      return Utils.filterActiveContracts(Utils.normalizeAwardFields((await res.json()).results || []));
+    }
+    
+    // Mixed types: parallel fetch per TYPE (not per term) — max 3 calls instead of N
+    const fetchPromises = [];
+    if (hasPsc) {
+      const filters = { time_period: [period], award_type_codes: this.CONTRACT_TYPES, psc_codes: pscCodes };
+      fetchPromises.push(this._fetch(`${this.baseUrl}/search/spending_by_award/`, {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })
+      }).then(res => res.json()));
+    }
+    if (hasNaics) {
+      const filters = { time_period: [period], award_type_codes: this.CONTRACT_TYPES, naics_codes: naicsCodes };
+      fetchPromises.push(this._fetch(`${this.baseUrl}/search/spending_by_award/`, {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })
+      }).then(res => res.json()));
+    }
+    if (hasKeywords) {
+      const filters = { time_period: [period], award_type_codes: this.CONTRACT_TYPES, keywords: keywordTerms };
+      fetchPromises.push(this._fetch(`${this.baseUrl}/search/spending_by_award/`, {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })
+      }).then(res => res.json()));
+    }
+    
+    const settledResults = await Promise.allSettled(fetchPromises);
+    let combined = [];
+    
+    settledResults.forEach(outcome => { 
+      if (outcome.status === 'fulfilled' && outcome.value.results) {
+        combined = combined.concat(outcome.value.results); 
+      } else if (outcome.status === 'rejected') {
+        console.warn('A USAspending request timed out or failed, ignoring:', outcome.reason);
+      }
     });
     
-    const results = await Promise.all(fetchPromises);
-    let combined = [];
-    results.forEach(json => { if(json.results) combined = combined.concat(json.results); });
     const unique = new Map();
     combined.forEach(item => { if(!unique.has(item['Award ID'])) unique.set(item['Award ID'], item); });
     
@@ -2849,26 +2693,7 @@ const API = {
   },
 
 
-  async autocompleteAgency(searchText) {
-    if (!searchText || searchText.length < 2) return [];
-    const res = await this._fetch(`${this.baseUrl}/autocomplete/awarding_agency/`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ search_text: searchText, limit: 8 })
-    }, 8000);
-    return (await res.json()).results || [];
-  },
-  
-
-  async autocompleteRecipient(searchText) {
-    if (!searchText || searchText.length < 2) return [];
-    const res = await this._fetch(`${this.baseUrl}/autocomplete/recipient/`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ search_text: searchText, limit: 8 })
-    }, 8000);
-    return (await res.json()).results || [];
-  },
+  // Autocomplete API methods removed — no longer needed
 
   // ==================== SUBAWARDS ====================
   async getSubawards(keywords) {
@@ -3363,8 +3188,7 @@ App.aiState = { history: [], count: 0, max: 5 };
 
     
     // Initialize Autocomplete
-    Autocomplete.init('mainSearchInput');
-    Autocomplete.init('miniSearch');
+    // Autocomplete removed — no init needed
     
     // Setup Event Delegation for all data-action handlers
     this.setupEventDelegation();
@@ -3383,9 +3207,10 @@ function setupClearButton(inputId, buttonClass) {
   const btn = document.querySelector('.' + buttonClass);
   if (!input || !btn) return;
   
-  // Move button inside the autocomplete wrapper
-  const wrapper = input.closest('.autocomplete-wrapper');
+  // Position button inside input's parent container
+  const wrapper = input.parentElement;
   if (wrapper && btn.parentNode !== wrapper) {
+    wrapper.style.position = 'relative';
     wrapper.appendChild(btn);
   }
   
@@ -3481,9 +3306,12 @@ setupClearButton('mainSearchInput', 'input-clear');
     if(query !== App.currentQuery) { App.searchData = { raw: [], active: [], filter: null, loaded: false }; App.forecastData = { loaded: false }; App.resetDrill(); App.subawardDrillState = { level: 0, path: [], filter: null, filterType: null }; }
     App.currentQuery = query; App.showLoader('SCANNING ' + query.toUpperCase(), 'Pulling live awards from USASpending.gov');
     try {
-      // Ensure D3 is loaded for Sankey (preloaded during idle, so usually instant)
-      await LibLoader.loadD3();
-      App.searchData.raw = await API.searchAwards(query); App.searchData.active = App.searchData.raw; App.searchData.loaded = true;
+      // OPTIMIZED: Load D3 and fetch API data in parallel instead of sequentially
+      const [, searchResults] = await Promise.all([
+        LibLoader.loadD3(),
+        API.searchAwards(query)
+      ]);
+      App.searchData.raw = searchResults; App.searchData.active = App.searchData.raw; App.searchData.loaded = true;
       App.transitionToApp(); App.setMode('search'); App.updateSearchDashboard(); requestAnimationFrame(() => { App.renderSankey(); App.renderVehiclePills(); App.renderPrimeReach(); });
       // Background data enrichment — coordinated, rate-limited, with data-ready signal.
       // Each call fires sequentially to respect API rate limits, but the orchestrator
@@ -3596,11 +3424,11 @@ setupClearButton('mainSearchInput', 'input-clear');
 	App.renderSearchTopBuyers(data);
     App.renderNaicsMix(data);
     
-    // Render Bubble Chart
-    App.renderBubbleChart();
-    
-    // Refresh strategy tools (recompetes if forecast loaded)
-    App.renderStrategyTools();
+    // OPTIMIZED: Defer heavy chart rendering to after initial paint
+    requestAnimationFrame(() => {
+      App.renderBubbleChart();
+      App.renderStrategyTools();
+    });
     
     // Enable Conversation Starters button
     // Update sankey subtitle with query context
@@ -4055,14 +3883,16 @@ renderSankey() {
 
   // 5. NODES & LABELS
   // Helper: Is this node clickable?
+  // OPTIMIZED: Pre-compute drillable names into a Set instead of O(N) .some() per node
+  const drillableNames = new Set();
+  App.searchData.raw.forEach(d => {
+    if (d['Awarding Agency']) drillableNames.add(d['Awarding Agency']);
+    if (d['Awarding Sub Agency']) drillableNames.add(d['Awarding Sub Agency']);
+    if (d['Recipient Name']) drillableNames.add(d['Recipient Name']);
+  });
   const isDrillable = n => {
     if (!n || n.startsWith('Other') || n.includes('Unknown') || n === 'No Description') return false;
-    // Check against raw data to see if it's a valid entity
-    return App.searchData.raw.some(d => 
-      d['Awarding Agency'] === n || 
-      d['Awarding Sub Agency'] === n || 
-      d['Recipient Name'] === n
-    );
+    return drillableNames.has(n);
   };
 
   // Helper: Is this the currently active filter?
@@ -4613,7 +4443,7 @@ renderSearchTopBuyers(data) {
 
 
   async loadSubcontractingData(query) {
-  if (App.forecastData.subawards) return;
+  if (App.forecastData.subawards && App.currentQuery === query) return;
     const body = document.getElementById('subcontractingBody');
     const statsEl = document.getElementById('subcontractingStats');
     if (!body) return;
