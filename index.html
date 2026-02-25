@@ -1478,7 +1478,7 @@ button, input, select, textarea,
     <a href="?q=Cloud,+Cyber" class="hero-suggestion-chip">Cloud, Cyber</a>
     <a href="?q=R499+AND+AIR+FORCE" class="hero-suggestion-chip">R499 AND Air Force</a>
     <a href="?q=NVIDIA" class="hero-suggestion-chip">NVIDIA</a>
-	<a href="?q=F-35&drill=Department+of+Defense" class="hero-suggestion-chip">F-35</a>
+	<a href="?q=F-35" class="hero-suggestion-chip">F-35</a>
 </div>
 <footer class="hero-footer">
   <div class="footer-grid">
@@ -2486,47 +2486,17 @@ const Autocomplete = {
 // ==================== API ====================
 const API = {
   baseUrl: 'https://api.usaspending.gov/api/v2',
-  _activeControllers: new Set(),
-
-  // Centralized fetch with timeout and abort support
-  // Default 45s for search endpoints (USASpending regularly takes 10-30s)
-  // Pass shorter timeout for autocomplete calls
-  async _fetch(url, options = {}, timeoutMs = 45000) {
-    const controller = new AbortController();
-    this._activeControllers.add(controller);
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-    try {
-      const res = await fetch(url, { ...options, signal: controller.signal });
-      clearTimeout(timer);
-      return res;
-    } catch(e) {
-      clearTimeout(timer);
-      if (e.name === 'AbortError') {
-        const err = new Error('Request timed out. USASpending.gov may be slow — try narrowing your search.');
-        err.isTimeout = true;
-        throw err;
-      }
-      throw e;
-    } finally {
-      this._activeControllers.delete(controller);
-    }
-  },
-
-  // Cancel all in-flight requests (called on new search to avoid stale data)
-  cancelAll() {
-    this._activeControllers.forEach(c => c.abort());
-    this._activeControllers.clear();
-  },
 
   // lookups.py contract_type_mapping: A=BPA Call, B=Purchase Order, C=Delivery Order, D=Definitive Contract
   CONTRACT_TYPES: ['A', 'B', 'C', 'D'],
 
-  // Trimmed to prevent expensive database joins on USASpending's backend
+  // CRITICAL: Keep this list MINIMAL — every extra field forces expensive joins on USASpending's
+  // Postgres backend. 'number_of_offers_received' and 'Recipient UEI' alone add 5-15s to queries.
+  // The old fast version used exactly these 14 fields.
   AWARD_FIELDS: [
-    'Award ID', 'Recipient Name', 'Recipient UEI', 'Awarding Agency', 'Awarding Sub Agency',
+    'Award ID', 'Recipient Name', 'Awarding Agency', 'Awarding Sub Agency',
     'Award Amount', 'Description', 'generated_internal_id', 'Start Date', 'End Date', 
-    'NAICS Code', 'NAICS Description', 'PSC Code', 'PSC Description',
-    'Contract Award Type', 'Type Set Aside', 'number_of_offers_received'
+    'NAICS Code', 'NAICS Description', 'PSC Code', 'PSC Description'
   ],
   
   // Search Mode API
@@ -2562,15 +2532,15 @@ const API = {
           else { filters.psc_codes = filters.psc_codes || []; filters.psc_codes.push(c.value); }
         });
         if (kws.length > 0) filters.keywords = kws;
-        const res = await this._fetch(`${this.baseUrl}/search/spending_by_award/`, {
+        const res = await fetch(`${this.baseUrl}/search/spending_by_award/`, {
           method: 'POST', headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })
         });
-        return Utils.filterActiveContracts(Utils.normalizeAwardFields((await res.json()).results || []));
+        return (await res.json()).results || [];
       } else {
         // OPTIMIZED: Send all AND keywords in a single request instead of N separate calls
         const filters = { time_period: [period], award_type_codes: this.CONTRACT_TYPES, keywords: kws };
-        const res = await this._fetch(`${this.baseUrl}/search/spending_by_award/`, {
+        const res = await fetch(`${this.baseUrl}/search/spending_by_award/`, {
           method: 'POST', headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })
         });
@@ -2583,7 +2553,7 @@ const API = {
           ].filter(Boolean).join(' ').toLowerCase();
           return kws.every(term => haystack.includes(term.toLowerCase()));
         });
-        return Utils.filterActiveContracts(Utils.normalizeAwardFields(filtered.sort((a,b) => b['Award Amount'] - a['Award Amount'])));
+        return filtered.sort((a,b) => b['Award Amount'] - a['Award Amount']);
       }
     }
     
@@ -2600,32 +2570,32 @@ const API = {
       else if (hasNaics) filters.naics_codes = naicsCodes;
       else filters.keywords = keywordTerms;
       
-      const res = await this._fetch(`${this.baseUrl}/search/spending_by_award/`, {
+      const res = await fetch(`${this.baseUrl}/search/spending_by_award/`, {
         method: 'POST', headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })
       });
-      return Utils.filterActiveContracts(Utils.normalizeAwardFields((await res.json()).results || []));
+      return (await res.json()).results || [];
     }
     
     // Mixed types: parallel fetch per TYPE (not per term) — max 3 calls instead of N
     const fetchPromises = [];
     if (hasPsc) {
       const filters = { time_period: [period], award_type_codes: this.CONTRACT_TYPES, psc_codes: pscCodes };
-      fetchPromises.push(this._fetch(`${this.baseUrl}/search/spending_by_award/`, {
+      fetchPromises.push(fetch(`${this.baseUrl}/search/spending_by_award/`, {
         method: 'POST', headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })
       }).then(res => res.json()));
     }
     if (hasNaics) {
       const filters = { time_period: [period], award_type_codes: this.CONTRACT_TYPES, naics_codes: naicsCodes };
-      fetchPromises.push(this._fetch(`${this.baseUrl}/search/spending_by_award/`, {
+      fetchPromises.push(fetch(`${this.baseUrl}/search/spending_by_award/`, {
         method: 'POST', headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })
       }).then(res => res.json()));
     }
     if (hasKeywords) {
       const filters = { time_period: [period], award_type_codes: this.CONTRACT_TYPES, keywords: keywordTerms };
-      fetchPromises.push(this._fetch(`${this.baseUrl}/search/spending_by_award/`, {
+      fetchPromises.push(fetch(`${this.baseUrl}/search/spending_by_award/`, {
         method: 'POST', headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })
       }).then(res => res.json()));
@@ -2645,7 +2615,7 @@ const API = {
     const unique = new Map();
     combined.forEach(item => { if(!unique.has(item['Award ID'])) unique.set(item['Award ID'], item); });
     
-    return Utils.filterActiveContracts(Utils.normalizeAwardFields(Array.from(unique.values()).sort((a,b) => b['Award Amount'] - a['Award Amount'])));
+    return Array.from(unique.values()).sort((a,b) => b['Award Amount'] - a['Award Amount']);
   },
   
   // Forecast Mode APIs
@@ -2657,7 +2627,7 @@ const API = {
     const curFY = Utils.getCurrentFY();
     const filters = Utils.buildFilters(keywords, [{ start_date: `${curFY - 1}-10-01`, end_date: `${curFY}-09-30` }]);
     if (agencyName) filters.agencies = [{ type: 'awarding', tier: 'toptier', name: agencyName }];
-    const res = await this._fetch(`${this.baseUrl}/search/spending_by_category/awarding_subagency`, {
+    const res = await fetch(`${this.baseUrl}/search/spending_by_category/awarding_subagency`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ category: 'awarding_subagency', filters, limit: 50 })
     });
@@ -2681,7 +2651,7 @@ const API = {
     // Use buildFilters which handles AND, PSC, NAICS, and keywords
     const filters = Utils.buildFilters(keywords, timePeriod);
     
-    const res = await this._fetch(`${this.baseUrl}/search/spending_by_award/`, {
+    const res = await fetch(`${this.baseUrl}/search/spending_by_award/`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
@@ -3268,7 +3238,7 @@ setupClearButton('mainSearchInput', 'input-clear');
   // --- Search Mode ---
   async runSearch(val) {
     let query = val || document.getElementById('mainSearchInput').value; if(!query) return;
-    API.cancelAll(); // Cancel any in-flight requests from previous search
+    
 	query = Utils.normalizeQuery(query.toUpperCase());
   document.getElementById('mainSearchInput').value = query;
   document.title = `Govhoo | ${query.toUpperCase()}`;
@@ -3288,20 +3258,7 @@ setupClearButton('mainSearchInput', 'input-clear');
       this.loadBackgroundData(query);
     } catch(e) { 
       console.error(e); 
-      App.hideLoader();
-      const msg = e.isTimeout 
-        ? 'USASpending.gov is responding slowly. Try again or narrow your search.'
-        : (e.message || 'Error retrieving data. Please try again.');
-      App.transitionToApp(); 
-      App.setMode('search');
-      const feedGrid = document.getElementById('feedGrid');
-      if (feedGrid) feedGrid.innerHTML = `<div style="text-align:center;padding:2.5rem 1rem;color:var(--danger);">
-        <i class="fas fa-exclamation-triangle" style="font-size:1.5rem;margin-bottom:0.75rem;display:block;"></i>
-        <div style="font-size:0.85rem;margin-bottom:1rem;">${msg}</div>
-        <button onclick="App.runSearch()" class="btn-primary" style="width:auto;padding:0.6rem 1.5rem;font-size:0.8rem;">
-          <i class="fas fa-redo" style="margin-right:6px;"></i>Retry Search
-        </button>
-      </div>`;
+      alert('Error retrieving data.');
     } finally { App.hideLoader(); }
   },
 
@@ -3952,8 +3909,8 @@ renderSankey() {
       if (c['PSC Code']) metaTags += `<span class="meta-tag psc" title="${Autocomplete.escapeHtml(c['PSC Description'] || '')}">PSC: ${Autocomplete.escapeHtml(c['PSC Code'])}</span>`;
       const vehicle = VehicleDetector.detect(c['Award ID']);
       if (vehicle) metaTags += `<span class="meta-tag" style="background:rgba(95,128,85,0.15);border-color:rgba(95,128,85,0.3);color:var(--accent);" title="${vehicle.vehicle}">${vehicle.short}</span>`;
-      // Set-aside: from ES search 'Type Set Aside' (all awards) or enrichment fallback
-      const setAsideCode = c['Type Set Aside'];
+      // Set-aside: 'Type of Set Aside' is the correct USASpending field name
+      const setAsideCode = c['Type of Set Aside'];
       const setAside = VehicleDetector.getSetAsideLabel(setAsideCode);
       if (setAside) metaTags += `<span class="meta-tag" style="background:rgba(229,192,123,0.15);border-color:rgba(229,192,123,0.3);color:var(--accent);" title="Set-Aside: ${setAside}">${setAside}</span>`;
 
