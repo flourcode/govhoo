@@ -2218,126 +2218,78 @@ getColor: (() => {
   fn.reset = () => { assigned.clear(); nextIdx = 0; };
   return fn;
 })(),
-queryAliases: {
-  // Big Tech & Defense Primes
-  'aws': 'Amazon',
-  'gcp': 'Google Cloud',
-  'msft': 'Microsoft',
-  'ibm': 'International Business Machines',
-  'hp': 'Hewlett Packard',
-  'hpe': 'Hewlett Packard Enterprise',
-  'dell': 'Dell Technologies',
-  'gd': 'General Dynamics',
-  'gdit': 'General Dynamics Information Technology',
-  'lmco': 'Lockheed Martin',
-  'ngc': 'Northrop Grumman',
-  'bah': 'Booz Allen Hamilton',
-  'saic': 'Science Applications International',
-  
-  // Cabinet Departments
-  'dod': 'Department of Defense',
-  'doj': 'Department of Justice',
-  'dhs': 'Department of Homeland Security',
-  'hhs': 'Health and Human Services',
-  'dot': 'Department of Transportation',
-  'doe': 'Department of Energy',
-  'doi': 'Department of the Interior',
-  'dol': 'Department of Labor',
-  'doc': 'Department of Commerce',
-  'dos': 'Department of State',
-  'ed': 'Department of Education',
-  'hud': 'Housing and Urban Development',
-  'usda': 'Department of Agriculture',
-  'va': 'Veterans Affairs',
-  
-  // Defense & Intel
-  'army': 'Department of the Army',
-  'navy': 'Department of the Navy',
-  'usaf': 'Department of the Air Force',
-  'ussf': 'Space Force',
-  'usmc': 'Marine Corps',
-  'cia': 'Central Intelligence Agency',
-  'nsa': 'National Security Agency',
-  'nga': 'National Geospatial-Intelligence Agency',
-  'nro': 'National Reconnaissance Office',
-  'dia': 'Defense Intelligence Agency',
-  'disa': 'Defense Information Systems Agency',
-  'darpa': 'Defense Advanced Research Projects Agency',
-  'dcsa': 'Defense Counterintelligence and Security Agency',
-  'dla': 'Defense Logistics Agency',
-  'mda': 'Missile Defense Agency',
-  'socom': 'Special Operations Command',
-  'cybercom': 'Cyber Command',
-  'stratcom': 'Strategic Command',
-  'transcom': 'Transportation Command',
-  'centcom': 'Central Command',
-  'eucom': 'European Command',
-  'indopacom': 'Indo-Pacific Command',
-  'northcom': 'Northern Command',
-  'southcom': 'Southern Command',
-  'africom': 'Africa Command',
-  
-  // Major Agencies
-  'gsa': 'General Services Administration',
-  'nasa': 'National Aeronautics and Space Administration',
-  'fbi': 'Federal Bureau of Investigation',
-  'dea': 'Drug Enforcement Administration',
-  'atf': 'Bureau of Alcohol Tobacco Firearms and Explosives',
-  'usps': 'Postal Service',
-  'irs': 'Internal Revenue Service',
-  'epa': 'Environmental Protection Agency',
-  'fda': 'Food and Drug Administration',
-  'cdc': 'Centers for Disease Control and Prevention',
-  'nih': 'National Institutes of Health',
-  'cms': 'Centers for Medicare and Medicaid Services',
-  'ssa': 'Social Security Administration',
-  'opm': 'Office of Personnel Management',
-  'sba': 'Small Business Administration',
-  'fema': 'Federal Emergency Management Agency',
-  'tsa': 'Transportation Security Administration',
-  'cbp': 'Customs and Border Protection',
-  'ice': 'Immigration and Customs Enforcement',
-  'uscis': 'Citizenship and Immigration Services',
-  'usss': 'Secret Service',
-  'cisa': 'Cybersecurity and Infrastructure Security Agency',
-  'faa': 'Federal Aviation Administration',
-  'fhwa': 'Federal Highway Administration',
-  'fra': 'Federal Railroad Administration',
-  'fta': 'Federal Transit Administration',
-  'noaa': 'National Oceanic and Atmospheric Administration',
-  'nist': 'National Institute of Standards and Technology',
-  'census': 'Census Bureau',
-  'ita': 'International Trade Administration',
-  'blm': 'Bureau of Land Management',
-  'nps': 'National Park Service',
-  'usfs': 'Forest Service',
-  'fws': 'Fish and Wildlife Service',
-  'usgs': 'Geological Survey',
-  'bia': 'Bureau of Indian Affairs',
-  'boem': 'Bureau of Ocean Energy Management',
-  'bor': 'Bureau of Reclamation',
-  'ferc': 'Federal Energy Regulatory Commission',
-  'nnsa': 'National Nuclear Security Administration',
-  'sec': 'Securities and Exchange Commission',
-  'ftc': 'Federal Trade Commission',
-  'fcc': 'Federal Communications Commission',
-  'nlrb': 'National Labor Relations Board',
-  'eeoc': 'Equal Employment Opportunity Commission',
-  'gao': 'Government Accountability Office',
-  'omb': 'Office of Management and Budget',
-  'cbo': 'Congressional Budget Office',
-  'nara': 'National Archives and Records Administration',
-  'pbgc': 'Pension Benefit Guaranty Corporation',
-  'usaid': 'Agency for International Development',
-  'amtrak': 'Amtrak',
-  'fdic': 'Federal Deposit Insurance Corporation',
-  'ncua': 'National Credit Union Administration',
-  'cfpb': 'Consumer Financial Protection Bureau',
-  'exim': 'Export-Import Bank'
+// Agency aliases — these will use the structured agencies filter, not keyword search
+agencyAliases: {
+  'dod': 'Department of Defense', 'doj': 'Department of Justice', 'dhs': 'Department of Homeland Security',
+  'hhs': 'Health and Human Services', 'dot': 'Department of Transportation', 'doe': 'Department of Energy',
+  'doi': 'Department of the Interior', 'dol': 'Department of Labor', 'doc': 'Department of Commerce',
+  'dos': 'Department of State', 'ed': 'Department of Education', 'hud': 'Housing and Urban Development',
+  'usda': 'Department of Agriculture', 'va': 'Department of Veterans Affairs',
+  'army': 'Department of the Army', 'navy': 'Department of the Navy', 'usaf': 'Department of the Air Force',
+  'ussf': 'Space Force', 'usmc': 'Marine Corps',
+  'gsa': 'General Services Administration', 'nasa': 'National Aeronautics and Space Administration',
+  'epa': 'Environmental Protection Agency', 'ssa': 'Social Security Administration',
+  'opm': 'Office of Personnel Management', 'sba': 'Small Business Administration',
+  'nara': 'National Archives and Records Administration', 'usaid': 'Agency for International Development',
 },
+
+// Sub-agency aliases — these match at the sub-agency level
+subAgencyAliases: {
+  'cia': 'Central Intelligence Agency', 'nsa': 'National Security Agency',
+  'nga': 'National Geospatial-Intelligence Agency', 'nro': 'National Reconnaissance Office',
+  'dia': 'Defense Intelligence Agency', 'disa': 'Defense Information Systems Agency',
+  'darpa': 'Defense Advanced Research Projects Agency', 'dcsa': 'Defense Counterintelligence and Security Agency',
+  'dla': 'Defense Logistics Agency', 'mda': 'Missile Defense Agency',
+  'fbi': 'Federal Bureau of Investigation', 'dea': 'Drug Enforcement Administration',
+  'atf': 'Bureau of Alcohol Tobacco Firearms and Explosives',
+  'irs': 'Internal Revenue Service', 'fda': 'Food and Drug Administration',
+  'cdc': 'Centers for Disease Control and Prevention', 'nih': 'National Institutes of Health',
+  'cms': 'Centers for Medicare and Medicaid Services',
+  'fema': 'Federal Emergency Management Agency', 'tsa': 'Transportation Security Administration',
+  'cbp': 'Customs and Border Protection', 'ice': 'Immigration and Customs Enforcement',
+  'uscis': 'Citizenship and Immigration Services', 'usss': 'Secret Service',
+  'cisa': 'Cybersecurity and Infrastructure Security Agency',
+  'faa': 'Federal Aviation Administration', 'fhwa': 'Federal Highway Administration',
+  'noaa': 'National Oceanic and Atmospheric Administration', 'nist': 'National Institute of Standards and Technology',
+  'census': 'Census Bureau', 'blm': 'Bureau of Land Management', 'nps': 'National Park Service',
+  'usfs': 'Forest Service', 'fws': 'Fish and Wildlife Service', 'usgs': 'Geological Survey',
+  'nnsa': 'National Nuclear Security Administration',
+  'socom': 'Special Operations Command', 'cybercom': 'Cyber Command',
+  'stratcom': 'Strategic Command', 'transcom': 'Transportation Command',
+  'centcom': 'Central Command', 'eucom': 'European Command',
+  'indopacom': 'Indo-Pacific Command', 'northcom': 'Northern Command',
+  'southcom': 'Southern Command', 'africom': 'Africa Command',
+  'sec': 'Securities and Exchange Commission', 'ftc': 'Federal Trade Commission',
+  'fcc': 'Federal Communications Commission',
+},
+
+// Non-agency aliases (companies, brands) — these stay as keyword expansion
+queryAliases: {
+  'aws': 'Amazon', 'gcp': 'Google Cloud', 'msft': 'Microsoft',
+  'ibm': 'International Business Machines', 'hp': 'Hewlett Packard',
+  'hpe': 'Hewlett Packard Enterprise', 'dell': 'Dell Technologies',
+  'gd': 'General Dynamics', 'gdit': 'General Dynamics Information Technology',
+  'lmco': 'Lockheed Martin', 'ngc': 'Northrop Grumman',
+  'bah': 'Booz Allen Hamilton', 'saic': 'Science Applications International',
+  'usps': 'Postal Service', 'amtrak': 'Amtrak',
+},
+
+// Check if a term is an agency alias and return filter info
+resolveAgencyAlias(term) {
+  const lower = term.toLowerCase().trim();
+  if (this.agencyAliases[lower]) return { tier: 'toptier', name: this.agencyAliases[lower] };
+  if (this.subAgencyAliases[lower]) return { tier: 'subtier', name: this.subAgencyAliases[lower] };
+  return null;
+},
+
 normalizeQuery(query) {
   const lower = query.toLowerCase().trim();
-  return this.queryAliases[lower] || query;
+  // Only expand non-agency aliases (companies/brands) as keyword replacement
+  if (this.queryAliases[lower]) return this.queryAliases[lower];
+  // Agency aliases: don't replace — buildFilters will handle them via the agencies filter
+  if (this.agencyAliases[lower]) return this.agencyAliases[lower];
+  if (this.subAgencyAliases[lower]) return this.subAgencyAliases[lower];
+  return query;
 },
   missionGapRisk(award) {
     const endDate = new Date(award['End Date']);
@@ -2468,8 +2420,12 @@ normalizeQuery(query) {
       keywordTerms.forEach(term => {
         const parts = term.split(/\+|\bAND\b/).map(s => s.trim()).filter(s => s.length > 0);
         if (parts.length > 1) {
-          // Expand aliases on each part (e.g. "DHS" -> "Department of Homeland Security")
-          const expanded = parts.map(p => Utils.normalizeQuery(p));
+          // Expand aliases on each part — check company, agency, and sub-agency aliases
+          // buildFilters will route agency aliases to the agencies filter
+          const expanded = parts.map(p => {
+            const lower = p.toLowerCase().trim();
+            return Utils.queryAliases[lower] || Utils.agencyAliases[lower] || Utils.subAgencyAliases[lower] || p;
+          });
           andGroups.push(expanded);
         }
       });
@@ -2490,18 +2446,36 @@ normalizeQuery(query) {
       const naicsPat = /^\d{6}$/;
       const kws = [];
       group.forEach(term => {
+        const agencyMatch = Utils.resolveAgencyAlias(term);
         if (naicsPat.test(term)) { filters.naics_codes = filters.naics_codes || []; filters.naics_codes.push(term); }
         else if (pscPat.test(term)) { filters.psc_codes = filters.psc_codes || []; filters.psc_codes.push(term.toUpperCase()); }
+        else if (agencyMatch) {
+          filters.agencies = filters.agencies || [];
+          filters.agencies.push({ type: 'awarding', tier: agencyMatch.tier, name: agencyMatch.name });
+        }
         else kws.push(term);
       });
       if (kws.length > 0) filters.keywords = kws;
       return filters;
     }
     
+    // Check if any keyword terms are agency aliases
+    const agencyFilters = [];
+    const nonAgencyKeywords = [];
+    keywordTerms.forEach(term => {
+      const agencyMatch = Utils.resolveAgencyAlias(term);
+      if (agencyMatch) {
+        agencyFilters.push({ type: 'awarding', tier: agencyMatch.tier, name: agencyMatch.name });
+      } else {
+        nonAgencyKeywords.push(term);
+      }
+    });
+    
+    if (agencyFilters.length > 0) filters.agencies = agencyFilters;
     if (pscCodes.length > 0) filters.psc_codes = pscCodes;
     if (naicsCodes.length > 0) filters.naics_codes = naicsCodes;
-    if (keywordTerms.length > 0) filters.keywords = keywordTerms;
-    if (!filters.psc_codes && !filters.naics_codes && !filters.keywords) filters.keywords = [keywords];
+    if (nonAgencyKeywords.length > 0) filters.keywords = nonAgencyKeywords;
+    if (!filters.psc_codes && !filters.naics_codes && !filters.keywords && !filters.agencies) filters.keywords = [keywords];
     return filters;
   }
 };
@@ -2604,33 +2578,37 @@ const API = {
       const naicsPat = /^\d{6}$/;
       const codes = [];
       const kws = [];
+      const agencies = [];
       group.forEach(term => {
+        const agencyMatch = Utils.resolveAgencyAlias(term);
         if (naicsPat.test(term)) codes.push({ type: 'naics', value: term });
         else if (pscPat.test(term)) codes.push({ type: 'psc', value: term.toUpperCase() });
+        else if (agencyMatch) agencies.push({ type: 'awarding', tier: agencyMatch.tier, name: agencyMatch.name });
         else kws.push(term);
       });
       
-      if (codes.length > 0) {
-        const filters = { time_period: [period], award_type_codes: this.CONTRACT_TYPES };
-        codes.forEach(c => {
-          if (c.type === 'naics') { filters.naics_codes = filters.naics_codes || []; filters.naics_codes.push(c.value); }
-          else { filters.psc_codes = filters.psc_codes || []; filters.psc_codes.push(c.value); }
-        });
-        if (kws.length > 0) filters.keywords = kws;
+      const filters = { time_period: [period], award_type_codes: this.CONTRACT_TYPES };
+      codes.forEach(c => {
+        if (c.type === 'naics') { filters.naics_codes = filters.naics_codes || []; filters.naics_codes.push(c.value); }
+        else { filters.psc_codes = filters.psc_codes || []; filters.psc_codes.push(c.value); }
+      });
+      if (agencies.length > 0) filters.agencies = agencies;
+      if (kws.length > 0) filters.keywords = kws;
+      
+      if (codes.length > 0 || agencies.length > 0) {
         const res = await fetch(`${this.baseUrl}/search/spending_by_award/`, {
           method: 'POST', headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })
         });
         return (await res.json()).results || [];
       } else {
-        // OPTIMIZED: Send all AND keywords in a single request instead of N separate calls
-        const filters = { time_period: [period], award_type_codes: this.CONTRACT_TYPES, keywords: kws };
+        // All keywords, no codes or agencies — send as keywords, client-side AND filter
+        filters.keywords = kws;
         const res = await fetch(`${this.baseUrl}/search/spending_by_award/`, {
           method: 'POST', headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })
         });
         const pool = (await res.json()).results || [];
-        // Client-side AND filter: ensure every term appears in each result
         const filtered = pool.filter(award => {
           const haystack = [
             award['Recipient Name'], award['Awarding Agency'], award['Awarding Sub Agency'],
@@ -2645,15 +2623,30 @@ const API = {
     // OPTIMIZED: Single API call when possible, parallel only when mixing types
     const hasPsc = pscCodes.length > 0;
     const hasNaics = naicsCodes.length > 0;
-    const hasKeywords = keywordTerms.length > 0;
-    const typeCount = (hasPsc ? 1 : 0) + (hasNaics ? 1 : 0) + (hasKeywords ? 1 : 0);
     
-    // If all terms are the same type, send ONE request with all values
+    // Separate agency aliases from regular keywords
+    const agencyFilters = [];
+    const plainKeywords = [];
+    keywordTerms.forEach(term => {
+      const agencyMatch = Utils.resolveAgencyAlias(term);
+      if (agencyMatch) {
+        agencyFilters.push({ type: 'awarding', tier: agencyMatch.tier, name: agencyMatch.name });
+      } else {
+        plainKeywords.push(term);
+      }
+    });
+    
+    const hasKeywords = plainKeywords.length > 0;
+    const hasAgencies = agencyFilters.length > 0;
+    const typeCount = (hasPsc ? 1 : 0) + (hasNaics ? 1 : 0) + (hasKeywords ? 1 : 0) + (hasAgencies ? 1 : 0);
+    
+    // If all terms resolve to a single filter type, send ONE request
     if (typeCount === 1) {
       const filters = { time_period: [period], award_type_codes: this.CONTRACT_TYPES };
       if (hasPsc) filters.psc_codes = pscCodes;
       else if (hasNaics) filters.naics_codes = naicsCodes;
-      else filters.keywords = keywordTerms;
+      else if (hasAgencies) filters.agencies = agencyFilters;
+      else filters.keywords = plainKeywords;
       
       const res = await fetch(`${this.baseUrl}/search/spending_by_award/`, {
         method: 'POST', headers: {'Content-Type': 'application/json'},
@@ -2662,45 +2655,18 @@ const API = {
       return (await res.json()).results || [];
     }
     
-    // Mixed types: parallel fetch per TYPE (not per term) — max 3 calls instead of N
-    const fetchPromises = [];
-    if (hasPsc) {
-      const filters = { time_period: [period], award_type_codes: this.CONTRACT_TYPES, psc_codes: pscCodes };
-      fetchPromises.push(fetch(`${this.baseUrl}/search/spending_by_award/`, {
-        method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })
-      }).then(res => res.json()));
-    }
-    if (hasNaics) {
-      const filters = { time_period: [period], award_type_codes: this.CONTRACT_TYPES, naics_codes: naicsCodes };
-      fetchPromises.push(fetch(`${this.baseUrl}/search/spending_by_award/`, {
-        method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })
-      }).then(res => res.json()));
-    }
-    if (hasKeywords) {
-      const filters = { time_period: [period], award_type_codes: this.CONTRACT_TYPES, keywords: keywordTerms };
-      fetchPromises.push(fetch(`${this.baseUrl}/search/spending_by_award/`, {
-        method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })
-      }).then(res => res.json()));
-    }
+    // Mixed types: build a single combined filter (agencies + keywords + codes work together)
+    const filters = { time_period: [period], award_type_codes: this.CONTRACT_TYPES };
+    if (hasPsc) filters.psc_codes = pscCodes;
+    if (hasNaics) filters.naics_codes = naicsCodes;
+    if (hasKeywords) filters.keywords = plainKeywords;
+    if (hasAgencies) filters.agencies = agencyFilters;
     
-    const settledResults = await Promise.allSettled(fetchPromises);
-    let combined = [];
-    
-    settledResults.forEach(outcome => { 
-      if (outcome.status === 'fulfilled' && outcome.value.results) {
-        combined = combined.concat(outcome.value.results); 
-      } else if (outcome.status === 'rejected') {
-        console.warn('A USAspending request timed out or failed, ignoring:', outcome.reason);
-      }
+    const res = await fetch(`${this.baseUrl}/search/spending_by_award/`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })
     });
-    
-    const unique = new Map();
-    combined.forEach(item => { if(!unique.has(item['Award ID'])) unique.set(item['Award ID'], item); });
-    
-    return Array.from(unique.values()).sort((a,b) => b['Award Amount'] - a['Award Amount']);
+    return (await res.json()).results || [];
   },
   
   // Forecast Mode APIs
