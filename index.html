@@ -22,11 +22,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-  <script src="https://kit.fontawesome.com/8ef6ca8a5d.js" crossorigin="anonymous" defer></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/solid.min.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/fontawesome.min.css" crossorigin="anonymous">
   <link rel="preconnect" href="https://api.usaspending.gov">
   <link rel="dns-prefetch" href="https://api.usaspending.gov">
-  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js" as="script">
-  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/d3-sankey/0.12.3/d3-sankey.min.js" as="script">
+  <!-- D3 loaded on-demand by LibLoader -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-T343V4RFHV"></script>
   <script>
@@ -288,34 +288,6 @@ body {
   border-color: var(--accent) !important;
   transform: translateY(-1px);
 }
-
-/* =========================================
-   6. AUTOCOMPLETE
-   ========================================= */
-.autocomplete-wrapper { position: relative; }
-.autocomplete-dropdown {
-  position: absolute; top: 100%; left: 0; right: 0; z-index: 220;
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-top: none; border-radius: 0 0 4px 4px;
-  max-height: 320px; overflow-y: auto; display: none;
-}
-.autocomplete-dropdown.active { display: block; }
-.autocomplete-section { padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
-.autocomplete-section:last-child { border-bottom: none; }
-.autocomplete-section-label {
-  padding: 0.25rem 1rem; font-size: 0.65rem; color: var(--text-muted);
-  text-transform: uppercase; letter-spacing: 1px; font-family: 'JetBrains Mono', monospace;
-}
-.autocomplete-item {
-  padding: 0.6rem 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.75rem;
-  font-size: 0.9rem; color: var(--text-primary); transition: background 0.1s;
-}
-.autocomplete-item:hover, .autocomplete-item.selected { background: rgba(255, 255, 255, 0.05); }
-.autocomplete-item i { color: var(--text-muted); width: 16px; text-align: center; font-size: 0.8rem; }
-.autocomplete-item-text { flex: 1; min-width: 0; }
-.autocomplete-item-main { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.autocomplete-item-sub { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
-.autocomplete-empty { padding: 1rem; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
 
 /* =========================================
    7. APP HEADER
@@ -3225,18 +3197,15 @@ setupClearButton('mainSearchInput', 'input-clear');
     window.addEventListener('resize', () => { 
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => { 
-        // Skip expensive re-renders if a modal is covering the screen
-        
-        
         if(App.mode === 'search' && App.searchData?.active?.length > 0) {
           App.renderSankey(); 
+          App.renderBubbleChart();
         }
-        // Always try to re-render subaward Sankey if data exists and wrapper is visible
         const subawardWrapper = document.getElementById('subawardWrapper');
         if(App.forecastData?.subawards && subawardWrapper && subawardWrapper.style.display !== 'none') {
           App.renderSubawardSankey(App.forecastData.subawards);
         }
-      }, 250); 
+      }, 500); 
     });
 
     // Preload visualization libraries during idle time
@@ -3312,7 +3281,7 @@ setupClearButton('mainSearchInput', 'input-clear');
         API.searchAwards(query)
       ]);
       App.searchData.raw = searchResults; App.searchData.active = App.searchData.raw; App.searchData.loaded = true;
-      App.transitionToApp(); App.setMode('search'); App.updateSearchDashboard(); requestAnimationFrame(() => { App.renderSankey(); App.renderVehiclePills(); App.renderPrimeReach(); });
+      App.transitionToApp(); App.setMode('search'); App.updateSearchDashboard(); requestAnimationFrame(() => { App.renderVehiclePills(); App.renderPrimeReach(); });
       // Background data enrichment — coordinated, rate-limited, with data-ready signal.
       // Each call fires sequentially to respect API rate limits, but the orchestrator
       // ensures renderStrategyTools only fires once ALL dependencies are ready.
@@ -3426,6 +3395,7 @@ setupClearButton('mainSearchInput', 'input-clear');
     
     // OPTIMIZED: Defer heavy chart rendering to after initial paint
     requestAnimationFrame(() => {
+      App.renderSankey();
       App.renderBubbleChart();
       App.renderStrategyTools();
     });
@@ -3466,7 +3436,6 @@ setupClearButton('mainSearchInput', 'input-clear');
     App.activeVehicleFilter = null;
     App.bubbleMode = 'auto';
     App.updateSearchDashboard(); 
-    App.renderSankey(); 
   },
 
   // === COMPETITIVE FOOTPRINT ===
@@ -3493,7 +3462,6 @@ setupClearButton('mainSearchInput', 'input-clear');
     App.searchData.filter = label;
     App.activeFeedSource = 'prime';
     App.updateSearchDashboard();
-    App.renderSankey();
     App.renderVehiclePills(); // Re-render to show active state
   },
 
@@ -3503,7 +3471,6 @@ setupClearButton('mainSearchInput', 'input-clear');
     App.searchData.active = App.searchData.raw;
     App.activeFeedSource = 'prime';
     App.updateSearchDashboard();
-    App.renderSankey();
     App.renderVehiclePills();
   },
 
@@ -3669,7 +3636,6 @@ setupClearButton('mainSearchInput', 'input-clear');
   App.activeFeedSource = 'prime';
   if (App.bubbleMode !== 'vendors' && App.bubbleMode !== 'agencies') App.bubbleMode = 'auto';
   App.updateSearchDashboard();
-  App.renderSankey();
 },
 
 drillToSubAgency(name) {
@@ -3689,7 +3655,6 @@ drillToSubAgency(name) {
   App.activeFeedSource = 'prime'; // Switch feed back to prime awards
   if (App.bubbleMode !== 'vendors' && App.bubbleMode !== 'agencies') App.bubbleMode = 'auto';
   App.updateSearchDashboard();
-  App.renderSankey();
 },
 
   
@@ -3742,10 +3707,9 @@ drillToSubAgency(name) {
     App.searchData.active = data.filter(d => d['Recipient Name'] === name);
     
     App.updateSearchDashboard();
-    App.renderSankey();
   }
 },
-  clearFilter() { App.drillState.level > 0 ? App.resetDrill() : (App.searchData.filter = null, App.searchData.active = App.searchData.raw, App.activeFeedSource = 'prime', App.updateSearchDashboard(), App.renderSankey()); },
+  clearFilter() { App.drillState.level > 0 ? App.resetDrill() : (App.searchData.filter = null, App.searchData.active = App.searchData.raw, App.activeFeedSource = 'prime', App.updateSearchDashboard()); },
 
 renderSankey() {
   const container = document.getElementById('chartContainer'); 
