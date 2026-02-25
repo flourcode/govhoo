@@ -1339,6 +1339,147 @@ svg { border: none !important; outline: none !important; }
   .drill-controls-bar{ padding: 0.5rem 0.6rem; }
   .breadcrumb-item{ font-size: 0.70rem; padding: 0.22rem 0.45rem; }
 }
+/* Hide scrollbars for horizontal swiping areas */
+.drill-breadcrumb, 
+.chart-wrapper,
+.bubble-toggle-row {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE and Edge */
+}
+
+.drill-breadcrumb::-webkit-scrollbar,
+.chart-wrapper::-webkit-scrollbar,
+.bubble-toggle-row::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+.bubble-tooltip {
+  /* ... existing styles ... */
+  background: rgba(22, 27, 24, 0.85) !important; /* Slightly more transparent */
+  backdrop-filter: blur(12px) saturate(180%); /* The Apple Glass effect */
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.arti-fab {
+  /* ... existing styles ... */
+  background: rgba(74, 122, 103, 0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.deal-card {
+  background: var(--bg-card); 
+  border: 1px solid var(--border) !important;
+  border-radius: 6px; 
+  padding: 1.25rem; 
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); /* Smoother spring transition */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  cursor: pointer; /* Indicates it can be interacted with */
+}
+
+/* The Hover Lift & Glow */
+.deal-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(74, 122, 103, 0.2);
+  background: #1f2724; /* Slightly lighter on hover */
+}
+
+.deal-card:active { transform: translateY(0) scale(0.99); }
+/* Add this to your Global Rules */
+body {
+  /* Uses Apple/Windows native smooth fonts for reading */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+}
+
+/* Force JetBrains Mono ONLY on numbers, buttons, headers, and UI elements */
+h1, h2, h3, h4, h5, h6, 
+button, input, select, textarea, 
+.deal-amount, .deal-vendor, .deal-date, .deal-agency,
+.reach-amount, .reach-badge, .meta-tag, .section-title,
+.terminal-logo, .footer-link, .breadcrumb-item {
+  font-family: 'JetBrains Mono', monospace !important;
+}
+
+/* Let the AI output and deal descriptions use the smooth reading font */
+.ai-result-content, .deal-desc, .strategic-read p, .hero-subtitle {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0.2px;
+}
+.hero-suggestions {
+    margin-top: 1.25rem;
+    font-size: 0.8rem;
+    color: var(--text-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.hero-suggestion-chip {
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.03);
+    padding: 4px 10px;
+    border-radius: 20px; /* Pill shape */
+    text-decoration: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    border: 1px solid var(--border);
+    transition: all 0.2s ease;
+}
+
+.hero-suggestion-chip:hover {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--accent-light);
+    transform: translateY(-1px);
+}
+
+/* Subtle Syntax Tooltip */
+.syntax-tooltip-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    margin-left: 0.25rem;
+    cursor: help;
+}
+
+.syntax-icon {
+    font-size: 0.8rem;
+    color: var(--text-subtle);
+    transition: color 0.2s;
+}
+
+.syntax-tooltip-wrapper:hover .syntax-icon {
+    color: var(--accent-light);
+}
+
+.syntax-tooltip {
+    position: absolute;
+    bottom: 150%;
+    left: 50%;
+    transform: translateX(-50%) translateY(5px);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 0.75rem;
+    font-family: 'JetBrains Mono', monospace;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    z-index: 100;
+}
+
+.syntax-tooltip-wrapper:hover .syntax-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
 </style>
 </head>
 <body>
@@ -1356,17 +1497,19 @@ svg { border: none !important; outline: none !important; }
       </button>
     </div>
   </div>
-  <div style="width: 100%; max-width: 500px; margin-top: 0.75rem; text-align: center; font-size: 0.65rem; color: var(--text-muted); opacity: 0.7; font-family: 'JetBrains Mono', monospace; line-height: 1.5;">
-    <span style="color: var(--accent);">TIP:</span> Use <strong>AND</strong> to narrow results <span style="opacity: 0.5;">·</span> <span style="opacity: 0.8;">541512 AND Air Force</span> <span style="opacity: 0.5;">·</span> <span style="opacity: 0.8;">DA10 AND Air Force</span> <span style="opacity: 0.5;">·</span> Use <strong>,</strong> to combine <span style="opacity: 0.5;">·</span> <span style="opacity: 0.8;">Cloud, Cyber</span>
-  </div>
-  <div style="width: 100%; max-width: 500px; margin-top: 1.5rem;">
-    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center;">
-      <a href="?q=Cloud" style="text-decoration: none; padding: 0.4rem 0.75rem; border: 1px solid var(--border); border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-muted); transition: all 0.15s; background: rgba(255,255,255,0.02);" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)';this.style.background='var(--accent-dim)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)';this.style.background='rgba(255,255,255,0.02)'">Cloud</a>
-      <a href="?q=R499+AND+AIR+FORCE" style="text-decoration: none; padding: 0.4rem 0.75rem; border: 1px solid var(--border); border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-muted); transition: all 0.15s; background: rgba(255,255,255,0.02);" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)';this.style.background='var(--accent-dim)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)';this.style.background='rgba(255,255,255,0.02)'">R499 AND Air Force</a>
-      <a href="?q=NVIDIA" style="text-decoration: none; padding: 0.4rem 0.75rem; border: 1px solid var(--border); border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-muted); transition: all 0.15s; background: rgba(255,255,255,0.02);" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)';this.style.background='var(--accent-dim)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)';this.style.background='rgba(255,255,255,0.02)'">NVIDIA</a>
-      <a href="?q=Cloud,+Cyber" style="text-decoration: none; padding: 0.4rem 0.75rem; border: 1px solid var(--border); border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-muted); transition: all 0.15s; background: rgba(255,255,255,0.02);" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)';this.style.background='var(--accent-dim)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)';this.style.background='rgba(255,255,255,0.02)'">Cloud, Cyber</a>
+ <div class="hero-suggestions">
+    <a href="?q=Cloud,+Cyber" class="hero-suggestion-chip">Cloud, Cyber</a>
+    <a href="?q=R499+AND+AIR+FORCE" class="hero-suggestion-chip">R499 AND Air Force</a>
+    <a href="?q=NVIDIA" class="hero-suggestion-chip">NVIDIA</a>
+    
+    <div class="syntax-tooltip-wrapper">
+      <i class="fas fa-info-circle syntax-icon"></i>
+      <div class="syntax-tooltip">
+        Use <strong>AND</strong> to narrow (e.g., <em>DA10 AND Navy</em>)<br>
+        Use <strong>,</strong> to combine (e.g., <em>Cloud, Cyber</em>)
+      </div>
     </div>
-  </div>
+</div>
 <footer class="hero-footer">
   <div class="footer-grid">
 
@@ -5162,7 +5305,9 @@ renderRecompetes(recompetes, showAll = false) {
   },
   
   shareLink(btn) {
-    const url = new URL(window.location); url.searchParams.set('q', App.currentQuery); url.searchParams.set('mode', App.mode);
+    const url = new URL(window.location); 
+    url.searchParams.set('q', App.currentQuery); 
+    
     navigator.clipboard.writeText(url.toString()).then(() => {
       if (btn) {
         const originalHtml = btn.innerHTML;
@@ -5196,19 +5341,22 @@ renderRecompetes(recompetes, showAll = false) {
       }
     });
     
-    // Build the brief
+    // Build the URL (Removed mode parameter)
     const url = new URL(window.location);
     url.searchParams.set('q', query);
-    url.searchParams.set('mode', App.mode);
     
-    let brief = `🔍️ Govhoo Search: "${query}"\n`;
-    brief += `💰 ${Utils.money(totalValue)} across ${agencies.size} agencies, ${vendors.size} vendors\n`;
-    if (expiringCount > 0) brief += `🔥 ${expiringCount} contracts expiring in 90 days (${Utils.money(expiringValue)})\n`;
+    // Build the brief matching your exact format
+    let brief = `Govhoo Search for ${query}\n`;
+    brief += `Top 100 Contracts Value:  ${Utils.money(totalValue)} // ${agencies.size} Agencies // ${vendors.size} Primes\n`;
+    
+    if (expiringCount > 0) {
+      brief += `${expiringCount} Contracts Expiring in <90 Days (${Utils.money(expiringValue)})\n`;
+    }
     
     // Subaward intel if available
     if (App.forecastData?.subawards?.length) {
       const subTotal = App.forecastData.subawards.reduce((s, r) => s + (parseFloat(r['Sub-Award Amount']) || 0), 0);
-      brief += `💸 ${App.forecastData.subawards.length} subcontracts tracked (${Utils.money(subTotal)})\n`;
+      brief += `${App.forecastData.subawards.length} Subcontracts Tracked (${Utils.money(subTotal)})\n`;
     }
     
     brief += `👉 ${url.toString()}`;
@@ -5216,10 +5364,9 @@ renderRecompetes(recompetes, showAll = false) {
     navigator.clipboard.writeText(brief).then(() => {
       if (btn) {
         const originalHtml = btn.innerHTML;
-        btn.style.color = 'var(--success)';
-        btn.style.borderColor = 'var(--success)';
-        // Insert the checkmark icon here
-        btn.innerHTML = '<i class="fas fa-check"></i>'; 
+        btn.style.color = '#78A890'; // var(--success)
+        btn.style.borderColor = '#78A890';
+        btn.innerHTML = '<i class="fas fa-check"></i> COPIED'; 
         setTimeout(() => {
           btn.style.color = '';
           btn.style.borderColor = '';
@@ -5229,8 +5376,6 @@ renderRecompetes(recompetes, showAll = false) {
     });
   }
 };
-
-
 
 // ==================== BUBBLE CHART (Drill-Synced) ====================
 App.bubbleMode = 'auto'; // 'auto' = follows drill state, or manual override
