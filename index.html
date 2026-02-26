@@ -3065,9 +3065,9 @@ async sendAiChatMessage() {
         textEl.textContent = `${phase}${dots} (${elapsed}s)`;
       }, 500);
       
-      // Scroll to the loading bubble
+      // Scroll to the loading bubble, pinning the avatar exactly where it belongs
       const loaderEl = document.getElementById(loaderId);
-      loaderEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      loaderEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
       // 3. Push to history state
       App.aiState.history.push({ role: 'user', content: msg });
@@ -3109,10 +3109,9 @@ async sendAiChatMessage() {
               <div class="strategic-read">${renderedHtml}</div>
           `;
 
-          // NEW: Scroll down AFTER the content renders to perfectly frame the new long text
           setTimeout(() => {
               loaderEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }, 100);
+          }, 200);
 
           // 6. Update State
           App.aiState.history.push({ role: 'model', content: data.response });
