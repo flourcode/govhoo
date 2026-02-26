@@ -2447,7 +2447,7 @@ normalizeQuery(query) {
       const kws = [];
       group.forEach(term => {
         const agencyMatch = Utils.resolveAgencyAlias(term);
-        if (naicsPat.test(term)) { filters.naics_codes = filters.naics_codes || []; filters.naics_codes.push(term); }
+        if (naicsPat.test(term)) { filters._naics = filters._naics || []; filters._naics.push(term); }
         else if (pscPat.test(term)) { filters.psc_codes = filters.psc_codes || []; filters.psc_codes.push(term.toUpperCase()); }
         else if (agencyMatch) {
           filters.agencies = filters.agencies || [];
@@ -2456,6 +2456,7 @@ normalizeQuery(query) {
         else kws.push(term);
       });
       if (kws.length > 0) filters.keywords = kws;
+      if (filters._naics) { filters.naics_codes = { require: filters._naics }; delete filters._naics; }
       return filters;
     }
     
@@ -2473,7 +2474,7 @@ normalizeQuery(query) {
     
     if (agencyFilters.length > 0) filters.agencies = agencyFilters;
     if (pscCodes.length > 0) filters.psc_codes = pscCodes;
-    if (naicsCodes.length > 0) filters.naics_codes = naicsCodes;
+    if (naicsCodes.length > 0) filters.naics_codes = { require: naicsCodes };
     if (nonAgencyKeywords.length > 0) filters.keywords = nonAgencyKeywords;
     if (!filters.psc_codes && !filters.naics_codes && !filters.keywords && !filters.agencies) filters.keywords = [keywords];
     return filters;
@@ -2589,7 +2590,7 @@ const API = {
       
       const filters = { time_period: [period], award_type_codes: this.CONTRACT_TYPES };
       codes.forEach(c => {
-        if (c.type === 'naics') { filters.naics_codes = filters.naics_codes || []; filters.naics_codes.push(c.value); }
+        if (c.type === 'naics') { filters.naics_codes = filters.naics_codes || { require: [] }; filters.naics_codes.require.push(c.value); }
         else { filters.psc_codes = filters.psc_codes || []; filters.psc_codes.push(c.value); }
       });
       if (agencies.length > 0) filters.agencies = agencies;
@@ -2644,7 +2645,7 @@ const API = {
     if (typeCount === 1) {
       const filters = { time_period: [period], award_type_codes: this.CONTRACT_TYPES };
       if (hasPsc) filters.psc_codes = pscCodes;
-      else if (hasNaics) filters.naics_codes = naicsCodes;
+      else if (hasNaics) filters.naics_codes = { require: naicsCodes };
       else if (hasAgencies) filters.agencies = agencyFilters;
       else filters.keywords = plainKeywords;
       
@@ -2658,7 +2659,7 @@ const API = {
     // Mixed types: build a single combined filter (agencies + keywords + codes work together)
     const filters = { time_period: [period], award_type_codes: this.CONTRACT_TYPES };
     if (hasPsc) filters.psc_codes = pscCodes;
-    if (hasNaics) filters.naics_codes = naicsCodes;
+    if (hasNaics) filters.naics_codes = { require: naicsCodes };
     if (hasKeywords) filters.keywords = plainKeywords;
     if (hasAgencies) filters.agencies = agencyFilters;
     
@@ -3322,7 +3323,7 @@ setupClearButton('mainSearchInput', 'input-clear');
         LibLoader.loadD3(),
         API.searchAwards(query)
       ]);
-      App.searchData.raw = searchResults; App.searchData.active = App.searchData.raw; App.searchData.loaded = true;
+      App.searchData.raw = Utils.filterActiveContracts(searchResults); App.searchData.active = App.searchData.raw; App.searchData.loaded = true;
       App.transitionToApp(); App.setMode('search'); App.updateSearchDashboard(); requestAnimationFrame(() => { App.renderVehiclePills(); App.renderPrimeReach(); });
       // Background data enrichment — coordinated, rate-limited, with data-ready signal.
       // Each call fires sequentially to respect API rate limits, but the orchestrator
