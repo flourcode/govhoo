@@ -1539,6 +1539,17 @@ button, input, select, textarea,
     visibility: visible;
     transform: translateX(-50%) translateY(0);
 }
+/* Arti's Foot-Stomping Highlight */
+.strategic-read mark {
+    background: rgba(212, 224, 91, 0.15); /* Faint highlighter background */
+    color: #D4E05B; /* Acid/Highlighter Yellow-Green text */
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 600;
+    /* This ensures the highlight background wraps nicely across multiple lines */
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+}
 </style>
 </head>
 <body>
@@ -2949,8 +2960,11 @@ async runAiActionPlan() {
           const data = await res.json();
           if (data.error) throw new Error(data.error);
 
-          const strategicText = data.strategic_read;
-          if (!strategicText) throw new Error("Invalid AI response format.");
+          const strategicTextRaw = data.strategic_read;
+          if (!strategicTextRaw) throw new Error("Invalid AI response format.");
+          
+          // NEW: Intercept and convert ==highlight== to <mark> tags
+          const strategicText = strategicTextRaw.replace(/==([^=]+)==/g, '<mark>$1</mark>');
 
           // >>> SUCCESS: STOP THE TIMER <<<
           clearInterval(briefProgressTimer);
@@ -2961,7 +2975,9 @@ async runAiActionPlan() {
               renderedHtml = marked.parse(strategicText);
           } else {
               const escapeHtml = (str) => str.replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
-              renderedHtml = `<pre style="white-space: pre-wrap; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.5;">${escapeHtml(strategicText)}</pre>`;
+              // NEW: Ensure we don't accidentally escape the <mark> tags we just created
+              const safeText = escapeHtml(strategicText).replace(/&lt;mark&gt;/g, '<mark>').replace(/&lt;\/mark&gt;/g, '</mark>');
+              renderedHtml = `<pre style="white-space: pre-wrap; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.5;">${safeText}</pre>`;
           }
           
           // 6. Inject the response
@@ -3071,13 +3087,18 @@ async sendAiChatMessage() {
           const data = await res.json();
           if (data.error) throw new Error(data.error);
 
+          // NEW: Intercept and convert ==highlight== to <mark> tags for chat messages
+          const processedResponse = data.response.replace(/==([^=]+)==/g, '<mark>$1</mark>');
+
           // 4. Safely parse markdown to HTML
           let renderedHtml;
           if (window.marked && typeof window.marked.parse === 'function') {
-              renderedHtml = marked.parse(data.response);
+              renderedHtml = marked.parse(processedResponse);
           } else {
               const escapeHtml = (str) => str.replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;' }[m]));
-              renderedHtml = `<pre style="white-space: pre-wrap; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.5;">${escapeHtml(data.response)}</pre>`;
+              // NEW: Ensure we don't accidentally escape the <mark> tags
+              const safeText = escapeHtml(processedResponse).replace(/&lt;mark&gt;/g, '<mark>').replace(/&lt;\/mark&gt;/g, '</mark>');
+              renderedHtml = `<pre style="white-space: pre-wrap; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.5;">${safeText}</pre>`;
           }
 
           // 5. Replace loader with actual response and clean up animation
