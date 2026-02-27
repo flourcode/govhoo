@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#000000">
   <meta name="color-scheme" content="dark">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%23000000%22/><text y=%2250%%22 x=%2250%%22 font-size=%2265%22 font-family=%22'JetBrains Mono', monospace%22 font-weight=%22700%22 fill=%22%23426a5a%22 text-anchor=%22middle%22 dominant-baseline=%22central%22>>_</text></svg>">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%23000000%22/><text y=%2250%%22 x=%2250%%22 font-size=%2265%22 font-family=%22'JetBrains Mono', monospace%22 font-weight=%22700%22 fill=%22%237DAF9C%22 text-anchor=%22middle%22 dominant-baseline=%22central%22>>_</text></svg>">
   <title>Govhoo - Federal Market Intelligence</title>
   <meta name="title" content="Govhoo - Federal Market Intelligence">
   <meta name="description" content="Free Federal Sales Intelligence Strategic Planning. Follow the money with live USASpending data analysis.">
@@ -21,7 +21,7 @@
   <link rel="canonical" href="https://govhoo.com/">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/solid.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/fontawesome.min.css" crossorigin="anonymous">
   <link rel="preconnect" href="https://api.usaspending.gov">
@@ -37,17 +37,17 @@
   </script>
 <style>
 :root {
-  /* SURFACES - Warm, Deep Charcoal (Less "Electronic", more "Ink") */
-  --bg-app: #0E1111;      /* Deepest Black-Green */
-  --bg-card: #1C2320;     /* Lifted from #161B18 — visible against page bg */
+  /* SURFACES */
+  --bg-app: #0E1111;
+  --bg-card: #1C2320;
   --bg-input: #1E2724;
   --bg-elevated: #232D29;
 
-  /* TEXT - Softened contrast to reduce eye strain */
-  --text-primary: #E8E6E1; /* Parchment White (Not harsh #FFF) */
-  --text-muted: #A3B2AC;   /* Lifted from #8F9E98 — readable in daylight */
-  --text-subtle: #5A6660;  /* Deep Graphite */
-  --link: #7DAF9C;         /* Muted Teal link color */
+  /* TEXT */
+  --text-primary: #E8E6E1;
+  --text-muted: #A3B2AC;
+  --text-subtle: #5A6660;
+  --link: #7DAF9C;
 
   /* ACCENT - "Antique Fern" */
   --accent: #4A7A67;       
@@ -55,16 +55,33 @@
   --accent-light: #7DAF9C; 
   --accent-dim: rgba(74, 122, 103, 0.15);
 
-  /* FUNCTIONAL COLORS - The key to "Relaxing" */
-  --success: #78A890; /* Sage instead of Green */
-  --warning: #D1Bfa7; /* Sand instead of Yellow */
-  --danger: #B87E7E;  /* Faded Rose instead of Red */
-  --info: #7E9CB8;    /* Steel Blue instead of Blue */
+  /* FUNCTIONAL COLORS */
+  --success: #78A890;
+  --warning: #D1Bfa7;
+  --danger: #B87E7E;
+  --info: #7E9CB8;
 
   /* BORDERS */
   --border: rgba(143, 158, 152, 0.22);
   --border-hover: rgba(143, 158, 152, 0.35);
-  
+
+  /* RADIUS SYSTEM — 3 values + pill */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-pill: 9999px;
+
+  /* TYPE SCALE — 6 steps + hero */
+  --text-xs: 0.625rem;
+  --text-sm: 0.75rem;
+  --text-base: 0.875rem;
+  --text-lg: 1rem;
+  --text-xl: 1.125rem;
+  --text-hero: clamp(1.75rem, 5vw, 2.5rem);
+
+  /* SPACING */
+  --section-gap: 1rem;
+
   /* SIZING */
   --safe-top: env(safe-area-inset-top, 20px);
   --safe-bottom: env(safe-area-inset-bottom, 20px);
@@ -77,6 +94,8 @@
   box-sizing: border-box; 
   -webkit-tap-highlight-color: transparent; 
 }
+
+html { scroll-behavior: smooth; }
 
 body {
   margin: 0; 
@@ -100,7 +119,7 @@ body {
 ::-webkit-scrollbar-thumb {
   background: var(--bg-elevated); 
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent-dim); 
@@ -114,7 +133,8 @@ body {
 
 .loader {
   position: fixed; inset: 0; z-index: 300;
-  background: rgba(14, 18, 17, 0.95);
+  background: rgba(14, 18, 17, 0.92);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
   display: none; flex-direction: column; align-items: center; justify-content: center;
 }
 
@@ -127,6 +147,44 @@ body {
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes loaderSlide { 0% { left: -40%; } 100% { left: 100%; } }
+@keyframes skeletonPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Skeleton loading state — panels pulse while data loads */
+.skeleton-loading .stat-hero,
+.skeleton-loading .stat-value {
+  animation: skeletonPulse 1.5s ease-in-out infinite;
+  color: var(--text-subtle) !important;
+}
+.skeleton-loading .chart-container,
+.skeleton-loading .chart-wrapper {
+  position: relative;
+  min-height: 200px;
+}
+.skeleton-loading .chart-container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(74, 122, 103, 0.06) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.8s ease-in-out infinite;
+  border-radius: var(--radius-md);
+  pointer-events: none;
+}
+@keyframes skeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Mini loading indicator in the header search bar */
+.mini-search.is-loading {
+  background-image: linear-gradient(90deg, transparent, rgba(74, 122, 103, 0.15), transparent);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s ease-in-out infinite;
+}
 @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes cardSlideUp { 
   from { opacity: 0; transform: translateY(12px); } 
@@ -157,12 +215,12 @@ body {
    ========================================= */
 .main-input, .mini-search, select, textarea {
   width: 100%;
-  background: var(--bg-input) !important;
-  border: 1px solid var(--border) !important;
-  color: #F1EEE9 !important;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: #F1EEE9;
   padding: 1.25rem 1rem;
-  font-size: 1.1rem;
-  border-radius: 8px;
+  font-size: var(--text-xl);
+  border-radius: var(--radius-md);
   font-family: 'JetBrains Mono', monospace;
   transition: border-color 0.2s;
   -webkit-appearance: none;
@@ -171,8 +229,8 @@ body {
 
 .main-input:focus, .mini-search:focus {
   outline: none; 
-  border-color: var(--accent) !important; 
-  background: #222; 
+  border-color: var(--accent); 
+  background: var(--bg-input); 
 }
 
 .btn-row { display: flex; gap: 0.75rem; margin-top: 1rem; }
@@ -182,23 +240,23 @@ body {
   flex: 1;
   padding: 1rem;
   font-weight: 700;
-  border: 1px solid var(--accent) !important;
-  background: var(--accent) !important;
-  color: #F1EEE9 !important;
-  border-radius: 4px;
-  font-size: 0.9rem;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #F1EEE9;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-base);
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 1px;
   display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   transition: all 0.2s ease;
   font-family: 'JetBrains Mono', monospace;
 }
 
 .btn-primary:hover, #searchBtn:hover {
-  background: var(--accent-dark) !important;
-  border-color: var(--accent-dark) !important;
+  background: var(--accent-dark);
+  border-color: var(--accent-dark);
   transform: translateY(-1px);
   opacity: 1;
 }
@@ -208,8 +266,8 @@ body {
   color: var(--accent);
   text-decoration: none; 
   padding: 0.5rem 1rem;
-  border-radius: 4px; 
-  font-size: 0.8rem; 
+  border-radius: var(--radius-sm); 
+  font-size: var(--text-sm); 
   font-weight: 600;
   border: 1px solid var(--border); 
   display: flex; 
@@ -226,7 +284,7 @@ body {
   background: none; 
   border: none; 
   color: var(--text-muted);
-  font-size: 1.25rem; 
+  font-size: var(--text-xl); 
   cursor: pointer; 
   display: none; 
   padding: 4px 8px; 
@@ -260,15 +318,34 @@ body {
 .hero-view.hidden { display: none; }
 
 .terminal-logo {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;
-  color: #F1EEE9; letter-spacing: -1px; text-align: center;
+  font-size: 36px; font-weight: 600; margin-bottom: 0.5rem;
+  color: var(--text-primary); text-align: center;
+  display: flex; align-items: baseline; justify-content: center;
 }
-.terminal-logo span { color: var(--accent-light); }
+.terminal-logo .logo-gt {
+  font-family: 'Consolas', 'JetBrains Mono', monospace;
+  font-size: 40px; font-weight: 700;
+  color: var(--accent-light);
+  line-height: 1;
+}
+.terminal-logo .logo-us {
+  font-family: 'Figtree', sans-serif;
+  font-size: 36px; font-weight: 700;
+  color: var(--accent-light);
+  margin-left: -4px;
+  line-height: 1;
+}
+.terminal-logo .logo-name {
+  font-family: 'Figtree', sans-serif;
+  font-size: 36px; font-weight: 600;
+  color: var(--text-primary);
+  margin-left: -1px;
+  line-height: 1;
+}
 
 .hero-subtitle {
   margin-bottom: 2rem; text-align: center;
-  font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace; font-size: var(--text-base); color: var(--text-muted);
 }
 .search-box-container { position: relative; z-index: 210; width: 100%; max-width: 500px; margin-top: 1.5rem; }
 
@@ -281,12 +358,12 @@ body {
 
 #heroView .main-input {
   height: 56px;
-  border-radius: 6px !important;
+  border-radius: var(--radius-md) !important;
 }
 
 #searchBtn {
   height: 56px;
-  border-radius: 6px !important;
+  border-radius: var(--radius-md) !important;
   font-weight: 800 !important;
   letter-spacing: 2px;
 }
@@ -296,9 +373,9 @@ body {
   background: rgba(255, 255, 255, 0.03) !important;
   border: 1px solid var(--border) !important;
   color: var(--text-muted) !important;
-  border-radius: 20px !important;
+  border-radius: var(--radius-pill) !important;
   padding: 6px 16px !important;
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   letter-spacing: 0.5px;
 }
 #heroView a[href^="?q="]:hover {
@@ -319,13 +396,32 @@ body {
   display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; overflow: hidden;
 }
 .header-left { display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 0; }
-.logo-btn { font-family: 'JetBrains Mono'; font-weight: 700; font-size: 1.1rem; color: #F1EEE9; cursor: pointer; flex-shrink: 0; padding: 0.25rem; }
-.logo-btn:hover { color: var(--accent); }
-.logo-btn span { color: var(--accent); }
+.logo-btn {
+  display: inline-flex; align-items: baseline;
+  font-size: var(--text-xl); cursor: pointer; flex-shrink: 0; padding: 0.25rem;
+}
+.logo-btn:hover .logo-name { color: var(--accent); }
+.logo-btn .logo-gt {
+  font-family: 'Consolas', 'JetBrains Mono', monospace;
+  font-weight: 700; color: var(--accent-light);
+  font-size: 1.25em;
+  line-height: 1;
+}
+.logo-btn .logo-us {
+  font-family: 'Figtree', sans-serif;
+  font-weight: 700; color: var(--accent-light);
+  margin-left: -2px; line-height: 1;
+}
+.logo-btn .logo-name {
+  font-family: 'Figtree', sans-serif;
+  font-weight: 600; color: var(--text-primary);
+  margin-left: 0px; line-height: 1;
+  transition: color 0.15s ease;
+}
 
 .mini-search {
   background: var(--bg-input); border: 1px solid var(--border); color: #F1EEE9;
-  padding: 0.5rem 1rem; border-radius: 4px; font-size: 0.9rem; flex: 1; min-width: 0; width: 100%;
+  padding: 0.5rem 1rem; border-radius: var(--radius-sm); font-size: var(--text-base); flex: 1; min-width: 0; width: 100%;
 }
 .mini-search-wrapper { flex: 1; min-width: 0; overflow: hidden; }
 .header-actions { display: flex; gap: 0.4rem; flex-shrink: 0; align-items: center; }
@@ -342,7 +438,7 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--text-base);
   font-family: 'JetBrains Mono', monospace;
   transition: opacity 0.15s ease, transform 0.15s ease;
 }
@@ -383,15 +479,15 @@ body {
 /* Section Headers */
 .section-header {
   display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
-  margin: 2rem 0 1rem 0; border-bottom: 1px solid var(--border);
+  margin: var(--section-gap) 0; border-bottom: 1px solid var(--border);
   padding-bottom: 0.5rem; flex-wrap: wrap;
 }
 .section-title-group { display: flex; align-items: center; gap: 0.5rem; }
 .section-title {
-  font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; font-weight: 700 !important;
+  font-family: 'JetBrains Mono', monospace; font-size: var(--text-base); font-weight: 700 !important;
   color: #F1EEE9 !important; text-transform: uppercase; letter-spacing: 2px;
 }
-.section-subtitle { font-size: 0.75rem; color: var(--text-primary); opacity: 0.65; font-style: italic; }
+.section-subtitle { font-size: var(--text-sm); color: var(--text-primary); opacity: 0.65; font-style: italic; }
 
 /* =========================================
    9. WIDGETS, CARDS & STATS
@@ -400,7 +496,7 @@ body {
 /* Charts */
 .chart-wrapper {
   background: transparent !important; border: none !important;
-  border-radius: 4px; padding: 1rem; width: 100%; overflow-x: auto; overflow-y: visible;
+  border-radius: var(--radius-sm); padding: 1rem; width: 100%; overflow-x: auto; overflow-y: visible;
   box-shadow: none !important;
 }
 .chart-container { width: 100%; min-height: 500px; height: auto; display: block; }
@@ -408,7 +504,7 @@ body {
 svg { border: none !important; outline: none !important; }
 
 /* Feed / Deal Cards */
-.feed-grid { display: flex; flex-direction: column; gap: 1rem; }
+.feed-grid { display: flex; flex-direction: column; gap: var(--section-gap); }
 .explainer-highlight {
   background: #466D5C;
   padding: 1px 3px;
@@ -419,7 +515,7 @@ svg { border: none !important; outline: none !important; }
 
 .deal-card {
   background: var(--bg-card); border: 1px solid var(--border) !important;
-  border-radius: 4px; padding: 1.25rem; transition: transform 0.1s;
+  border-radius: var(--radius-md); padding: 1.25rem; transition: transform 0.1s;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 .deal-card:active { transform: scale(0.99); }
@@ -429,15 +525,15 @@ svg { border: none !important; outline: none !important; }
 
 .deal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; }
 .deal-agency {
-  font-size: 0.75rem; color: var(--text-muted); font-weight: 600;
-  text-transform: uppercase; background: rgba(255, 255, 255, 0.05); padding: 2px 6px; border-radius: 4px;
+  font-size: var(--text-sm); color: var(--text-muted); font-weight: 600;
+  text-transform: uppercase; background: rgba(255, 255, 255, 0.05); padding: 2px 6px; border-radius: var(--radius-sm);
 }
 .deal-amount {
   font-family: 'JetBrains Mono', monospace !important; color: #F1EEE9 !important;
-  font-weight: 700; font-size: 1rem; letter-spacing: -0.5px;
+  font-weight: 700; font-size: var(--text-lg); letter-spacing: -0.5px;
 }
-.deal-desc { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; line-height: 1.4; color: white; }
-.deal-vendor { font-size: 0.85rem; color: var(--info); margin-bottom: 0.75rem; font-family: 'JetBrains Mono', monospace; }
+.deal-desc { font-size: var(--text-lg); font-weight: 600; margin-bottom: 0.5rem; line-height: 1.4; color: white; }
+.deal-vendor { font-size: var(--text-base); color: var(--info); margin-bottom: 0.75rem; font-family: 'JetBrains Mono', monospace; }
 .deal-meta { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
 .deal-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid #222; }
 
@@ -445,7 +541,7 @@ svg { border: none !important; outline: none !important; }
 .deal-date, 
 .mission-gap-signals {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem !important;
+  font-size: var(--text-xs) !important;
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--text-primary) !important;
@@ -459,7 +555,7 @@ svg { border: none !important; outline: none !important; }
   color: var(--text-primary) !important;
   text-transform: uppercase;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem !important;
+  font-size: var(--text-xs) !important;
   font-weight: 700;
   letter-spacing: 0.5px;
   padding: 0.5rem 0.75rem;
@@ -474,8 +570,8 @@ svg { border: none !important; outline: none !important; }
 
 /* Tags & Badges */
 .meta-tag {
-  font-size: 0.65rem; font-family: 'JetBrains Mono', monospace; padding: 3px 8px;
-  border-radius: 4px; background: rgba(251, 247, 245, 0.05) !important;
+  font-size: var(--text-xs); font-family: 'JetBrains Mono', monospace; padding: 3px 8px;
+  border-radius: var(--radius-sm); background: rgba(251, 247, 245, 0.05) !important;
   color: var(--text-muted) !important; border: 1px solid transparent !important;
   font-weight: 600;
 }
@@ -491,68 +587,68 @@ svg { border: none !important; outline: none !important; }
 .mission-gap-toggle {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
   padding: 0 12px; height: 34px; min-width: 34px;
-  background: #E07A5F !important; border: none !important; border-radius: 34px;
-  font-size: 0.7rem; font-family: 'JetBrains Mono', monospace; color: #F1EEE9 !important;
+  background: #E07A5F !important; border: none !important; border-radius: var(--radius-pill);
+  font-size: var(--text-sm); font-family: 'JetBrains Mono', monospace; color: #F1EEE9 !important;
   font-weight: 700; cursor: pointer; transition: opacity 0.15s, transform 0.15s;
   white-space: nowrap;
 }
 .mission-gap-toggle:hover { opacity: 0.82; transform: scale(1.04); color: #F1EEE9 !important; }
 .mission-gap-toggle.active { background: #A7A9AC !important; color: #F1EEE9 !important; opacity: 1; }
-.mission-gap-toggle i { font-size: 0.65rem; color: #F1EEE9 !important; }
+.mission-gap-toggle i { font-size: var(--text-xs); color: #F1EEE9 !important; }
 
 /* Job Intel Panel specific */
 #searchJobPanel { overflow: hidden; max-width: 100%; box-sizing: border-box; }
 #searchJobPanel .data-panel { margin-bottom: 0; }
 .job-intel-panel {
   background: var(--bg-card); border: 1px solid var(--border) !important;
-  border-radius: 6px; padding: 1rem; overflow: hidden;
+  border-radius: var(--radius-md); padding: 1rem; overflow: hidden;
 }
 
 /* Job Links */
 .job-link {
-  font-size: 0.65rem; color: #5B7C99; text-decoration: none;
+  font-size: var(--text-xs); color: #5B7C99; text-decoration: none;
   display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px;
-  border-radius: 3px; background: rgba(91,124,153,0.1);
+  border-radius: var(--radius-sm); background: rgba(91,124,153,0.1);
   border: 1px solid rgba(91,124,153,0.2); transition: all 0.15s;
 }
 .job-link:hover {
   background: rgba(91,124,153,0.2); border-color: rgba(91,124,153,0.4); color: #F2E8CF;
 }
-.job-link i { font-size: 0.6rem; }
+.job-link i { font-size: var(--text-xs); }
 
 /* Shared design system for Prime Reach + Top Agencies panels */
 .reach-row {
   display: flex; align-items: flex-start; justify-content: space-between;
   padding: 0.55rem 0.35rem; gap: 0.5rem; cursor: pointer;
   border-bottom: 1px solid rgba(255,255,255,0.07);
-  border-radius: 4px; transition: background 0.15s;
+  border-radius: var(--radius-sm); transition: background 0.15s;
 }
 .reach-row:hover { background: rgba(255,255,255,0.06); }
 .reach-row:last-child { border-bottom: none; }
 .reach-name {
-  font-size: 0.8rem; font-weight: 600; color: var(--text-primary);
+  font-size: var(--text-sm); font-weight: 600; color: var(--text-primary);
   text-decoration: underline; text-decoration-color: rgba(255,255,255,0.15);
   text-underline-offset: 2px;
 }
 .reach-row:hover .reach-name { text-decoration-color: var(--accent); color: var(--accent); }
 .reach-badge {
-  font-family: 'JetBrains Mono', monospace; font-size: 0.55rem;
+  font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs);
   padding: 0.1rem 0.35rem; background: rgba(119,141,169,0.12);
-  color: #778DA9; border-radius: 3px; white-space: nowrap;
+  color: #778DA9; border-radius: var(--radius-sm); white-space: nowrap;
 }
 .reach-badge.accent { background: rgba(74,122,103,0.15); color: var(--accent-light); }
-.reach-meta { font-size: 0.6rem; color: var(--text-muted); margin-top: 0.15rem; line-height: 1.4; }
+.reach-meta { font-size: var(--text-xs); color: var(--text-muted); margin-top: 0.15rem; line-height: 1.4; }
 .reach-amount {
-  font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+  font-family: 'JetBrains Mono', monospace; font-size: var(--text-sm);
   font-weight: 600; color: #F2E8CF;
 }
-.reach-count { font-family: 'JetBrains Mono', monospace; font-size: 0.55rem; color: #778DA9; }
-.reach-overflow { font-size: 0.55rem; color: var(--text-muted); text-align: center; margin-top: 0.35rem; }
+.reach-count { font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); color: #778DA9; }
+.reach-overflow { font-size: var(--text-xs); color: var(--text-muted); text-align: center; margin-top: 0.35rem; }
 
 /* Panel container design system */
 .data-panel {
   background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: 10px; margin-bottom: 0.75rem; overflow: hidden;
+  border-radius: var(--radius-md); margin-bottom: var(--section-gap); overflow: hidden;
 }
 .data-panel-header {
   display: flex; align-items: baseline; justify-content: space-between;
@@ -560,12 +656,12 @@ svg { border: none !important; outline: none !important; }
   border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 .data-panel-title {
-  font-family: 'JetBrains Mono', monospace; font-size: 0.6rem;
+  font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs);
   color: var(--accent-light); text-transform: uppercase;
   letter-spacing: 1.5px; font-weight: 600;
 }
 .data-panel-subtitle {
-  font-family: 'JetBrains Mono', monospace; font-size: 0.45rem;
+  font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs);
   color: var(--text-muted);
 }
 .data-panel-body { padding: 0.35rem 1rem 0.75rem; }
@@ -573,7 +669,7 @@ svg { border: none !important; outline: none !important; }
 /* Subagency & Drill Down */
 .drill-controls-bar {
   padding: 0.5rem 0.75rem;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: rgba(255,255,255,0.02);
   border: 1px solid var(--border);
 }
@@ -581,18 +677,18 @@ svg { border: none !important; outline: none !important; }
 .drill-breadcrumb {
   display: flex; align-items: center; gap: 0.35rem !important; padding: 0.75rem 1rem;
   background: var(--accent-dim); border: 1px solid var(--border);
-  border-radius: 4px; margin-bottom: 1rem; font-family: 'JetBrains Mono', monospace;
-  font-size: 0.8rem; overflow-x: auto; white-space: nowrap;
+  border-radius: var(--radius-sm); margin-bottom: var(--section-gap); font-family: 'JetBrains Mono', monospace;
+  font-size: var(--text-sm); overflow-x: auto; white-space: nowrap;
 }
 
 .breadcrumb-item {
   padding: 0.25rem 0.5rem;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border);
   background: transparent;
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.72rem;
+  font-size: var(--text-sm);
   line-height: 1.1;
   display: inline-flex;
   align-items: center;
@@ -612,12 +708,12 @@ svg { border: none !important; outline: none !important; }
   border: 1px solid var(--accent); cursor: default;
 }
 
-.breadcrumb-icon { font-size: 0.72rem; opacity: 0.75; }
-.breadcrumb-separator { color: var(--text-subtle); font-size: 0.8rem; font-weight: 700; }
+.breadcrumb-icon { font-size: var(--text-sm); opacity: 0.75; }
+.breadcrumb-separator { color: var(--text-subtle); font-size: var(--text-sm); font-weight: 700; }
 .drill-hint {
   display: flex; align-items: center; justify-content: center; gap: 0.5rem;
   padding: 0.5rem; background: rgba(212, 196, 168, 0.05); border: 1px dashed var(--border);
-  border-radius: 4px; margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-muted);
+  border-radius: var(--radius-sm); margin-top: 0.5rem; font-size: var(--text-sm); color: var(--text-muted);
 }
 .drill-hint i { color: var(--accent); }
 
@@ -629,14 +725,14 @@ svg { border: none !important; outline: none !important; }
 #bubbleChartPanel {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   padding: 0.75rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--section-gap);
   overflow: hidden;
 }
 #bubbleChartPanel .bubble-header {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.6rem;
+  font-size: var(--text-xs);
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 1.5px;
@@ -674,10 +770,10 @@ svg { border: none !important; outline: none !important; }
   position: absolute;
   background: rgba(22, 27, 24, 0.95);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   padding: 0.75rem 1rem;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   color: var(--text-primary);
   pointer-events: none;
   z-index: 50;
@@ -689,19 +785,19 @@ svg { border: none !important; outline: none !important; }
 }
 .bubble-tooltip.visible { opacity: 1; }
 .bubble-tooltip-name { font-weight: 700; color: #F1EEE9; margin-bottom: 4px; }
-.bubble-tooltip-amount { color: var(--accent-light); font-size: 0.85rem; font-weight: 700; }
-.bubble-tooltip-meta { color: var(--text-muted); font-size: 0.65rem; margin-top: 4px; }
+.bubble-tooltip-amount { color: var(--accent-light); font-size: var(--text-base); font-weight: 700; }
+.bubble-tooltip-meta { color: var(--text-muted); font-size: var(--text-xs); margin-top: 4px; }
 
 .bubble-toggle-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
 .bubble-toggle-btn {
   padding: 0.35rem 0.75rem;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem;
+  font-size: var(--text-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
@@ -712,13 +808,13 @@ svg { border: none !important; outline: none !important; }
 
 .bubble-bc-item {
   display: inline-flex; align-items: center; gap: 4px; padding: 0.2rem 0.5rem;
-  border-radius: 4px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;
-  font-size: 0.7rem; cursor: pointer; transition: all 0.15s ease; white-space: nowrap;
+  border-radius: var(--radius-sm); color: var(--text-muted); font-family: 'JetBrains Mono', monospace;
+  font-size: var(--text-sm); cursor: pointer; transition: all 0.15s ease; white-space: nowrap;
 }
 .bubble-bc-item:hover { color: var(--accent-light); background: rgba(255,255,255,0.05); }
 .bubble-bc-item.active { color: #F1EEE9; font-weight: 700; cursor: default; }
 .bubble-bc-item.active:hover { background: transparent; }
-.bubble-bc-sep { color: var(--text-subtle); font-size: 0.55rem; }
+.bubble-bc-sep { color: var(--text-subtle); font-size: var(--text-xs); }
 
 /* =========================================
    11. FOOTER & MISC
@@ -734,13 +830,13 @@ svg { border: none !important; outline: none !important; }
 .footer-section { padding-bottom: 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
 .footer-section:last-child { border-bottom: none; padding-bottom: 0; }
 .footer-label {
-  font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; font-weight: 700;
+  font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); font-weight: 700;
   text-transform: uppercase; letter-spacing: 1px; color: var(--accent); margin-bottom: 0.75rem;
 }
-.footer-text { overflow: hidden; font-size: 0.8rem; line-height: 1.6; color: var(--text-primary); opacity: 0.65; margin-bottom: 0.75rem; }
+.footer-text { overflow: hidden; font-size: var(--text-sm); line-height: 1.6; color: var(--text-primary); opacity: 0.65; margin-bottom: 0.75rem; }
 .footer-text:last-child { margin-bottom: 0; }
 .footer-link {
-  font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--link);
+  font-family: 'JetBrains Mono', monospace; font-size: var(--text-sm); color: var(--link);
   text-decoration: none; text-transform: uppercase; letter-spacing: 0.5px;
   font-weight: 700; padding-bottom: 2px; border-bottom: 1px solid var(--accent); transition: opacity 0.2s ease;
 }
@@ -748,30 +844,45 @@ svg { border: none !important; outline: none !important; }
 .use-cases { display: flex; flex-direction: column; gap: 1rem; }
 .use-case { padding: 0.875rem; background: rgba(255, 255, 255, 0.02); border-left: 2px solid var(--accent); }
 .use-case-title {
-  font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 700;
+  font-family: 'JetBrains Mono', monospace; font-size: var(--text-sm); font-weight: 700;
   color: var(--text-primary); margin-bottom: 0.375rem; text-transform: uppercase; letter-spacing: 0.5px;
 }
-.use-case-desc { font-size: 0.75rem; color: var(--text-muted); line-height: 1.5; }
+.use-case-desc { font-size: var(--text-sm); color: var(--text-muted); line-height: 1.5; }
 .tip-bio-img { width: 48px; height: 48px; border-radius: 50%; filter: grayscale(1) contrast(1.1); flex-shrink: 0; float: left; margin-right: 12px; margin-bottom: 4px; }
+
+/* Sankey drill crossfade */
+#chartContainer {
+  transition: opacity 0.15s ease;
+}
+#chartContainer.sankey-fade-out {
+  opacity: 0;
+}
+#chartContainer.sankey-fade-in {
+  animation: sankeyFadeIn 0.25s ease forwards;
+}
+@keyframes sankeyFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
 .sankey-loaded { animation: subtlePulse 2s ease-in-out 1; }
 
 .footer-copyright { 
-  font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--text); 
+  font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); color: var(--text); 
   letter-spacing: 0.5px; margin-top: 1rem; text-align: center; 
 } 
 
 /* Step icons for Getting Started section */
 .steps-list li {
   position: relative; padding-left: 3rem; margin-bottom: 1.25rem;
-  font-size: 0.85rem; color: var(--text-primary); line-height: 1.5;
+  font-size: var(--text-base); color: var(--text-primary); line-height: 1.5;
 }
 .steps-list li::before {
   content: counter(step-counter); counter-increment: step-counter;
   position: absolute; left: 0; top: 0;
   width: 28px; height: 28px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 700; font-family: 'JetBrains Mono', monospace;
+  font-size: var(--text-base); font-weight: 700; font-family: 'JetBrains Mono', monospace;
 }
 .steps-list li strong { color: var(--accent-light); }
 .steps-list { counter-reset: step-counter; }
@@ -787,6 +898,22 @@ svg { border: none !important; outline: none !important; }
 /* =========================================
    12. PRESENTATION MODE (Screenshot-friendly)
    ========================================= */
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  html { scroll-behavior: auto !important; }
+  .skeleton-loading .stat-hero,
+  .skeleton-loading .stat-value { animation: none !important; opacity: 0.5 !important; }
+  .skeleton-loading .chart-container::after { animation: none !important; }
+  .mini-search.is-loading { animation: none !important; }
+  .toast { animation: none !important; opacity: 1 !important; }
+  #chartContainer.sankey-fade-in { animation: none !important; opacity: 1 !important; }
+}
+
 .presentation-mode #sankeyPanel,
 .presentation-mode #bubbleChartPanel,
 .presentation-mode #subcontractingPanel,
@@ -835,10 +962,10 @@ svg { border: none !important; outline: none !important; }
 .presentation-mode .bubble-header { color: #666 !important; }
 
 /* Stat label text */
-.presentation-mode #sankeyPanel span[style*="text-transform: uppercase"],
-.presentation-mode #bubbleChartPanel span[style*="text-transform: uppercase"],
-.presentation-mode #subcontractingPanel span[style*="text-transform: uppercase"],
-.presentation-mode #subBubblePanel span[style*="text-transform: uppercase"] { color: #888 !important; }
+.presentation-mode #sankeyPanel .stat-label,
+.presentation-mode #bubbleChartPanel .stat-label,
+.presentation-mode #subcontractingPanel .stat-label,
+.presentation-mode #subBubblePanel .stat-label { color: #888 !important; }
 
 /* Divider lines inside chart panels */
 .presentation-mode #sankeyPanel div[style*="border-left"],
@@ -846,10 +973,10 @@ svg { border: none !important; outline: none !important; }
 .presentation-mode #subcontractingPanel div[style*="border-left"],
 .presentation-mode #subBubblePanel div[style*="border-left"] { border-color: #E0E0E0 !important; }
 
-.presentation-mode #sankeyPanel div[style*="border-top"],
-.presentation-mode #bubbleChartPanel div[style*="border-top"],
+.presentation-mode #sankeyPanel .panel-footer,
+.presentation-mode #bubbleChartPanel .panel-footer,
 .presentation-mode #subcontractingPanel div[style*="border-top"],
-.presentation-mode #subBubblePanel div[style*="border-top"] { border-color: #E0E0E0 !important; }
+.presentation-mode #subBubblePanel .panel-footer { border-color: #E0E0E0 !important; }
 
 /* Footer text in chart panels */
 .presentation-mode #sankeyPanel > div:last-child,
@@ -885,9 +1012,9 @@ svg { border: none !important; outline: none !important; }
 .ai-banner {
     background: var(--accent);
     border: 1px solid var(--accent-dark);
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     padding: 1rem 1.25rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: var(--section-gap);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -913,7 +1040,7 @@ svg { border: none !important; outline: none !important; }
 .ai-banner-title {
     margin: 0 0 4px 0;
     color: #F1EEE9;
-    font-size: 0.95rem;
+    font-size: var(--text-lg);
     text-transform: uppercase;
     letter-spacing: 1px;
     font-weight: 800;
@@ -924,7 +1051,7 @@ svg { border: none !important; outline: none !important; }
 .ai-banner-desc {
     margin: 0;
     color: #F1EEE9;
-    font-size: 0.85rem;
+    font-size: var(--text-base);
     line-height: 1.4;
     opacity: 0.9;
 }
@@ -933,7 +1060,7 @@ svg { border: none !important; outline: none !important; }
     background: #F1EEE9 !important; 
     color: var(--accent) !important; 
     border: none !important;
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     cursor: pointer;
     font-family: 'JetBrains Mono', monospace;
     font-weight: 800;
@@ -954,9 +1081,9 @@ svg { border: none !important; outline: none !important; }
 .ai-action-panel {
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: 8px; 
+    border-radius: var(--radius-md); 
     padding: 1.5rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: var(--section-gap);
     display: none;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
     position: relative;
@@ -975,14 +1102,14 @@ svg { border: none !important; outline: none !important; }
 .ai-header h3 {
     margin: 0;
     color: #F1EEE9;
-    font-size: 0.95rem;
+    font-size: var(--text-lg);
     text-transform: uppercase;
     letter-spacing: 1px;
     font-weight: 800;
 }
     
 .ai-result-content {
-    font-size: 0.85rem;
+    font-size: var(--text-base);
     color: var(--text-primary);
     line-height: 1.6;
 }
@@ -994,7 +1121,7 @@ svg { border: none !important; outline: none !important; }
     color: var(--accent-light);
     margin-top: 1.75rem;
     margin-bottom: 0.5rem;
-    font-size: 0.8rem;
+    font-size: var(--text-sm);
     text-transform: uppercase;
     letter-spacing: 1.5px;
     font-family: 'JetBrains Mono', monospace;
@@ -1006,7 +1133,7 @@ svg { border: none !important; outline: none !important; }
 .strategic-read h2:first-child { margin-top: 0; }
 .strategic-read h4 {
     color: var(--text-primary);
-    font-size: 0.8rem;
+    font-size: var(--text-sm);
     margin-top: 1.25rem;
     margin-bottom: 0.35rem;
     font-weight: 700;
@@ -1019,7 +1146,7 @@ svg { border: none !important; outline: none !important; }
 .strategic-read > p:first-child,
 .strategic-read > p:first-of-type {
     color: var(--text-primary);
-    font-size: 0.9rem;
+    font-size: var(--text-base);
     line-height: 1.7;
     border-left: 3px solid var(--accent);
     padding-left: 0.75rem;
@@ -1039,7 +1166,7 @@ svg { border: none !important; outline: none !important; }
     font-size: 0.8em;
     background: rgba(255,255,255,0.06);
     padding: 0.15em 0.4em;
-    border-radius: 3px;
+    border-radius: var(--radius-sm);
     color: var(--accent-light);
 }
 .strategic-read blockquote {
@@ -1047,8 +1174,8 @@ svg { border: none !important; outline: none !important; }
     margin: 1rem 0;
     padding: 0.75rem 1rem;
     background: rgba(74, 122, 103, 0.08);
-    border-radius: 0 6px 6px 0;
-    font-size: 0.82rem;
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    font-size: var(--text-base);
 }
 .strategic-read blockquote p { color: var(--text-primary); margin-bottom: 0.25rem; }
 .strategic-read blockquote p:last-child { margin-bottom: 0; }
@@ -1056,7 +1183,7 @@ svg { border: none !important; outline: none !important; }
     width: 100%;
     border-collapse: collapse;
     margin: 1rem 0;
-    font-size: 0.78rem;
+    font-size: var(--text-sm);
     font-family: 'JetBrains Mono', monospace;
 }
 .strategic-read th {
@@ -1067,7 +1194,7 @@ svg { border: none !important; outline: none !important; }
     color: var(--accent-light);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    font-size: 0.7rem;
+    font-size: var(--text-sm);
     font-weight: 600;
 }
 .strategic-read td {
@@ -1102,9 +1229,9 @@ svg { border: none !important; outline: none !important; }
     background: transparent;
     border: 1px solid rgba(74, 122, 103, 0.4);
     color: var(--accent-light);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     padding: 0.4rem 0.75rem;
-    font-size: 0.7rem;
+    font-size: var(--text-sm);
     font-weight: 700;
     font-family: 'JetBrains Mono', monospace;
     cursor: pointer;
@@ -1135,10 +1262,10 @@ svg { border: none !important; outline: none !important; }
     background: var(--bg-input);
     border: 1px solid var(--border);
     padding: 0.75rem 1rem;
-    border-radius: 6px 6px 0px 6px;
+    border-radius: var(--radius-md) var(--radius-md) 0 var(--radius-md);
     color: var(--text-primary);
     max-width: 85%;
-    font-size: 0.85rem;
+    font-size: var(--text-base);
     line-height: 1.5;
     font-family: 'JetBrains Mono', monospace;
 }
@@ -1161,12 +1288,12 @@ svg { border: none !important; outline: none !important; }
 .ai-msg-arti .strategic-read h2, 
 .ai-msg-arti .strategic-read h3 {
     margin-top: 0.75rem; 
-    font-size: 0.75rem; 
+    font-size: var(--text-sm); 
     padding-bottom: 0.15rem;
 }
 .ai-msg-arti .strategic-read > p:first-child,
 .ai-msg-arti .strategic-read > p:first-of-type {
-    font-size: 0.85rem;
+    font-size: var(--text-base);
     border-left: none;
     padding-left: 0;
 }
@@ -1205,7 +1332,7 @@ svg { border: none !important; outline: none !important; }
 }
 
 .ai-chat-counter {
-    font-size: 0.8rem; 
+    font-size: var(--text-sm); 
     color: #F1EEE9; 
     text-align: right;
     margin-top: 0.5rem;
@@ -1215,12 +1342,12 @@ svg { border: none !important; outline: none !important; }
 }
 
 .ai-disclaimer {
-    font-size: 0.7rem; 
+    font-size: var(--text-sm); 
     color: #F1EEE9;  
     opacity: 0.85; 
     text-align: left;
     margin-top: 0.9rem;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     line-height: 1.4;
 }
 
@@ -1281,7 +1408,7 @@ svg { border: none !important; outline: none !important; }
     width: 100%; 
     height: 6px; 
     background: rgba(255,255,255,0.05); 
-    border-radius: 4px; 
+    border-radius: var(--radius-sm); 
     overflow: hidden; 
     position: relative; 
     border: 1px solid var(--border); 
@@ -1290,7 +1417,7 @@ svg { border: none !important; outline: none !important; }
 .govhoo-progress-fill {
     position: absolute; top: 0; left: 0; height: 100%; width: 0%; 
     background: var(--accent); 
-    border-radius: 4px; 
+    border-radius: var(--radius-sm); 
     transition: width 0.2s ease-out;
 }
 .govhoo-progress-glow {
@@ -1316,16 +1443,16 @@ svg { border: none !important; outline: none !important; }
   .chart-container { min-width: auto; width: 100%; }
   .sankey-panel { padding: 0.5rem !important; }
   .reach-row { padding: 0.7rem 0.5rem; min-height: 60px; }
-  .reach-name { font-size: 0.75rem; }
-  .reach-amount { font-size: 0.75rem; }
-  .data-panel { border-radius: 8px; margin-bottom: 0.6rem; }
+  .reach-name { font-size: var(--text-sm); }
+  .reach-amount { font-size: var(--text-sm); }
+  .data-panel { border-radius: var(--radius-md); margin-bottom: 0.6rem; }
   .data-panel-header { padding: 0.55rem 0.75rem 0.3rem; }
-  .data-panel-title { font-size: 0.55rem; }
+  .data-panel-title { font-size: var(--text-xs); }
   .data-panel-body { padding: 0.25rem 0.75rem 0.6rem; }
 
   /* Touch targets: 44px minimum per WCAG 2.5.8 */
-  .job-link { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 8px 12px; font-size: 0.7rem; }
-  .meta-tag { min-height: 36px; padding: 6px 10px; font-size: 0.65rem; }
+  .job-link { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 8px 12px; font-size: var(--text-sm); }
+  .meta-tag { min-height: 36px; padding: 6px 10px; font-size: var(--text-xs); }
   .breadcrumb-item { min-height: 44px; padding: 8px 12px; display: inline-flex; align-items: center; }
   .icon-btn { width: 44px; height: 44px; font-size: 16px; }
   .action-btn { min-height: 44px; padding: 8px 12px; }
@@ -1346,7 +1473,8 @@ svg { border: none !important; outline: none !important; }
   .app-header { gap: 0.5rem; padding: 0.5rem 0.75rem; }
   .header-left { gap: 0.5rem; }
   .mini-search { max-width: none; padding: 0.5rem 0.6rem; font-size: 16px; }
-  .logo-btn { font-size: 0.9rem; }
+  .logo-btn { font-size: var(--text-base); }
+  .logo-btn .logo-gt, .logo-btn .logo-us, .logo-btn .logo-name { font-size: inherit; }
   .header-actions { gap: 0.35rem; }
   .job-links { gap: 6px; }
   #bubbleChartContainer { min-height: 320px; }
@@ -1367,20 +1495,20 @@ svg { border: none !important; outline: none !important; }
   }
   
   .ai-banner-title { 
-      font-size: 0.85rem; 
+      font-size: var(--text-base); 
       padding-top: 2px;
       margin-bottom: 2px;
   }
 
   .ai-banner-desc {
-      font-size: 0.75rem; 
+      font-size: var(--text-sm); 
       display: block !important; 
   }
   
   .ai-banner .btn-ai { 
       width: 100%; 
       padding: 0.6rem;
-      font-size: 0.75rem;
+      font-size: var(--text-sm);
       margin-top: 0.75rem; 
       justify-content: center;
   }
@@ -1411,13 +1539,13 @@ svg { border: none !important; outline: none !important; }
   
   #aiChatSendBtn {
       padding: 0 0.8rem;
-      font-size: 0.8rem;
+      font-size: var(--text-sm);
   }
 }
 
 @media (max-width: 520px){
   .drill-controls-bar{ padding: 0.5rem 0.6rem; }
-  .breadcrumb-item{ font-size: 0.70rem; padding: 0.22rem 0.45rem; }
+  .breadcrumb-item{ font-size: var(--text-sm); padding: 0.22rem 0.45rem; }
 }
 /* Hide scrollbars for horizontal swiping areas */
 .drill-breadcrumb, 
@@ -1449,7 +1577,7 @@ svg { border: none !important; outline: none !important; }
 .deal-card {
   background: var(--bg-card); 
   border: 1px solid var(--border) !important;
-  border-radius: 6px; 
+  border-radius: var(--radius-md); 
   padding: 1.25rem; 
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); /* Smoother spring transition */
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
@@ -1476,7 +1604,7 @@ h1, h2, h3, h4, h5, h6,
 button, input, select, textarea, 
 .deal-amount, .deal-vendor, .deal-date, .deal-agency,
 .reach-amount, .reach-badge, .meta-tag, .section-title,
-.terminal-logo, .footer-link, .breadcrumb-item {
+.footer-link, .breadcrumb-item {
   font-family: 'JetBrains Mono', monospace !important;
 }
 
@@ -1487,7 +1615,7 @@ button, input, select, textarea,
 }
 .hero-suggestions {
     margin-top: 1.25rem;
-    font-size: 0.8rem;
+    font-size: var(--text-sm);
     color: var(--text-subtle);
     display: flex;
     align-items: center;
@@ -1501,10 +1629,10 @@ button, input, select, textarea,
     color: var(--text-muted);
     background: rgba(255, 255, 255, 0.03);
     padding: 4px 10px;
-    border-radius: 20px; /* Pill shape */
+    border-radius: var(--radius-pill);
     text-decoration: none;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.7rem;
+    font-size: var(--text-sm);
     border: 1px solid var(--border);
     transition: all 0.2s ease;
 }
@@ -1526,7 +1654,7 @@ button, input, select, textarea,
 }
 
 .syntax-icon {
-    font-size: 0.8rem;
+    font-size: var(--text-sm);
     color: var(--text-subtle);
     transition: color 0.2s;
 }
@@ -1543,9 +1671,9 @@ button, input, select, textarea,
     background: var(--bg-elevated);
     border: 1px solid var(--border);
     padding: 0.75rem 1rem;
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     color: var(--text-primary);
-    font-size: 0.75rem;
+    font-size: var(--text-sm);
     font-family: 'JetBrains Mono', monospace;
     white-space: nowrap;
     opacity: 0;
@@ -1565,12 +1693,127 @@ button, input, select, textarea,
     background: rgba(212, 224, 91, 0.15); /* Faint highlighter background */
     color: #D4E05B; /* Acid/Highlighter Yellow-Green text */
     padding: 2px 4px;
-    border-radius: 3px;
+    border-radius: var(--radius-sm);
     font-weight: 600;
     /* This ensures the highlight background wraps nicely across multiple lines */
     box-decoration-break: clone;
     -webkit-box-decoration-break: clone;
 }
+
+
+/* =========================================
+   TOAST NOTIFICATIONS — replaces alert()
+   ========================================= */
+.toast-container {
+  position: fixed;
+  bottom: calc(var(--safe-bottom, 20px) + 1rem);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 500;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 0.5rem;
+  pointer-events: none;
+  width: 90%;
+  max-width: 400px;
+}
+.toast {
+  pointer-events: auto;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  width: 100%;
+}
+.toast.toast-error { border-color: var(--danger); }
+.toast.toast-error .toast-icon { color: var(--danger); }
+.toast.toast-success .toast-icon { color: var(--success); }
+.toast.toast-warning .toast-icon { color: var(--warning); }
+.toast-icon { flex-shrink: 0; font-size: var(--text-base); }
+.toast-msg { flex: 1; line-height: 1.4; }
+.toast.toast-out {
+  animation: toastOut 0.2s ease forwards;
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes toastOut {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(8px) scale(0.95); }
+}
+
+/* =========================================
+   STAT PANEL SYSTEM — Reusable stat rows
+   ========================================= */
+.stat-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  margin-bottom: var(--section-gap);
+  overflow: hidden;
+}
+.stat-subtitle {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 0.5rem;
+}
+.stat-row {
+  display: flex; align-items: baseline; gap: 1.5rem; flex-wrap: wrap;
+}
+.stat-hero {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: var(--text-hero);
+  font-weight: 800; color: var(--text-primary); line-height: 1;
+}
+.stat-group {
+  display: flex; gap: 1.25rem; align-items: baseline; flex-wrap: wrap;
+  margin-left: 0.5rem; padding-left: 1.5rem; border-left: 1px solid var(--border);
+}
+.stat-item { display: flex; align-items: baseline; gap: 0.35rem; }
+.stat-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: var(--text-lg); font-weight: 700; color: var(--text-primary);
+}
+.stat-label {
+  font-size: var(--text-xs); color: var(--text-muted); text-transform: uppercase;
+}
+.panel-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border);
+  font-size: var(--text-xs); color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Explainer box shared style */
+.explainer-box {
+  background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(99,102,241,0.03));
+  border: 1px solid rgba(99,102,241,0.2);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  margin-top: var(--section-gap);
+  margin-bottom: var(--section-gap);
+}
+.explainer-box-content {
+  font-size: var(--text-sm); color: var(--text-muted); line-height: 1.6;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+.explainer-box-content strong { color: var(--text-primary); }
 
 /* =========================================
    17. BENTO GRID LAYOUT
@@ -1578,8 +1821,8 @@ button, input, select, textarea,
 .bento-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
+  gap: var(--section-gap);
+  margin-bottom: var(--section-gap);
 }
 
 .bento-row > * {
@@ -1604,7 +1847,7 @@ button, input, select, textarea,
 
   <div id="heroView" class="hero-view">
     <div class="terminal-logo">
-      <span style="color: var(--accent);">>_</span>Govhoo
+      <span class="logo-gt">></span><span class="logo-us">_</span><span class="logo-name">Govhoo</span>
     </div>
     <p class="hero-subtitle" style="padding-left: 1.25em;">Follow the Money. For Free.</p>
     
@@ -1638,7 +1881,7 @@ button, input, select, textarea,
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
                   <strong style="color: var(--text-primary);">Size Federal Markets</strong>
                 </div>
-                <div style="font-size: 0.75rem; color: var(--text-primary); opacity: 0.7; line-height: 1.5;">
+                <div style="font-size: var(--text-sm); color: var(--text-primary); opacity: 0.7; line-height: 1.5;">
                   Search a keyword, NAICS code, company, or agency to instantly see total spend, who's buying, and who's winning. Use <strong style="color: var(--accent-light);">AND</strong> to narrow — <em>541512 AND Air Force</em>. Use a <strong style="color: var(--accent-light);">,</strong> to broaden — <em>Cloud, Cyber</em>. Shorthand like <em>DHS</em>, <em>VA</em>, <em>DISA</em> works too.
                 </div>
               </li>
@@ -1646,7 +1889,7 @@ button, input, select, textarea,
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
                   <strong style="color: var(--text-primary);">Follow the Money</strong>
                 </div>
-                <div style="font-size: 0.75rem; color: var(--text-primary); opacity: 0.7; line-height: 1.5;">
+                <div style="font-size: var(--text-sm); color: var(--text-primary); opacity: 0.7; line-height: 1.5;">
                   See exactly how dollars move from agencies to primes, and which sub-agencies control the budget. Click any bar to drill in. Filter by NAICS code or contract vehicle to zero in on your target market.
                 </div>
               </li>
@@ -1654,7 +1897,7 @@ button, input, select, textarea,
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
                   <strong style="color: var(--text-primary);">Find Partners</strong>
                 </div>
-                <div style="font-size: 0.75rem; color: var(--text-primary); opacity: 0.7; line-height: 1.5;">
+                <div style="font-size: var(--text-sm); color: var(--text-primary); opacity: 0.7; line-height: 1.5;">
                   See which primes have the broadest agency reach in your market, ideal teaming partners. Click any vendor to see their full federal portfolio. Switch to the Sub view to map prime→sub workshare relationships and find who actually does the work.
                 </div>
               </li>
@@ -1690,22 +1933,22 @@ button, input, select, textarea,
           <div class="footer-label mono text-xs accent upper">Built by a Sales Guy</div>
           <p class="footer-text">
             <img src="https://govhoo.com/images/oldmark.jpg" alt="Mark Flournoy" class="tip-bio-img">
-            Hi, I’m Mark. I’ve sold at AWS, F5, and Red Hat, served as a DISA COTR, and spent 20 years in the Marines. And even with all that government experience, I still wasted hours every month as a seller digging through USASpending, SAM.gov, and industry days just to understand where the money was flowing and who really owned the workshare.
+            Hi, I’m Mark. I’ve sold at AWS, F5, and Red Hat, served as a DISA COTR, and spent 20 years in the Marines, including time in Iraq, USSOCOM, and SOUTHCOM. And even with all that government experience, I still wasted hours every month as a seller digging through USASpending, SAM.gov, and industry days just to understand where the money was flowing and who really owned the workshare.
             <br><br>
-           I built Govhoo to give sellers a quick snapshot of any federal market using live USASpending data. It doesn’t replace GovWin or BGOV; it lets you see incumbents, money flow, and sustained spending in seconds so you can de-risk your pipeline, make better decisions, and get back in front of your customers. And it’s free.
+           I built Govhoo to give sales teams a fast, visual snapshot of any federal market using live USASpending data. It doesn’t replace GovWin or BGOV; it lets you see incumbents, money flow, and sustained spending in seconds so you can de-risk your pipeline, make better decisions, and get back in front of your customers. And it’s free.
             <br><br>
             If you want to walk through your territory together or need help, I do that for free. Find me on
             <a href="https://www.linkedin.com/in/markflournoy/" target="_blank" class="footer-link">LinkedIn</a>.
           </p>
-          <div style="padding: 1rem; margin-top: 1.2rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;">
-            <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 700; color: #F1EEE9; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">
+          <div style="padding: 1rem; margin-top: 1.2rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md);">
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: var(--text-sm); font-weight: 700; color: #F1EEE9; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">
               30-Min Working Session
             </div>
-            <div style="font-size: 0.7rem; color: var(--text-primary); opacity: 0.7; line-height: 1.4; margin-bottom: 1rem;">
+            <div style="font-size: var(--text-sm); color: var(--text-primary); opacity: 0.7; line-height: 1.4; margin-bottom: 1rem;">
               Bring your territory or a target market. We’ll pull the data together live and I’ll show you how to turn it into a plan you can act on and drop into your next QBR or pipeline review.
             </div>
             <a href="https://calendly.com/markflournoy/govhoo" target="_blank" style="text-decoration:none;">
-              <button class="btn-primary" style="width: 100%; padding: 0.6rem; font-size: 0.75rem; justify-content: center;">
+              <button class="btn-primary" style="width: 100%; padding: 0.6rem; font-size: var(--text-sm); justify-content: center;">
                 Book a session
               </button>
             </a>
@@ -1714,7 +1957,7 @@ button, input, select, textarea,
 
       </div>
       <div class="footer-bottom">
-        <div class="footer-copyright">© 2026 <span style="color: #5f8055;">>_</span>GOVHOO.COM — DATA VIA USASPENDING.GOV</div>
+        <div class="footer-copyright">© 2026 <span style="font-family:'Consolas','JetBrains Mono',monospace;color:var(--accent-light);font-weight:700;font-size:1.15em;">></span><span style="font-family:'Figtree',sans-serif;color:var(--accent-light);font-weight:700;margin-left:-2px;">_</span><span style="font-family:'Figtree',sans-serif;font-weight:600;">GOVHOO.COM</span> — DATA VIA USASPENDING.GOV</div>
       </div>
     </footer>
   </div>
@@ -1722,7 +1965,7 @@ button, input, select, textarea,
   <div id="appView" style="display:none;">
     <header class="app-header">
       <div class="header-left">
-        <span class="logo-btn" data-action="showHero" title="Back to home"><span style="color: var(--accent);">>_</span>Govhoo</span>
+        <span class="logo-btn" data-action="showHero" title="Back to home"><span class="logo-gt">></span><span class="logo-us">_</span><span class="logo-name">Govhoo</span></span>
         <div class="mini-search-wrapper">
           <input type="text" id="miniSearch" class="mini-search" placeholder="Search keywords, companies, NAICS, agencies...">
         </div>
@@ -1768,7 +2011,7 @@ button, input, select, textarea,
           <div id="aiChatHistory" class="ai-chat-history" style="display: none;"></div>
           
           <div id="aiChatInputWrapper" class="ai-chat-input-wrapper" style="display: none;">
-            <input type="text" id="aiChatInput" class="main-input" placeholder="Ask follow-up questions..." autocomplete="off" style="font-size: 0.85rem; padding: 0.75rem 1rem; height: auto;">
+            <input type="text" id="aiChatInput" class="main-input" placeholder="Ask follow-up questions..." autocomplete="off" style="font-size: var(--text-base); padding: 0.75rem 1rem; height: auto;">
             <button id="aiChatSendBtn" class="btn-ai" onclick="App.sendAiChatMessage()" style="padding: 0 1.25rem; font-weight: 700; letter-spacing: 1px;">SEND</button>
           </div>
           <div id="aiChatCounter" class="ai-chat-counter" style="display: none;">5 questions remaining</div>
@@ -1777,7 +2020,7 @@ button, input, select, textarea,
           </div>
         </div>
 
-        <div id="drillControlsBar" class="drill-controls-bar" style="display: none; margin-bottom: 1rem; padding: 0.75rem 1rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 6px; overflow: hidden;">
+        <div id="drillControlsBar" class="drill-controls-bar" style="display: none; margin-bottom: 1rem; padding: 0.75rem 1rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden;">
           <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
             <div id="drillBreadcrumb" class="drill-breadcrumb" style="display: flex; margin: 0; flex-wrap: wrap; min-width: 0;">
               <div class="breadcrumb-item" data-action="resetDrill">
@@ -1787,34 +2030,24 @@ button, input, select, textarea,
           </div>
         </div>
 
-        <div id="sankeyPanel" class="sankey-panel" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin-bottom: 1rem; overflow: hidden;">
+        <div id="sankeyPanel" class="stat-panel sankey-panel">
           <div style="margin-bottom: 1rem;">
-            <div id="sankeySubtitle" style="font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 0.5rem;">Top 100 Active Contracts · Obligated Value</div>
-            <div style="display: flex; align-items: baseline; gap: 1.5rem; flex-wrap: wrap;">
-              <div id="stat-vol" style="font-family: 'JetBrains Mono', monospace; font-size: clamp(1.75rem, 5vw, 2.5rem); font-weight: 800; color: var(--text-primary); line-height: 1;">-</div>
-              <div id="searchStatsCompact" style="display: flex; gap: 1.25rem; align-items: baseline; flex-wrap: wrap; margin-left: 0.5rem; padding-left: 1.5rem; border-left: 1px solid var(--border);">
-                <div style="display: flex; align-items: baseline; gap: 0.35rem;">
-                  <span id="stat-agencies" style="font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700; color: var(--text-primary);">-</span>
-                  <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Agencies</span>
-                </div>
-                <div style="display: flex; align-items: baseline; gap: 0.35rem;">
-                  <span id="stat-count" style="font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700; color: var(--text-primary);">-</span>
-                  <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Contracts</span>
-                </div>
-                <div style="display: flex; align-items: baseline; gap: 0.35rem;">
-                  <span id="stat-vendors" style="font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700; color: var(--text-primary);">-</span>
-                  <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Vendors</span>
-                </div>
+            <div id="sankeySubtitle" class="stat-subtitle">Top 100 Active Contracts · Obligated Value</div>
+            <div class="stat-row">
+              <div id="stat-vol" class="stat-hero">-</div>
+              <div id="searchStatsCompact" class="stat-group">
+                <div class="stat-item"><span id="stat-agencies" class="stat-value">-</span><span class="stat-label">Agencies</span></div>
+                <div class="stat-item"><span id="stat-count" class="stat-value">-</span><span class="stat-label">Contracts</span></div>
+                <div class="stat-item"><span id="stat-vendors" class="stat-value">-</span><span class="stat-label">Vendors</span></div>
               </div>
             </div>
           </div>
-
           <div class="chart-wrapper" style="border: none; padding: 0; background: transparent; overflow-x: auto; overflow-y: visible;">
             <div id="chartContainer" class="chart-container"></div>
           </div>
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border); font-size: 0.65rem; color: var(--text-muted);">
-            <span id="marketHealth" style="font-family: 'JetBrains Mono', monospace;"></span>
-            <span style="font-family: 'JetBrains Mono', monospace;"><span style="color: var(--accent);">>_</span>Govhoo.com</span>
+          <div class="panel-footer">
+            <span id="marketHealth"></span>
+            <span style="display:inline-flex;align-items:baseline;"><span style="font-family:'Consolas','JetBrains Mono',monospace;color:var(--accent-light);font-weight:700;font-size:1.15em;">></span><span style="font-family:'Figtree',sans-serif;color:var(--accent-light);font-weight:700;margin-left:-2px;">_</span><span style="font-family:'Figtree',sans-serif;font-weight:600;">Govhoo.com</span></span>
           </div>
         </div>
 
@@ -1825,7 +2058,7 @@ button, input, select, textarea,
         <div id="bubbleChartPanel" style="display: none;">
           <div style="margin-bottom: 1rem;">
             <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
-              <div id="bubbleChartSubtitle" style="font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px;">Top Active Vendors & Agencies · Lifetime Funded Value</div>
+              <div id="bubbleChartSubtitle" class="stat-subtitle" style="margin-bottom:0;">Top Active Vendors & Agencies · Lifetime Funded Value</div>
               <div class="bubble-toggle-row" style="margin-bottom: 0;" id="bubbleToggleRow">
                 <button class="bubble-toggle-btn active" onclick="App.setBubbleMode('vendors')" id="bubbleToggleVendors">Vendors</button>
                 <button class="bubble-toggle-btn" onclick="App.setBubbleMode('agencies')" id="bubbleToggleAgencies">Agencies</button>
@@ -1835,40 +2068,31 @@ button, input, select, textarea,
                 <button class="bubble-toggle-btn" onclick="App.setBubbleChartType('treemap')" id="chartTypeTreemap">Treemap</button>
               </div>
             </div>
-            <div style="display: flex; align-items: baseline; gap: 1.5rem; flex-wrap: wrap;">
-              <div id="bubble-stat-vol" style="font-family: 'JetBrains Mono', monospace; font-size: clamp(1.75rem, 5vw, 2.5rem); font-weight: 800; color: var(--text-primary); line-height: 1;">-</div>
-              <div style="display: flex; gap: 1.25rem; align-items: baseline; flex-wrap: wrap; margin-left: 0.5rem; padding-left: 1.5rem; border-left: 1px solid var(--border);">
-                <div style="display: flex; align-items: baseline; gap: 0.35rem;">
-                  <span id="bubble-stat-agencies" style="font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700; color: var(--text-primary);">-</span>
-                  <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Agencies</span>
-                </div>
-                <div style="display: flex; align-items: baseline; gap: 0.35rem;">
-                  <span id="bubble-stat-count" style="font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700; color: var(--text-primary);">-</span>
-                  <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Contracts</span>
-                </div>
-                <div style="display: flex; align-items: baseline; gap: 0.35rem;">
-                  <span id="bubble-stat-vendors" style="font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700; color: var(--text-primary);">-</span>
-                  <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Vendors</span>
-                </div>
+            <div class="stat-row">
+              <div id="bubble-stat-vol" class="stat-hero">-</div>
+              <div class="stat-group">
+                <div class="stat-item"><span id="bubble-stat-agencies" class="stat-value">-</span><span class="stat-label">Agencies</span></div>
+                <div class="stat-item"><span id="bubble-stat-count" class="stat-value">-</span><span class="stat-label">Contracts</span></div>
+                <div class="stat-item"><span id="bubble-stat-vendors" class="stat-value">-</span><span class="stat-label">Vendors</span></div>
               </div>
             </div>
           </div>
 
-          <div id="bubbleBreadcrumb" style="display:none; margin-bottom: 0.75rem; padding: 0.5rem 0.75rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 6px; font-size: 0.7rem; overflow-x: auto;">
+          <div id="bubbleBreadcrumb" style="display:none; margin-bottom: 0.75rem; padding: 0.5rem 0.75rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: var(--radius-md); font-size: var(--text-sm); overflow-x: auto;">
             <div id="bubbleBreadcrumbInner" style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;"></div>
           </div>
           <div id="bubbleChartContainer">
             <div class="bubble-tooltip" id="bubbleTooltip"></div>
           </div>
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); font-size: 0.6rem; color: var(--text-muted);">
+          <div class="panel-footer">
             <span> Size = total award value · Click to drill down · Toggle Treemap for market share view</span>
-            <span style="font-family: 'JetBrains Mono', monospace;"><span style="color: var(--accent);">>_</span>Govhoo.com</span>
+            <span style="display:inline-flex;align-items:baseline;"><span style="font-family:'Consolas','JetBrains Mono',monospace;color:var(--accent-light);font-weight:700;font-size:1.15em;">></span><span style="font-family:'Figtree',sans-serif;color:var(--accent-light);font-weight:700;margin-left:-2px;">_</span><span style="font-family:'Figtree',sans-serif;font-weight:600;">Govhoo.com</span></span>
           </div>
         </div>
 
-        <div id="vehicleFilterBar" style="display: none; margin-bottom: 0.75rem; padding: 0.5rem 0.75rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;">
+        <div id="vehicleFilterBar" style="display: none; margin-bottom: 0.75rem; padding: 0.5rem 0.75rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md);">
           <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-            <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.5rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; flex-shrink: 0;">Vehicles</span>
+            <span class="stat-label" style="flex-shrink: 0;">Vehicles</span>
             <div id="vehiclePills" style="display: flex; gap: 0.35rem; flex-wrap: wrap;"></div>
           </div>
         </div>
@@ -1901,7 +2125,7 @@ button, input, select, textarea,
         </div>
         </div>
 
-        <div id="recompetesList" style="margin-bottom: 1.5rem;"></div>
+        <div id="recompetesList" style="margin-bottom: var(--section-gap);"></div>
 
         <div class="section-header">
           <div class="section-title-group">
@@ -1910,10 +2134,10 @@ button, input, select, textarea,
         </div>
         <div id="feedGrid" class="feed-grid"></div>
 
-        <div id="primeExplainerBox" style="background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(99,102,241,0.03)); border: 1px solid rgba(99,102,241,0.2); border-radius: 8px; padding: 1rem 1.25rem; margin-top: 0.75rem; margin-bottom: 1rem; display: none;">
+        <div id="primeExplainerBox" class="explainer-box">
           <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
-            <div style="flex: 1; font-size: 0.75rem; color: var(--text-muted); line-height: 1.6;">
-              <strong style="color: var(--text-primary); font-size: 0.8rem;">How to use this for pipeline planning</strong><br>
+            <div style="flex: 1; font-size: var(--text-sm); color: var(--text-muted); line-height: 1.6;">
+              <strong style="color: var(--text-primary); font-size: var(--text-sm);">How to use this for pipeline planning</strong><br>
               You're looking at live federal award data from USASpending.gov. Every contract shown had funding activity in the past 12 months. Dollar values are <strong style="color: var(--text-primary);">Total Obligations to Date</strong>; the government's cumulative commitment over the life of the contract.<br><br>
               <strong style="color: var(--text-primary);">What each panel tells you</strong><br>
               <strong style="color: var(--accent);">Sankey</strong> — where the money flows. Click any agency to drill into sub-agencies and see who controls the budget.
@@ -1931,24 +2155,15 @@ button, input, select, textarea,
         <div id="subawardWrapper" style="display: none;">      
           
           <div style="margin-top: 1.5rem;">
-            <div id="subcontractingPanel" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem; overflow: hidden;">
+            <div id="subcontractingPanel" class="stat-panel">
               <div id="subcontractingStats" style="margin-bottom: 1rem;">
-                <div id="subSankeySubtitle" style="font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 0.5rem;">Top 100 Subcontracts · Individual Transaction Value</div>
-                <div style="display: flex; align-items: baseline; gap: 1.5rem; flex-wrap: wrap;">
-                  <div id="sub-stat-vol" style="font-family: 'JetBrains Mono', monospace; font-size: clamp(1.75rem, 5vw, 2.5rem); font-weight: 800; color: var(--text-primary); line-height: 1;">-</div>
-                  <div style="display: flex; gap: 1.25rem; align-items: baseline; flex-wrap: wrap; margin-left: 0.5rem; padding-left: 1.5rem; border-left: 1px solid var(--border);">
-                    <div style="display: flex; align-items: baseline; gap: 0.35rem;">
-                      <span id="sub-stat-primes" style="font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700; color: var(--text-primary);">-</span>
-                      <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Primes</span>
-                    </div>
-                    <div style="display: flex; align-items: baseline; gap: 0.35rem;">
-                      <span id="sub-stat-subs" style="font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700; color: var(--text-primary);">-</span>
-                      <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Subs</span>
-                    </div>
-                    <div style="display: flex; align-items: baseline; gap: 0.35rem;">
-                      <span id="sub-stat-count" style="font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700; color: var(--text-primary);">-</span>
-                      <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Contracts</span>
-                    </div>
+                <div id="subSankeySubtitle" class="stat-subtitle">Top 100 Subcontracts · Individual Transaction Value</div>
+                <div class="stat-row">
+                  <div id="sub-stat-vol" class="stat-hero">-</div>
+                  <div class="stat-group">
+                    <div class="stat-item"><span id="sub-stat-primes" class="stat-value">-</span><span class="stat-label">Primes</span></div>
+                    <div class="stat-item"><span id="sub-stat-subs" class="stat-value">-</span><span class="stat-label">Subs</span></div>
+                    <div class="stat-item"><span id="sub-stat-count" class="stat-value">-</span><span class="stat-label">Contracts</span></div>
                   </div>
                 </div>
               </div>
@@ -1958,10 +2173,10 @@ button, input, select, textarea,
             </div>
           </div>
 
-          <div id="subBubblePanel" style="display: none; margin-top: 1rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; overflow: hidden;">
+          <div id="subBubblePanel" class="stat-panel" style="display: none; margin-top: var(--section-gap);">
             <div style="margin-bottom: 1rem;">
               <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
-                <div id="subBubbleSubtitle" style="font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px;">Top Primes & Subcontractors · Individual Transaction Value</div>
+                <div id="subBubbleSubtitle" class="stat-subtitle" style="margin-bottom:0;">Top Primes & Subcontractors · Individual Transaction Value</div>
                 <div class="bubble-toggle-row" style="margin-bottom: 0;">
                   <button class="bubble-toggle-btn active" onclick="App.setSubBubbleMode('primes')" id="subBubbleTogglePrimes">Primes</button>
                   <button class="bubble-toggle-btn" onclick="App.setSubBubbleMode('subs')" id="subBubbleToggleSubs">Subs</button>
@@ -1970,37 +2185,28 @@ button, input, select, textarea,
                   <button class="bubble-toggle-btn" onclick="App.setSubBubbleChartType('treemap')" id="subChartTypeTreemap">Treemap</button>
                 </div>
               </div>
-              <div style="display: flex; align-items: baseline; gap: 1.5rem; flex-wrap: wrap;">
-                <div id="sub-bubble-stat-vol" style="font-family: 'JetBrains Mono', monospace; font-size: clamp(1.75rem, 5vw, 2.5rem); font-weight: 800; color: var(--text-primary); line-height: 1;">-</div>
-                <div style="display: flex; gap: 1.25rem; align-items: baseline; flex-wrap: wrap; margin-left: 0.5rem; padding-left: 1.5rem; border-left: 1px solid var(--border);">
-                  <div style="display: flex; align-items: baseline; gap: 0.35rem;">
-                    <span id="sub-bubble-stat-primes" style="font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700; color: var(--text-primary);">-</span>
-                    <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Primes</span>
-                  </div>
-                  <div style="display: flex; align-items: baseline; gap: 0.35rem;">
-                    <span id="sub-bubble-stat-subs" style="font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700; color: var(--text-primary);">-</span>
-                    <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Subs</span>
-                  </div>
-                  <div style="display: flex; align-items: baseline; gap: 0.35rem;">
-                    <span id="sub-bubble-stat-records" style="font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700; color: var(--text-primary);">-</span>
-                    <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Contracts</span>
-                  </div>
+              <div class="stat-row">
+                <div id="sub-bubble-stat-vol" class="stat-hero">-</div>
+                <div class="stat-group">
+                  <div class="stat-item"><span id="sub-bubble-stat-primes" class="stat-value">-</span><span class="stat-label">Primes</span></div>
+                  <div class="stat-item"><span id="sub-bubble-stat-subs" class="stat-value">-</span><span class="stat-label">Subs</span></div>
+                  <div class="stat-item"><span id="sub-bubble-stat-records" class="stat-value">-</span><span class="stat-label">Contracts</span></div>
                 </div>
               </div>
             </div>
-            <div id="subBubbleBreadcrumb" style="display:none; margin-bottom: 0.75rem; padding: 0.5rem 0.75rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 6px; font-size: 0.7rem; overflow-x: auto;">
+            <div id="subBubbleBreadcrumb" style="display:none; margin-bottom: 0.75rem; padding: 0.5rem 0.75rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: var(--radius-md); font-size: var(--text-sm); overflow-x: auto;">
               <div id="subBubbleBreadcrumbInner" style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;"></div>
             </div>
             <div id="subBubbleContainer" style="width: 100%; min-height: 380px; position: relative;">
               <div class="bubble-tooltip" id="subBubbleTooltip"></div>
             </div>
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); font-size: 0.6rem; color: var(--text-muted);">
+            <div class="panel-footer">
               <span> Bubble size = subaward value · Click to drill</span>
-              <span style="font-family: 'JetBrains Mono', monospace;"><span style="color: var(--accent);">>_</span>Govhoo.com</span>
+              <span style="display:inline-flex;align-items:baseline;"><span style="font-family:'Consolas','JetBrains Mono',monospace;color:var(--accent-light);font-weight:700;font-size:1.15em;">></span><span style="font-family:'Figtree',sans-serif;color:var(--accent-light);font-weight:700;margin-left:-2px;">_</span><span style="font-family:'Figtree',sans-serif;font-weight:600;">Govhoo.com</span></span>
             </div>
           </div>
 
-          <div class="bento-row" style="margin-top: 0.75rem;">
+          <div class="bento-row" style="margin-top: var(--section-gap);">
           <div id="subPrimesPanel" class="data-panel" style="display: none;">
             <div class="data-panel-header">
               <span class="data-panel-title">Top Primes</span>
@@ -2018,10 +2224,10 @@ button, input, select, textarea,
           </div>
           </div>
 
-          <div id="subExplainerBox" style="background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(99,102,241,0.03)); border: 1px solid rgba(99,102,241,0.2); border-radius: 8px; padding: 1rem 1.25rem; margin-top: 0.75rem; display: none;">
+          <div id="subExplainerBox" class="explainer-box" style="display: none;">
             <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
-              <div style="flex: 1; font-size: 0.75rem; color: var(--text-muted); line-height: 1.6;">
-                <strong style="color: var(--text-primary); font-size: 0.8rem;">How to use this for teaming & partnering</strong><br>
+              <div style="flex: 1; font-size: var(--text-sm); color: var(--text-muted); line-height: 1.6;">
+                <strong style="color: var(--text-primary); font-size: var(--text-sm);">How to use this for teaming & partnering</strong><br>
                 This is subcontracting activity from the past 12 months. Dollar amounts are <strong style="color: var(--text-primary);">individual transaction values</strong>, not cumulative obligations. Use this view to understand who actually does the work, who the gatekeepers are, and where teaming relationships already exist.<br><br>
                 <strong style="color: var(--text-primary);">What each panel tells you</strong><br>
                 <strong style="color: var(--accent);">Sankey</strong> — how sub dollars flow from agencies through primes to subs. See which primes control the most workshare.
@@ -2037,7 +2243,7 @@ button, input, select, textarea,
             </div>
           </div>
 
-          <div id="subFeedWrapper" style="display: none; margin-top: 1rem;">
+          <div id="subFeedWrapper" style="display: none; margin-top: var(--section-gap);">
             <div class="section-header">
               <div class="section-title-group">
                 <span class="section-title">Recent Subcontracts</span>
@@ -2056,10 +2262,17 @@ button, input, select, textarea,
     <img src="images/arti.png" alt="Arti">
   </button>
   
+  <div id="toastContainer" class="toast-container"></div>
+
   <div id="loader" class="loader">
-    <div class="spinner"></div>
-    <p id="loaderText" style="margin-top:1rem; font-family:'JetBrains Mono'; color:var(--accent);">RETRIEVING DATA...</p>
-    <p id="loaderSubtext" style="color:var(--text-subtle); font-size:0.8rem; margin-top:0.5rem;"></p>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:1rem;max-width:320px;text-align:center;">
+      <div class="spinner"></div>
+      <p id="loaderText" style="font-family:'JetBrains Mono',monospace;color:var(--accent);font-size:var(--text-base);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin:0;">RETRIEVING DATA...</p>
+      <p id="loaderSubtext" style="color:var(--text-subtle);font-size:var(--text-sm);margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;"></p>
+      <div style="width:200px;height:3px;background:rgba(255,255,255,0.05);border-radius:var(--radius-sm);overflow:hidden;position:relative;">
+        <div style="position:absolute;top:0;left:-40%;width:40%;height:100%;background:var(--accent);border-radius:var(--radius-sm);animation:loaderSlide 1.2s ease-in-out infinite;"></div>
+      </div>
+    </div>
   </div>
 </body>
 <script>
@@ -2914,7 +3127,7 @@ async runAiActionPlan() {
       const copyBtn = document.getElementById('copyAiBtn');
 
       if (!App.searchData || !App.searchData.active || App.searchData.active.length === 0) {
-          alert("Please run a search first to gather account data.");
+          App.toast("Run a search first to load contract data.", "warning");
           return;
       }
 
@@ -2937,10 +3150,10 @@ async runAiActionPlan() {
               <div style="display: flex; align-items: center; gap: 1rem;">
                   <img src="images/arti.png" class="ai-avatar small" style="animation: artiPulse 1.5s infinite ease-in-out;" alt="Arti">
                   <div>
-                      <div id="aiLoaderText" style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--accent-light); font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+                      <div id="aiLoaderText" style="font-family: 'JetBrains Mono', monospace; font-size: var(--text-base); color: var(--accent-light); font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
                           INITIALIZING...
                       </div>
-                      <div id="aiLoaderSubtext" style="font-size: 0.7rem; color: var(--text-muted); margin-top: 4px;">
+                      <div id="aiLoaderSubtext" style="font-size: var(--text-sm); color: var(--text-muted); margin-top: 4px;">
                           Connecting to Govhoo AI engine
                       </div>
                   </div>
@@ -2952,7 +3165,7 @@ async runAiActionPlan() {
               </div>
               
               <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem;">
-                  <span id="aiLoaderTimer" style="font-size: 0.65rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">0.0s</span>
+                  <span id="aiLoaderTimer" style="font-size: var(--text-xs); color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">0.0s</span>
               </div>
           </div>`;
 
@@ -3025,7 +3238,7 @@ async runAiActionPlan() {
               const escapeHtml = (str) => str.replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
               // NEW: Ensure we don't accidentally escape the <mark> tags we just created
               const safeText = escapeHtml(strategicText).replace(/&lt;mark&gt;/g, '<mark>').replace(/&lt;\/mark&gt;/g, '</mark>');
-              renderedHtml = `<pre style="white-space: pre-wrap; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.5;">${safeText}</pre>`;
+              renderedHtml = `<pre style="white-space: pre-wrap; font-family: 'JetBrains Mono', monospace; font-size: var(--text-sm); line-height: 1.5;">${safeText}</pre>`;
           }
           
           // 6. Inject the response
@@ -3060,7 +3273,7 @@ async runAiActionPlan() {
           const safeMessage = (e.message || "Unknown error").replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;' }[m]));
 
           content.innerHTML = `
-              <div style="color: #ff6b6b; font-size: 13px; padding: 1rem 0;">
+              <div style="color: #ff6b6b; font-size: var(--text-base); padding: 1rem 0;">
                   Briefing failed: ${safeMessage}
               </div>
           `;
@@ -3095,7 +3308,7 @@ async sendAiChatMessage() {
       historyEl.insertAdjacentHTML('beforeend', `
           <div class="ai-msg-arti arti-thinking" id="${loaderId}">
               <img src="images/arti.png" class="ai-avatar small">
-              <div id="${loaderId}-text" style="padding-top: 8px; color: var(--text-muted); font-size: 0.75rem; font-style: italic;">
+              <div id="${loaderId}-text" style="padding-top: 8px; color: var(--text-muted); font-size: var(--text-sm); font-style: italic;">
                   Reviewing the data
               </div>
           </div>
@@ -3146,7 +3359,7 @@ async sendAiChatMessage() {
               const escapeHtml = (str) => str.replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;' }[m]));
               // NEW: Ensure we don't accidentally escape the <mark> tags
               const safeText = escapeHtml(processedResponse).replace(/&lt;mark&gt;/g, '<mark>').replace(/&lt;\/mark&gt;/g, '</mark>');
-              renderedHtml = `<pre style="white-space: pre-wrap; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.5;">${safeText}</pre>`;
+              renderedHtml = `<pre style="white-space: pre-wrap; font-family: 'JetBrains Mono', monospace; font-size: var(--text-sm); line-height: 1.5;">${safeText}</pre>`;
           }
 
           // 5. Replace loader with actual response and clean up animation
@@ -3193,7 +3406,7 @@ async sendAiChatMessage() {
           console.error("Chat Error:", e);
           clearInterval(progressTimer);
           loaderEl.classList.remove('arti-thinking');
-          loaderEl.innerHTML = `<div style="color: #ff6b6b; font-size: 13px; padding-top: 8px;">Error fetching response. Try again.</div>`;
+          loaderEl.innerHTML = `<div style="color: #ff6b6b; font-size: var(--text-base); padding-top: 8px;">Error fetching response. Try again.</div>`;
           inputEl.value = msg; 
           inputEl.disabled = false;
           sendBtn.disabled = false;
@@ -3226,7 +3439,7 @@ copyAiPlan() {
     })
     .catch(err => {
       console.error('Clipboard failed:', err);
-      alert('Copy failed.');
+      App.toast('Copy failed — try again.', 'error');
     });
 },
 resetAiPanel() {
@@ -3386,23 +3599,37 @@ setupClearButton('mainSearchInput', 'input-clear');
   document.getElementById('mainSearchInput').value = query;
   document.title = `Govhoo | ${query.toUpperCase()}`;
     if(query !== App.currentQuery) { App.searchData = { raw: [], active: [], filter: null, loaded: false }; App.forecastData = { loaded: false }; App.naicsData = null; App.resetDrill(); App.subawardDrillState = { level: 0, path: [], filter: null, filterType: null }; }
-    App.currentQuery = query; App.showLoader('SCANNING ' + query.toUpperCase(), 'Pulling live awards from USASpending.gov');
+    App.currentQuery = query;
+
+    // Progressive loading: show dashboard skeleton immediately, then fill with data
+    App.transitionToApp();
+    App.setMode('search');
+    App.showSkeleton();
+
     try {
-      // OPTIMIZED: Load D3 and fetch API data in parallel instead of sequentially
+      // Load D3 and fetch API data in parallel
       const [, searchResults] = await Promise.all([
         LibLoader.loadD3(),
         API.searchAwards(query)
       ]);
       App.searchData.raw = Utils.filterActiveContracts(searchResults); App.searchData.active = App.searchData.raw; App.searchData.loaded = true;
-      App.transitionToApp(); App.setMode('search'); App.updateSearchDashboard(); Utils.syncUrlState(); requestAnimationFrame(() => { App.renderVehiclePills(); App.renderPrimeReach(); });
-      // Background data enrichment — coordinated, rate-limited, with data-ready signal.
-      // Each call fires sequentially to respect API rate limits, but the orchestrator
-      // ensures renderStrategyTools only fires once ALL dependencies are ready.
+      App.hideSkeleton();
+
+      // Zero-results state
+      if (App.searchData.raw.length === 0) {
+        App.showZeroResults(query);
+        Utils.syncUrlState();
+        return;
+      }
+
+      App.updateSearchDashboard(); Utils.syncUrlState(); requestAnimationFrame(() => { App.renderVehiclePills(); App.renderPrimeReach(); });
+      // Background data enrichment
       this.loadBackgroundData(query);
     } catch(e) { 
-      console.error(e); 
-      alert('Error retrieving data.');
-    } finally { App.hideLoader(); }
+      console.error(e);
+      App.hideSkeleton();
+      App.toast('Error retrieving data. Check your connection and try again.', 'error', 5000);
+    }
   },
 
   async loadBackgroundData(query) {
@@ -3641,16 +3868,16 @@ setupClearButton('mainSearchInput', 'input-clear');
     container.innerHTML = top.map(v => {
       const isActive = active === v.pid;
       return `<button onclick="App.filterByVehicle('${v.pid.replace(/'/g, "\\'")}', '${v.label.replace(/'/g, "\\'")}')"
-        style="padding: 0.2rem 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.6rem;
+        style="padding: 0.2rem 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs);
         background: ${isActive ? 'var(--accent)' : 'rgba(255,255,255,0.07)'}; 
         color: ${isActive ? '#000' : 'var(--text-muted)'};
-        border: 1px solid ${isActive ? 'var(--accent)' : 'var(--border)'}; border-radius: 4px; 
+        border: 1px solid ${isActive ? 'var(--accent)' : 'var(--border)'}; border-radius: var(--radius-sm); 
         cursor: pointer; transition: all 0.15s; white-space: nowrap;"
         title="${v.pid} · ${v.count} orders · ${Utils.money(v.amount)}">${v.label} <span style="opacity:0.6">${v.count}</span></button>`;
     }).join('') + (active ? `<button onclick="App.clearVehicleFilter()" 
-      style="padding: 0.2rem 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.6rem;
+      style="padding: 0.2rem 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs);
       background: rgba(239,83,80,0.15); color: var(--danger); border: 1px solid rgba(239,83,80,0.3); 
-      border-radius: 4px; cursor: pointer;">Clear</button>` : '');
+      border-radius: var(--radius-sm); cursor: pointer;">Clear</button>` : '');
   },
 
   // === PRIME REACH ===
@@ -3849,8 +4076,26 @@ drillToSubAgency(name) {
   clearFilter() { App.drillState.level > 0 ? App.resetDrill() : (App.searchData.filter = null, App.searchData.active = App.searchData.raw, App.activeFeedSource = 'prime', App.updateSearchDashboard()); },
 
 renderSankey() {
-  const container = document.getElementById('chartContainer'); 
-  container.innerHTML = '';
+  const container = document.getElementById('chartContainer');
+
+  // Crossfade: if container has existing content, fade out first then rebuild
+  if (container.children.length > 0) {
+    container.classList.add('sankey-fade-out');
+    container.classList.remove('sankey-fade-in');
+    setTimeout(() => {
+      container.innerHTML = '';
+      container.classList.remove('sankey-fade-out');
+      App._renderSankeyInner(container);
+      container.classList.add('sankey-fade-in');
+    }, 150);
+  } else {
+    container.innerHTML = '';
+    App._renderSankeyInner(container);
+    container.classList.add('sankey-fade-in');
+  }
+},
+
+_renderSankeyInner(container) {
   
   const data = App.searchData.active; 
   if(!data || data.length === 0) { 
@@ -4120,15 +4365,15 @@ const linkedInUrl = JobLinks.getLinkedInUrl(vendorNameRaw);
 const linkedInPeopleUrl = JobLinks.getLinkedInPeopleUrl(vendorNameRaw);
 const linkedInNewsUrl = JobLinks.getLinkedInNewsUrl(vendorNameRaw);
 return `<div class="deal-card">
-    <div class="deal-header"><span class="deal-agency">${agencyDisplaySafe}</span><span class="deal-amount">${Utils.money(c['Award Amount'])}<span style="font-size:0.55rem;opacity:0.5;margin-left:0.25rem;">obligated</span></span></div>
+    <div class="deal-header"><span class="deal-agency">${agencyDisplaySafe}</span><span class="deal-amount">${Utils.money(c['Award Amount'])}<span style="font-size:var(--text-xs);opacity:0.5;margin-left:0.25rem;">obligated</span></span></div>
     <div class="deal-desc">${desc}</div>
     <div class="deal-vendor">${vendorName} <a href="${linkedInPeopleUrl}" target="_blank" class="job-link" style="margin-left:6px;" title="Find contacts at this company"> People</a> <a href="${linkedInUrl}" target="_blank" class="job-link" title="Search jobs at this company"> Jobs</a> <a href="${linkedInNewsUrl}" target="_blank" class="job-link" title="LinkedIn posts about this company"> News</a></div>
     ${metaTags ? `<div class="deal-meta">${metaTags}</div>` : ''}
-    <div class="deal-footer"><span class="deal-date">Start: ${Utils.date(c['Start Date'])}${c['End Date'] ? ' → ' + Utils.date(c['End Date']) : ''}${c['Last Modified Date'] ? ` <span style="opacity:0.5;font-size:0.6rem;" title="Last government action on this contract">· mod ${Utils.date(c['Last Modified Date'])}</span>` : ''}</span><div style="display:flex;gap:0.5rem;align-items:center;"><a href="${url}" target="_blank" class="action-btn">VIEW </a></div></div>
+    <div class="deal-footer"><span class="deal-date">Start: ${Utils.date(c['Start Date'])}${c['End Date'] ? ' → ' + Utils.date(c['End Date']) : ''}${c['Last Modified Date'] ? ` <span style="opacity:0.5;font-size:var(--text-xs);" title="Last government action on this contract">· mod ${Utils.date(c['Last Modified Date'])}</span>` : ''}</span><div style="display:flex;gap:0.5rem;align-items:center;"><a href="${url}" target="_blank" class="action-btn">VIEW </a></div></div>
   </div>`;
 }).join('');
 
-    const showMoreBtn = hasMore ? `<button onclick="App.renderFeed(true)" style="width: 100%; padding: 0.875rem; background: var(--bg-card); border: 1px dashed var(--border); border-radius: 4px; color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px;" onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--accent-dim)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg-card)'">Show All ${data.length} Contracts</button>` : '';
+    const showMoreBtn = hasMore ? `<button onclick="App.renderFeed(true)" style="width: 100%; padding: 0.875rem; background: var(--bg-card); border: 1px dashed var(--border); border-radius: var(--radius-sm); color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: var(--text-sm); cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px;" onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--accent-dim)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg-card)'">Show All ${data.length} Contracts</button>` : '';
 
     div.innerHTML = cards + showMoreBtn;
     Utils.animateCards(div);
@@ -4197,10 +4442,10 @@ return `<div class="deal-card">
           <span class="deal-agency" style="color: var(--accent);">SUBCONTRACT</span>
           <span class="deal-amount">${Utils.money(amount)}</span>
         </div>
-        <div class="deal-desc" style="font-size: 0.8rem;">
+        <div class="deal-desc" style="font-size: var(--text-sm);">
           <strong>${primeShort}</strong>  <strong>${subShort}</strong>
         </div>
-        <div class="deal-vendor" style="font-size: 0.75rem; color: var(--text-muted);">
+        <div class="deal-vendor" style="font-size: var(--text-sm); color: var(--text-muted);">
           ${agency ? `Agency: ${Autocomplete.escapeHtml(Utils.trunc(agency, 30))}` : ''}
         </div>
         <div class="deal-footer">
@@ -4208,13 +4453,13 @@ return `<div class="deal-card">
           <div style="display: flex; gap: 0.5rem; align-items: center;">
             <a href="${linkedInPrimeUrl}" target="_blank" class="job-link" title="Find contacts at prime"> Prime</a>
             <a href="${linkedInSubUrl}" target="_blank" class="job-link" title="Find contacts at sub"> Sub</a>
-            ${usaSpendingUrl ? `<a href="${usaSpendingUrl}" target="_blank" class="action-btn" style="font-size: 0.65rem; padding: 0.25rem 0.5rem;">VIEW </a>` : ''}
+            ${usaSpendingUrl ? `<a href="${usaSpendingUrl}" target="_blank" class="action-btn" style="font-size: var(--text-xs); padding: 0.25rem 0.5rem;">VIEW </a>` : ''}
           </div>
         </div>
       </div>`;
     }).join('');
 
-    const showMoreBtn = hasMore ? `<button onclick="App.renderSubawardFeed(null, true)" style="width: 100%; padding: 0.875rem; background: var(--bg-card); border: 1px dashed var(--border); border-radius: 4px; color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px;" onmouseover="this.style.borderColor='var(--accent)';this.style.background='rgba(229,192,123,0.08)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg-card)'">Show All ${Math.min(subawards.length, 50)} Subcontracts</button>` : '';
+    const showMoreBtn = hasMore ? `<button onclick="App.renderSubawardFeed(null, true)" style="width: 100%; padding: 0.875rem; background: var(--bg-card); border: 1px dashed var(--border); border-radius: var(--radius-sm); color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: var(--text-sm); cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px;" onmouseover="this.style.borderColor='var(--accent)';this.style.background='rgba(229,192,123,0.08)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg-card)'">Show All ${Math.min(subawards.length, 50)} Subcontracts</button>` : '';
 
     div.innerHTML = cards + showMoreBtn;
     Utils.animateCards(div);
@@ -4492,10 +4737,10 @@ renderSearchTopBuyers(data) {
         return `<div class="reach-row" onclick="${searchAction}">
           <div style="min-width: 0; flex: 1;">
             <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700; color: #F2E8CF; flex-shrink: 0; min-width: 52px;">${s.code}</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: var(--text-base); font-weight: 700; color: #F2E8CF; flex-shrink: 0; min-width: 52px;">${s.code}</span>
               <div style="flex: 1; min-width: 0;">
-                <div style="height: 6px; background: rgba(255,255,255,0.07); border-radius: 3px; overflow: hidden;">
-                  <div style="height: 100%; width: ${(s.amount / maxAmt) * 100}%; background: var(--accent); border-radius: 3px; opacity: 0.85;"></div>
+                <div style="height: 6px; background: rgba(255,255,255,0.07); border-radius: var(--radius-sm); overflow: hidden;">
+                  <div style="height: 100%; width: ${(s.amount / maxAmt) * 100}%; background: var(--accent); border-radius: var(--radius-sm); opacity: 0.85;"></div>
                 </div>
               </div>
             </div>
@@ -4527,9 +4772,9 @@ renderSearchTopBuyers(data) {
     // Timeout wrapper — show fallback if API takes longer than 15 seconds
     const timeout = setTimeout(() => {
       if (body.querySelector('.fa-spinner')) {
-        body.innerHTML = `<div style="text-align:center; padding:1rem; color:var(--text-muted); font-size:0.85rem;">
+        body.innerHTML = `<div style="text-align:center; padding:1rem; color:var(--text-muted); font-size:var(--text-base);">
            Subaward data is taking too long to load.
-          <br><a href="#" onclick="App.loadSubcontractingData('${query.replace(/'/g, "\\'")}'); return false;" style="color:var(--accent); text-decoration:underline; font-size:0.8rem;">Retry</a>
+          <br><a href="#" onclick="App.loadSubcontractingData('${query.replace(/'/g, "\\'")}'); return false;" style="color:var(--accent); text-decoration:underline; font-size:var(--text-sm);">Retry</a>
         </div>`;
       }
     }, 15000);
@@ -4555,9 +4800,9 @@ renderSearchTopBuyers(data) {
     } catch (e) {
       clearTimeout(timeout);
       console.error(e);
-      body.innerHTML = `<div style="text-align:center; padding:1rem; color:var(--text-muted); font-size:0.85rem;">
+      body.innerHTML = `<div style="text-align:center; padding:1rem; color:var(--text-muted); font-size:var(--text-base);">
          Unable to load subaward data.
-        <br><a href="#" onclick="App.loadSubcontractingData('${query.replace(/'/g, "\\'")}'); return false;" style="color:var(--accent); text-decoration:underline; font-size:0.8rem;">Retry</a>
+        <br><a href="#" onclick="App.loadSubcontractingData('${query.replace(/'/g, "\\'")}'); return false;" style="color:var(--accent); text-decoration:underline; font-size:var(--text-sm);">Retry</a>
       </div>`;
     }
   },
@@ -4729,7 +4974,7 @@ renderSearchTopBuyers(data) {
           crumbs += `<div class="breadcrumb-item active">
             
             <span>${Utils.trunc(step.name, 30)}</span>
-            <span style="font-size:0.65rem; color:var(--text-muted); margin-left:6px;">(${typeLabels[step.type] || step.type})</span>
+            <span style="font-size:var(--text-xs); color:var(--text-muted); margin-left:6px;">(${typeLabels[step.type] || step.type})</span>
           </div>`;
         } else {
           crumbs += `<div class="breadcrumb-item" onclick="App.drillSubawardToLevel(${idx})" style="cursor:pointer;">
@@ -5071,10 +5316,10 @@ renderRecompetes(recompetes, showAll = false) {
         ${risk.reasons.length > 0 && risk.level !== 'low' ? `<div class="mission-gap-signals">Signals: ${esc(risk.reasons.join(', '))}</div>` : ''}
         <div class="deal-footer">
           <div>
-            <div style="font-size:0.8rem; color:${urgency === 'urgent' ? 'var(--danger)' : urgency === 'soon' ? '#FDD835' : 'var(--text-muted)'}">
+            <div style="font-size:var(--text-sm); color:${urgency === 'urgent' ? 'var(--danger)' : urgency === 'soon' ? '#FDD835' : 'var(--text-muted)'}">
               Expires: ${Utils.date(r['End Date'])} (${daysUntil} days)
             </div>
-            <div style="font-size:0.75rem; color:var(--text-subtle)">Incumbent: ${esc(Utils.trunc(r['Recipient Name'], 35))}</div>
+            <div style="font-size:var(--text-sm); color:var(--text-subtle)">Incumbent: ${esc(Utils.trunc(r['Recipient Name'], 35))}</div>
           </div>
           <div style="display:flex;gap:0.5rem;align-items:center;">
             ${awardUrl ? `<a href="${awardUrl}" target="_blank" class="action-btn">VIEW</a>` : ''}
@@ -5086,7 +5331,7 @@ renderRecompetes(recompetes, showAll = false) {
     // 8. Add the "Show All" button if there are more items
     if (hasMore) {
       html += `
-        <button onclick="App.renderRecompetes(App.forecastData.analysis.recompetes, true)" style="width: 100%; padding: 0.875rem; background: var(--bg-card); border: 1px dashed var(--border); border-radius: 4px; color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px;" onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--accent-dim)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg-card)'">
+        <button onclick="App.renderRecompetes(App.forecastData.analysis.recompetes, true)" style="width: 100%; padding: 0.875rem; background: var(--bg-card); border: 1px dashed var(--border); border-radius: var(--radius-sm); color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: var(--text-sm); cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px;" onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--accent-dim)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg-card)'">
           Show All ${filtered.length} Expiring Contracts
         </button>`;
     }
@@ -5183,12 +5428,104 @@ renderRecompetes(recompetes, showAll = false) {
     }
   },
   
+  showSkeleton() {
+    // Scroll to top so user sees the dashboard loading
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Reset stat values to loading placeholders
+    ['stat-vol', 'stat-agencies', 'stat-count', 'stat-vendors',
+     'bubble-stat-vol', 'bubble-stat-agencies', 'bubble-stat-count', 'bubble-stat-vendors',
+     'sub-stat-vol', 'sub-stat-primes', 'sub-stat-subs', 'sub-stat-count'
+    ].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = '—'; });
+
+    // Add skeleton class to panels for shimmer effect
+    document.querySelectorAll('.stat-panel, #bubbleChartPanel').forEach(el => el.classList.add('skeleton-loading'));
+
+    // Pulse the mini search bar
+    const mini = document.getElementById('miniSearch');
+    if (mini) mini.classList.add('is-loading');
+
+    // Clear previous chart/feed content
+    const chart = document.getElementById('chartContainer');
+    if (chart) chart.innerHTML = '';
+    const feed = document.getElementById('feedGrid');
+    if (feed) feed.innerHTML = '';
+  },
+
+  hideSkeleton() {
+    document.querySelectorAll('.skeleton-loading').forEach(el => el.classList.remove('skeleton-loading'));
+    const mini = document.getElementById('miniSearch');
+    if (mini) mini.classList.remove('is-loading');
+  },
+
+  showZeroResults(query) {
+    const container = document.getElementById('chartContainer');
+    const sankeyPanel = document.getElementById('sankeyPanel');
+    const bubblePanel = document.getElementById('bubbleChartPanel');
+    if (bubblePanel) bubblePanel.style.display = 'none';
+
+    // Reset stats to zero
+    ['stat-vol', 'stat-agencies', 'stat-count', 'stat-vendors'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.innerText = '0';
+    });
+
+    if (container) {
+      container.innerHTML = `
+        <div style="text-align:center; padding:3rem 1.5rem;">
+          <div style="font-size:var(--text-hero); margin-bottom:1rem; opacity:0.3;">∅</div>
+          <div style="font-family:'Figtree',sans-serif; font-size:var(--text-lg); font-weight:600; color:var(--text-primary); margin-bottom:0.5rem;">
+            No active contracts found for "${Utils.trunc(query, 30)}"
+          </div>
+          <div style="font-size:var(--text-base); color:var(--text-muted); max-width:360px; margin:0 auto 1.5rem; line-height:1.6;">
+            USASpending may not have awards matching this term in the past 12 months. Try adjusting your search.
+          </div>
+          <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:0.5rem; font-size:var(--text-sm); color:var(--text-subtle);">
+            <span style="color:var(--text-muted);">Try:</span>
+            <span>Broader keywords</span> · 
+            <span>Company name instead of acronym</span> · 
+            <span>NAICS code (e.g. 541512)</span>
+          </div>
+        </div>`;
+    }
+
+    // Clear feed
+    const feed = document.getElementById('feedGrid');
+    if (feed) feed.innerHTML = '';
+
+    // Hide explainer boxes
+    const pe = document.getElementById('primeExplainerBox');
+    if (pe) pe.style.display = 'none';
+  },
+
+  // Keep legacy loader for any edge cases (Arti, etc.)
   showLoader(text, subtext) { document.getElementById('loaderText').innerText = text; document.getElementById('loaderSubtext').innerText = subtext || ''; document.getElementById('loader').style.display = 'flex'; },
   hideLoader() { document.getElementById('loader').style.display = 'none'; },
+
+  // Toast notification system — replaces alert()
+  toast(msg, type = 'info', duration = 3500) {
+    const container = document.getElementById('toastContainer');
+    const icons = { error: 'fas fa-exclamation-circle', success: 'fas fa-check-circle', warning: 'fas fa-exclamation-triangle', info: 'fas fa-info-circle' };
+    const el = document.createElement('div');
+    el.className = `toast toast-${type}`;
+    el.innerHTML = `<i class="toast-icon ${icons[type] || icons.info}"></i><span class="toast-msg">${msg}</span>`;
+    container.appendChild(el);
+    setTimeout(() => {
+      el.classList.add('toast-out');
+      el.addEventListener('animationend', () => el.remove());
+    }, duration);
+  },
   transitionToApp() {
-    const hero = document.getElementById('heroView'); 
+    const hero = document.getElementById('heroView');
+    const appView = document.getElementById('appView');
+
+    // Already in app view? Just update the search bar.
+    if (appView.style.display === 'block') {
+      document.getElementById('miniSearch').value = App.currentQuery;
+      return;
+    }
+
     hero.classList.add('slide-up');
-    document.getElementById('appView').style.display = 'block'; 
+    appView.style.display = 'block'; 
     document.getElementById('miniSearch').value = App.currentQuery;
     document.getElementById('dashboardContainer').classList.add('active'); 
     const dashContainer = document.getElementById('dashboardContainer');
@@ -5196,7 +5533,6 @@ renderRecompetes(recompetes, showAll = false) {
       const heroFooter = hero.querySelector('.hero-footer');
       if (heroFooter) {
         const footerClone = heroFooter.cloneNode(true);
-        // Remove the ID to prevent duplicates (if you add IDs later)
         footerClone.removeAttribute('id'); 
         dashContainer.appendChild(footerClone);
       }
@@ -5523,9 +5859,9 @@ App.renderBubbleChart = function() {
         metaText = `${entity.count} awards · ${entity.agencyCount} agencies · ${share}%`;
       }
       let drillHint = '';
-      if (effective === 'agencies') drillHint = `<div style="color:var(--accent);font-size:0.65rem;margin-top:4px;">${isTouchDevice ? 'Tap again' : 'Click'} to drill into sub-agencies →</div>`;
-      else if (effective === 'subagencies') drillHint = `<div style="color:var(--accent);font-size:0.65rem;margin-top:4px;">${isTouchDevice ? 'Tap again' : 'Click'} to drill into vendors →</div>`;
-      else if (effective === 'vendors' && drill.level < 3) drillHint = `<div style="color:var(--accent);font-size:0.65rem;margin-top:4px;">${isTouchDevice ? 'Tap again' : 'Click'} to focus on this vendor →</div>`;
+      if (effective === 'agencies') drillHint = `<div style="color:var(--accent);font-size:var(--text-xs);margin-top:4px;">${isTouchDevice ? 'Tap again' : 'Click'} to drill into sub-agencies →</div>`;
+      else if (effective === 'subagencies') drillHint = `<div style="color:var(--accent);font-size:var(--text-xs);margin-top:4px;">${isTouchDevice ? 'Tap again' : 'Click'} to drill into vendors →</div>`;
+      else if (effective === 'vendors' && drill.level < 3) drillHint = `<div style="color:var(--accent);font-size:var(--text-xs);margin-top:4px;">${isTouchDevice ? 'Tap again' : 'Click'} to focus on this vendor →</div>`;
       return `
         <div class="bubble-tooltip-name">${entity.name}</div>
         <div class="bubble-tooltip-amount">${Utils.money(entity.spend)}</div>
@@ -6020,7 +6356,7 @@ App.renderSubBubbleChart = function() {
         <div class="bubble-tooltip-name">${e.name}</div>
         <div class="bubble-tooltip-amount">${Utils.money(e.spend)}</div>
         <div class="bubble-tooltip-meta">${e.count} subawards · ${e.partnerCount} ${partnerLabel} · ${share}%</div>
-        <div style="color:var(--accent);font-size:0.65rem;margin-top:4px;">${isTouchDevice ? 'Tap again' : 'Click'} to drill →</div>
+        <div style="color:var(--accent);font-size:var(--text-xs);margin-top:4px;">${isTouchDevice ? 'Tap again' : 'Click'} to drill →</div>
       `;
     }
 
@@ -6321,6 +6657,26 @@ App.togglePresentationMode = function() {
 };
 
 App.init();
+
+// Keyboard shortcut: / to focus search (standard in data tools)
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+  if (e.key === '/') {
+    e.preventDefault();
+    const mini = document.getElementById('miniSearch');
+    const main = document.getElementById('mainSearchInput');
+    if (mini && mini.offsetParent !== null) { mini.focus(); mini.select(); }
+    else if (main) { main.focus(); main.select(); }
+  }
+
+  if (e.key === 'Escape') {
+    if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
+      document.activeElement.blur();
+    }
+  }
+});
 </script>
 </body>
 </html>
