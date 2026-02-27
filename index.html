@@ -1929,7 +1929,7 @@ button, input, select, textarea,
           </div>
         </div>
 
-         <div class="footer-section">
+        <div class="footer-section">
           <div class="footer-label mono text-xs accent upper">Built by a Sales Guy</div>
           <p class="footer-text">
             <img src="https://govhoo.com/images/oldmark.jpg" alt="Mark Flournoy" class="tip-bio-img">
@@ -2100,7 +2100,7 @@ button, input, select, textarea,
         <div id="naicsPanel" class="data-panel" style="display: none;">
           <div class="data-panel-header">
             <span class="data-panel-title">NAICS Breakdown</span>
-            <span class="data-panel-subtitle">click any row to search</span>
+            <span class="data-panel-subtitle">click to explore all agencies buying this NAICS</span>
           </div>
           <div class="data-panel-body" id="naicsMixBody"></div>
         </div>
@@ -3603,7 +3603,7 @@ setupClearButton('mainSearchInput', 'input-clear');
   document.getElementById('mainSearchInput').value = query;
   document.getElementById('miniSearch').value = query;
   document.title = `Govhoo | ${query.toUpperCase()}`;
-    if(query !== App.currentQuery) { App.searchData = { raw: [], active: [], filter: null, loaded: false }; App.forecastData = { loaded: false }; App.naicsData = null; App.resetDrill(); App.subawardDrillState = { level: 0, path: [], filter: null, filterType: null }; App.activeNaicsFilter = null; }
+    if(query !== App.currentQuery) { App.searchData = { raw: [], active: [], filter: null, loaded: false }; App.forecastData = { loaded: false }; App.naicsData = null; App.resetDrill(); App.subawardDrillState = { level: 0, path: [], filter: null, filterType: null }; }
     App.currentQuery = query;
     App.originalQuery = rawQuery;
 
@@ -3790,7 +3790,6 @@ setupClearButton('mainSearchInput', 'input-clear');
     App.nativeSubAgencyData = null;
     App.activeFeedSource = 'prime';
     App.activeVehicleFilter = null;
-    App.activeNaicsFilter = null;
     App.bubbleMode = 'auto';
     Utils.syncUrlState();
     App.updateSearchDashboard(); 
@@ -3801,49 +3800,6 @@ setupClearButton('mainSearchInput', 'input-clear');
 
   // === NAICS FILTER ===
   // Client-side filter: instantly narrow current results to a specific NAICS code
-  activeNaicsFilter: null,
-
-  filterByNaics(code, name) {
-    if (App.activeNaicsFilter === code) {
-      // Toggle off — clear filter, restore full dataset
-      App.activeNaicsFilter = null;
-      App.searchData.active = App.searchData.filter 
-        ? App.searchData.raw.filter(d => d['Awarding Agency'] === App.searchData.filter || d['Awarding Sub Agency'] === App.searchData.filter)
-        : App.searchData.raw;
-    } else {
-      // Apply NAICS filter on top of current drill state
-      const base = App.searchData.filter 
-        ? App.searchData.raw.filter(d => d['Awarding Agency'] === App.searchData.filter || d['Awarding Sub Agency'] === App.searchData.filter)
-        : App.searchData.raw;
-      // Check both display name and API snake_case field names
-      const filtered = base.filter(d => {
-        const naics = d['NAICS Code'] || d['naics_code'] || '';
-        return naics.toString().startsWith(code);
-      });
-      if (filtered.length === 0) {
-        // The NAICS breakdown uses a separate aggregation endpoint that covers all awards,
-        // not just the top 100 returned by the search. Show a helpful message.
-        App.toast(`NAICS ${code} appears in the agency-wide breakdown but isn't in the top 100 awards for this search. Try searching the NAICS code directly.`, 'warning', 5000);
-        return;
-      }
-      App.activeNaicsFilter = code;
-      App.searchData.active = filtered;
-    }
-    App.activeFeedSource = 'prime';
-    App.updateSearchDashboard();
-    // Update subtitle to show NAICS filter
-    const subEl = document.getElementById('sankeySubtitle');
-    if (subEl && App.currentQuery) {
-      const naicsLabel = App.activeNaicsFilter ? ` · NAICS ${App.activeNaicsFilter}` : '';
-      subEl.textContent = '"' + App.currentQuery.toUpperCase() + '"' + naicsLabel + ' · TOP 100 ACTIVE CONTRACTS · LIFETIME FUNDED VALUE';
-    }
-    // Highlight active NAICS row
-    document.querySelectorAll('#naicsMixBody .reach-row').forEach(row => {
-      const onclick = row.getAttribute('onclick') || '';
-      row.style.outline = onclick.includes(`'${App.activeNaicsFilter}'`) ? '1px solid var(--accent-light)' : '';
-      row.style.outlineOffset = onclick.includes(`'${App.activeNaicsFilter}'`) ? '-1px' : '';
-    });
-  },
 
   viewFootprint(vendorName) {
     const clean = JobLinks.cleanVendorName(vendorName);
@@ -4768,17 +4724,12 @@ renderSearchTopBuyers(data) {
 
     panel.style.display = 'block';
     const maxAmt = sorted[0].amount || 1;
-    const q = App.currentQuery || '';
     const esc = (s) => s.replace(/'/g, "\\'");
 
     body.innerHTML = `<div style="display: flex; flex-direction: column; gap: 0.15rem;">
       ${sorted.map(s => {
         const pct = totalAmt > 0 ? ((s.amount / totalAmt) * 100).toFixed(0) : 0;
-        const searchAction = q && !/^\d{6}$/.test(q.trim())
-          ? `App.runSearch('${esc(q)} AND ${s.code}')`
-          : `App.runSearch('${s.code}')`;
-
-        return `<div class="reach-row" onclick="${searchAction}">
+        return `<div class="reach-row" onclick="App.runSearch('${s.code}')">
           <div style="min-width: 0; flex: 1;">
             <div style="display: flex; align-items: center; gap: 0.5rem;">
               <span style="font-family: 'JetBrains Mono', monospace; font-size: var(--text-base); font-weight: 700; color: #F2E8CF; flex-shrink: 0; min-width: 52px;">${s.code}</span>
