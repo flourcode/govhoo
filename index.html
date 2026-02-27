@@ -3106,6 +3106,7 @@ getLinkedInNewsUrl(searchTerm) {
 const App = {
   mode: 'search', // Always 'search' — retained for URL sharing compatibility
   currentQuery: '',
+  originalQuery: '',
   searchData: { raw: [], active: [], filter: null, loaded: false },
   forecastData: { analysis: null, subawards: null, loaded: false },
   naicsData: null,
@@ -3596,51 +3597,35 @@ setupClearButton('mainSearchInput', 'input-clear');
 
   async runSearch(val) {
     let query = val || document.getElementById('mainSearchInput').value; if(!query) return;
+    const rawQuery = query.toUpperCase();
     
-	query = Utils.normalizeQuery(query.toUpperCase());
+	query = Utils.normalizeQuery(rawQuery);
   document.getElementById('mainSearchInput').value = query;
   document.getElementById('miniSearch').value = query;
   document.title = `Govhoo | ${query.toUpperCase()}`;
-    if(query !== App.currentQuery) { App.searchData = { raw: [], active: [], filter: null, loaded: false }; App.forecastData = { loaded: false }; App.naicsData = null; App.resetDrill(); App.subawardDrillState = { level: 0, path: [], filter: null, filterType: null }; }
+    if(query !== App.currentQuery) { App.searchData = { raw: [], active: [], filter: null, loaded: false }; App.forecastData = { loaded: false }; App.naicsData = null; App.resetDrill(); App.subawardDrillState = { level: 0, path: [], filter: null, filterType: null }; App.activeNaicsFilter = null; }
     App.currentQuery = query;
+    App.originalQuery = rawQuery;
 
-    // Abort any in-flight search — only the latest search wins
     const thisSearch = ++App._searchId;
-
-    // Progressive loading: show dashboard skeleton immediately, then fill with data
-    App.transitionToApp();
-    App.setMode('search');
-    App.showSkeleton();
+    App.showLoader('SCANNING ' + query.toUpperCase(), 'Pulling live awards from USASpending.gov');
 
     try {
-      // Load D3 and fetch API data in parallel
       const [, searchResults] = await Promise.all([
         LibLoader.loadD3(),
         API.searchAwards(query)
       ]);
 
-      // If a newer search was started while we were waiting, discard these results
       if (thisSearch !== App._searchId) return;
 
       App.searchData.raw = Utils.filterActiveContracts(searchResults); App.searchData.active = App.searchData.raw; App.searchData.loaded = true;
-      App.hideSkeleton();
-
-      // Zero-results state
-      if (App.searchData.raw.length === 0) {
-        App.showZeroResults(query);
-        Utils.syncUrlState();
-        return;
-      }
-
-      App.updateSearchDashboard(); Utils.syncUrlState(); requestAnimationFrame(() => { App.renderVehiclePills(); App.renderPrimeReach(); });
-      // Background data enrichment
+      App.transitionToApp(); App.setMode('search'); App.updateSearchDashboard(); Utils.syncUrlState(); requestAnimationFrame(() => { App.renderVehiclePills(); App.renderPrimeReach(); });
       this.loadBackgroundData(query);
     } catch(e) { 
-      if (thisSearch !== App._searchId) return; // Stale search, ignore
+      if (thisSearch !== App._searchId) return;
       console.error(e);
-      App.hideSkeleton();
       App.toast('Error retrieving data. Check your connection and try again.', 'error', 5000);
-    }
+    } finally { App.hideLoader(); }
   },
 
   async loadBackgroundData(query) {
@@ -3805,6 +3790,7 @@ setupClearButton('mainSearchInput', 'input-clear');
     App.nativeSubAgencyData = null;
     App.activeFeedSource = 'prime';
     App.activeVehicleFilter = null;
+    App.activeNaicsFilter = null;
     App.bubbleMode = 'auto';
     Utils.syncUrlState();
     App.updateSearchDashboard(); 
@@ -3812,6 +3798,53 @@ setupClearButton('mainSearchInput', 'input-clear');
 
   // === COMPETITIVE FOOTPRINT ===
   // Run a fresh search for a specific vendor — see their entire federal portfolio
+
+  // === NAICS FILTER ===
+  // Client-side filter: instantly narrow current results to a specific NAICS code
+  activeNaicsFilter: null,
+
+  filterByNaics(code, name) {
+    if (App.activeNaicsFilter === code) {
+      // Toggle off — clear filter, restore full dataset
+      App.activeNaicsFilter = null;
+      App.searchData.active = App.searchData.filter 
+        ? App.searchData.raw.filter(d => d['Awarding Agency'] === App.searchData.filter || d['Awarding Sub Agency'] === App.searchData.filter)
+        : App.searchData.raw;
+    } else {
+      // Apply NAICS filter on top of current drill state
+      const base = App.searchData.filter 
+        ? App.searchData.raw.filter(d => d['Awarding Agency'] === App.searchData.filter || d['Awarding Sub Agency'] === App.searchData.filter)
+        : App.searchData.raw;
+      // Check both display name and API snake_case field names
+      const filtered = base.filter(d => {
+        const naics = d['NAICS Code'] || d['naics_code'] || '';
+        return naics.toString().startsWith(code);
+      });
+      if (filtered.length === 0) {
+        // The NAICS breakdown uses a separate aggregation endpoint that covers all awards,
+        // not just the top 100 returned by the search. Show a helpful message.
+        App.toast(`NAICS ${code} appears in the agency-wide breakdown but isn't in the top 100 awards for this search. Try searching the NAICS code directly.`, 'warning', 5000);
+        return;
+      }
+      App.activeNaicsFilter = code;
+      App.searchData.active = filtered;
+    }
+    App.activeFeedSource = 'prime';
+    App.updateSearchDashboard();
+    // Update subtitle to show NAICS filter
+    const subEl = document.getElementById('sankeySubtitle');
+    if (subEl && App.currentQuery) {
+      const naicsLabel = App.activeNaicsFilter ? ` · NAICS ${App.activeNaicsFilter}` : '';
+      subEl.textContent = '"' + App.currentQuery.toUpperCase() + '"' + naicsLabel + ' · TOP 100 ACTIVE CONTRACTS · LIFETIME FUNDED VALUE';
+    }
+    // Highlight active NAICS row
+    document.querySelectorAll('#naicsMixBody .reach-row').forEach(row => {
+      const onclick = row.getAttribute('onclick') || '';
+      row.style.outline = onclick.includes(`'${App.activeNaicsFilter}'`) ? '1px solid var(--accent-light)' : '';
+      row.style.outlineOffset = onclick.includes(`'${App.activeNaicsFilter}'`) ? '-1px' : '';
+    });
+  },
+
   viewFootprint(vendorName) {
     const clean = JobLinks.cleanVendorName(vendorName);
     if (!clean || clean.length < 2) return;
@@ -4110,8 +4143,6 @@ _renderSankeyInner(container) {
   
   const data = App.searchData.active; 
   if(!data || data.length === 0) { 
-    // Don't show error message while a search is loading — the data just isn't here yet
-    if (App._isLoading) return;
     container.innerHTML = '<div style="text-align:center; padding:4rem; color:var(--text-subtle)">No data available for this view.</div>'; 
     return; 
   }
@@ -4337,7 +4368,7 @@ _renderSankeyInner(container) {
     
     // Always render prime awards in the main feed
     const data = App.searchData.active;
-    if(data.length === 0) { if (!App._isLoading) div.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-subtle)">No contracts found.</div>'; return; }
+    if(data.length === 0) { div.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-subtle)">No contracts found.</div>'; return; }
     
     const INITIAL_COUNT = 3;
     const displayData = showAll ? data : data.slice(0, INITIAL_COUNT);
@@ -5441,33 +5472,8 @@ renderRecompetes(recompetes, showAll = false) {
     }
   },
   
-  showSkeleton() {
-    // Scroll to top so user sees the dashboard loading
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    // Reset stat values to loading placeholders
-    ['stat-vol', 'stat-agencies', 'stat-count', 'stat-vendors',
-     'bubble-stat-vol', 'bubble-stat-agencies', 'bubble-stat-count', 'bubble-stat-vendors',
-     'sub-stat-vol', 'sub-stat-primes', 'sub-stat-subs', 'sub-stat-count'
-    ].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = '—'; });
-
-    // Add skeleton class to panels for shimmer effect
-    document.querySelectorAll('.stat-panel, #bubbleChartPanel').forEach(el => el.classList.add('skeleton-loading'));
-
-    // Pulse the mini search bar
-    const mini = document.getElementById('miniSearch');
-    if (mini) mini.classList.add('is-loading');
-
-    // Mark as loading — renderSankey will check this to avoid showing "no data"
-    App._isLoading = true;
-  },
-
-  hideSkeleton() {
-    App._isLoading = false;
-    document.querySelectorAll('.skeleton-loading').forEach(el => el.classList.remove('skeleton-loading'));
-    const mini = document.getElementById('miniSearch');
-    if (mini) mini.classList.remove('is-loading');
-  },
+  showSkeleton() { App._isLoading = true; },
+  hideSkeleton() { App._isLoading = false; },
 
   showZeroResults(query) {
     const container = document.getElementById('chartContainer');
@@ -5744,7 +5750,7 @@ App.renderBubbleChart = function() {
   
   const data = App.searchData.active;
   if (!data || data.length === 0) {
-    if (!App._isLoading) panel.style.display = 'none';
+    panel.style.display = 'none';
     return;
   }
   
