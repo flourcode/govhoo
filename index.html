@@ -47,7 +47,7 @@
   --text-primary: #F0EEEA;
   --text-secondary: #C0C8C4;
   --text-tertiary: #7A8580;
-  --link: #7DAF9C;
+  --link: #D0D6D3;
 
   /* BRAND — "Color of Money" */
   --brand: #C0C8C4;
@@ -55,14 +55,14 @@
   --brand-dim: rgba(192, 200, 196, 0.12);
   --brand-text: #0E1111;
 
-  /* ACCENT - "Antique Fern" (secondary interaction) */
-  --accent: #5A8E78;       
-  --accent-dark: #3D6B55;
-  --accent-light: #7DAF9C; 
-  --accent-dim: rgba(90, 142, 120, 0.15);
+  /* ACCENT — now unified with brand */
+  --accent: #C0C8C4;       
+  --accent-dark: #A8B5B0;
+  --accent-light: #D0D6D3; 
+  --accent-dim: rgba(192, 200, 196, 0.12);
 
   /* FUNCTIONAL COLORS */
-  --success: #8DBDA5;
+  --success: #A8B5B0;
   --warning: #DACCB6;
   --danger: #CC8F8F;
   --info: #93B1CC;
@@ -174,7 +174,7 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(90, 142, 120, 0.06) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(192, 200, 196, 0.05) 50%, transparent 100%);
   background-size: 200% 100%;
   animation: skeletonShimmer 1.8s ease-in-out infinite;
   border-radius: var(--radius-md);
@@ -187,7 +187,7 @@ body {
 
 /* Mini loading indicator in the header search bar */
 .mini-search.is-loading {
-  background-image: linear-gradient(90deg, transparent, rgba(90, 142, 120, 0.15), transparent);
+  background-image: linear-gradient(90deg, transparent, rgba(192, 200, 196, 0.12), transparent);
   background-size: 200% 100%;
   animation: skeletonShimmer 1.5s ease-in-out infinite;
 }
@@ -197,8 +197,8 @@ body {
   to { opacity: 1; transform: translateY(0); } 
 }
 @keyframes subtlePulse { 
-  0%, 100% { box-shadow: 0 0 0 0 rgba(66, 106, 90, 0); }
-  50% { box-shadow: 0 0 0 4px rgba(66, 106, 90, 0.08); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(192, 200, 196, 0); }
+  50% { box-shadow: 0 0 0 4px rgba(192, 200, 196, 0.06); }
 }
 @keyframes sankeyTapFlash {
   0% { opacity: 1; }
@@ -410,7 +410,7 @@ body {
   text-decoration: none;
 }
 .logo-btn .logo-home-icon { display: none; } /* Hidden on desktop */
-.logo-btn:hover .logo-name { color: #A8D5C2; }
+.logo-btn:hover .logo-name { color: var(--text-primary); }
 .logo-btn .logo-gt {
   font-family: 'Lexend Deca', sans-serif;
   font-weight: 500; color: var(--accent-light);
@@ -657,7 +657,7 @@ svg { border: none !important; outline: none !important; }
   padding: 0.1rem 0.35rem; background: rgba(119,141,169,0.12);
   color: var(--info); border-radius: var(--radius-sm); white-space: nowrap;
 }
-.reach-badge.accent { background: rgba(90,142,120,0.12); color: var(--text-secondary); }
+.reach-badge.accent { background: rgba(192,200,196,0.10); color: var(--text-secondary); }
 .reach-meta { font-size: var(--text-xs); color: var(--text-secondary); margin-top: 0.15rem; line-height: 1.4; }
 .reach-amount {
   font-family: 'Lexend Deca', sans-serif; font-size: var(--text-sm);
@@ -1031,9 +1031,10 @@ svg { border: none !important; outline: none !important; }
    13. AI INTELLIGENCE BANNER & PANEL
    ========================================= */
 .ai-banner {
-    background: var(--brand);
-    border: 1px solid var(--brand-hover);
-    border-radius: var(--radius-md);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--brand);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
     padding: 1rem 1.25rem;
     margin-bottom: var(--section-gap);
     display: flex;
@@ -1060,21 +1061,21 @@ svg { border: none !important; outline: none !important; }
 
 .ai-banner-title {
     margin: 0 0 4px 0;
-    color: var(--brand-text);
+    color: var(--text-primary);
     font-size: var(--text-lg);
     text-transform: uppercase;
     letter-spacing: 1px;
     font-weight: 800;
     line-height: 1.2;
-    padding-top: 4px; /* Aligns title with the top of the rounded avatar */
+    padding-top: 4px;
 }
 
 .ai-banner-desc {
     margin: 0;
-    color: var(--brand-text);
+    color: var(--text-secondary);
     font-size: var(--text-base);
     line-height: 1.4;
-    opacity: 0.75;
+    opacity: 0.9;
 }
 
 .btn-ai {
@@ -1098,15 +1099,7 @@ svg { border: none !important; outline: none !important; }
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25) !important;
 }
 
-/* Inverted button when sitting on the brand-colored banner */
-.ai-banner .btn-ai {
-    background: var(--brand-text) !important;
-    color: var(--brand) !important;
-}
-.ai-banner .btn-ai:hover {
-    background: #1C2320 !important;
-    color: var(--text-primary) !important;
-}
+/* Banner button uses standard btn-ai (brand bg, dark text) — matches hero search */
 
 /* The Results Panel - Standalone Card Style */
 .ai-action-panel {
@@ -1156,7 +1149,7 @@ svg { border: none !important; outline: none !important; }
     text-transform: uppercase;
     letter-spacing: 1.5px;
     font-family: 'Lexend Deca', sans-serif;
-    border-bottom: 1px solid rgba(74, 122, 103, 0.25);
+    border-bottom: 1px solid rgba(192, 200, 196, 0.18);
     padding-bottom: 0.4rem;
 }
 
@@ -1204,7 +1197,7 @@ svg { border: none !important; outline: none !important; }
     border-left: 3px solid var(--accent);
     margin: 1rem 0;
     padding: 0.75rem 1rem;
-    background: rgba(90, 142, 120, 0.08);
+    background: rgba(192, 200, 196, 0.07);
     border-radius: 0 var(--radius-md) var(--radius-md) 0;
     font-size: var(--text-base);
 }
@@ -1281,7 +1274,7 @@ svg { border: none !important; outline: none !important; }
    ========================================= */
 .ai-chat-history {
     margin-top: 1.5rem;
-    border-top: 1px dashed rgba(74, 122, 103, 0.4); 
+    border-top: 1px dashed rgba(192, 200, 196, 0.25); 
     padding-top: 1.5rem;
     display: flex;
     flex-direction: column;
@@ -1677,7 +1670,7 @@ svg { border: none !important; outline: none !important; }
 .deal-card:hover {
   transform: translateY(-3px);
   border-color: var(--accent) !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(74, 122, 103, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(192, 200, 196, 0.15);
   background: #1f2724; /* Slightly lighter on hover */
 }
 
@@ -1779,7 +1772,7 @@ button, input, select, textarea,
 }
 /* Arti's Foot-Stomping Highlight */
 .strategic-read mark {
-    background: rgba(90, 142, 120, 0.08);
+    background: rgba(192, 200, 196, 0.07);
     color: var(--text-primary);
     padding: 2px 4px;
     border-radius: var(--radius-sm);
@@ -1919,7 +1912,7 @@ button, input, select, textarea,
   --text-primary: #F0EDE8;
   --text-muted: #C4CEC9;
   --text-tertiary: #8A9691;
-  --link: #8DBDAA;
+  --link: #D0D6D3;
   --section-gap: 1.25rem;
 }
 
@@ -2133,7 +2126,7 @@ body {
 
 .ai-banner {
   background: rgba(28, 35, 32, 0.8) !important;
-  border: 1px solid rgba(74, 122, 103, 0.3) !important;
+  border: 1px solid rgba(192, 200, 196, 0.2) !important;
   border-left: 3px solid var(--accent) !important;
   box-shadow: none !important;
   border-radius: var(--radius-sm) !important;
@@ -2157,8 +2150,8 @@ body {
 }
 
 .btn-ai {
-  background: var(--accent) !important;
-  color: var(--text-primary) !important;
+  background: var(--brand) !important;
+  color: var(--brand-text) !important;
   font-family: 'Lexend Deca', sans-serif !important;
   font-weight: 700 !important;
   font-size: var(--text-sm) !important;
@@ -2170,7 +2163,7 @@ body {
 }
 
 .btn-ai:hover {
-  background: var(--accent-dark) !important;
+  background: var(--brand-hover) !important;
   box-shadow: none !important;
   transform: none !important;
 }
@@ -2258,7 +2251,7 @@ body {
 .ai-action-panel .explainer-highlight,
 .ai-msg-arti .explainer-highlight,
 .strategic-read .explainer-highlight {
-  background: rgba(90, 142, 120, 0.10) !important;
+  background: rgba(192, 200, 196, 0.08) !important;
   color: var(--text-primary) !important;
   padding: 1px 4px !important;
   border-radius: 2px !important;
@@ -2267,7 +2260,7 @@ body {
 
 /* Also keep the <mark> treatment editorial inside Arti */
 .strategic-read mark {
-  background: rgba(90, 142, 120, 0.10) !important;
+  background: rgba(192, 200, 196, 0.08) !important;
   color: var(--text-primary) !important;
   font-weight: 600 !important;
   padding: 1px 4px !important;
@@ -2412,7 +2405,7 @@ body {
 
 .job-link:hover {
   color: var(--text-primary) !important;
-  background: rgba(90, 142, 120, 0.10) !important;
+  background: rgba(192, 200, 196, 0.08) !important;
   border-color: var(--accent) !important;
 }
 
@@ -2435,7 +2428,7 @@ body {
 
 .deal-footer .action-btn:hover {
   color: var(--text-primary) !important;
-  background: rgba(90, 142, 120, 0.10) !important;
+  background: rgba(192, 200, 196, 0.08) !important;
   border-color: var(--accent) !important;
 }
 
@@ -2463,7 +2456,7 @@ body {
   }
   
   .ai-banner {
-    border-left: 3px solid var(--brand-hover) !important;
+    border-left: 3px solid var(--brand) !important;
     border-radius: 0 var(--radius-sm) var(--radius-sm) 0 !important;
   }
   
@@ -2547,7 +2540,6 @@ body {
     <div class="hero-suggestions">
       <a href="?q=ZERO+TRUST%2C+FIREWALL" class="hero-suggestion-chip">ZERO TRUST, FIREWALL</a>
       <a href="?q=541512+AND+AIR FORCE" class="hero-suggestion-chip">541512 AND AIR FORCE</a>
-      <a href="?q=POTATO" class="hero-suggestion-chip">POTATO</a>
       <a href="?q=SBIR+PHASE+III" class="hero-suggestion-chip">SBIR PHASE III</a>
     </div>
 
@@ -3172,16 +3164,16 @@ copyDealToClipboard(idx, btn) {
   
 getColor: (() => {
   const palette = [
-    '#466D5C', // 1. Gotham Green (The Hero - Base)
+    '#8A9B94', // 1. Muted Sage (The Hero - Base)
     '#7B6D8D', // 2. Villain Purple (Button Color - Promoted to top spot)
     '#5B7C99', // 3. Spidey Blue (Button Color - Promoted)
     '#E07A5F', // 4. Advertisement Orange (Button Color - Promoted)
     '#D98895', // 5. POW! Pink (Faded Magenta)
     '#3D405B', // 6. Inker's Navy (Dark Anchor)
-    '#F2E8CF', // 3. Newsprint (The perfect Off-White/Cream paper)
-    '#81B29A', // 8. Kryptonite Mist (Soft Green)
+    '#F2E8CF', // 7. Newsprint (The perfect Off-White/Cream paper)
+    '#A8B5B0', // 8. Fog (Neutral Sage)
     '#778DA9', // 9. Blue-Grey Shadow (Halftone shading)
-    '#606C38'  // 10. Army Surplus (Drab Olive)
+    '#8C8577'  // 10. Driftwood (Warm Taupe)
   ];
 
   const assigned = new Map();
@@ -5102,7 +5094,7 @@ _renderSankeyInner(container) {
       if (c['NAICS Code']) metaTags += `<span class="meta-tag naics" title="${Html.escapeHtml(c['NAICS Description'] || '')}">NAICS: ${Html.escapeHtml(c['NAICS Code'])}</span>`;
       if (c['PSC Code']) metaTags += `<span class="meta-tag psc" title="${Html.escapeHtml(c['PSC Description'] || '')}">PSC: ${Html.escapeHtml(c['PSC Code'])}</span>`;
       const vehicle = VehicleDetector.detect(c['Award ID']);
-      if (vehicle) metaTags += `<span class="meta-tag" style="background:rgba(95,128,85,0.15);border-color:rgba(95,128,85,0.3);color:var(--accent);" title="${vehicle.vehicle}">${vehicle.short}</span>`;
+      if (vehicle) metaTags += `<span class="meta-tag" style="background:rgba(192,200,196,0.10);border-color:rgba(192,200,196,0.20);color:var(--accent);" title="${vehicle.vehicle}">${vehicle.short}</span>`;
       // Set-aside: 'Type of Set Aside' is the correct USASpending field name
       const setAsideCode = c['Type of Set Aside'];
       const setAside = VehicleDetector.getSetAsideLabel(setAsideCode);
@@ -6559,9 +6551,9 @@ if (enEl) Utils.countUp(enEl, entities.length);
   
   // Color palette — Govhoo vintage chalk tones
   const bubbleColors = [
-    '#466D5C', '#7B6D8D', '#5B7C99', '#E07A5F',
-    '#D98895', '#3D405B', '#F2E8CF', '#81B29A',
-    '#778DA9', '#606C38'
+    '#8A9B94', '#7B6D8D', '#5B7C99', '#E07A5F',
+    '#D98895', '#3D405B', '#F2E8CF', '#A8B5B0',
+    '#778DA9', '#8C8577'
 ];
 
   // Shared tooltip + click handler builder (touch-aware)
@@ -7060,9 +7052,9 @@ App.renderSubBubbleChart = function() {
   const h = Math.max(380, Math.min(w * 0.65, 550));
   
   const bubbleColors = [
-    '#466D5C', '#7B6D8D', '#5B7C99', '#E07A5F',
-    '#D98895', '#3D405B', '#F2E8CF', '#81B29A',
-    '#778DA9', '#606C38'
+    '#8A9B94', '#7B6D8D', '#5B7C99', '#E07A5F',
+    '#D98895', '#3D405B', '#F2E8CF', '#A8B5B0',
+    '#778DA9', '#8C8577'
 ];
 
   // Shared tooltip + click (touch-aware)
