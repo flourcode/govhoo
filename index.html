@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#000000">
   <meta name="color-scheme" content="dark">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'><rect width='400' height='400' rx='80' fill='%230E1111'/><text x='200' y='215' text-anchor='middle' dominant-baseline='central' font-family='Lexend Deca, sans-serif' font-weight='600' fill='%23C0C8C4' font-size='220'>G.</text></svg>">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'><rect width='400' height='400' rx='80' fill='%230E1111'/><text x='200' y='215' text-anchor='middle' dominant-baseline='central' font-family='Google Sans Flex, sans-serif' font-weight='600' fill='%23C0C8C4' font-size='220'>G.</text></svg>">
   <title>Govhoo - Federal Market Intelligence</title>
   <meta name="title" content="Govhoo - Federal Market Intelligence">
   <meta name="description" content="Free Federal Sales Intelligence Strategic Planning. Follow the money with live USASpending data analysis.">
@@ -21,7 +21,7 @@
   <link rel="canonical" href="https://govhoo.com/">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@100..900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,1..1000&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/solid.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/fontawesome.min.css" crossorigin="anonymous">
   <link rel="preconnect" href="https://api.usaspending.gov">
@@ -44,24 +44,27 @@
   --bg-elevated: #232D29;
 
   /* TEXT */
-  --text-primary: #F0EEEA;
+  --text-primary: #F0EDE8;
   --text-secondary: #C0C8C4;
-  --text-tertiary: #7A8580;
+  --text-tertiary: #8A9691;
   --link: #D0D6D3;
 
-  /* BRAND — "Color of Money" */
-  --brand: #C0C8C4;
-  --brand-hover: #A8B5B0;
-  --brand-dim: rgba(192, 200, 196, 0.12);
-  --brand-text: #0E1111;
+  /* MONEY — the only chromatic anchor */
+  --money: #C0C8C4;
+  --money-strong: #A8B5B0;
+  --money-dim: rgba(192, 200, 196, 0.12);
+  --money-ink: #0E1111;
 
-  /* ACCENT — now unified with brand */
-  --accent: #C0C8C4;       
-  --accent-dark: #A8B5B0;
-  --accent-light: #D0D6D3; 
-  --accent-dim: rgba(192, 200, 196, 0.12);
+  /* Aliases (backward compat) */
+  --brand: var(--money);
+  --brand-hover: var(--money-strong);
+  --brand-dim: var(--money-dim);
+  --brand-text: var(--money-ink);
+  --accent: var(--money);
+  --accent-light: #D0D6D3;
+  --accent-dim: var(--money-dim);
 
-  /* FUNCTIONAL COLORS */
+  /* FUNCTIONAL COLORS — DO NOT USE FOR BRAND, CTA, OR EMPHASIS */
   --success: #A8B5B0;
   --warning: #DACCB6;
   --danger: #CC8F8F;
@@ -78,7 +81,7 @@
   --radius-pill: 9999px;
 
   /* TYPE SCALE — 6 steps + hero */
-  --text-xs: 0.625rem;
+  --text-xs: 0.6875rem;  /* 11px — minimum legible for mobile metadata */
   --text-sm: 0.75rem;
   --text-base: 0.875rem;
   --text-lg: 1rem;
@@ -86,7 +89,7 @@
   --text-hero: clamp(1.75rem, 5vw, 2.5rem);
 
   /* SPACING */
-  --section-gap: 1rem;
+  --section-gap: 1.25rem;
 
   /* SIZING */
   --safe-top: env(safe-area-inset-top, 20px);
@@ -106,7 +109,7 @@ html { scroll-behavior: smooth; }
 body {
   margin: 0; 
   padding: 0;
-  font-family: 'Lexend Deca', sans-serif;
+  font-family: 'Google Sans Flex', sans-serif;
   background: var(--bg-app);
   color: var(--text-primary);
   min-height: 100vh;
@@ -200,22 +203,11 @@ body {
   0%, 100% { box-shadow: 0 0 0 0 rgba(192, 200, 196, 0); }
   50% { box-shadow: 0 0 0 4px rgba(192, 200, 196, 0.06); }
 }
-@keyframes sankeyTapFlash {
-  0% { opacity: 1; }
-  50% { opacity: 0.4; }
-  100% { opacity: 1; }
-}
 
 /* Staggered card entrance */
 .deal-card-animate {
   animation: cardSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
-
-/* Sankey bar tap feedback */
-.sankey-tap-flash {
-  animation: sankeyTapFlash 0.3s ease-out;
-}
-
 /* =========================================
    4. INPUTS & BUTTONS (UNIFIED SYSTEM)
    ========================================= */
@@ -227,7 +219,7 @@ body {
   padding: 1.25rem 1rem;
   font-size: var(--text-xl);
   border-radius: var(--radius-md);
-  font-family: 'Lexend Deca', sans-serif;
+  font-family: 'Google Sans Flex', sans-serif;
   transition: border-color 0.2s;
   -webkit-appearance: none;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
@@ -257,7 +249,7 @@ body {
   display: flex; align-items: center; justify-content: center; gap: 0.5rem;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   transition: all 0.2s ease;
-  font-family: 'Lexend Deca', sans-serif;
+  font-family: 'Google Sans Flex', sans-serif;
 }
 
 .btn-primary:hover, #searchBtn:hover {
@@ -280,7 +272,7 @@ body {
   align-items: center; 
   gap: 6px;
 }
-.action-btn:hover { border-color: var(--accent); background: var(--accent-dim); }
+.action-btn:hover { border-color: var(--border-hover); background: rgba(255,255,255,0.04); }
 
 .input-clear {
   position: absolute; 
@@ -329,14 +321,14 @@ body {
   display: flex; align-items: baseline; justify-content: center;
 }
 .terminal-logo .logo-gt {
-  font-family: 'Lexend Deca', sans-serif;
+  font-family: 'Google Sans Flex', sans-serif;
   font-size: 40px; font-weight: 500;
   color: var(--accent-light);
   line-height: 1;
   display: none;
 }
 .terminal-logo .logo-us {
-  font-family: 'Lexend Deca', sans-serif;
+  font-family: 'Google Sans Flex', sans-serif;
   font-size: 36px; font-weight: 500;
   color: var(--accent-light);
   margin-left: -4px;
@@ -344,7 +336,7 @@ body {
   display: none;
 }
 .terminal-logo .logo-name {
-  font-family: 'Lexend Deca', sans-serif;
+  font-family: 'Google Sans Flex', sans-serif;
   font-size: 36px; font-weight: 600;
   color: #C0C8C4;
   margin-left: 0;
@@ -353,7 +345,7 @@ body {
 
 .hero-subtitle {
   margin-bottom: 2rem; text-align: center;
-  font-family: 'Lexend Deca', sans-serif; font-size: var(--text-base); color: var(--text-primary);
+  font-family: 'Google Sans Flex', sans-serif; font-size: var(--text-base); color: var(--text-primary);
 }
 .search-box-container { position: relative; z-index: 210; width: 100%; max-width: 500px; margin-top: 1.5rem; }
 
@@ -407,26 +399,25 @@ body {
 .logo-btn {
   display: inline-flex; align-items: baseline;
   font-size: var(--text-xl); cursor: pointer; flex-shrink: 0; padding: 0.25rem;
-  text-decoration: none;
 }
 .logo-btn .logo-home-icon { display: none; } /* Hidden on desktop */
 .logo-btn:hover .logo-name { color: var(--text-primary); }
 .logo-btn .logo-gt {
-  font-family: 'Lexend Deca', sans-serif;
+  font-family: 'Google Sans Flex', sans-serif;
   font-weight: 500; color: var(--accent-light);
   font-size: 1.25em;
   line-height: 1;
   display: none;
 }
 .logo-btn .logo-us {
-  font-family: 'Lexend Deca', sans-serif;
+  font-family: 'Google Sans Flex', sans-serif;
   font-weight: 500; color: var(--accent-light);
   margin-left: -2px; line-height: 1;
   display: none;
 }
 .logo-btn .logo-name {
-  font-family: 'Lexend Deca', sans-serif;
-  font-weight: 400; color: #C0C8C4;
+  font-family: 'Google Sans Flex', sans-serif;
+  font-weight: 600; color: #C0C8C4;
   margin-left: 0px; line-height: 1;
   transition: color 0.15s ease;
 }
@@ -451,7 +442,7 @@ body {
   justify-content: center;
   cursor: pointer;
   font-size: var(--text-base);
-  font-family: 'Lexend Deca', sans-serif;
+  font-family: 'Google Sans Flex', sans-serif;
   transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
@@ -466,18 +457,14 @@ body {
   color: var(--brand-text);
 }
 
-/* Details / Share – Spidey Blue (Step 1) */
-.icon-btn-slack { background: #5B7C99 !important; }
-.icon-btn-slack:hover { background: #6C8DAA !important; transform: translateY(-1px); }
-
-/* CSV Download – Dusty Purple (Step 2) */
-.icon-btn-csv { background: #7B6D8D !important; }
-.icon-btn-csv:hover { background: #8C7E9E !important; transform: translateY(-1px); }
-
-/* Screenshot Mode Button – Advertisement Orange (Step 3) */
-.icon-btn-pres { background: #E07A5F !important; color: var(--text-primary) !important; }
-.icon-btn-pres:hover { background: #F18B70 !important; transform: translateY(-1px); }
-.icon-btn-pres.active { background: #F18B70 !important; color: var(--text-primary) !important; }
+/* Action buttons — neutral, not branded */
+.icon-btn-slack, .icon-btn-csv, .icon-btn-pres {
+  background: var(--bg-input) !important; border: none !important; color: var(--money) !important;
+}
+.icon-btn-slack:hover, .icon-btn-csv:hover, .icon-btn-pres:hover {
+  background: var(--money-dim) !important; border: none !important; opacity: 0.85;
+}
+.icon-btn-pres.active { background: var(--money-dim) !important; border: none !important; color: var(--money) !important; }
 
 /* =========================================
    8. DASHBOARD LAYOUT & HEADERS
@@ -502,10 +489,10 @@ body {
 }
 .section-title-group { display: flex; align-items: center; gap: 0.5rem; }
 .section-title {
-  font-family: 'Lexend Deca', sans-serif; font-size: var(--text-base); font-weight: 700 !important;
+  font-family: 'Google Sans Flex', sans-serif; font-size: var(--text-base); font-weight: 700 !important;
   color: var(--text-primary) !important; text-transform: uppercase; letter-spacing: 2px;
 }
-.section-subtitle { font-size: var(--text-sm); color: var(--text-primary); opacity: 0.95; font-style: italic; }
+.section-subtitle { font-size: var(--text-sm); color: var(--text-secondary); }
 
 /* =========================================
    9. WIDGETS, CARDS & STATS
@@ -534,6 +521,13 @@ svg { border: none !important; outline: none !important; }
     -webkit-box-decoration-break: clone;
 }
 
+.show-more-btn {
+  width: 100%; padding: 0.875rem; background: var(--bg-card); border: 1px dashed var(--border);
+  border-radius: var(--radius-sm); color: var(--accent); font-family: 'Google Sans Flex', sans-serif;
+  font-size: var(--text-sm); cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px;
+}
+.show-more-btn:hover { border-color: var(--accent); background: var(--accent-dim); }
+
 .deal-card {
   background: var(--bg-card); border: 1px solid var(--border) !important;
   border-radius: var(--radius-md); padding: 1.25rem; transition: transform 0.1s;
@@ -544,29 +538,29 @@ svg { border: none !important; outline: none !important; }
 #feedGrid .deal-card:nth-child(n+4):hover { opacity: 1; }
 #feedGrid .deal-card.deal-card-animate:nth-child(n+4) { animation: cardSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; opacity: 0.9; }
 
-.deal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; }
+.deal-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.35rem; }
 .deal-agency {
-  font-size: var(--text-sm); color: var(--text-secondary); font-weight: 600;
-  text-transform: uppercase; background: rgba(255, 255, 255, 0.05); padding: 2px 6px; border-radius: var(--radius-sm);
+  font-size: var(--text-xs); color: var(--text-tertiary); font-weight: 500;
+  text-transform: none;
 }
 .deal-amount {
-  font-family: 'Lexend Deca', sans-serif !important; color: var(--text-primary) !important;
-  font-weight: 700; font-size: var(--text-lg); letter-spacing: -0.5px;
+  font-family: 'Google Sans Flex', sans-serif !important; color: var(--money) !important;
+  font-weight: 700; font-size: var(--text-xl); letter-spacing: -0.5px; white-space: nowrap;
 }
-.deal-desc { font-size: var(--text-lg); font-weight: 600; margin-bottom: 0.5rem; line-height: 1.4; color: white; }
-.deal-vendor { font-size: var(--text-base); color: var(--info); margin-bottom: 0.75rem; font-family: 'Lexend Deca', sans-serif; }
-.deal-meta { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
-.deal-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid #222; }
+.deal-desc { font-size: var(--text-sm); font-weight: 400; margin-bottom: 0.5rem; line-height: 1.5; color: var(--text-secondary); text-transform: lowercase; }
+.deal-desc::first-letter { text-transform: uppercase; }
+.deal-vendor { font-size: var(--text-sm); color: var(--text-secondary); margin-bottom: 0.5rem; font-family: 'Google Sans Flex', sans-serif; font-weight: 500; }
+.deal-meta { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.5rem; }
+.deal-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 0.6rem; border-top: 1px solid var(--border); margin-top: 0.25rem; }
 
 /* Sharp Chalk Overrides for Metadata */
 .deal-date, 
 .mission-gap-signals {
-  font-family: 'Lexend Deca', sans-serif;
-  font-size: var(--text-xs) !important;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--text-primary) !important;
-  opacity: 0.95;
+  font-family: 'Google Sans Flex', sans-serif;
+  font-size: var(--text-sm);
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-secondary);
 }
 
 /* Refined Open Award Button */
@@ -575,7 +569,7 @@ svg { border: none !important; outline: none !important; }
   border: 1px solid rgba(251, 247, 245, 0.3) !important;
   color: var(--text-primary) !important;
   text-transform: uppercase;
-  font-family: 'Lexend Deca', sans-serif;
+  font-family: 'Google Sans Flex', sans-serif;
   font-size: var(--text-xs) !important;
   font-weight: 700;
   letter-spacing: 0.5px;
@@ -591,16 +585,16 @@ svg { border: none !important; outline: none !important; }
 
 /* Tags & Badges */
 .meta-tag {
-  font-size: var(--text-xs); font-family: 'Lexend Deca', sans-serif; padding: 3px 8px;
+  font-size: var(--text-xs); font-family: 'Google Sans Flex', sans-serif; padding: 3px 8px;
   border-radius: var(--radius-sm); background: rgba(251, 247, 245, 0.05) !important;
   color: var(--text-secondary) !important; border: 1px solid transparent !important;
   font-weight: 600;
 }
-.meta-tag.psc { background: rgba(126, 156, 184, 0.15) !important; color: var(--info) !important; }
-.meta-tag.naics { background: rgba(155, 142, 169, 0.15) !important; color: var(--info) !important; }
+.meta-tag.psc { background: rgba(255, 255, 255, 0.04) !important; border-color: var(--border) !important; color: var(--text-secondary) !important; }
+.meta-tag.naics { background: rgba(255, 255, 255, 0.04) !important; border-color: var(--border) !important; color: var(--text-secondary) !important; }
 .meta-tag.mission-gap { font-weight: 600; }
-.meta-tag.mission-gap.high { background: rgba(251, 128, 114, 0.15) !important; border-color: var(--danger) !important; color: var(--danger) !important; }
-.meta-tag.mission-gap.medium { background: rgba(253, 216, 53, 0.15) !important; border-color: var(--warning) !important; color: var(--warning) !important; }
+.meta-tag.mission-gap.high { background: rgba(255,255,255,0.04) !important; border-color: var(--danger) !important; color: var(--danger) !important; }
+.meta-tag.mission-gap.medium { background: rgba(255,255,255,0.04) !important; border-color: var(--warning) !important; color: var(--warning) !important; }
 .meta-tag.mission-gap.low { background: rgba(255, 255, 255, 0.05) !important; border-color: var(--border) !important; color: var(--text-secondary) !important; }
 
 /* Mission Gap Controls */
@@ -608,8 +602,8 @@ svg { border: none !important; outline: none !important; }
 .mission-gap-toggle {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
   padding: 0 12px; height: 34px; min-width: 34px;
-  background: #E07A5F !important; border: none !important; border-radius: var(--radius-pill);
-  font-size: var(--text-sm); font-family: 'Lexend Deca', sans-serif; color: var(--text-primary) !important;
+  background: var(--bg-input) !important; border: 1px solid var(--border) !important; border-radius: var(--radius-pill);
+  font-size: var(--text-sm); font-family: 'Google Sans Flex', sans-serif; color: var(--text-primary) !important;
   font-weight: 700; cursor: pointer; transition: opacity 0.15s, transform 0.15s;
   white-space: nowrap;
 }
@@ -627,13 +621,13 @@ svg { border: none !important; outline: none !important; }
 
 /* Job Links */
 .job-link {
-  font-size: var(--text-xs); color: var(--info); text-decoration: none;
+  font-size: var(--text-xs); color: var(--text-secondary); text-decoration: none;
   display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px;
-  border-radius: var(--radius-sm); background: rgba(91,124,153,0.1);
-  border: 1px solid rgba(91,124,153,0.2); transition: all 0.15s;
+  border-radius: var(--radius-sm); background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border); transition: opacity 0.15s ease;
 }
 .job-link:hover {
-  background: rgba(91,124,153,0.2); border-color: rgba(91,124,153,0.4); color: var(--text-primary);
+  opacity: 0.85; color: var(--text-primary); background: rgba(255,255,255,0.05);
 }
 .job-link i { font-size: var(--text-xs); }
 
@@ -648,22 +642,20 @@ svg { border: none !important; outline: none !important; }
 .reach-row:last-child { border-bottom: none; }
 .reach-name {
   font-size: var(--text-sm); font-weight: 600; color: var(--text-primary);
-  text-decoration: underline; text-decoration-color: rgba(255,255,255,0.15);
-  text-underline-offset: 2px;
 }
-.reach-row:hover .reach-name { text-decoration-color: var(--accent); color: var(--accent); }
+.reach-row:hover .reach-name { color: var(--text-primary); }
 .reach-badge {
-  font-family: 'Lexend Deca', sans-serif; font-size: var(--text-xs);
-  padding: 0.1rem 0.35rem; background: rgba(119,141,169,0.12);
-  color: var(--info); border-radius: var(--radius-sm); white-space: nowrap;
+  font-family: 'Google Sans Flex', sans-serif; font-size: var(--text-xs);
+  padding: 0; background: none;
+  color: var(--text-tertiary); white-space: nowrap;
 }
 .reach-badge.accent { background: rgba(192,200,196,0.10); color: var(--text-secondary); }
 .reach-meta { font-size: var(--text-xs); color: var(--text-secondary); margin-top: 0.15rem; line-height: 1.4; }
 .reach-amount {
-  font-family: 'Lexend Deca', sans-serif; font-size: var(--text-sm);
-  font-weight: 600; color: var(--text-primary);
+  font-family: 'Google Sans Flex', sans-serif; font-size: var(--text-sm);
+  font-weight: 600; color: var(--money);
 }
-.reach-count { font-family: 'Lexend Deca', sans-serif; font-size: var(--text-xs); color: var(--info); }
+.reach-count { font-family: 'Google Sans Flex', sans-serif; font-size: var(--text-xs); color: var(--text-tertiary); }
 .reach-overflow { font-size: var(--text-xs); color: var(--text-secondary); text-align: center; margin-top: 0.35rem; }
 
 /* Panel container design system */
@@ -677,12 +669,12 @@ svg { border: none !important; outline: none !important; }
   border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 .data-panel-title {
-  font-family: 'Lexend Deca', sans-serif; font-size: var(--text-xs);
+  font-family: 'Google Sans Flex', sans-serif; font-size: var(--text-xs);
   color: var(--text-secondary); text-transform: uppercase;
   letter-spacing: 1.5px; font-weight: 600;
 }
 .data-panel-subtitle {
-  font-family: 'Lexend Deca', sans-serif; font-size: var(--text-xs);
+  font-family: 'Google Sans Flex', sans-serif; font-size: var(--text-xs);
   color: var(--text-secondary);
 }
 .data-panel-body { padding: 0.35rem 1rem 0.75rem; }
@@ -698,7 +690,7 @@ svg { border: none !important; outline: none !important; }
 .drill-breadcrumb {
   display: flex; align-items: center; gap: 0.35rem !important; padding: 0.75rem 1rem;
   background: var(--accent-dim); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); margin-bottom: var(--section-gap); font-family: 'Lexend Deca', sans-serif;
+  border-radius: var(--radius-sm); margin-bottom: var(--section-gap); font-family: 'Google Sans Flex', sans-serif;
   font-size: var(--text-sm); overflow-x: auto; white-space: nowrap;
 }
 
@@ -708,7 +700,7 @@ svg { border: none !important; outline: none !important; }
   border: 1px solid var(--border);
   background: transparent;
   color: var(--text-secondary);
-  font-family: 'Lexend Deca', sans-serif;
+  font-family: 'Google Sans Flex', sans-serif;
   font-size: var(--text-sm);
   line-height: 1.1;
   display: inline-flex;
@@ -725,11 +717,10 @@ svg { border: none !important; outline: none !important; }
 }
 
 .breadcrumb-item.active {
-  background: var(--accent-dim); color: var(--accent);
-  border: 1px solid var(--accent); cursor: default;
+  background: rgba(192,200,196,0.08); color: var(--text-primary);
+  border: 1px solid var(--border-hover); cursor: default;
 }
 
-.breadcrumb-icon { font-size: var(--text-sm); opacity: 0.95; }
 .breadcrumb-separator { color: var(--text-tertiary); font-size: var(--text-sm); font-weight: 700; }
 .drill-hint {
   display: flex; align-items: center; justify-content: center; gap: 0.5rem;
@@ -752,7 +743,7 @@ svg { border: none !important; outline: none !important; }
   overflow: hidden;
 }
 #bubbleChartPanel .bubble-header {
-  font-family: 'Lexend Deca', sans-serif;
+  font-family: 'Google Sans Flex', sans-serif;
   font-size: var(--text-xs);
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -775,14 +766,14 @@ svg { border: none !important; outline: none !important; }
 }
 .bubble-node:hover { opacity: 0.95 !important; }
 .bubble-label {
-  font-family: 'Lexend Deca', sans-serif;
+  font-family: 'Google Sans Flex', sans-serif;
   fill: #F1EEE9;
   pointer-events: none;
   text-anchor: middle;
   dominant-baseline: central;
 }
 .bubble-amount-label {
-  font-family: 'Lexend Deca', sans-serif;
+  font-family: 'Google Sans Flex', sans-serif;
   fill: rgba(241, 238, 233, 0.7);
   pointer-events: none;
   text-anchor: middle;
@@ -793,7 +784,7 @@ svg { border: none !important; outline: none !important; }
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 0.75rem 1rem;
-  font-family: 'Lexend Deca', sans-serif;
+  font-family: 'Google Sans Flex', sans-serif;
   font-size: var(--text-sm);
   color: var(--text-primary);
   pointer-events: none;
@@ -812,7 +803,7 @@ svg { border: none !important; outline: none !important; }
 .bubble-toggle-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
 .bubble-toggle-btn {
   padding: 0.35rem 0.75rem;
-  font-family: 'Lexend Deca', sans-serif;
+  font-family: 'Google Sans Flex', sans-serif;
   font-size: var(--text-xs);
   font-weight: 700;
   text-transform: uppercase;
@@ -829,7 +820,7 @@ svg { border: none !important; outline: none !important; }
 
 .bubble-bc-item {
   display: inline-flex; align-items: center; gap: 4px; padding: 0.2rem 0.5rem;
-  border-radius: var(--radius-sm); color: var(--text-secondary); font-family: 'Lexend Deca', sans-serif;
+  border-radius: var(--radius-sm); color: var(--text-secondary); font-family: 'Google Sans Flex', sans-serif;
   font-size: var(--text-sm); cursor: pointer; transition: all 0.15s ease; white-space: nowrap;
 }
 .bubble-bc-item:hover { color: var(--accent); background: rgba(255,255,255,0.05); }
@@ -851,13 +842,13 @@ svg { border: none !important; outline: none !important; }
 .footer-section { padding-bottom: 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
 .footer-section:last-child { border-bottom: none; padding-bottom: 0; }
 .footer-label {
-  font-family: 'Lexend Deca', sans-serif; font-size: var(--text-xs); font-weight: 700;
+  font-family: 'Google Sans Flex', sans-serif; font-size: var(--text-xs); font-weight: 700;
   text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); margin-bottom: 0.75rem;
 }
 .footer-text { overflow: hidden; font-size: var(--text-sm); line-height: 1.6; color: var(--text-primary); opacity: 0.95; margin-bottom: 0.75rem; }
 .footer-text:last-child { margin-bottom: 0; }
 .footer-link {
-  font-family: 'Lexend Deca', sans-serif; font-size: var(--text-sm); color: var(--link);
+  font-family: 'Google Sans Flex', sans-serif; font-size: var(--text-sm); color: var(--link);
   text-decoration: none; text-transform: uppercase; letter-spacing: 0.5px;
   font-weight: 700; padding-bottom: 2px; border-bottom: 1px solid var(--accent); transition: opacity 0.2s ease;
 }
@@ -865,7 +856,7 @@ svg { border: none !important; outline: none !important; }
 .use-cases { display: flex; flex-direction: column; gap: 1rem; }
 .use-case { padding: 0.875rem; background: rgba(255, 255, 255, 0.02); border-left: 2px solid var(--border-hover); }
 .use-case-title {
-  font-family: 'Lexend Deca', sans-serif; font-size: var(--text-sm); font-weight: 700;
+  font-family: 'Google Sans Flex', sans-serif; font-size: var(--text-sm); font-weight: 700;
   color: var(--text-primary); margin-bottom: 0.375rem; text-transform: uppercase; letter-spacing: 0.5px;
 }
 .use-case-desc { font-size: var(--text-sm); color: var(--text-primary); line-height: 1.5; }
@@ -889,7 +880,7 @@ svg { border: none !important; outline: none !important; }
 .sankey-loaded { animation: subtlePulse 2s ease-in-out 1; }
 
 .footer-copyright { 
-  font-family: 'Lexend Deca', sans-serif; font-size: var(--text-xs); color: var(--text-tertiary); 
+  font-family: 'Google Sans Flex', sans-serif; font-size: var(--text-xs); color: var(--text-tertiary); 
   letter-spacing: 0.5px; margin-top: 1rem; text-align: center; 
 } 
 
@@ -903,17 +894,15 @@ svg { border: none !important; outline: none !important; }
   position: absolute; left: 0; top: 0;
   width: 28px; height: 28px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: var(--text-base); font-weight: 700; font-family: 'Lexend Deca', sans-serif;
+  font-size: var(--text-base); font-weight: 700; font-family: 'Google Sans Flex', sans-serif;
 }
 .steps-list li strong { color: var(--text-primary); font-weight: 700; }
 .steps-list { counter-reset: step-counter; }
 
-/* Step 1: Explore - Spidey Blue */
-.steps-list li:nth-child(1)::before { background-color: #5B7C99 !important; color: var(--text-primary) !important; box-shadow: 0 0 0 2px #0E1111; }
-/* Step 2: Follow - Villain Purple */
-.steps-list li:nth-child(2)::before { background-color: #7B6D8D !important; color: var(--text-primary) !important; box-shadow: 0 0 0 2px #0E1111; }
-/* Step 3: Connect - Advertisement Orange */
-.steps-list li:nth-child(3)::before { background-color: #E07A5F !important; color: var(--text-primary) !important; box-shadow: 0 0 0 2px #0E1111; }
+/* Steps — monochrome money */
+.steps-list li:nth-child(1)::before { background-color: var(--money) !important; color: var(--money-ink) !important; box-shadow: 0 0 0 2px #0E1111; }
+.steps-list li:nth-child(2)::before { background-color: var(--money-strong) !important; color: var(--money-ink) !important; box-shadow: 0 0 0 2px #0E1111; }
+.steps-list li:nth-child(3)::before { background-color: var(--text-tertiary) !important; color: var(--money-ink) !important; box-shadow: 0 0 0 2px #0E1111; }
 
 
 /* =========================================
@@ -1019,13 +1008,13 @@ svg { border: none !important; outline: none !important; }
 /* Bubble tooltip */
 .presentation-mode .bubble-tooltip { background: rgba(255, 255, 255, 0.96) !important; border-color: #DDD !important; color: #1A1A1A !important; box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
 .presentation-mode .bubble-tooltip-name { color: #1A1A1A !important; }
-.presentation-mode .bubble-tooltip-amount { color: var(--accent) !important; }
+.presentation-mode .bubble-tooltip-amount { color: #1A1A1A !important; }
 .presentation-mode .bubble-tooltip-meta { color: var(--text-secondary) !important; }
 
 /* Toggle buttons inside chart panels */
 .presentation-mode .bubble-toggle-btn { border-color: #DDD !important; color: var(--text-secondary) !important; }
-.presentation-mode .bubble-toggle-btn.active { background: var(--brand) !important; border-color: var(--brand) !important; color: var(--brand-text) !important; }
-.presentation-mode .bubble-toggle-btn:hover:not(.active) { border-color: var(--brand) !important; color: var(--brand) !important; }
+.presentation-mode .bubble-toggle-btn.active { background: rgba(0,0,0,0.06) !important; border-color: rgba(0,0,0,0.25) !important; color: #1A1A1A !important; }
+.presentation-mode .bubble-toggle-btn:hover:not(.active) { border-color: rgba(0,0,0,0.25) !important; color: #1A1A1A !important; }
 
 /* =========================================
    13. AI INTELLIGENCE BANNER & PANEL
@@ -1034,7 +1023,7 @@ svg { border: none !important; outline: none !important; }
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-left: 3px solid var(--brand);
-    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    border-radius: var(--radius-md);
     padding: 1rem 1.25rem;
     margin-bottom: var(--section-gap);
     display: flex;
@@ -1067,12 +1056,12 @@ svg { border: none !important; outline: none !important; }
     letter-spacing: 1px;
     font-weight: 800;
     line-height: 1.2;
-    padding-top: 4px;
+    padding-top: 4px; /* Aligns title with the top of the rounded avatar */
 }
 
 .ai-banner-desc {
     margin: 0;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     font-size: var(--text-base);
     line-height: 1.4;
     opacity: 0.9;
@@ -1084,7 +1073,7 @@ svg { border: none !important; outline: none !important; }
     border: none !important;
     border-radius: var(--radius-md);
     cursor: pointer;
-    font-family: 'Lexend Deca', sans-serif;
+    font-family: 'Google Sans Flex', sans-serif;
     font-weight: 800;
     padding: 0.6rem 1.2rem;
     transition: all 0.15s ease;
@@ -1098,8 +1087,6 @@ svg { border: none !important; outline: none !important; }
     transform: translateY(-1px);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25) !important;
 }
-
-/* Banner button uses standard btn-ai (brand bg, dark text) — matches hero search */
 
 /* The Results Panel - Standalone Card Style */
 .ai-action-panel {
@@ -1148,7 +1135,7 @@ svg { border: none !important; outline: none !important; }
     font-size: var(--text-sm);
     text-transform: uppercase;
     letter-spacing: 1.5px;
-    font-family: 'Lexend Deca', sans-serif;
+    font-family: 'Google Sans Flex', sans-serif;
     border-bottom: 1px solid rgba(192, 200, 196, 0.18);
     padding-bottom: 0.4rem;
 }
@@ -1186,7 +1173,7 @@ svg { border: none !important; outline: none !important; }
 .strategic-read strong { color: var(--text-primary); font-weight: 700; }
 .strategic-read em { color: var(--text-primary); font-style: normal; font-weight: 600; }
 .strategic-read code {
-    font-family: 'Lexend Deca', sans-serif;
+    font-family: 'Google Sans Flex', sans-serif;
     font-size: 0.8em;
     background: rgba(255,255,255,0.06);
     padding: 0.15em 0.4em;
@@ -1208,7 +1195,7 @@ svg { border: none !important; outline: none !important; }
     border-collapse: collapse;
     margin: 1rem 0;
     font-size: var(--text-sm);
-    font-family: 'Lexend Deca', sans-serif;
+    font-family: 'Google Sans Flex', sans-serif;
 }
 .strategic-read th {
     text-align: left;
@@ -1257,7 +1244,7 @@ svg { border: none !important; outline: none !important; }
     padding: 0.4rem 0.75rem;
     font-size: var(--text-sm);
     font-weight: 700;
-    font-family: 'Lexend Deca', sans-serif;
+    font-family: 'Google Sans Flex', sans-serif;
     cursor: pointer;
     transition: all 0.2s ease;
     letter-spacing: 1px;
@@ -1291,7 +1278,7 @@ svg { border: none !important; outline: none !important; }
     max-width: 85%;
     font-size: var(--text-base);
     line-height: 1.5;
-    font-family: 'Lexend Deca', sans-serif;
+    font-family: 'Google Sans Flex', sans-serif;
 }
 
 .ai-msg-arti {
@@ -1360,7 +1347,7 @@ svg { border: none !important; outline: none !important; }
     color: var(--text-primary); 
     text-align: right;
     margin-top: 0.5rem;
-    font-family: 'Lexend Deca', sans-serif;
+    font-family: 'Google Sans Flex', sans-serif;
     opacity: 0.9; 
     transition: color 0.3s ease;
 }
@@ -1371,7 +1358,7 @@ svg { border: none !important; outline: none !important; }
     opacity: 0.95; 
     text-align: left;
     margin-top: 0.9rem;
-    font-family: 'Lexend Deca', sans-serif;
+    font-family: 'Google Sans Flex', sans-serif;
     line-height: 1.4;
 }
 
@@ -1467,22 +1454,30 @@ svg { border: none !important; outline: none !important; }
   .chart-container { min-width: auto; width: 100%; }
   .sankey-panel { padding: 0.5rem !important; }
   .reach-row { padding: 0.7rem 0.5rem; min-height: 60px; }
-  .reach-name { font-size: var(--text-sm); }
-  .reach-amount { font-size: var(--text-sm); }
+  .reach-name { font-size: var(--text-base); }
+  .reach-amount { font-size: var(--text-base); }
   .data-panel { border-radius: var(--radius-md); margin-bottom: 0.6rem; }
   .data-panel-header { padding: 0.55rem 0.75rem 0.3rem; }
   .data-panel-title { font-size: var(--text-xs); }
   .data-panel-body { padding: 0.25rem 0.75rem 0.6rem; }
 
   /* Touch targets: 44px minimum per WCAG 2.5.8 */
-  .job-link { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 8px 12px; font-size: var(--text-sm); }
-  .meta-tag { min-height: 36px; padding: 6px 10px; font-size: var(--text-xs); }
+  .job-link { min-height: 34px; min-width: 34px; display: inline-flex; align-items: center; justify-content: center; padding: 4px 8px; font-size: var(--text-xs); }
+  .meta-tag { padding: 4px 8px; font-size: var(--text-xs); }
   .breadcrumb-item { min-height: 44px; padding: 8px 12px; display: inline-flex; align-items: center; }
   .icon-btn { width: 44px; height: 44px; font-size: 16px; }
   .action-btn { min-height: 44px; padding: 8px 12px; }
   .bubble-bc-item { min-height: 40px; padding: 8px 10px; }
   .bubble-toggle-btn { min-height: 40px; padding: 8px 12px; }
   .deal-footer .action-btn { min-height: 44px; }
+
+  /* Cards: tighter on mobile to show more above fold */
+  .deal-card { padding: 1rem; }
+  .deal-header { margin-bottom: 0.5rem; }
+  .deal-desc { margin-bottom: 0.35rem; font-size: var(--text-base); }
+  .deal-vendor { margin-bottom: 0.5rem; }
+  .deal-meta { margin-bottom: 0.75rem; }
+  .deal-footer { padding-top: 0.75rem; }
 
   /* Prevent iOS zoom on input focus */
   .main-input, .mini-search, input, select, textarea { font-size: 16px !important; }
@@ -1502,7 +1497,7 @@ svg { border: none !important; outline: none !important; }
   .logo-btn { font-size: var(--text-base); flex-shrink: 0; }
   .logo-btn .logo-gt, .logo-btn .logo-us, .logo-btn .logo-name { font-size: inherit; }
   .logo-btn .logo-name { display: none; }
-  /* Mobile: replace full word with a styled "G" home button */
+  /* Mobile: replace full word with styled G home button */
   .logo-btn .logo-gt, .logo-btn .logo-us { display: none; }
   .logo-btn .logo-home-icon {
     display: flex;
@@ -1511,12 +1506,11 @@ svg { border: none !important; outline: none !important; }
     width: 30px;
     height: 30px;
     border-radius: 50%;
-    background: #8A9B94;
-    color: var(--bg-app);
+    background: var(--money);
+    color: var(--money-ink);
     font-size: 15px;
-    font-family: 'Lexend Deca', sans-serif;
+    font-family: 'Google Sans Flex', sans-serif;
     font-weight: 700;
-    font-style: normal;
     transition: opacity 0.15s ease, transform 0.15s ease;
   }
   .logo-btn .logo-home-icon:hover {
@@ -1563,7 +1557,7 @@ svg { border: none !important; outline: none !important; }
 
   /* Stat panel: stack stats vertically for scanability */
   .stat-panel { padding: 0.75rem; }
-  .stat-subtitle { font-size: 0.55rem; letter-spacing: 1px; margin-bottom: 0.3rem; line-height: 1.4; }
+  .stat-subtitle { font-size: var(--text-xs); letter-spacing: 0.5px; margin-bottom: 0.3rem; line-height: 1.4; }
   .stat-hero { font-size: 1.6rem; margin-bottom: 0.15rem; }
   .stat-row { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
   .stat-group { 
@@ -1580,7 +1574,7 @@ svg { border: none !important; outline: none !important; }
   /* Feed cards: tighter on mobile */
   .feed-card { padding: 0.75rem; }
   .meta-tags { gap: 4px; }
-  .meta-tag { font-size: 0.65rem; padding: 3px 6px; }
+  .meta-tag { font-size: var(--text-xs); padding: 4px 8px; }
 
   /* Responsive Chat Elements */
   .ai-msg-arti {
@@ -1624,7 +1618,7 @@ svg { border: none !important; outline: none !important; }
   .stat-hero { font-size: 1.5rem; }
   .stat-group { gap: 0.5rem; padding-left: 0.5rem; }
   .stat-value { font-size: var(--text-sm); }
-  .stat-subtitle { font-size: 0.55rem; }
+  .stat-subtitle { font-size: var(--text-xs); }
   .app-header { padding: 0.35rem 0.5rem; }
   .icon-btn { width: 28px; height: 28px; font-size: 12px; }
   .logo-btn .logo-home-icon { width: 28px; height: 28px; font-size: 13px; }
@@ -1678,21 +1672,21 @@ svg { border: none !important; outline: none !important; }
 /* Add this to your Global Rules */
 body {
   /* Uses Apple/Windows native smooth fonts for reading */
-  font-family: 'Lexend Deca', sans-serif; 
+  font-family: 'Google Sans Flex', sans-serif; 
 }
 
-/* Force Lexend Deca on numbers, buttons, headers, and UI elements */
+/* Force Google Sans Flex on numbers, buttons, headers, and UI elements */
 h1, h2, h3, h4, h5, h6, 
 button, input, select, textarea, 
 .deal-amount, .deal-vendor, .deal-date, .deal-agency,
 .reach-amount, .reach-badge, .meta-tag, .section-title,
 .footer-link, .breadcrumb-item {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
 }
 
 /* Let the AI output and deal descriptions use the smooth reading font */
 .ai-result-content, .deal-desc, .strategic-read p, .hero-subtitle {
-  font-family: 'Lexend Deca', sans-serif;
+  font-family: 'Google Sans Flex', sans-serif;
   letter-spacing: 0.2px;
 }
 .hero-suggestions {
@@ -1704,7 +1698,7 @@ button, input, select, textarea,
     justify-content: center;
     gap: 0.6rem;
     flex-wrap: wrap;
-    font-family: 'Lexend Deca', sans-serif;
+    font-family: 'Google Sans Flex', sans-serif;
 }
 
 .hero-suggestion-chip {
@@ -1713,7 +1707,7 @@ button, input, select, textarea,
     padding: 4px 10px;
     border-radius: var(--radius-pill);
     text-decoration: none;
-    font-family: 'Lexend Deca', sans-serif;
+    font-family: 'Google Sans Flex', sans-serif;
     font-size: var(--text-sm);
     border: 1px solid var(--border);
     transition: all 0.2s ease;
@@ -1756,7 +1750,7 @@ button, input, select, textarea,
     border-radius: var(--radius-md);
     color: var(--text-primary);
     font-size: var(--text-sm);
-    font-family: 'Lexend Deca', sans-serif;
+    font-family: 'Google Sans Flex', sans-serif;
     white-space: nowrap;
     opacity: 0;
     visibility: hidden;
@@ -1806,7 +1800,7 @@ button, input, select, textarea,
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 0.75rem 1rem;
-  font-family: 'Lexend Deca', sans-serif;
+  font-family: 'Google Sans Flex', sans-serif;
   font-size: var(--text-sm);
   color: var(--text-primary);
   box-shadow: 0 8px 24px rgba(0,0,0,0.4);
@@ -1848,7 +1842,7 @@ button, input, select, textarea,
   overflow: hidden;
 }
 .stat-subtitle {
-  font-family: 'Lexend Deca', sans-serif;
+  font-family: 'Google Sans Flex', sans-serif;
   font-size: var(--text-xs);
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -1859,7 +1853,7 @@ button, input, select, textarea,
   display: flex; align-items: baseline; gap: 1.5rem; flex-wrap: wrap;
 }
 .stat-hero {
-  font-family: 'Lexend Deca', sans-serif;
+  font-family: 'Google Sans Flex', sans-serif;
   font-size: var(--text-hero);
   font-weight: 600; color: var(--text-primary); line-height: 1;
 }
@@ -1869,17 +1863,17 @@ button, input, select, textarea,
 }
 .stat-item { display: flex; align-items: baseline; gap: 0.35rem; }
 .stat-value {
-  font-family: 'Lexend Deca', sans-serif;
+  font-family: 'Google Sans Flex', sans-serif;
   font-size: var(--text-lg); font-weight: 700; color: var(--text-primary);
 }
 .stat-label {
-  font-size: var(--text-xs); color: var(--text-secondary); text-transform: uppercase;
+  font-size: var(--text-xs); color: var(--text-secondary); text-transform: none;
 }
 .panel-footer {
   display: flex; align-items: center; justify-content: space-between;
   margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border);
   font-size: var(--text-xs); color: var(--text-secondary);
-  font-family: 'Lexend Deca', sans-serif;
+  font-family: 'Google Sans Flex', sans-serif;
 }
 
 /* Explainer box: collapsed editorial style */
@@ -1895,7 +1889,7 @@ button, input, select, textarea,
 }
 .explainer-box-content {
   font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.6;
-  font-family: 'Lexend Deca', sans-serif;
+  font-family: 'Google Sans Flex', sans-serif;
 }
 .explainer-box-content strong { color: var(--text-primary); }
 
@@ -1907,19 +1901,10 @@ button, input, select, textarea,
    Phase 4: Mobile Hierarchy Tuning
    ========================================= */
 
-/* --- COLOR REFRESH: Readable for 38–60 age range --- */
-:root {
-  --text-primary: #F0EDE8;
-  --text-muted: #C4CEC9;
-  --text-tertiary: #8A9691;
-  --link: #D0D6D3;
-  --section-gap: 1.25rem;
-}
-
 /* --- PHASE 1: TYPOGRAPHY & HIERARCHY --- */
 
 body {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   letter-spacing: 0.01em;
 }
 
@@ -1930,7 +1915,7 @@ body {
 .data-panel-title,
 .bubble-header,
 .footer-label {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   text-transform: none !important;
   letter-spacing: 0.02em !important;
   font-weight: 600 !important;
@@ -1961,7 +1946,7 @@ body {
 }
 
 .stat-hero {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   font-weight: 600 !important;
   letter-spacing: -0.02em;
 }
@@ -1975,7 +1960,7 @@ body {
 }
 
 .data-panel-subtitle {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   text-transform: none !important;
   letter-spacing: 0 !important;
   font-size: var(--text-xs) !important;
@@ -1991,7 +1976,7 @@ body {
   font-size: var(--text-xs) !important;
   color: var(--text-secondary) !important;
   letter-spacing: 0 !important;
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
 }
 
 /* Visual restraint on containers */
@@ -2021,7 +2006,7 @@ body {
 }
 
 .deal-desc {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   font-size: var(--text-lg) !important;
   font-weight: 600 !important;
   line-height: 1.5 !important;
@@ -2035,7 +2020,7 @@ body {
 .strategic-read p,
 .footer-text,
 .use-case-desc {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   line-height: 1.75 !important;
   letter-spacing: 0.01em !important;
   color: var(--text-secondary) !important;
@@ -2047,7 +2032,7 @@ body {
 .reach-amount,
 .reach-badge,
 .meta-tag {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
 }
 
 /* --- READABILITY BOOST: reach rows, meta, feed --- */
@@ -2082,7 +2067,7 @@ body {
 /* --- PHASE 2: CHART FRAMING & CAPTIONS --- */
 
 .panel-footer {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   font-size: var(--text-xs) !important;
   color: var(--text-tertiary) !important;
   text-transform: none !important;
@@ -2100,7 +2085,7 @@ body {
 }
 
 .bubble-toggle-btn {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   font-size: var(--text-xs) !important;
   letter-spacing: 0.05em !important;
   font-weight: 600 !important;
@@ -2115,7 +2100,7 @@ body {
 }
 
 .drill-hint {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   background: rgba(255, 255, 255, 0.02) !important;
   border: 1px dashed rgba(143, 158, 152, 0.12) !important;
   font-size: var(--text-sm) !important;
@@ -2134,7 +2119,7 @@ body {
 }
 
 .ai-banner-title {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   text-transform: none !important;
   letter-spacing: 0 !important;
   font-size: var(--text-base) !important;
@@ -2143,7 +2128,7 @@ body {
 }
 
 .ai-banner-desc {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   font-size: var(--text-sm) !important;
   color: var(--text-secondary) !important;
   line-height: 1.6 !important;
@@ -2152,7 +2137,7 @@ body {
 .btn-ai {
   background: var(--brand) !important;
   color: var(--brand-text) !important;
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   font-weight: 700 !important;
   font-size: var(--text-sm) !important;
   letter-spacing: 0.06em !important;
@@ -2176,7 +2161,7 @@ body {
 }
 
 .ai-header h3 {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   text-transform: none !important;
   letter-spacing: 0 !important;
   font-size: var(--text-lg) !important;
@@ -2186,7 +2171,7 @@ body {
 .strategic-read h1,
 .strategic-read h2,
 .strategic-read h3 {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   text-transform: none !important;
   letter-spacing: 0 !important;
   font-size: var(--text-base) !important;
@@ -2196,7 +2181,7 @@ body {
 }
 
 .strategic-read p {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   line-height: 1.75 !important;
   font-size: var(--text-base) !important;
   color: var(--text-secondary) !important;
@@ -2204,7 +2189,7 @@ body {
 
 .strategic-read > p:first-child,
 .strategic-read > p:first-of-type {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   font-size: var(--text-lg) !important;
   line-height: 1.6 !important;
   border-left: 2px solid var(--accent) !important;
@@ -2213,23 +2198,23 @@ body {
 }
 
 .ai-msg-user {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   border-radius: var(--radius-sm) !important;
 }
 
 .ai-chat-input-wrapper input {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
 }
 
 .ai-disclaimer {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   font-size: var(--text-xs) !important;
   opacity: 0.7 !important;
   color: var(--text-secondary) !important;
 }
 
 .ai-chat-counter {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   font-size: var(--text-xs) !important;
   opacity: 0.6 !important;
 }
@@ -2270,7 +2255,7 @@ body {
 /* --- PHASE 4: MOBILE & GLOBAL --- */
 
 .hero-subtitle {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   font-size: var(--text-lg) !important;
   color: var(--text-primary) !important;
   font-weight: 400 !important;
@@ -2279,14 +2264,14 @@ body {
 }
 
 .terminal-logo .logo-name {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   color: #C0C8C4 !important;
 }
 
 .main-input {
   box-shadow: none !important;
   border: 1px solid rgba(143, 158, 152, 0.25) !important;
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
 }
 
 .main-input:focus {
@@ -2311,7 +2296,7 @@ body {
 }
 
 .btn-primary, #searchBtn {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   font-size: var(--text-base) !important;
   box-shadow: none !important;
 }
@@ -2321,12 +2306,12 @@ body {
 }
 
 .hero-suggestion-chip {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   font-size: var(--text-xs) !important;
 }
 
 .footer-label {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   text-transform: uppercase !important;
   letter-spacing: 0.08em !important;
   font-size: var(--text-xs) !important;
@@ -2334,7 +2319,7 @@ body {
 }
 
 .use-case-title {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   text-transform: none !important;
   letter-spacing: 0 !important;
   font-weight: 600 !important;
@@ -2359,14 +2344,14 @@ body {
 }
 
 .mission-gap-toggle {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   font-size: var(--text-xs) !important;
   font-weight: 700 !important;
   letter-spacing: 0.06em !important;
 }
 
 .breadcrumb-item {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   font-size: var(--text-sm) !important;
 }
 
@@ -2375,12 +2360,12 @@ body {
 }
 
 .mini-search {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   box-shadow: none !important;
 }
 
 #loaderText {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   text-transform: none !important;
   letter-spacing: 0 !important;
   font-weight: 600 !important;
@@ -2389,23 +2374,23 @@ body {
 /* --- COHESIVE LINK BUTTONS: job-link, action-btn, footer-link --- */
 /* Unified "pill button" design language for all dynamic linked actions */
 .job-link {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   font-size: var(--text-xs) !important;
-  font-weight: 600 !important;
-  color: var(--text-secondary) !important;
-  background: rgba(255, 255, 255, 0.04) !important;
-  border: 1px solid rgba(143, 158, 152, 0.18) !important;
+  font-weight: 500 !important;
+  color: var(--text-tertiary) !important;
+  background: none !important;
+  border: none !important;
   border-radius: var(--radius-sm) !important;
-  padding: 3px 8px !important;
+  padding: 2px 4px !important;
   text-decoration: none !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.04em !important;
-  transition: all 0.15s ease !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  transition: color 0.15s ease !important;
 }
 
 .job-link:hover {
   color: var(--text-primary) !important;
-  background: rgba(192, 200, 196, 0.08) !important;
+  background: rgba(255,255,255,0.04) !important;
   border-color: var(--accent) !important;
 }
 
@@ -2414,7 +2399,7 @@ body {
 }
 
 .deal-footer .action-btn {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   text-transform: uppercase !important;
   letter-spacing: 0.06em !important;
   font-weight: 700 !important;
@@ -2433,7 +2418,7 @@ body {
 }
 
 .btn-ai-outline {
-  font-family: 'Lexend Deca', sans-serif !important;
+  font-family: 'Google Sans Flex', sans-serif !important;
   text-transform: uppercase !important;
   letter-spacing: 0.06em !important;
   font-weight: 700 !important;
@@ -2540,6 +2525,7 @@ body {
     <div class="hero-suggestions">
       <a href="?q=ZERO+TRUST%2C+FIREWALL" class="hero-suggestion-chip">ZERO TRUST, FIREWALL</a>
       <a href="?q=541512+AND+AIR FORCE" class="hero-suggestion-chip">541512 AND AIR FORCE</a>
+      <a href="?q=SOCOM" class="hero-suggestion-chip">SOCOM</a>
       <a href="?q=SBIR+PHASE+III" class="hero-suggestion-chip">SBIR PHASE III</a>
     </div>
 
@@ -2614,7 +2600,7 @@ body {
             <a href="https://www.linkedin.com/in/markflournoy/" target="_blank" class="footer-link">LinkedIn</a>.
           </p>
           <div style="padding: 1rem; margin-top: 1.2rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md);">
-            <div style="font-family: 'Lexend Deca', sans-serif; font-size: var(--text-sm); font-weight: 700; color: var(--text-primary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">
+            <div style="font-family: 'Google Sans Flex', sans-serif; font-size: var(--text-sm); font-weight: 700; color: var(--text-primary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">
               30-Min Google Meet
             </div>
             <div style="font-size: var(--text-sm); color: var(--text-primary); opacity: 0.95; line-height: 1.4; margin-bottom: 1rem;">
@@ -2630,7 +2616,7 @@ body {
 
       </div>
       <div class="footer-bottom">
-        <div class="footer-copyright">© 2026 <span style="font-family: 'Lexend Deca', sans-serif;font-weight:600;color:#C0C8C4;">GOVHOO.COM</span> — DATA VIA USASPENDING.GOV</div>
+        <div class="footer-copyright">© 2026 <span style="font-family: 'Google Sans Flex', sans-serif;font-weight:600;color:#C0C8C4;">GOVHOO.COM</span> — DATA VIA USASPENDING.GOV</div>
       </div>
     </footer>
   </div>
@@ -2638,7 +2624,7 @@ body {
   <div id="appView" style="display:none;">
     <header class="app-header">
       <div class="header-left">
-        <span class="logo-btn" data-action="showHero" title="Back to home"><span class="logo-home-icon">G</span><span class="logo-name">Govhoo</span></span>
+        <span class="logo-btn" data-action="showHero" title="Back to home"><span class="logo-home-icon"><i class="fa-solid fa-house"></i></span><span class="logo-name">Govhoo</span></span>
         <div class="mini-search-wrapper">
           <input type="text" id="miniSearch" class="mini-search" placeholder="Search keywords, companies, NAICS, agencies...">
         </div>
@@ -2720,7 +2706,7 @@ body {
           </div>
           <div class="panel-footer">
             <span id="marketHealth"></span>
-            <span style="display:inline-flex;align-items:baseline;"><span style="font-family: 'Lexend Deca', sans-serif;font-weight:600;color:#C0C8C4;">Govhoo.com</span></span>
+            <span style="display:inline-flex;align-items:baseline;"><span style="font-family: 'Google Sans Flex', sans-serif;font-weight:600;color:#C0C8C4;">Govhoo.com</span></span>
           </div>
         </div>
 
@@ -2759,7 +2745,7 @@ body {
           </div>
           <div class="panel-footer">
             <span> Size = total award value · Click to drill down · Toggle Treemap for market share view</span>
-            <span style="display:inline-flex;align-items:baseline;"><span style="font-family: 'Lexend Deca', sans-serif;font-weight:600;color:#C0C8C4;">Govhoo.com</span></span>
+            <span style="display:inline-flex;align-items:baseline;"><span style="font-family: 'Google Sans Flex', sans-serif;font-weight:600;color:#C0C8C4;">Govhoo.com</span></span>
           </div>
         </div>
 
@@ -2809,8 +2795,8 @@ body {
 
         <div id="primeExplainerBox" class="explainer-box" style="display:none;">
           <div style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 0.5rem 0;" onclick="(function(e){ var b=e.currentTarget.nextElementSibling; var icon=e.currentTarget.querySelector('.etm-toggle-icon'); if(b.style.display==='none'){b.style.display='block';icon.textContent='−';}else{b.style.display='none';icon.textContent='+';} })(event)">
-            <span style="font-family: 'Lexend Deca', sans-serif; font-size: var(--text-sm); font-weight: 600; color: var(--text-primary);">How to read this data</span>
-            <span class="etm-toggle-icon" style="font-family: 'Lexend Deca', sans-serif; font-size: var(--text-lg); color: var(--text-secondary); font-weight: 700; line-height: 1; padding: 0 4px;">+</span>
+            <span style="font-family: 'Google Sans Flex', sans-serif; font-size: var(--text-sm); font-weight: 600; color: var(--text-primary);">How to read this data</span>
+            <span class="etm-toggle-icon" style="font-family: 'Google Sans Flex', sans-serif; font-size: var(--text-lg); color: var(--text-secondary); font-weight: 700; line-height: 1; padding: 0 4px;">+</span>
           </div>
           <div style="display: none; font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.7; padding-top: 0.5rem; border-top: 1px solid rgba(143, 158, 152, 0.08);">
             You're looking at live federal award data from USASpending.gov. Every contract shown had funding activity in the past 12 months. Dollar values are <strong style="color: var(--text-primary);">total obligations to date</strong> — the government's cumulative commitment over the life of the contract.<br><br>
@@ -2873,7 +2859,7 @@ body {
             </div>
             <div class="panel-footer">
               <span> Bubble size = subaward value · Click to drill</span>
-              <span style="display:inline-flex;align-items:baseline;"><span style="font-family: 'Lexend Deca', sans-serif;font-weight:600;color:#C0C8C4;">Govhoo.com</span></span>
+              <span style="display:inline-flex;align-items:baseline;"><span style="font-family: 'Google Sans Flex', sans-serif;font-weight:600;color:#C0C8C4;">Govhoo.com</span></span>
             </div>
           </div>
 
@@ -2897,8 +2883,8 @@ body {
 
           <div id="subExplainerBox" class="explainer-box" style="display: none;">
           <div style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 0.5rem 0;" onclick="(function(e){ var b=e.currentTarget.nextElementSibling; var icon=e.currentTarget.querySelector('.etm-toggle-icon'); if(b.style.display==='none'){b.style.display='block';icon.textContent='−';}else{b.style.display='none';icon.textContent='+';} })(event)">
-            <span style="font-family: 'Lexend Deca', sans-serif; font-size: var(--text-sm); font-weight: 600; color: var(--text-primary);">How to read this data</span>
-            <span class="etm-toggle-icon" style="font-family: 'Lexend Deca', sans-serif; font-size: var(--text-lg); color: var(--text-secondary); font-weight: 700; line-height: 1; padding: 0 4px;">+</span>
+            <span style="font-family: 'Google Sans Flex', sans-serif; font-size: var(--text-sm); font-weight: 600; color: var(--text-primary);">How to read this data</span>
+            <span class="etm-toggle-icon" style="font-family: 'Google Sans Flex', sans-serif; font-size: var(--text-lg); color: var(--text-secondary); font-weight: 700; line-height: 1; padding: 0 4px;">+</span>
           </div>
           <div style="display: none; font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.7; padding-top: 0.5rem; border-top: 1px solid rgba(143, 158, 152, 0.08);">
             This is subcontracting activity from the past 12 months. Dollar amounts are <strong style="color: var(--text-primary);">individual transaction values</strong>, not cumulative obligations. Use this to understand who does the work, who the gatekeepers are, and where teaming relationships already exist.<br><br>
@@ -2937,8 +2923,8 @@ body {
   <div id="loader" class="loader">
     <div style="display:flex;flex-direction:column;align-items:center;gap:1rem;max-width:320px;text-align:center;">
       <div class="spinner"></div>
-      <p id="loaderText" style="font-family: 'Lexend Deca', sans-serif;color:var(--brand);font-size:var(--text-base);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin:0;">Retrieving data...</p>
-      <p id="loaderSubtext" style="color:var(--text-tertiary);font-size:var(--text-sm);margin:0;font-family: 'Lexend Deca', sans-serif;"></p>
+      <p id="loaderText" style="font-family: 'Google Sans Flex', sans-serif;color:var(--brand);font-size:var(--text-base);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin:0;">Retrieving data...</p>
+      <p id="loaderSubtext" style="color:var(--text-tertiary);font-size:var(--text-sm);margin:0;font-family: 'Google Sans Flex', sans-serif;"></p>
       <div style="width:200px;height:3px;background:rgba(255,255,255,0.05);border-radius:var(--radius-sm);overflow:hidden;position:relative;">
         <div style="position:absolute;top:0;left:-40%;width:40%;height:100%;background:var(--brand);border-radius:var(--radius-sm);animation:loaderSlide 1.2s ease-in-out infinite;"></div>
       </div>
@@ -2966,41 +2952,29 @@ body {
 // SECTION 2: LIBRARY LOADER (Smart Preloading)
 // ========================================
 const LibLoader = {
-  d3Loaded: false,
-  loading: { d3: null },
-  
-  async loadD3() {
-    if (this.d3Loaded && window.d3 && window.d3.sankey) return Promise.resolve();
-    if (this.loading.d3) return this.loading.d3;
-    
-    this.loading.d3 = new Promise((resolve, reject) => {
-      const script1 = document.createElement('script');
-      script1.src = 'https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js';
-      script1.onload = () => {
-        const script2 = document.createElement('script');
-        script2.src = 'https://cdnjs.cloudflare.com/ajax/libs/d3-sankey/0.12.3/d3-sankey.min.js';
-        script2.onload = () => { this.d3Loaded = true; resolve(); };
-        script2.onerror = reject;
-        document.head.appendChild(script2);
+  _p: null,
+  loadD3() {
+    if (window.d3 && window.d3.sankey) return Promise.resolve();
+    if (this._p) return this._p;
+    this._p = new Promise((resolve, reject) => {
+      const s1 = document.createElement('script');
+      s1.src = 'https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js';
+      s1.onload = () => {
+        const s2 = document.createElement('script');
+        s2.src = 'https://cdnjs.cloudflare.com/ajax/libs/d3-sankey/0.12.3/d3-sankey.min.js';
+        s2.onload = resolve;
+        s2.onerror = reject;
+        document.head.appendChild(s2);
       };
-      script1.onerror = reject;
-      document.head.appendChild(script1);
+      s1.onerror = reject;
+      document.head.appendChild(s1);
     });
-    return this.loading.d3;
+    return this._p;
   },
-  
-async ensureAll() {
-    // Only wait for D3 since Chart.js is removed
-    await this.loadD3();
-  },
-  
-  // Preload during idle time - runs after page load for instant first search
+  ensureAll() { return this.loadD3(); },
   preloadWhenIdle() {
-    if ('requestIdleCallback' in window) {
-      requestIdleCallback(() => this.ensureAll(), { timeout: 2000 });
-    } else {
-      setTimeout(() => this.ensureAll(), 100);
-    }
+    if ('requestIdleCallback' in window) requestIdleCallback(() => this.loadD3(), { timeout: 2000 });
+    else setTimeout(() => this.loadD3(), 100);
   }
 };
 
@@ -3009,6 +2983,9 @@ async ensureAll() {
 // ========================================
 const Utils = {
   // Animate deal cards with staggered entrance
+  showMoreBtn(onclick, label) {
+    return `<button onclick="${onclick}" class="show-more-btn">${label}</button>`;
+  },
   animateCards(container) {
     if (!container) return;
     const cards = container.querySelectorAll('.deal-card');
@@ -3072,77 +3049,52 @@ formatDateISO: date => date.toISOString().split('T')[0],
       }
     }, frameRate);
   },
-copyDealToClipboard(idx, btn) {
+copyFields(pairs, btn) {
+    copyAndFlash(pairs.filter(Boolean).join('\n'), btn);
+  },
+  copyDealToClipboard(idx, btn) {
     const c = App.searchData.active[idx];
     if (!c) return;
-    const internalId = c['generated_internal_id'];
-    let url = '';
-    if (internalId) url = `https://www.usaspending.gov/award/${internalId}`;
-    const vehicle = VehicleDetector.detect(c['Award ID']);
-    const setAside = VehicleDetector.getSetAsideLabel(c['Type of Set Aside']);
-    const contractType = Utils.getContractTypeTag(c['Contract Award Type']);
-    const text = [
+    const id = c['generated_internal_id'], url = id ? `https://www.usaspending.gov/award/${id}` : '';
+    const v = VehicleDetector.detect(c['Award ID']), sa = VehicleDetector.getSetAsideLabel(c['Type of Set Aside']);
+    const ct = Utils.getContractTypeTag(c['Contract Award Type']);
+    this.copyFields([
       `Agency: ${c['Awarding Agency'] || 'N/A'}`,
       c['Awarding Sub Agency'] && c['Awarding Sub Agency'] !== c['Awarding Agency'] ? `Sub-Agency: ${c['Awarding Sub Agency']}` : null,
-      `Vendor: ${c['Recipient Name'] || 'N/A'}`,
-      `Obligated: ${Utils.money(c['Award Amount'])}`,
-      
+      `Vendor: ${c['Recipient Name'] || 'N/A'}`, `Obligated: ${Utils.money(c['Award Amount'])}`,
       `Description: ${(c['Description'] || 'N/A').substring(0, 200)}`,
-      `Start: ${c['Start Date'] || 'N/A'}`,
-      `End: ${c['End Date'] || 'N/A'}`,
+      `Start: ${c['Start Date'] || 'N/A'}`, `End: ${c['End Date'] || 'N/A'}`,
       c['Award ID'] ? `Award ID: ${c['Award ID']}` : null,
       c['Last Modified Date'] ? `Last Modified: ${c['Last Modified Date']}` : null,
-      contractType ? `Type: ${contractType.full}` : null,
-      vehicle ? `Vehicle: ${vehicle.vehicle}` : null,
-      setAside ? `Set-Aside: ${setAside}` : null,
+      ct ? `Type: ${ct.full}` : null, v ? `Vehicle: ${v.vehicle}` : null, sa ? `Set-Aside: ${sa}` : null,
       c['NAICS Code'] ? `NAICS: ${c['NAICS Code']} - ${c['NAICS Description'] || ''}` : null,
       c['PSC Code'] ? `PSC: ${c['PSC Code']} - ${c['PSC Description'] || ''}` : null,
       url ? `Link: ${url}` : null
-    ].filter(Boolean).join('\n');
-    navigator.clipboard.writeText(text).then(() => {
-      if (btn) { btn.innerHTML = ''; btn.style.color = 'var(--accent)'; setTimeout(() => { btn.innerHTML = ''; btn.style.color = ''; }, 1500); }
-    });
+    ], btn);
   },
   copySubDealToClipboard(dataStr, btn) {
     try {
       const s = JSON.parse(decodeURIComponent(dataStr));
       const url = s.prime_award_generated_internal_id ? `https://www.usaspending.gov/award/${s.prime_award_generated_internal_id}` : '';
-      const text = [
-        `Type: Subcontract`,
-        `Agency: ${s['Awarding Agency'] || 'N/A'}`,
-        `Prime: ${s['Prime Recipient Name'] || 'N/A'}`,
-        `Subcontractor: ${s['Sub-Awardee Name'] || 'N/A'}`,
-        `Amount: ${Utils.money(parseFloat(s['Sub-Award Amount']) || 0)}`,
-        `Date: ${s['Sub-Award Date'] || 'N/A'}`,
+      this.copyFields([
+        `Type: Subcontract`, `Agency: ${s['Awarding Agency'] || 'N/A'}`,
+        `Prime: ${s['Prime Recipient Name'] || 'N/A'}`, `Subcontractor: ${s['Sub-Awardee Name'] || 'N/A'}`,
+        `Amount: ${Utils.money(parseFloat(s['Sub-Award Amount']) || 0)}`, `Date: ${s['Sub-Award Date'] || 'N/A'}`,
         url ? `Prime Award: ${url}` : null
-      ].filter(Boolean).join('\n');
-      navigator.clipboard.writeText(text).then(() => {
-        if (btn) { btn.innerHTML = ''; btn.style.color = 'var(--accent)'; setTimeout(() => { btn.innerHTML = ''; btn.style.color = ''; }, 1500); }
-      });
+      ], btn);
     } catch(e) { console.error('Copy failed', e); }
   },
   copyRecompeteToClipboard(btn, agency, subAgency, vendor, amount, desc, start, end, awardId, psc, pscDesc, naics, naicsDesc, setAside, url) {
-    const vehicle = VehicleDetector.detect(awardId);
-    const setAsideLabel = VehicleDetector.getSetAsideLabel(setAside);
-    const text = [
-      `EXPIRING CONTRACT`,
-      `Agency: ${agency || 'N/A'}`,
+    const v = VehicleDetector.detect(awardId), sa = VehicleDetector.getSetAsideLabel(setAside);
+    this.copyFields([
+      `EXPIRING CONTRACT`, `Agency: ${agency || 'N/A'}`,
       subAgency && subAgency !== agency ? `Sub-Agency: ${subAgency}` : null,
-      `Incumbent: ${vendor || 'N/A'}`,
-      `Amount: ${amount}`,
-      `Description: ${desc || 'N/A'}`,
-      `Start: ${start || 'N/A'}`,
-      `Expires: ${end || 'N/A'}`,
-      awardId ? `Award ID: ${awardId}` : null,
-      vehicle ? `Vehicle: ${vehicle.vehicle}` : null,
-      setAsideLabel ? `Set-Aside: ${setAsideLabel}` : null,
-      naics ? `NAICS: ${naics} - ${naicsDesc || ''}` : null,
-      psc ? `PSC: ${psc} - ${pscDesc || ''}` : null,
+      `Incumbent: ${vendor || 'N/A'}`, `Amount: ${amount}`, `Description: ${desc || 'N/A'}`,
+      `Start: ${start || 'N/A'}`, `Expires: ${end || 'N/A'}`,
+      awardId ? `Award ID: ${awardId}` : null, v ? `Vehicle: ${v.vehicle}` : null, sa ? `Set-Aside: ${sa}` : null,
+      naics ? `NAICS: ${naics} - ${naicsDesc || ''}` : null, psc ? `PSC: ${psc} - ${pscDesc || ''}` : null,
       url ? `Link: ${url}` : null
-    ].filter(Boolean).join('\n');
-    navigator.clipboard.writeText(text).then(() => {
-      if (btn) { btn.innerHTML = ''; btn.style.color = 'var(--accent)'; setTimeout(() => { btn.innerHTML = ''; btn.style.color = ''; }, 1500); }
-    });
+    ], btn);
   },
   money: n => {
     if (!n && n !== 0) return '-';
@@ -3154,6 +3106,11 @@ copyDealToClipboard(idx, btn) {
   trunc: (s, l) => (s && s.length > l) ? s.substring(0,l)+'...' : (s || 'No Description'),
   date: s => s ? new Date(s).toLocaleDateString() : '—',
   formatDateISO: date => date.toISOString().split('T')[0],
+  getTrailing12Mo() {
+    const end = new Date(), start = new Date();
+    start.setFullYear(end.getFullYear() - 1);
+    return [{ start_date: this.formatDateISO(start), end_date: this.formatDateISO(end) }];
+  },
   
   getCurrentFY: () => {
     const now = new Date();
@@ -3164,16 +3121,16 @@ copyDealToClipboard(idx, btn) {
   
 getColor: (() => {
   const palette = [
-    '#8A9B94', // 1. Muted Sage (The Hero - Base)
-    '#7B6D8D', // 2. Villain Purple (Button Color - Promoted to top spot)
-    '#5B7C99', // 3. Spidey Blue (Button Color - Promoted)
-    '#E07A5F', // 4. Advertisement Orange (Button Color - Promoted)
-    '#D98895', // 5. POW! Pink (Faded Magenta)
-    '#3D405B', // 6. Inker's Navy (Dark Anchor)
-    '#F2E8CF', // 7. Newsprint (The perfect Off-White/Cream paper)
-    '#A8B5B0', // 8. Fog (Neutral Sage)
-    '#778DA9', // 9. Blue-Grey Shadow (Halftone shading)
-    '#8C8577'  // 10. Driftwood (Warm Taupe)
+    '#8A9B94', // 1. Chart: Muted Sage
+    '#7B6D8D', // 2. Chart: Muted Purple
+    '#5B7C99', // 3. Chart: Slate Blue
+    '#E07A5F', // 4. Chart: Terracotta
+    '#D98895', // 5. Chart: Dusty Rose
+    '#3D405B', // 6. Chart: Dark Navy
+    '#F2E8CF', // 7. Chart: Newsprint
+    '#A8B5B0', // 8. Chart: Fog
+    '#778DA9', // 9. Chart: Blue-Grey
+    '#8C8577'  // 10. Army Surplus (Drab Olive)
   ];
 
   const assigned = new Map();
@@ -3434,6 +3391,150 @@ normalizeQuery(query) {
   }
 };
 
+// Shared helpers (global for onclick handler compat)
+const SUB_FIELD_MAP = { agency: ['Awarding Agency','Unknown Agency'], subagency: ['Awarding Sub Agency','Unknown Sub Agency'], prime: ['Prime Recipient Name','Unknown Prime'], sub: ['Sub-Awardee Name','Unknown Sub'] };
+function applySubDrillFilter(data, drill) {
+  if (!drill || !drill.level || !drill.path || !drill.path.length) return data;
+  let f = data;
+  drill.path.forEach(step => { const [field, fb] = SUB_FIELD_MAP[step.type] || []; if (field) f = f.filter(s => (s[field] || fb) === step.name); });
+  return f;
+}
+function copyAndFlash(text, btn) {
+  navigator.clipboard.writeText(text).then(() => { if (!btn) return; btn.innerHTML = ''; btn.style.color = 'var(--accent)'; setTimeout(() => { btn.innerHTML = ''; btn.style.color = ''; }, 1500); });
+}
+
+// ==================== CHART UTILITIES ====================
+const ChartUtils = {
+  // Text fitting for D3 visualizations
+  wrapText(name, maxW, fontSize) {
+    const charW = fontSize * 0.58, maxChars = Math.floor(maxW / charW);
+    if (maxChars < 3) return [];
+    const words = name.split(/\s+/), lines = []; let cur = '';
+    words.forEach(w => { const t = cur ? cur + ' ' + w : w; if (t.length <= maxChars) { cur = t; } else { if (cur) lines.push(cur); cur = w.length > maxChars ? w.slice(0, maxChars - 1) + '\u2026' : w; } });
+    if (cur) lines.push(cur); return lines;
+  },
+  fitTreemapText(d) {
+    const cW = d.x1 - d.x0, cH = d.y1 - d.y0, name = d.data.name;
+    for (let fs = Math.min(cW / 5, cH / 3, 22); fs >= 7; fs -= 0.5) { const nl = ChartUtils.wrapText(name, cW - 12, fs), aFs = fs * 0.85, lH = fs * 1.25, tH = nl.length * lH + aFs * 1.3 + 8; if (tH < cH - 8 && nl.length > 0 && nl.length <= 4) return { nameLines: nl, fontSize: fs, amountFs: aFs, lineH: lH, totalH: tH }; }
+    const fs = 7, charW = fs * 0.58, maxC = Math.floor((cW - 12) / charW);
+    return { nameLines: [Utils.trunc(name, Math.max(maxC, 3))], fontSize: fs, amountFs: 6, lineH: fs * 1.25, totalH: fs * 2.5 + 8 };
+  },
+  fitCircleText(d) {
+    const r = d.r, name = d.data.name;
+    for (let fs = Math.min(r / 2.5, 20); fs >= 7; fs -= 0.5) { const nl = ChartUtils.wrapText(name, r * 1.6, fs), aFs = fs * 0.85, lH = fs * 1.2, tH = nl.length * lH + aFs * 1.3 + 4; if (tH < r * 1.6 && nl.length > 0 && nl.length <= 3) return { nameLines: nl, fontSize: fs, amountFs: aFs, lineH: lH, totalH: tH }; }
+    return null;
+  },
+  // Shared bubble/treemap chart interactions (tooltip + touch + drill)
+  attachInteractions(selection, svg, tooltip, container, w, h, isTouch, buildTip, doDrill, touchState) {
+    if (isTouch) {
+      selection.on('click', function(event, d) {
+        event.stopPropagation();
+        const e = d.data || d;
+        if (touchState.touchStateGet() === e.name) {
+          tooltip.classList.remove('visible'); touchState.touchStateSet(null); doDrill(e);
+        } else {
+          touchState.touchStateSet(e.name);
+          tooltip.innerHTML = buildTip(e);
+          tooltip.style.left = '50%'; tooltip.style.top = 'auto'; tooltip.style.bottom = '8px';
+          tooltip.style.transform = 'translateX(-50%)'; tooltip.style.maxWidth = '90%';
+          tooltip.classList.add('visible');
+        }
+      });
+      svg.on('click', function() { tooltip.classList.remove('visible'); touchState.touchStateSet(null); });
+    } else {
+      selection
+        .on('mouseover', function(event, d) { tooltip.innerHTML = buildTip(d.data || d); tooltip.classList.add('visible'); })
+        .on('mousemove', function(event) {
+          const cr = container.getBoundingClientRect();
+          let tx = event.clientX - cr.left + 15, ty = event.clientY - cr.top - 10;
+          if (tx + 260 > w) tx -= 280; if (ty + 90 > h) ty -= 100;
+          tooltip.style.left = tx + 'px'; tooltip.style.top = ty + 'px';
+          tooltip.style.bottom = 'auto'; tooltip.style.transform = 'none'; tooltip.style.maxWidth = '';
+        })
+        .on('mouseout', function() { tooltip.classList.remove('visible'); })
+        .on('click', function(event, d) { tooltip.classList.remove('visible'); doDrill(d.data || d); });
+    }
+  },
+  // Generic Sankey renderer — shared between prime and sub Sankeys
+  drawSankey(svgEl, { nodes, links, gradientPrefix, isDrillable, isActive, onNodeClick, heightPerNode }) {
+    const w = svgEl.node().parentElement ? svgEl.node().parentElement.offsetWidth - 2 : 800;
+    const h = Math.max(heightPerNode > 25 ? 500 : 350, nodes.length * (heightPerNode || 28));
+
+    svgEl.attr('viewBox', `0 0 ${w} ${h}`)
+      .attr('preserveAspectRatio', 'xMidYMid meet')
+      .style('width', '100%').style('height', 'auto').style('display', 'block');
+
+    const nodeMap = new Map(nodes.map((n, i) => [n.name, i]));
+    const d3Links = links.map(l => ({ source: nodeMap.get(l.source), target: nodeMap.get(l.target), value: l.value }));
+
+    const sankey = d3.sankey().nodeId(d => d.index).nodeWidth(20).nodePadding(20).extent([[1, 1], [w - 1, h - 6]]);
+    const { nodes: gn, links: gl } = sankey({
+      nodes: nodes.map(d => Object.assign({}, d)),
+      links: d3Links.map(d => Object.assign({}, d))
+    });
+
+    // Gradients
+    Utils.getColor.reset();
+    const defs = svgEl.append('defs');
+    gl.forEach((l, i) => {
+      const g = defs.append('linearGradient')
+        .attr('id', `${gradientPrefix}-${i}`)
+        .attr('gradientUnits', 'userSpaceOnUse')
+        .attr('x1', l.source.x1).attr('x2', l.target.x0);
+      g.append('stop').attr('offset', '0%').attr('stop-color', Utils.getColor(l.source.name));
+      g.append('stop').attr('offset', '100%').attr('stop-color', Utils.getColor(l.target.name));
+    });
+
+    // Links
+    svgEl.append('g').attr('fill', 'none').selectAll('path').data(gl).join('path')
+      .attr('d', d3.sankeyLinkHorizontal())
+      .attr('stroke', (d, i) => `url(#${gradientPrefix}-${i})`)
+      .attr('stroke-width', d => Math.max(1, d.width))
+      .attr('stroke-opacity', 0.4)
+      .style('transition', 'stroke-opacity 0.2s')
+      .on('mouseover', function() { d3.select(this).attr('stroke-opacity', 0.8); })
+      .on('mouseout', function() { d3.select(this).attr('stroke-opacity', 0.4); })
+      .append('title').text(d => `${d.source.name} \u2192 ${d.target.name}\n${Utils.money(d.value)}`);
+
+    // Nodes
+    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    svgEl.append('g').selectAll('rect').data(gn).join('rect')
+      .attr('x', d => d.x0).attr('y', d => d.y0)
+      .attr('height', d => Math.max(1, d.y1 - d.y0))
+      .attr('width', d => d.x1 - d.x0)
+      .attr('fill', d => Utils.getColor(d.name))
+      .attr('opacity', d => isActive(d) ? 1 : 0.8)
+      .attr('stroke', d => isActive(d) ? '#F1EEE9' : 'transparent')
+      .attr('stroke-width', d => isActive(d) ? 0 : (isTouch ? 24 : 0))
+      .style('cursor', d => isDrillable(d) ? 'pointer' : 'default')
+      .on('click', function(e, d) { if (isDrillable(d)) onNodeClick(d, this); })
+      .on('mouseover', function(e, d) { if (isDrillable(d)) d3.select(this).attr('opacity', 1); })
+      .on('mouseout', function(e, d) { d3.select(this).attr('opacity', isActive(d) ? 1 : 0.8); })
+      .append('title').text(d => {
+        if (!isDrillable(d)) return `${d.name}\n${Utils.money(d.value)}`;
+        const action = isActive(d) ? '\u2190 Click to drill out' : 'Click to drill down \u2192';
+        return `${d.name}\n${Utils.money(d.value)}\n${action}`;
+      });
+
+    // Labels
+    const isNarrow = w < 600;
+    svgEl.append('g').selectAll('text').data(gn).join('text')
+      .attr('x', d => d.x0 < w / 2 ? d.x1 + 6 : d.x0 - 6)
+      .attr('y', d => (d.y1 + d.y0) / 2)
+      .attr('dy', d => { if (d.y1 - d.y0 > 30) return d.x0 < w / 2 ? '-0.5em' : '1.1em'; return '0.35em'; })
+      .attr('text-anchor', d => d.x0 < w / 2 ? 'start' : 'end')
+      .text(d => Utils.trunc(d.name, isNarrow ? 25 : 40))
+      .style('font-size', '11px')
+      .style('font-weight', d => (d.y1 - d.y0 > 30) ? '700' : '400')
+      .style('fill', App.presentationMode ? '#1A1A1A' : '#F1EEE9')
+      .style('pointer-events', 'none');
+
+    return { nodes: gn, links: gl, w, h };
+  }
+};
+// Backward-compat: keep global names for bubble charts that call them directly
+const attachChartInteractions = ChartUtils.attachInteractions.bind(ChartUtils);
+
 // ==================== AUTOCOMPLETE ====================
 const VehicleDetector = {
   // GWAC/IDIQ/Vehicle detection from Award ID (PIID) prefixes
@@ -3492,6 +3593,16 @@ const Html = {
   escapeHtml(str) {
     if (!str) return '';
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  },
+  parseAiMarkdown(rawText) {
+    if (!rawText) return '';
+    const processed = rawText.replace(/==([^=]+)==/g, '<mark>$1</mark>');
+    if (window.marked && typeof window.marked.parse === 'function') {
+      marked.setOptions({ breaks: true, gfm: true });
+      return marked.parse(processed);
+    }
+    const safe = Html.escapeHtml(processed).replace(/&lt;mark&gt;/g, '<mark>').replace(/&lt;\/mark&gt;/g, '</mark>');
+    return `<pre style="white-space: pre-wrap; font-family: 'Google Sans Flex', sans-serif; font-size: var(--text-sm); line-height: 1.5;">${safe}</pre>`;
   }
 };
 
@@ -3510,14 +3621,8 @@ const API = {
   
   // Search Mode API
   async searchAwards(keywords) {
-    const today = new Date();
-    const oneYearAgo = new Date();
-    oneYearAgo.setFullYear(today.getFullYear() - 1);
-    
-    const period = {
-      start_date: Utils.formatDateISO(oneYearAgo),
-      end_date: Utils.formatDateISO(today)
-    };
+    const timePeriod = Utils.getTrailing12Mo();
+    const period = timePeriod[0];
     
     const { pscCodes, naicsCodes, keywordTerms, andGroups } = Utils.parseSearchTerms(keywords);
     
@@ -3624,10 +3729,7 @@ const API = {
   // NAICS breakdown via spending_by_category/naics — the spending_by_award endpoint
   // returns null for NAICS fields, so we use this dedicated aggregation endpoint.
   async getNaicsBreakdown(keywords) {
-    const today = new Date();
-    const oneYearAgo = new Date();
-    oneYearAgo.setFullYear(today.getFullYear() - 1);
-    const timePeriod = [{ start_date: Utils.formatDateISO(oneYearAgo), end_date: Utils.formatDateISO(today) }];
+    const timePeriod = Utils.getTrailing12Mo();
     const filters = Utils.buildFilters(keywords, timePeriod);
     filters.award_type_codes = this.CONTRACT_TYPES;
     const res = await fetch(`${this.baseUrl}/search/spending_by_category/naics`, {
@@ -3639,14 +3741,7 @@ const API = {
 
   // ==================== SUBAWARDS ====================
   async getSubawards(keywords) {
-    const today = new Date();
-    const oneYearAgo = new Date();
-    oneYearAgo.setFullYear(today.getFullYear() - 1);
-    
-    const timePeriod = [{
-      start_date: Utils.formatDateISO(oneYearAgo),
-      end_date: Utils.formatDateISO(today)
-    }];
+    const timePeriod = Utils.getTrailing12Mo();
     
     // Use buildFilters which handles AND, PSC, NAICS, and keywords
     const filters = Utils.buildFilters(keywords, timePeriod);
@@ -3811,7 +3906,7 @@ async runAiActionPlan() {
               <div style="display: flex; align-items: center; gap: 1rem;">
                   <img src="images/arti.png" class="ai-avatar small" style="animation: artiPulse 1.5s infinite ease-in-out;" alt="Arti">
                   <div>
-                      <div id="aiLoaderText" style="font-family: 'Lexend Deca', sans-serif; font-size: var(--text-base); color: var(--brand); font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+                      <div id="aiLoaderText" style="font-family: 'Google Sans Flex', sans-serif; font-size: var(--text-base); color: var(--brand); font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
                           INITIALIZING...
                       </div>
                       <div id="aiLoaderSubtext" style="font-size: var(--text-sm); color: var(--text-secondary); margin-top: 4px;">
@@ -3826,7 +3921,7 @@ async runAiActionPlan() {
               </div>
               
               <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem;">
-                  <span id="aiLoaderTimer" style="font-size: var(--text-xs); color: var(--text-secondary); font-family: 'Lexend Deca', sans-serif;">0.0s</span>
+                  <span id="aiLoaderTimer" style="font-size: var(--text-xs); color: var(--text-secondary); font-family: 'Google Sans Flex', sans-serif;">0.0s</span>
               </div>
           </div>`;
 
@@ -3885,22 +3980,12 @@ async runAiActionPlan() {
           const strategicTextRaw = data.strategic_read;
           if (!strategicTextRaw) throw new Error("Invalid AI response format.");
           
-          // NEW: Intercept and convert ==highlight== to <mark> tags
           const strategicText = strategicTextRaw.replace(/==([^=]+)==/g, '<mark>$1</mark>');
 
           // >>> SUCCESS: STOP THE TIMER <<<
           clearInterval(briefProgressTimer);
 
-          let renderedHtml;
-          if (window.marked && typeof window.marked.parse === 'function') {
-              marked.setOptions({ breaks: true, gfm: true });
-              renderedHtml = marked.parse(strategicText);
-          } else {
-              const escapeHtml = (str) => str.replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
-              // NEW: Ensure we don't accidentally escape the <mark> tags we just created
-              const safeText = escapeHtml(strategicText).replace(/&lt;mark&gt;/g, '<mark>').replace(/&lt;\/mark&gt;/g, '</mark>');
-              renderedHtml = `<pre style="white-space: pre-wrap; font-family: 'Lexend Deca', sans-serif; font-size: var(--text-sm); line-height: 1.5;">${safeText}</pre>`;
-          }
+          const renderedHtml = Html.parseAiMarkdown(strategicTextRaw);
           
           // 6. Inject the response
           content.innerHTML = `<div class="ai-result-section strategic-read">${renderedHtml}</div>`;
@@ -4010,18 +4095,7 @@ async sendAiChatMessage() {
           if (data.error) throw new Error(data.error);
 
           // NEW: Intercept and convert ==highlight== to <mark> tags for chat messages
-          const processedResponse = data.response.replace(/==([^=]+)==/g, '<mark>$1</mark>');
-
-          // 4. Safely parse markdown to HTML
-          let renderedHtml;
-          if (window.marked && typeof window.marked.parse === 'function') {
-              renderedHtml = marked.parse(processedResponse);
-          } else {
-              const escapeHtml = (str) => str.replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;' }[m]));
-              // NEW: Ensure we don't accidentally escape the <mark> tags
-              const safeText = escapeHtml(processedResponse).replace(/&lt;mark&gt;/g, '<mark>').replace(/&lt;\/mark&gt;/g, '</mark>');
-              renderedHtml = `<pre style="white-space: pre-wrap; font-family: 'Lexend Deca', sans-serif; font-size: var(--text-sm); line-height: 1.5;">${safeText}</pre>`;
-          }
+          const renderedHtml = Html.parseAiMarkdown(data.response);
 
           // 5. Replace loader with actual response and clean up animation
           clearInterval(progressTimer);
@@ -4045,21 +4119,21 @@ async sendAiChatMessage() {
           if (remaining > 1) {
               // Standard state
               counterEl.innerText = `${remaining} questions remaining for this view.`;
-              counterEl.style.color = '#E07A5F';
+              counterEl.style.color = 'var(--money-strong)';
               inputEl.disabled = false;
               sendBtn.disabled = false;
               if (window.innerWidth > 768) setTimeout(() => inputEl.focus(), 100);
           } else if (remaining === 1) {
               // Warning state: 1 left
               counterEl.innerText = "Make it count. I've got time for one more question on this dataset.";
-              counterEl.style.color = '#E07A5F'; 
+              counterEl.style.color = 'var(--money-strong)'; 
               inputEl.disabled = false;
               sendBtn.disabled = false;
               if (window.innerWidth > 768) setTimeout(() => inputEl.focus(), 100);
           } else {
               // Final state: 0 left
               counterEl.innerText = "That's all for this dataset. Run a new search or drill into an agency to reset my limits.";
-              counterEl.style.color = '#E07A5F';
+              counterEl.style.color = 'var(--money-strong)';
               inputEl.placeholder = "Limits reached for this view.";
           }
 
@@ -4137,43 +4211,53 @@ App.aiState = { history: [], count: 0, max: 5 };
         btn.disabled = false;
     }
   },
+  setupInputListeners() {
+    document.getElementById('mainSearchInput').addEventListener('keypress', e => { if (e.key === 'Enter') App.runSearch(); });
+    document.getElementById('miniSearch').addEventListener('keypress', e => { if (e.key === 'Enter') { document.getElementById('mainSearchInput').value = e.target.value; App.runSearch(e.target.value); } });
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (!isMobile) {
+      document.getElementById('mainSearchInput').addEventListener('focus', function() { this.select(); });
+      document.getElementById('miniSearch').addEventListener('focus', function() { this.select(); });
+    }
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === '/') {
+        e.preventDefault();
+        const mini = document.getElementById('miniSearch');
+        const main = document.getElementById('mainSearchInput');
+        if (mini && mini.offsetParent !== null) { mini.focus(); mini.select(); }
+        else if (main) { main.focus(); main.select(); }
+      }
+      if (e.key === 'Escape' && document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
+        document.activeElement.blur();
+      }
+    });
+    const input = document.getElementById('mainSearchInput');
+    const btn = document.querySelector('.input-clear');
+    if (input && btn) {
+      const wrapper = input.parentElement;
+      if (wrapper && btn.parentNode !== wrapper) { wrapper.style.position = 'relative'; wrapper.appendChild(btn); }
+      const toggle = () => btn.classList.toggle('visible', input.value.length > 0);
+      input.addEventListener('input', toggle);
+      input.addEventListener('change', toggle);
+      toggle();
+    }
+    // Responsive placeholder
+    const mini = document.getElementById('miniSearch');
+    if (mini) {
+      const setPlaceholder = () => { mini.placeholder = window.innerWidth <= 600 ? 'Search...' : 'Search keywords, companies, NAICS, agencies...'; };
+      setPlaceholder();
+      window.addEventListener('resize', setPlaceholder);
+    }
+  },
   init() {
 
     
     // Setup Event Delegation for all data-action handlers
     this.setupEventDelegation();
     
-    // Legacy event listeners for inputs
-document.getElementById('mainSearchInput').addEventListener('keypress', e => { if(e.key === 'Enter') App.runSearch(); });
-document.getElementById('miniSearch').addEventListener('keypress', e => { if(e.key === 'Enter') { document.getElementById('mainSearchInput').value = e.target.value; App.runSearch(e.target.value); } });
-
-// Select all text on focus for easy replacement
-// Select-all on focus — desktop only (breaks iOS autocomplete suggestions)
-const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-if (!isMobile) {
-  document.getElementById('mainSearchInput').addEventListener('focus', function() { this.select(); });
-  document.getElementById('miniSearch').addEventListener('focus', function() { this.select(); });
-}
-
-// Show/hide clear button for main search only
-function setupClearButton(inputId, buttonClass) {
-  const input = document.getElementById(inputId);
-  const btn = document.querySelector('.' + buttonClass);
-  if (!input || !btn) return;
-  
-  // Position button inside input's parent container
-  const wrapper = input.parentElement;
-  if (wrapper && btn.parentNode !== wrapper) {
-    wrapper.style.position = 'relative';
-    wrapper.appendChild(btn);
-  }
-  
-  const toggle = () => btn.classList.toggle('visible', input.value.length > 0);
-  input.addEventListener('input', toggle);
-  input.addEventListener('change', toggle);
-  toggle();
-}
-setupClearButton('mainSearchInput', 'input-clear');
+    this.setupInputListeners();
 
     let resizeTimer;
     let lastWidth = window.innerWidth;
@@ -4620,14 +4704,14 @@ setupClearButton('mainSearchInput', 'input-clear');
     container.innerHTML = top.map(v => {
       const isActive = active === v.pid;
       return `<button onclick="App.filterByVehicle('${v.pid.replace(/'/g, "\\'")}', '${v.label.replace(/'/g, "\\'")}')"
-        style="padding: 0.2rem 0.5rem; font-family: 'Lexend Deca', sans-serif; font-size: var(--text-xs);
+        style="padding: 0.2rem 0.5rem; font-family: 'Google Sans Flex', sans-serif; font-size: var(--text-xs);
         background: ${isActive ? 'var(--brand)' : 'rgba(255,255,255,0.07)'}; 
         color: ${isActive ? 'var(--brand-text)' : 'var(--text-secondary)'};
         border: 1px solid ${isActive ? 'var(--brand)' : 'var(--border)'}; border-radius: var(--radius-sm); 
         cursor: pointer; transition: all 0.15s; white-space: nowrap;"
         title="${v.pid} · ${v.count} orders · ${Utils.money(v.amount)}">${v.label} <span style="opacity:0.9">${v.count}</span></button>`;
     }).join('') + (active ? `<button onclick="App.clearVehicleFilter()" 
-      style="padding: 0.2rem 0.5rem; font-family: 'Lexend Deca', sans-serif; font-size: var(--text-xs);
+      style="padding: 0.2rem 0.5rem; font-family: 'Google Sans Flex', sans-serif; font-size: var(--text-xs);
       background: rgba(239,83,80,0.15); color: var(--danger); border: 1px solid rgba(239,83,80,0.3); 
       border-radius: var(--radius-sm); cursor: pointer;">Clear</button>` : '');
   },
@@ -4680,23 +4764,12 @@ setupClearButton('mainSearchInput', 'input-clear');
 
       return `<div class="reach-row" onclick="App.viewFootprint('${esc(v.name)}')" title="Search ${v.name}'s full federal portfolio">
         <div style="min-width: 0; flex: 1;">
-          <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
-            <span class="reach-name">${Utils.trunc(v.name, 28)}</span>
-            <span class="reach-badge accent">${agencyCount} ${agencyCount === 1 ? 'agency' : 'agencies'}</span>
-            ${subCount > agencyCount ? `<span class="reach-badge">${subCount} offices</span>` : ''}
-          </div>
-          <div class="reach-meta">
-            ${topAgencies.slice(0, 3).map(a => Utils.trunc(a, 20)).join(' · ')}${topAgencies.length > 3 ? ` +${topAgencies.length - 3}` : ''}
-          </div>
-          <div class="job-links" style="margin-top: 0.25rem;" onclick="event.stopPropagation();">
-            <a href="${JobLinks.getLinkedInPeopleUrl(v.name)}" target="_blank" class="job-link"> People</a>
-            <a href="${JobLinks.getLinkedInUrl(v.name)}" target="_blank" class="job-link"> Jobs</a>
-            <a href="${JobLinks.getLinkedInNewsUrl(v.name)}" target="_blank" class="job-link"> News</a>
-          </div>
+          <span class="reach-name">${Utils.trunc(v.name, 32)}</span>
+          <div class="reach-meta">${agencyCount} ${agencyCount === 1 ? 'agency' : 'agencies'}${subCount > agencyCount ? ' · ' + subCount + ' offices' : ''} · ${v.count} awards · ${topAgencies.slice(0, 3).map(a => Utils.trunc(a, 18)).join(' · ')}${topAgencies.length > 3 ? ' +' + (topAgencies.length - 3) : ''}</div>
+          <div class="reach-meta" onclick="event.stopPropagation();"><a href="${JobLinks.getLinkedInPeopleUrl(v.name)}" target="_blank" class="job-link">People</a> <a href="${JobLinks.getLinkedInUrl(v.name)}" target="_blank" class="job-link">Jobs</a> <a href="${JobLinks.getLinkedInNewsUrl(v.name)}" target="_blank" class="job-link">News</a></div>
         </div>
         <div style="text-align: right; flex-shrink: 0;">
           <div class="reach-amount">${Utils.money(v.totalAmt)}</div>
-          <div class="reach-count">${v.count} awards</div>
         </div>
       </div>`;
     }).join('');
@@ -4903,174 +4976,53 @@ _renderSankeyInner(container) {
   const nodeMap = new Map(nodes.map((n,i) => [n.name, i]));
   const d3Links = links.map(l => ({source:nodeMap.get(l.source), target:nodeMap.get(l.target), value:l.value}));
   
-  // 2. SETUP SVG (Dynamic Width)
-  const w = ((container.parentElement ? container.parentElement.offsetWidth : container.offsetWidth) || 800) - 2; 
-  // Dynamic Height: Grows with data
-  const h = Math.max(500, nodes.length * 28);
-  
-  const svg = d3.select(container)
-    .append("svg")
-    .attr("id", "sankeySvg")
-    .attr("viewBox",`0 0 ${w} ${h}`)
-    .attr("preserveAspectRatio","xMidYMid meet")
-    .style("width","100%")
-    .style("height","auto")
-    .style("display","block");
-
-  const sankey = d3.sankey()
-    .nodeId(d => d.index)
-    .nodeWidth(20)
-    .nodePadding(20)
-    .extent([[1,1],[w-1,h-6]]);
-
-  const {nodes:gn, links:gl} = sankey({
-    nodes:nodes.map(d=>Object.assign({},d)), 
-    links:d3Links.map(d=>Object.assign({},d))
-  });
-  
-  // 3. COLOR & GRADIENTS
-  Utils.getColor.reset();
-  const defs = svg.append("defs");
-
-  gl.forEach((l, i) => {
-    // Unique ID per link to avoid conflicts
-    const gradientId = "prime-grad-" + i;
-    
-    const g = defs.append("linearGradient")
-      .attr("id", gradientId)
-      .attr("gradientUnits", "userSpaceOnUse")
-      .attr("x1", l.source.x1)
-      .attr("x2", l.target.x0);
-
-    // Source Color
-    g.append("stop")
-      .attr("offset", "0%")
-      .attr("stop-color", Utils.getColor(l.source.name));
-
-    // Target Color
-    g.append("stop")
-      .attr("offset", "100%")
-      .attr("stop-color", Utils.getColor(l.target.name));
-  });
-
-  // 4. LINKS (The Visual Upgrade)
-  const linkGroup = svg.append("g").attr("fill", "none");
-
-  const linkPaths = linkGroup
-    .selectAll("path")
-    .data(gl)
-    .join("path")
-    .attr("d", d3.sankeyLinkHorizontal())
-    .attr("stroke", (d, i) => "url(#prime-grad-" + i + ")")
-    .attr("stroke-width", d => Math.max(1, d.width))
-    .attr("stroke-opacity", 0.4) // Lower opacity for the "Vintage" feel
-    .attr("stroke-linecap", "butt") // Round caps = Better flow
-    .attr("fill", "none") // Prevent artifacts
-    .style("transition", "stroke-opacity 0.2s");
-
-  // Interaction: Brighten on hover
-  linkPaths
-    .on("mouseover", function () {
-      d3.select(this).attr("stroke-opacity", 0.8);
-    })
-    .on("mouseout", function () {
-      d3.select(this).attr("stroke-opacity", 0.4);
-    })
-    .append("title")
-    .text(d => `${d.source.name} → ${d.target.name}\n${Utils.money(d.value)}`);
-
-  // 5. NODES & LABELS
-  // Helper: Is this node clickable?
-  // OPTIMIZED: Pre-compute drillable names into a Set instead of O(N) .some() per node
+  // 2. RENDER via ChartUtils
   const drillableNames = new Set();
   App.searchData.raw.forEach(d => {
     if (d['Awarding Agency']) drillableNames.add(d['Awarding Agency']);
     if (d['Awarding Sub Agency']) drillableNames.add(d['Awarding Sub Agency']);
     if (d['Recipient Name']) drillableNames.add(d['Recipient Name']);
   });
-  const isDrillable = n => {
-    if (!n || n.startsWith('Other') || n.includes('Unknown') || n === 'No Description') return false;
-    return drillableNames.has(n);
-  };
 
-  // Helper: Is this the currently active filter?
-  const isActiveDrill = n => {
-    if (App.drillState.level === 0) return false;
-    const lastStep = App.drillState.path[App.drillState.path.length - 1];
-    return lastStep && lastStep.name === n;
-  };
-
-  // Detect touch device for wider hit areas
-  const isTouchSankey = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-
-  svg.append("g").selectAll("rect").data(gn).join("rect")
-     .attr("x", d => d.x0) 
-     .attr("y", d => d.y0)
-     .attr("height", d => Math.max(1, d.y1 - d.y0)) // Revert to mathematically accurate height
-     .attr("width", d => d.x1 - d.x0)
-     .attr("fill", d => Utils.getColor(d.name))
-     .attr("opacity", d => isActiveDrill(d.name) ? 1 : 0.8)
-     .attr("stroke", d => isActiveDrill(d.name) ? "#F1EEE9" : "transparent")
-     .attr("stroke-width", d => isActiveDrill(d.name) ? 0 : (isTouchSankey ? 24 : 0))
-     .style("cursor", d => isDrillable(d.name) ? "pointer" : "default")
-     .on("click", function(e, d) { 
-       if (!isDrillable(d.name)) return;
-       
-       // Visual tap feedback
-       const el = d3.select(this);
-       el.classed('sankey-tap-flash', true);
-       el.transition().duration(150)
-         .attr('opacity', 0.4)
-         .transition().duration(150)
-         .attr('opacity', 1)
-         .on('end', () => el.classed('sankey-tap-flash', false));
-       
-       if (isActiveDrill(d.name)) {
-         // Drill OUT
-         if (App.drillState.level <= 1) {
-           App.resetDrill();
-         } else {
-           App.drillToLevel(App.drillState.level - 1);
-         }
-       } else {
-         // Drill IN
-         App.drillDown(d.name); 
-       }
-     })
-     .on("mouseover", function(e, d) {
-       if (!isDrillable(d.name)) return;
-       d3.select(this).attr("opacity", 1);
-     })
-     .on("mouseout", function(e, d) {
-       d3.select(this).attr("opacity", isActiveDrill(d.name) ? 1 : 0.8);
-     })
-     .append("title").text(d => {
-       if (!isDrillable(d.name)) return `${d.name}\n${Utils.money(d.value)}`;
-       const action = isActiveDrill(d.name) ? '← Click to drill out' : 'Click to drill down →';
-       return `${d.name}\n${Utils.money(d.value)}\n${action}`;
-     });
-
-// Render Labels
-  const isNarrow = w < 600; // Detect mobile width
-  svg.append("g")
-    .selectAll("text")
-    .data(gn)
-    .join("text")
-    .attr("x", d => (d.x0 < w / 2 ? d.x1 + 6 : d.x0 - 6))
-    .attr("y", d => (d.y1 + d.y0) / 2)
-    .attr("dy", d => {
-      if (d.y1 - d.y0 > 30) {
-        return d.x0 < w / 2 ? "-0.5em" : "1.1em"; 
+  const svg = d3.select(container).append('svg').attr('id', 'sankeySvg');
+  ChartUtils.drawSankey(svg, {
+    nodes, links,
+    gradientPrefix: 'prime-grad',
+    heightPerNode: 28,
+    isDrillable: d => {
+      const n = d.name;
+      if (!n || n.startsWith('Other') || n.includes('Unknown') || n === 'No Description') return false;
+      return drillableNames.has(n);
+    },
+    isActive: d => {
+      if (App.drillState.level === 0) return false;
+      const last = App.drillState.path[App.drillState.path.length - 1];
+      return last && last.name === d.name;
+    },
+    onNodeClick: (d, el) => {
+      // Tap flash
+      const s = d3.select(el);
+      s.transition().duration(150).attr('opacity', 0.4).transition().duration(150).attr('opacity', 1);
+      const isAct = App.drillState.level > 0 && App.drillState.path[App.drillState.path.length - 1]?.name === d.name;
+      if (isAct) {
+        if (App.drillState.level <= 1) App.resetDrill(); else App.drillToLevel(App.drillState.level - 1);
+      } else {
+        App.drillDown(d.name);
       }
-      return "0.35em"; 
-    })
-    .attr("text-anchor", d => (d.x0 < w / 2 ? "start" : "end"))
-    .text(d => Utils.trunc(d.name, isNarrow ? 25 : 40)) // Tighter truncation on mobile
-    .style("font-size", "11px")
-    .style("font-weight", d => (d.y1 - d.y0 > 30) ? "700" : "400") // Bold the major players
-    .style("fill", App.presentationMode ? "#1A1A1A" : "#F1EEE9")
-    .style("pointer-events", "none");
+    }
+  });
 },
+  buildCardHTML({ borderStyle, agency, amount, desc, vendorHtml, metaHtml, signalsHtml, dateHtml, subText, footerLinks, url }) {
+    return `<div class="deal-card"${borderStyle ? ` style="${borderStyle}"` : ''}>
+      <div class="deal-header"><span class="deal-agency">${agency}</span><span class="deal-amount">${amount}</span></div>
+      <div class="deal-desc">${desc}</div>
+      <div class="deal-vendor">${vendorHtml}</div>
+      ${metaHtml ? `<div class="deal-meta">${metaHtml}</div>` : ''}
+      ${signalsHtml || ''}
+      <div class="deal-footer"><div><div class="deal-date">${dateHtml}</div>${subText ? `<div style="font-size:var(--text-sm);color:var(--text-tertiary)">${subText}</div>` : ''}</div>
+        <div style="display:flex;gap:0.5rem;align-items:center;">${footerLinks || ''}${url ? `<a href="${url}" target="_blank" class="action-btn">VIEW </a>` : ''}</div>
+      </div></div>`;
+  },
   renderFeed(showAll) {
     const div = document.getElementById('feedGrid');
     
@@ -5090,15 +5042,15 @@ _renderSankeyInner(container) {
       
       let metaTags = '';
       const contractType = Utils.getContractTypeTag(c['Contract Award Type']);
-      if (contractType) metaTags += `<span class="meta-tag" style="background:rgba(141,160,203,0.15);border-color:rgba(141,160,203,0.3);color:var(--info);" title="${contractType.full}">${contractType.short}</span>`;
+      if (contractType) metaTags += `<span class="meta-tag" style="background:rgba(255,255,255,0.04);border-color:var(--border);color:var(--text-secondary);" title="${contractType.full}">${contractType.short}</span>`;
       if (c['NAICS Code']) metaTags += `<span class="meta-tag naics" title="${Html.escapeHtml(c['NAICS Description'] || '')}">NAICS: ${Html.escapeHtml(c['NAICS Code'])}</span>`;
       if (c['PSC Code']) metaTags += `<span class="meta-tag psc" title="${Html.escapeHtml(c['PSC Description'] || '')}">PSC: ${Html.escapeHtml(c['PSC Code'])}</span>`;
       const vehicle = VehicleDetector.detect(c['Award ID']);
-      if (vehicle) metaTags += `<span class="meta-tag" style="background:rgba(192,200,196,0.10);border-color:rgba(192,200,196,0.20);color:var(--accent);" title="${vehicle.vehicle}">${vehicle.short}</span>`;
+      if (vehicle) metaTags += `<span class="meta-tag" style="background:rgba(255,255,255,0.04);border-color:var(--border);color:var(--text-secondary);" title="${vehicle.vehicle}">${vehicle.short}</span>`;
       // Set-aside: 'Type of Set Aside' is the correct USASpending field name
       const setAsideCode = c['Type of Set Aside'];
       const setAside = VehicleDetector.getSetAsideLabel(setAsideCode);
-      if (setAside) metaTags += `<span class="meta-tag" style="background:rgba(229,192,123,0.15);border-color:rgba(229,192,123,0.3);color:var(--accent);" title="Set-Aside: ${setAside}">${setAside}</span>`;
+      if (setAside) metaTags += `<span class="meta-tag" style="background:rgba(255,255,255,0.04);border-color:var(--border);color:var(--text-secondary);" title="Set-Aside: ${setAside}">${setAside}</span>`;
 
       // Number of offers — real competition signal
       const offers = parseInt(c['number_of_offers_received']);
@@ -5116,16 +5068,18 @@ _renderSankeyInner(container) {
 const linkedInUrl = JobLinks.getLinkedInUrl(vendorNameRaw);
 const linkedInPeopleUrl = JobLinks.getLinkedInPeopleUrl(vendorNameRaw);
 const linkedInNewsUrl = JobLinks.getLinkedInNewsUrl(vendorNameRaw);
-return `<div class="deal-card">
-    <div class="deal-header"><span class="deal-agency">${agencyDisplaySafe}</span><span class="deal-amount">${Utils.money(c['Award Amount'])}<span style="font-size:var(--text-xs);opacity:0.9;margin-left:0.25rem;">obligated</span></span></div>
-    <div class="deal-desc">${desc}</div>
-    <div class="deal-vendor">${vendorName} <a href="${linkedInPeopleUrl}" target="_blank" class="job-link" style="margin-left:6px;" title="Find contacts at this company"> People</a> <a href="${linkedInUrl}" target="_blank" class="job-link" title="Search jobs at this company"> Jobs</a> <a href="${linkedInNewsUrl}" target="_blank" class="job-link" title="LinkedIn posts about this company"> News</a></div>
-    ${metaTags ? `<div class="deal-meta">${metaTags}</div>` : ''}
-    <div class="deal-footer"><span class="deal-date">Start: ${Utils.date(c['Start Date'])}${c['End Date'] ? ' → ' + Utils.date(c['End Date']) : ''}${c['Last Modified Date'] ? ` <span style="opacity:0.9;font-size:var(--text-xs);" title="Last government action on this contract">· mod ${Utils.date(c['Last Modified Date'])}</span>` : ''}</span><div style="display:flex;gap:0.5rem;align-items:center;"><a href="${url}" target="_blank" class="action-btn">VIEW </a></div></div>
-  </div>`;
+return App.buildCardHTML({
+  agency: agencyDisplaySafe,
+  amount: Utils.money(c['Award Amount']),
+  desc, vendorHtml: vendorName,
+  metaHtml: metaTags,
+  dateHtml: `${Utils.date(c['Start Date'])}${c['End Date'] ? ' \u2013 ' + Utils.date(c['End Date']) : ''}`,
+  footerLinks: `<a href="${linkedInPeopleUrl}" target="_blank" class="job-link" title="Contacts">People</a><a href="${linkedInUrl}" target="_blank" class="job-link" title="Jobs">Jobs</a>`,
+  url
+});
 }).join('');
 
-    const showMoreBtn = hasMore ? `<button onclick="App.renderFeed(true)" style="width: 100%; padding: 0.875rem; background: var(--bg-card); border: 1px dashed var(--border); border-radius: var(--radius-sm); color: var(--accent); font-family: 'Lexend Deca', sans-serif; font-size: var(--text-sm); cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px;" onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--accent-dim)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg-card)'">Show All ${data.length} Contracts</button>` : '';
+    const showMoreBtn = hasMore ? Utils.showMoreBtn('App.renderFeed(true)', `Show All ${data.length} Contracts`) : '';
 
     div.innerHTML = cards + showMoreBtn;
     Utils.animateCards(div);
@@ -5135,18 +5089,7 @@ return `<div class="deal-card">
     const wrapper = document.getElementById('subFeedWrapper');
     if (!div) return;
     
-    let subawards = App.forecastData.subawards || [];
-    const drill = App.subawardDrillState;
-    
-    // Apply drill filter if active (path-based)
-    if (drill.level > 0 && drill.path && drill.path.length > 0) {
-      drill.path.forEach(step => {
-        if (step.type === 'agency') subawards = subawards.filter(s => (s['Awarding Agency'] || 'Unknown Agency') === step.name);
-        else if (step.type === 'subagency') subawards = subawards.filter(s => (s['Awarding Sub Agency'] || 'Unknown Sub Agency') === step.name);
-        else if (step.type === 'prime') subawards = subawards.filter(s => (s['Prime Recipient Name'] || 'Unknown Prime') === step.name);
-        else if (step.type === 'sub') subawards = subawards.filter(s => (s['Sub-Awardee Name'] || 'Unknown Sub') === step.name);
-      });
-    }
+    let subawards = applySubDrillFilter(App.forecastData.subawards || [], App.subawardDrillState);
     
     if (subawards.length === 0) {
       div.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-tertiary)">No subcontracts found.</div>';
@@ -5189,270 +5132,104 @@ return `<div class="deal-card">
         'prime_award_generated_internal_id': primeAwardInternalId
       }));
       
-      return `<div class="deal-card" style="border-left-color: var(--accent);">
-        <div class="deal-header">
-          <span class="deal-agency" style="color: var(--accent);">SUBCONTRACT</span>
-          <span class="deal-amount">${Utils.money(amount)}</span>
-        </div>
-        <div class="deal-desc" style="font-size: var(--text-sm);">
-          <strong>${primeShort}</strong>  <strong>${subShort}</strong>
-        </div>
-        <div class="deal-vendor" style="font-size: var(--text-sm); color: var(--text-secondary);">
-          ${agency ? `Agency: ${Html.escapeHtml(Utils.trunc(agency, 30))}` : ''}
-        </div>
-        <div class="deal-footer">
-          <span class="deal-date">${date ? Utils.date(date) : 'Date N/A'}</span>
-          <div style="display: flex; gap: 0.5rem; align-items: center;">
-            <a href="${linkedInPrimeUrl}" target="_blank" class="job-link" title="Find contacts at prime"> Prime</a>
-            <a href="${linkedInSubUrl}" target="_blank" class="job-link" title="Find contacts at sub"> Sub</a>
-            ${usaSpendingUrl ? `<a href="${usaSpendingUrl}" target="_blank" class="action-btn" style="font-size: var(--text-xs); padding: 0.25rem 0.5rem;">VIEW </a>` : ''}
-          </div>
-        </div>
-      </div>`;
+      return App.buildCardHTML({
+        borderStyle: 'border-left-color: var(--accent);',
+        agency: '<span style="color:var(--accent);">SUBCONTRACT</span>',
+        amount: Utils.money(amount),
+        desc: `<span style="font-size:var(--text-sm);"><strong>${primeShort}</strong>  <strong>${subShort}</strong></span>`,
+        vendorHtml: `<span style="font-size:var(--text-sm);color:var(--text-secondary);">${agency ? `Agency: ${Html.escapeHtml(Utils.trunc(agency, 30))}` : ''}</span>`,
+        dateHtml: date ? Utils.date(date) : 'Date N/A',
+        footerLinks: `<a href="${linkedInPrimeUrl}" target="_blank" class="job-link" title="Find contacts at prime"> Prime</a><a href="${linkedInSubUrl}" target="_blank" class="job-link" title="Find contacts at sub"> Sub</a>`,
+        url: usaSpendingUrl || null
+      });
     }).join('');
 
-    const showMoreBtn = hasMore ? `<button onclick="App.renderSubawardFeed(null, true)" style="width: 100%; padding: 0.875rem; background: var(--bg-card); border: 1px dashed var(--border); border-radius: var(--radius-sm); color: var(--accent); font-family: 'Lexend Deca', sans-serif; font-size: var(--text-sm); cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px;" onmouseover="this.style.borderColor='var(--accent)';this.style.background='rgba(229,192,123,0.08)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg-card)'">Show All ${Math.min(subawards.length, 50)} Subcontracts</button>` : '';
+    const showMoreBtn = hasMore ? Utils.showMoreBtn('App.renderSubawardFeed(null, true)', `Show All ${Math.min(subawards.length, 50)} Subcontracts`) : '';
 
     div.innerHTML = cards + showMoreBtn;
     Utils.animateCards(div);
   },
 // --- Search View: Top Buyers with LinkedIn Links ---
-renderSearchTopBuyers(data) {
-  const body = document.getElementById('searchTopBuyersBody');
-  const panel = document.getElementById('agencyReachPanel');
-  if (!body) return;
-  
-  if (!data || data.length === 0) {
-    if (panel) panel.style.display = 'none';
-    return;
-  }
-  if (panel) panel.style.display = 'block';
-  
-  const drill = App.drillState || {};
-  const isDrilled = drill.level >= 1 && drill.currentAgency;
-  const esc = (s) => s.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-
-  if (isDrilled) {
-    const subMap = {};
-    data.forEach(a => {
-      const sub = a['Awarding Sub Agency'] || a['Awarding Agency'] || 'Unknown';
-      if (!subMap[sub]) subMap[sub] = { name: sub, spend: 0, count: 0 };
-      subMap[sub].spend += parseFloat(a['Award Amount']) || 0;
-      subMap[sub].count++;
-    });
-    const sorted = Object.values(subMap).sort((a, b) => b.spend - a.spend);
-    const top = sorted.slice(0, 5);
-    
-    body.innerHTML = top.map(s => {
-      return `<div class="reach-row" onclick="App.drillToSubAgency('${esc(s.name)}')">
-        <div style="min-width: 0; flex: 1;">
-          <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
-            <span class="reach-name">${Utils.trunc(s.name, 28)}</span>
-            <span class="reach-badge">${s.count} awards</span>
-          </div>
-          <div class="job-links" style="margin-top: 0.25rem;" onclick="event.stopPropagation();">
-            <a href="${JobLinks.getLinkedInPeopleUrl(s.name)}" target="_blank" class="job-link"> People</a>
-            <a href="${JobLinks.getLinkedInUrl(s.name)}" target="_blank" class="job-link"> Jobs</a>
-            <a href="${JobLinks.getLinkedInNewsUrl(s.name)}" target="_blank" class="job-link"> News</a>
-          </div>
-        </div>
-        <div style="text-align: right; flex-shrink: 0;">
-          <div class="reach-amount">${Utils.money(s.spend)}</div>
-          <div class="reach-count">${s.count} awards</div>
-        </div>
-      </div>`;
-    }).join('') + (sorted.length > 5 ? `<div class="reach-overflow">+${sorted.length - 5} more offices</div>` : '');
-  } else {
-    const agencyMap = {};
-    data.forEach(a => {
-      const agency = a['Awarding Agency'] || 'Unknown';
-      const sub = a['Awarding Sub Agency'] || '';
-      const vendor = a['Recipient Name'] || '';
-      const amt = parseFloat(a['Award Amount']) || 0;
-      if (!agencyMap[agency]) agencyMap[agency] = { name: agency, spend: 0, count: 0, subs: new Set(), vendors: {} };
-      agencyMap[agency].spend += amt;
-      agencyMap[agency].count++;
-      if (sub) agencyMap[agency].subs.add(sub);
-      if (vendor) {
-        if (!agencyMap[agency].vendors[vendor]) agencyMap[agency].vendors[vendor] = 0;
-        agencyMap[agency].vendors[vendor] += amt;
+renderReachList(opts) {
+    const { data, containerId, panelId, primaryField, primaryFallback = 'Unknown',
+      secondaryField, tertiaryField, secondaryLabel, overflowLabel = 'more',
+      onClickTpl, countLabel = 'awards', rightLabel = 'awards',
+      formatName = n => n, formatMeta } = opts;
+    const body = document.getElementById(containerId);
+    const panel = document.getElementById(panelId);
+    if (!body) return;
+    if (!data || data.length === 0) { if (panel) panel.style.display = 'none'; return; }
+    const map = {};
+    data.forEach(row => {
+      const primary = row[primaryField] || (typeof primaryFallback === 'function' ? primaryFallback(row) : primaryFallback);
+      const amt = parseFloat(row['Award Amount'] || row['Sub-Award Amount']) || 0;
+      if (!map[primary]) map[primary] = { name: primary, spend: 0, count: 0, secSet: new Set(), tertMap: {} };
+      map[primary].spend += amt;
+      map[primary].count++;
+      if (secondaryField && row[secondaryField]) map[primary].secSet.add(row[secondaryField]);
+      if (tertiaryField && row[tertiaryField]) {
+        const t = row[tertiaryField];
+        if (!map[primary].tertMap[t]) map[primary].tertMap[t] = 0;
+        map[primary].tertMap[t] += amt;
       }
     });
-    
-    const sorted = Object.values(agencyMap).sort((a, b) => b.spend - a.spend);
+    const sorted = Object.values(map).sort((a, b) => b.spend - a.spend);
     const top = sorted.slice(0, 5);
-    const agencyShort = (name) => name.replace(/^Department of (the )?/i, '').replace(/^Office of (the )?/i, '');
-
-    body.innerHTML = top.map(a => {
-      const subCount = a.subs.size;
-      const topVendor = Object.entries(a.vendors).sort((x, y) => y[1] - x[1])[0];
-
-      return `<div class="reach-row" onclick="App.drillToAgency('${esc(a.name)}')">
+    if (top.length === 0) { if (panel) panel.style.display = 'none'; return; }
+    if (panel) panel.style.display = 'block';
+    const esc = s => s.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    const defaultMeta = items => items.slice(0, 3).join(' \u00b7 ') + (items.length > 3 ? ` +${items.length - 3}` : '');
+    const metaFn = formatMeta || defaultMeta;
+    body.innerHTML = top.map(item => {
+      const secCount = item.secSet.size;
+      const topTert = Object.entries(item.tertMap).sort((a, b) => b[1] - a[1]).map(([n]) => Utils.trunc(n, 20));
+      const metaHtml = tertiaryField && topTert.length ? metaFn(topTert) : '';
+      const click = onClickTpl ? `onclick="${onClickTpl.replace('{name}', esc(item.name))}"` : '';
+      const secBadge = secondaryLabel && secCount > 0 ? `<span class="reach-badge accent">${secCount} ${secondaryLabel(secCount)}</span>` : '';
+      return `<div class="reach-row" ${click} title="Explore ${esc(item.name)}">
         <div style="min-width: 0; flex: 1;">
-          <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
-            <span class="reach-name">${Utils.trunc(agencyShort(a.name), 28)}</span>
-            ${subCount > 1 ? `<span class="reach-badge accent">${subCount} offices</span>` : ''}
-            <span class="reach-badge">${a.count} awards</span>
-          </div>
-          <div class="reach-meta">
-            ${topVendor ? `${Utils.trunc(topVendor[0], 22)} leads` : ''}
-          </div>
-          <div class="job-links" style="margin-top: 0.25rem;" onclick="event.stopPropagation();">
-            <a href="${JobLinks.getLinkedInPeopleUrl(a.name)}" target="_blank" class="job-link"> People</a>
-            <a href="${JobLinks.getLinkedInUrl(a.name)}" target="_blank" class="job-link"> Jobs</a>
-            <a href="${JobLinks.getLinkedInNewsUrl(a.name)}" target="_blank" class="job-link"> News</a>
-          </div>
+          <span class="reach-name">${Utils.trunc(formatName(item.name), 32)}</span>
+          <div class="reach-meta">${secCount > 0 && secondaryLabel ? secCount + ' ' + secondaryLabel(secCount) + ' · ' : ''}${item.count} ${countLabel}${metaHtml ? ' · ' + metaHtml : ''}</div>
+          <div class="reach-meta" onclick="event.stopPropagation();"><a href="${JobLinks.getLinkedInPeopleUrl(item.name)}" target="_blank" class="job-link">People</a> <a href="${JobLinks.getLinkedInUrl(item.name)}" target="_blank" class="job-link">Jobs</a> <a href="${JobLinks.getLinkedInNewsUrl(item.name)}" target="_blank" class="job-link">News</a></div>
         </div>
         <div style="text-align: right; flex-shrink: 0;">
-          <div class="reach-amount">${Utils.money(a.spend)}</div>
-          <div class="reach-count">${a.count} awards</div>
+          <div class="reach-amount">${Utils.money(item.spend)}</div>
         </div>
       </div>`;
-    }).join('') + (sorted.length > 5 ? `<div class="reach-overflow">+${sorted.length - 5} more agencies</div>` : '');
-  }
-},
+    }).join('') + (sorted.length > 5 ? `<div class="reach-overflow">+${sorted.length - 5} ${overflowLabel}</div>` : '');
+  },
 
+  renderSearchTopBuyers(data) {
+    const drill = App.drillState || {};
+    if (drill.level >= 1 && drill.currentAgency) {
+      this.renderReachList({ data, containerId: 'searchTopBuyersBody', panelId: 'agencyReachPanel',
+        primaryField: 'Awarding Sub Agency', primaryFallback: row => row['Awarding Agency'] || 'Unknown',
+        onClickTpl: "App.drillToSubAgency('{name}')", overflowLabel: 'more offices' });
+    } else {
+      this.renderReachList({ data, containerId: 'searchTopBuyersBody', panelId: 'agencyReachPanel',
+        primaryField: 'Awarding Agency', secondaryField: 'Awarding Sub Agency', tertiaryField: 'Recipient Name',
+        secondaryLabel: n => n === 1 ? 'office' : 'offices',
+        formatName: n => n.replace(/^Department of (the )?/i, '').replace(/^Office of (the )?/i, ''),
+        formatMeta: items => items.length ? `${Utils.trunc(items[0], 22)} leads` : '',
+        onClickTpl: "App.drillToAgency('{name}')", overflowLabel: 'more agencies' });
+    }
+  },
 
-  // --- Search View: Top Primes with LinkedIn Links ---
   renderSearchTopPrimes(subawards) {
-    const body = document.getElementById('searchTopPrimesBody');
-    const panel = document.getElementById('subPrimesPanel');
-    if (!body) return;
-    
-    if (!subawards || subawards.length === 0) {
-      if (panel) panel.style.display = 'none';
-      return;
-    }
-    
-    let filtered = subawards;
-    const drill = App.subawardDrillState;
-    if (drill.level > 0 && drill.path && drill.path.length > 0) {
-      drill.path.forEach(step => {
-        if (step.type === 'agency') filtered = filtered.filter(s => (s['Awarding Agency'] || 'Unknown Agency') === step.name);
-        else if (step.type === 'subagency') filtered = filtered.filter(s => (s['Awarding Sub Agency'] || 'Unknown Sub Agency') === step.name);
-        else if (step.type === 'prime') filtered = filtered.filter(s => (s['Prime Recipient Name'] || 'Unknown Prime') === step.name);
-        else if (step.type === 'sub') filtered = filtered.filter(s => (s['Sub-Awardee Name'] || 'Unknown Sub') === step.name);
-      });
-    }
-    
-    const primeMap = {};
-    filtered.forEach(sub => {
-      const prime = sub['Prime Recipient Name'] || 'Unknown';
-      const subName = sub['Sub-Awardee Name'] || '';
-      const amt = parseFloat(sub['Sub-Award Amount']) || 0;
-      if (!primeMap[prime]) primeMap[prime] = { name: prime, spend: 0, count: 0, subs: {} };
-      primeMap[prime].spend += amt;
-      primeMap[prime].count++;
-      if (subName) {
-        if (!primeMap[prime].subs[subName]) primeMap[prime].subs[subName] = 0;
-        primeMap[prime].subs[subName] += amt;
-      }
-    });
-    
-    const sorted = Object.values(primeMap).sort((a, b) => b.spend - a.spend);
-    const top = sorted.slice(0, 5);
-    if (top.length === 0) { if (panel) panel.style.display = 'none'; return; }
-    if (panel) panel.style.display = 'block';
-
-    const esc = (s) => s.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-    body.innerHTML = top.map(p => {
-      const subCount = Object.keys(p.subs).length;
-      const topSubs = Object.entries(p.subs).sort((a, b) => b[1] - a[1]).map(([n]) => Utils.trunc(n, 20));
-
-      return `<div class="reach-row" onclick="App.viewFootprint('${esc(p.name)}')" title="Search ${p.name} portfolio">
-        <div style="min-width: 0; flex: 1;">
-          <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
-            <span class="reach-name">${Utils.trunc(p.name, 28)}</span>
-            <span class="reach-badge accent">${subCount} subs</span>
-            <span class="reach-badge">${p.count} awards</span>
-          </div>
-          <div class="reach-meta">
-            ${topSubs.slice(0, 3).join(' · ')}${topSubs.length > 3 ? ` +${topSubs.length - 3}` : ''}
-          </div>
-          <div class="job-links" style="margin-top: 0.25rem;" onclick="event.stopPropagation();">
-            <a href="${JobLinks.getLinkedInPeopleUrl(p.name)}" target="_blank" class="job-link"> People</a>
-            <a href="${JobLinks.getLinkedInUrl(p.name)}" target="_blank" class="job-link"> Jobs</a>
-            <a href="${JobLinks.getLinkedInNewsUrl(p.name)}" target="_blank" class="job-link"> News</a>
-          </div>
-        </div>
-        <div style="text-align: right; flex-shrink: 0;">
-          <div class="reach-amount">${Utils.money(p.spend)}</div>
-          <div class="reach-count">${p.count} subs</div>
-        </div>
-      </div>`;
-    }).join('') + (sorted.length > 5 ? `<div class="reach-overflow">+${sorted.length - 5} more primes</div>` : '');
+    const filtered = applySubDrillFilter(subawards || [], App.subawardDrillState);
+    this.renderReachList({ data: filtered, containerId: 'searchTopPrimesBody', panelId: 'subPrimesPanel',
+      primaryField: 'Prime Recipient Name', secondaryField: 'Sub-Awardee Name', tertiaryField: 'Sub-Awardee Name',
+      secondaryLabel: n => n === 1 ? 'sub' : 'subs',
+      onClickTpl: "App.viewFootprint('{name}')", rightLabel: 'subs', overflowLabel: 'more primes' });
   },
 
-  // --- Search View: Top Subs with LinkedIn Links ---
   renderSearchTopSubs(subawards) {
-    const body = document.getElementById('searchTopSubsBody');
-    const panel = document.getElementById('subSubsPanel');
-    if (!body) return;
-    
-    if (!subawards || subawards.length === 0) {
-      if (panel) panel.style.display = 'none';
-      return;
-    }
-    
-    let filtered = subawards;
-    const drill = App.subawardDrillState;
-    if (drill.level > 0 && drill.path && drill.path.length > 0) {
-      drill.path.forEach(step => {
-        if (step.type === 'agency') filtered = filtered.filter(s => (s['Awarding Agency'] || 'Unknown Agency') === step.name);
-        else if (step.type === 'subagency') filtered = filtered.filter(s => (s['Awarding Sub Agency'] || 'Unknown Sub Agency') === step.name);
-        else if (step.type === 'prime') filtered = filtered.filter(s => (s['Prime Recipient Name'] || 'Unknown Prime') === step.name);
-        else if (step.type === 'sub') filtered = filtered.filter(s => (s['Sub-Awardee Name'] || 'Unknown Sub') === step.name);
-      });
-    }
-    
-    const subMap = {};
-    filtered.forEach(sub => {
-      const subName = sub['Sub-Awardee Name'] || 'Unknown';
-      const prime = sub['Prime Recipient Name'] || '';
-      const amt = parseFloat(sub['Sub-Award Amount']) || 0;
-      if (!subMap[subName]) subMap[subName] = { name: subName, spend: 0, count: 0, primes: {} };
-      subMap[subName].spend += amt;
-      subMap[subName].count++;
-      if (prime) {
-        if (!subMap[subName].primes[prime]) subMap[subName].primes[prime] = 0;
-        subMap[subName].primes[prime] += amt;
-      }
-    });
-    
-    const sorted = Object.values(subMap).sort((a, b) => b.spend - a.spend);
-    const top = sorted.slice(0, 5);
-    if (top.length === 0) { if (panel) panel.style.display = 'none'; return; }
-    if (panel) panel.style.display = 'block';
-
-    const esc = (s) => s.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-    body.innerHTML = top.map(s => {
-      const primeCount = Object.keys(s.primes).length;
-      const topPrimes = Object.entries(s.primes).sort((a, b) => b[1] - a[1]).map(([n]) => Utils.trunc(n, 20));
-
-      return `<div class="reach-row" onclick="App.viewFootprint('${esc(s.name)}')" title="Search ${s.name} portfolio">
-        <div style="min-width: 0; flex: 1;">
-          <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
-            <span class="reach-name">${Utils.trunc(s.name, 28)}</span>
-            <span class="reach-badge accent">${primeCount} ${primeCount === 1 ? 'prime' : 'primes'}</span>
-            <span class="reach-badge">${s.count} awards</span>
-          </div>
-          <div class="reach-meta">
-            ${topPrimes.slice(0, 3).join(' · ')}${topPrimes.length > 3 ? ` +${topPrimes.length - 3}` : ''}
-          </div>
-          <div class="job-links" style="margin-top: 0.25rem;" onclick="event.stopPropagation();">
-            <a href="${JobLinks.getLinkedInPeopleUrl(s.name)}" target="_blank" class="job-link"> People</a>
-            <a href="${JobLinks.getLinkedInUrl(s.name)}" target="_blank" class="job-link"> Jobs</a>
-            <a href="${JobLinks.getLinkedInNewsUrl(s.name)}" target="_blank" class="job-link"> News</a>
-          </div>
-        </div>
-        <div style="text-align: right; flex-shrink: 0;">
-          <div class="reach-amount">${Utils.money(s.spend)}</div>
-          <div class="reach-count">${s.count} subs</div>
-        </div>
-      </div>`;
-    }).join('') + (sorted.length > 5 ? `<div class="reach-overflow">+${sorted.length - 5} more subs</div>` : '');
+    const filtered = applySubDrillFilter(subawards || [], App.subawardDrillState);
+    this.renderReachList({ data: filtered, containerId: 'searchTopSubsBody', panelId: 'subSubsPanel',
+      primaryField: 'Sub-Awardee Name', secondaryField: 'Prime Recipient Name', tertiaryField: 'Prime Recipient Name',
+      secondaryLabel: n => n === 1 ? 'prime' : 'primes',
+      onClickTpl: "App.viewFootprint('{name}')", rightLabel: 'subs', overflowLabel: 'more subs' });
   },
-
 
   // --- NAICS Mix: Uses spending_by_category/naics endpoint (App.naicsData) ---
   renderNaicsMix() {
@@ -5477,7 +5254,7 @@ renderSearchTopBuyers(data) {
         return `<div class="reach-row" onclick="App.runSearch('${s.code}')">
           <div style="min-width: 0; flex: 1;">
             <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <span style="font-family: 'Lexend Deca', sans-serif; font-size: var(--text-base); font-weight: 700; color: var(--text-primary); flex-shrink: 0; min-width: 52px;">${s.code}</span>
+              <span style="font-family: 'Google Sans Flex', sans-serif; font-size: var(--text-base); font-weight: 700; color: var(--text-primary); flex-shrink: 0; min-width: 52px;">${s.code}</span>
               <div style="flex: 1; min-width: 0;">
                 <div style="height: 6px; background: rgba(255,255,255,0.07); border-radius: var(--radius-sm); overflow: hidden;">
                   <div style="height: 100%; width: ${(s.amount / maxAmt) * 100}%; background: var(--accent); border-radius: var(--radius-sm); opacity: 0.85;"></div>
@@ -5574,30 +5351,9 @@ renderSearchTopBuyers(data) {
     }
     
     // --- Apply Drill Filter ---
-    let filteredSubawards = subawards;
     const drill = App.subawardDrillState;
-    
+    let filteredSubawards = applySubDrillFilter(subawards, drill);
     if (drill.level > 0 && drill.path.length > 0) {
-      drill.path.forEach(step => {
-        if (step.type === 'agency') {
-          filteredSubawards = filteredSubawards.filter(sub => 
-            (sub['Awarding Agency'] || 'Unknown Agency') === step.name
-          );
-        } else if (step.type === 'subagency') {
-          filteredSubawards = filteredSubawards.filter(sub => 
-            (sub['Awarding Sub Agency'] || 'Unknown Sub Agency') === step.name
-          );
-        } else if (step.type === 'prime') {
-          filteredSubawards = filteredSubawards.filter(sub => 
-            (sub['Prime Recipient Name'] || 'Unknown Prime') === step.name
-          );
-        } else if (step.type === 'sub') {
-          filteredSubawards = filteredSubawards.filter(sub => 
-            (sub['Sub-Awardee Name'] || 'Unknown Sub') === step.name
-          );
-        }
-      });
-      // Keep filter/filterType for backward compat with feed/topPrimes/topSubs
       drill.filter = drill.path[drill.path.length - 1].name;
       drill.filterType = drill.path[drill.path.length - 1].type;
     }
@@ -5736,154 +5492,34 @@ renderSearchTopBuyers(data) {
       <svg id="subawardSankeySvg"></svg>
     `;
     
-    // Match prime Sankey exactly: measure from parent (chart-wrapper) 
-    const w = ((body.parentElement ? body.parentElement.offsetWidth : body.offsetWidth) || 800) - 2;
-    const h = Math.max(350, nodes.length * 20);
-    
-    const svg = d3.select('#subawardSankeySvg')
-      .attr('viewBox', `0 0 ${w} ${h}`)
-      .attr('preserveAspectRatio', 'xMidYMid meet')
-      .style('width', '100%')
-      .style('height', 'auto')
-      .style('display', 'block');
-    
-    const sankey = d3.sankey()
-      .nodeId(d => d.index)
-      .nodeWidth(20)
-      .nodePadding(20)
-      .extent([[1, 1], [w - 1, h - 6]]);
-    
-    const { nodes: sankeyNodes, links: sankeyLinks } = sankey({
-      nodes: nodes.map(d => Object.assign({}, d)),
-      links: d3Links.map(d => Object.assign({}, d))
-    });
-    
     // Determine node types for drill behavior
     const primeNames = new Set(filteredSubawards.map(s => s['Prime Recipient Name'] || 'Unknown Prime'));
     const subNames = new Set(filteredSubawards.map(s => s['Sub-Awardee Name'] || 'Unknown Sub'));
     const agencyNames = new Set(filteredSubawards.map(s => s['Awarding Agency'] || 'Unknown Agency'));
     const subAgencyNames = new Set(filteredSubawards.map(s => s['Awarding Sub Agency'] || s['Awarding Agency'] || 'Unknown Agency'));
-    
-    sankeyNodes.forEach(node => {
-      // Determine type based on what column the node appears in within the current view
-      if (drillHasAgency && !drillHasSubAgency && subAgencyNames.has(node.name) && !primeNames.has(node.name)) {
-        node.nodeType = 'subagency';
-      } else if (!drillHasAgency && agencyNames.has(node.name) && !primeNames.has(node.name)) {
-        node.nodeType = 'agency';
-      } else if (primeNames.has(node.name) && !subNames.has(node.name)) {
-        node.nodeType = 'prime';
-      } else if (subNames.has(node.name)) {
-        node.nodeType = 'sub';
-      } else if (primeNames.has(node.name)) {
-        node.nodeType = 'prime';
-      } else {
-        node.nodeType = 'sub';
-      }
-    });
-    
-    // 3. GRADIENTS
-    Utils.getColor.reset();
-    const defs = svg.append('defs');
-    sankeyLinks.forEach((l, i) => {
-      const colorSource = Utils.getColor(l.source.name);
-      const colorTarget = Utils.getColor(l.target.name);
-      
-      const gradient = defs.append('linearGradient')
-        .attr('id', `sub-gradient-${i}`)
-        .attr('gradientUnits', 'userSpaceOnUse')
-        .attr('x1', l.source.x1)
-        .attr('x2', l.target.x0);
-      
-      gradient.append('stop').attr('offset', '0%').attr('stop-color', colorSource);
-      gradient.append('stop').attr('offset', '100%').attr('stop-color', colorTarget);
-    });
-    
-    // 4. LINKS
-    svg.append('g')
-      .attr('fill', 'none')
-      .selectAll('path')
-      .data(sankeyLinks)
-      .join('path')
-      .attr('d', d3.sankeyLinkHorizontal())
-      .attr('stroke', (d, i) => `url(#sub-gradient-${i})`)
-      .attr('stroke-width', d => Math.max(1, d.width))
-      .attr('stroke-opacity', 0.4)
-      .on('mouseover', function() { d3.select(this).attr('stroke-opacity', 0.8); })
-      .on('mouseout', function() { d3.select(this).attr('stroke-opacity', 0.4); })
-      .append('title')
-      .text(d => `${d.source.name} → ${d.target.name}\n${Utils.money(d.value)}`);
-    
-    // 5. NODES (with click handler for drill-down / drill-out)
-    const isCurrentFilter = (name) => {
-      return drill.path.length > 0 && drill.path[drill.path.length - 1].name === name;
-    };
-    const isTouchSankey = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    svg.append('g')
-      .selectAll('rect')
-      .data(sankeyNodes)
-      .join('rect')
-      .attr('x', d => d.x0)
-      .attr('y', d => d.y0)
-      .attr('height', d => Math.max(1, d.y1 - d.y0)) // Keeps the true visual height
-      .attr('width', d => d.x1 - d.x0)
-      .attr('fill', d => Utils.getColor(d.name))
-      .attr('opacity', d => isCurrentFilter(d.name) ? 1 : 0.8)
-      // Fat invisible stroke for mobile touch targets, solid stroke for active filters
-      .attr('stroke', d => isCurrentFilter(d.name) ? '#F1EEE9' : 'transparent')
-      .attr('stroke-width', d => isCurrentFilter(d.name) ? 0 : (isTouchSankey ? 24 : 0))
-      .style('cursor', d => d.name.startsWith('Other') ? 'default' : 'pointer')
-      .on('click', function(event, d) {
-        if (d.name.startsWith('Other') || d.name.includes('Unknown')) return;
-        
-        // If clicking the current active filter → drill OUT (go up one level)
-        if (isCurrentFilter(d.name)) {
-          if (drill.path.length <= 1) {
-            App.resetSubawardDrill();
-          } else {
-            App.drillSubawardToLevel(drill.path.length - 2);
-          }
+
+    const svg = d3.select('#subawardSankeySvg');
+    const result = ChartUtils.drawSankey(svg, {
+      nodes, links,
+      gradientPrefix: 'sub-grad',
+      heightPerNode: 20,
+      isDrillable: d => !d.name.startsWith('Other') && !d.name.includes('Unknown'),
+      isActive: d => drill.path.length > 0 && drill.path[drill.path.length - 1].name === d.name,
+      onNodeClick: (d) => {
+        const isAct = drill.path.length > 0 && drill.path[drill.path.length - 1].name === d.name;
+        if (isAct) {
+          if (drill.path.length <= 1) App.resetSubawardDrill(); else App.drillSubawardToLevel(drill.path.length - 2);
         } else {
-          // Drill IN
-          App.drillSubaward(d.name, d.nodeType);
+          // Determine nodeType from data sets
+          let nodeType = 'sub';
+          if (drillHasAgency && !drillHasSubAgency && subAgencyNames.has(d.name) && !primeNames.has(d.name)) nodeType = 'subagency';
+          else if (!drillHasAgency && agencyNames.has(d.name) && !primeNames.has(d.name)) nodeType = 'agency';
+          else if (primeNames.has(d.name) && !subNames.has(d.name)) nodeType = 'prime';
+          else if (primeNames.has(d.name)) nodeType = 'prime';
+          App.drillSubaward(d.name, nodeType);
         }
-      })
-      .on('mouseover', function(event, d) { 
-        d3.select(this).attr('opacity', 1);
-        if (isCurrentFilter(d.name)) {
-          d3.select(this).attr('stroke', 'var(--danger)').attr('stroke-width', 0);
-        }
-      })
-      .on('mouseout', function(event, d) { 
-        d3.select(this).attr('opacity', isCurrentFilter(d.name) ? 1 : 0.8);
-        d3.select(this).attr('stroke', isCurrentFilter(d.name) ? '#F1EEE9' : 'none')
-          .attr('stroke-width', isCurrentFilter(d.name) ? 0 : 0);
-      })
-      .append('title')
-      .text(d => {
-        const action = isCurrentFilter(d.name) ? '← Click to drill out' : 'Click to drill down →';
-        return `${d.name}\n${Utils.money(d.value)}\n${d.name.startsWith('Other') ? '' : action}`;
-      });
-    
-// Render Labels
-  const isNarrow = w < 600; // Detect mobile width
-  svg.append("g")
-    .selectAll("text")
-    .data(sankeyNodes)
-    .join("text")
-    .attr("x", d => (d.x0 < w / 2 ? d.x1 + 6 : d.x0 - 6))
-    .attr("y", d => (d.y1 + d.y0) / 2)
-    .attr("dy", d => {
-      if (d.y1 - d.y0 > 30) {
-        return d.x0 < w / 2 ? "-0.5em" : "1.1em"; 
       }
-      return "0.35em"; 
-    })
-    .attr("text-anchor", d => (d.x0 < w / 2 ? "start" : "end"))
-    .text(d => Utils.trunc(d.name, isNarrow ? 25 : 40)) // Tighter truncation on mobile
-    .style("font-size", "11px")
-    .style("font-weight", d => (d.y1 - d.y0 > 30) ? "700" : "400") // Bold the major players
-    .style("fill", App.presentationMode ? "#1A1A1A" : "#F1EEE9")
-    .style("pointer-events", "none");
+    });
 },
   // Subaward drill-down handler - multi-level path support
   drillSubaward(name, nodeType) {
@@ -6003,7 +5639,7 @@ renderRecompetes(recompetes, showAll = false) {
           <button class="mission-gap-toggle ${App.onlyHighMissionGap ? 'active' : ''}"
         onclick="App.toggleMissionGapFilter()"
         title="Show only contracts with high mission continuity risk">
-  
+  <i class="fa-solid fa-sort"></i>
 </button>
         ` : ''}
       </div>
@@ -6041,39 +5677,23 @@ renderRecompetes(recompetes, showAll = false) {
       const riskLabel = risk.level === 'high' ? 'Mission Gap: High' : risk.level === 'medium' ? 'Mission Gap: Medium' : 'Mission Gap: Low';
       const esc = str => Html.escapeHtml(str);
       
-      return `
-      <div class="deal-card" style="margin-bottom:1rem; ${risk.level === 'high' ? 'border-left: 3px solid var(--danger);' : risk.level === 'medium' ? 'border-left: 3px solid #FDD835;' : ''}">
-        <div class="deal-header">
-          <span class="deal-agency">${esc(Utils.trunc(r['Awarding Agency'], 40))}</span>
-          <span class="deal-amount">${Utils.money(r['Award Amount'])}</span>
-        </div>
-        <div class="deal-desc">${esc(Utils.trunc(r['Description'], 100))}</div>
-        <div class="deal-meta">
-          <span class="meta-tag" style="color:var(--accent); border-color:var(--accent);">${fiscalPeriod}</span>
-          <span class="meta-tag mission-gap ${risk.level}">${riskLabel}</span>
-          ${r['PSC Code'] ? `<span class="meta-tag psc">PSC: ${esc(r['PSC Code'])}</span>` : ''}
-        </div>
-        ${risk.reasons.length > 0 && risk.level !== 'low' ? `<div class="mission-gap-signals">Signals: ${esc(risk.reasons.join(', '))}</div>` : ''}
-        <div class="deal-footer">
-          <div>
-            <div style="font-size:var(--text-sm); color:${urgency === 'urgent' ? 'var(--danger)' : urgency === 'soon' ? '#FDD835' : 'var(--text-secondary)'}">
-              Expires: ${Utils.date(r['End Date'])} (${daysUntil} days)
-            </div>
-            <div style="font-size:var(--text-sm); color:var(--text-tertiary)">Incumbent: ${esc(Utils.trunc(r['Recipient Name'], 35))}</div>
-          </div>
-          <div style="display:flex;gap:0.5rem;align-items:center;">
-            ${awardUrl ? `<a href="${awardUrl}" target="_blank" class="action-btn">VIEW</a>` : ''}
-          </div>
-        </div>
-      </div>`;
+      return App.buildCardHTML({
+        borderStyle: risk.level === 'high' ? 'margin-bottom:1rem;border-left:3px solid var(--danger);' : risk.level === 'medium' ? 'margin-bottom:1rem;border-left:3px solid #FDD835;' : 'margin-bottom:1rem;',
+        agency: esc(Utils.trunc(r['Awarding Agency'], 40)),
+        amount: Utils.money(r['Award Amount']),
+        desc: esc(Utils.trunc(r['Description'], 100)),
+        vendorHtml: '',
+        metaHtml: `<span class="meta-tag" style="background:rgba(255,255,255,0.04);border-color:var(--border);color:var(--text-secondary);">${fiscalPeriod}</span><span class="meta-tag mission-gap ${risk.level}">${riskLabel}</span>${r['PSC Code'] ? `<span class="meta-tag psc">PSC: ${esc(r['PSC Code'])}</span>` : ''}`,
+        signalsHtml: risk.reasons.length > 0 && risk.level !== 'low' ? `<div class="mission-gap-signals">Signals: ${esc(risk.reasons.join(', '))}</div>` : '',
+        dateHtml: `<span style="color:${urgency === 'urgent' ? 'var(--danger)' : urgency === 'soon' ? '#FDD835' : 'var(--text-secondary)'}">Expires: ${Utils.date(r['End Date'])} (${daysUntil} days)</span>`,
+        subText: `Incumbent: ${esc(Utils.trunc(r['Recipient Name'], 35))}`,
+        url: awardUrl
+      });
     }).join('');
     
     // 8. Add the "Show All" button if there are more items
     if (hasMore) {
-      html += `
-        <button onclick="App.renderRecompetes(App.forecastData.analysis.recompetes, true)" style="width: 100%; padding: 0.875rem; background: var(--bg-card); border: 1px dashed var(--border); border-radius: var(--radius-sm); color: var(--accent); font-family: 'Lexend Deca', sans-serif; font-size: var(--text-sm); cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px;" onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--accent-dim)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg-card)'">
-          Show All ${filtered.length} Expiring Contracts
-        </button>`;
+      html += Utils.showMoreBtn('App.renderRecompetes(App.forecastData.analysis.recompetes, true)', `Show All ${filtered.length} Expiring Contracts`);
     }
   }
   
@@ -6186,7 +5806,7 @@ renderRecompetes(recompetes, showAll = false) {
       container.innerHTML = `
         <div style="text-align:center; padding:3rem 1.5rem;">
           <div style="font-size:var(--text-hero); margin-bottom:1rem; opacity:0.3;">∅</div>
-          <div style="font-family: 'Lexend Deca', sans-serif; font-size:var(--text-lg); font-weight:600; color:var(--text-primary); margin-bottom:0.5rem;">
+          <div style="font-family: 'Google Sans Flex', sans-serif; font-size:var(--text-lg); font-weight:600; color:var(--text-primary); margin-bottom:0.5rem;">
             No active contracts found for "${Utils.trunc(query, 30)}"
           </div>
           <div style="font-size:var(--text-base); color:var(--text-secondary); max-width:360px; margin:0 auto 1.5rem; line-height:1.6;">
@@ -6561,90 +6181,28 @@ if (enEl) Utils.countUp(enEl, entities.length);
   let touchSelectedEntity = null; // Track which entity is "focused" on touch
 
   function attachInteractions(selection) {
-    function buildTooltipHtml(entity) {
-      const share = totalSpend > 0 ? ((entity.spend / totalSpend) * 100).toFixed(1) : '0';
-      let metaText;
-      if (effective === 'agencies') {
-        metaText = `${entity.count} awards · ${entity.vendorCount} vendors · ${share}%`;
-      } else if (effective === 'subagencies') {
-        metaText = `${entity.count} awards · ${entity.vendorCount} vendors · ${share}%`;
-      } else {
-        metaText = `${entity.count} awards · ${entity.agencyCount} agencies · ${share}%`;
-      }
-      let drillHint = '';
-      if (effective === 'agencies') drillHint = `<div style="color:var(--accent);font-size:var(--text-xs);margin-top:4px;">${isTouchDevice ? 'Tap again' : 'Click'} to drill into sub-agencies →</div>`;
-      else if (effective === 'subagencies') drillHint = `<div style="color:var(--accent);font-size:var(--text-xs);margin-top:4px;">${isTouchDevice ? 'Tap again' : 'Click'} to drill into vendors →</div>`;
-      else if (effective === 'vendors' && drill.level < 3) drillHint = `<div style="color:var(--accent);font-size:var(--text-xs);margin-top:4px;">${isTouchDevice ? 'Tap again' : 'Click'} to focus on this vendor →</div>`;
-      return `
-        <div class="bubble-tooltip-name">${entity.name}</div>
-        <div class="bubble-tooltip-amount">${Utils.money(entity.spend)}</div>
-        <div class="bubble-tooltip-meta">${metaText}</div>
-        ${drillHint}
-      `;
-    }
-
-    function doDrill(entity) {
-      tooltip.classList.remove('visible');
-      touchSelectedEntity = null;
-      if (effective === 'agencies') { App.bubbleMode = 'auto'; App.drillToAgency(entity.name); }
-      else if (effective === 'subagencies') { App.bubbleMode = 'auto'; App.drillToSubAgency(entity.name); }
-      else { App.drillDown(entity.name); }
-    }
-
-    if (isTouchDevice) {
-      // TOUCH: first tap = show tooltip, second tap on same entity = drill
-      selection.on('click', function(event, d) {
-        event.stopPropagation();
-        const entity = d.data || d;
-        
-        if (touchSelectedEntity === entity.name) {
-          // Second tap — drill in
-          doDrill(entity);
-        } else {
-          // First tap — show tooltip fixed at bottom of chart area
-          touchSelectedEntity = entity.name;
-          tooltip.innerHTML = buildTooltipHtml(entity);
-          tooltip.style.left = '50%';
-          tooltip.style.top = 'auto';
-          tooltip.style.bottom = '8px';
-          tooltip.style.transform = 'translateX(-50%)';
-          tooltip.style.maxWidth = '90%';
-          tooltip.classList.add('visible');
-        }
-      });
-      // Tap on empty space = dismiss tooltip
-      svg.on('click', function() {
-        tooltip.classList.remove('visible');
-        touchSelectedEntity = null;
-      });
-    } else {
-      // DESKTOP: hover to show tooltip, click to drill
-      selection
-        .on('mouseover', function(event, d) {
-          const entity = d.data || d;
-          tooltip.innerHTML = buildTooltipHtml(entity);
-          tooltip.classList.add('visible');
-        })
-        .on('mousemove', function(event) {
-          const containerRect = container.getBoundingClientRect();
-          let tx = event.clientX - containerRect.left + 15;
-          let ty = event.clientY - containerRect.top - 10;
-          if (tx + 260 > w) tx -= 280;
-          if (ty + 90 > h) ty -= 100;
-          tooltip.style.left = tx + 'px';
-          tooltip.style.top = ty + 'px';
-          tooltip.style.bottom = 'auto';
-          tooltip.style.transform = 'none';
-          tooltip.style.maxWidth = '';
-        })
-        .on('mouseout', function() {
-          tooltip.classList.remove('visible');
-        })
-        .on('click', function(event, d) {
-          const entity = d.data || d;
-          doDrill(entity);
-        });
-    }
+    attachChartInteractions(selection, svg, tooltip, container, w, h, isTouchDevice,
+      function(entity) {
+        const share = totalSpend > 0 ? ((entity.spend / totalSpend) * 100).toFixed(1) : '0';
+        let metaText;
+        if (effective === 'agencies') metaText = `${entity.count} awards · ${entity.vendorCount} vendors · ${share}%`;
+        else if (effective === 'subagencies') metaText = `${entity.count} awards · ${entity.vendorCount} vendors · ${share}%`;
+        else metaText = `${entity.count} awards · ${entity.agencyCount} agencies · ${share}%`;
+        let drillHint = '';
+        if (effective === 'agencies') drillHint = `<div style="color:var(--accent);font-size:var(--text-xs);margin-top:4px;">${isTouchDevice ? 'Tap again' : 'Click'} to drill into sub-agencies →</div>`;
+        else if (effective === 'subagencies') drillHint = `<div style="color:var(--accent);font-size:var(--text-xs);margin-top:4px;">${isTouchDevice ? 'Tap again' : 'Click'} to drill into vendors →</div>`;
+        else if (effective === 'vendors' && drill.level < 3) drillHint = `<div style="color:var(--accent);font-size:var(--text-xs);margin-top:4px;">${isTouchDevice ? 'Tap again' : 'Click'} to focus on this vendor →</div>`;
+        return `<div class="bubble-tooltip-name">${entity.name}</div>
+          <div class="bubble-tooltip-amount">${Utils.money(entity.spend)}</div>
+          <div class="bubble-tooltip-meta">${metaText}</div>${drillHint}`;
+      },
+      function(entity) {
+        if (effective === 'agencies') { App.bubbleMode = 'auto'; App.drillToAgency(entity.name); }
+        else if (effective === 'subagencies') { App.bubbleMode = 'auto'; App.drillToSubAgency(entity.name); }
+        else { App.drillDown(entity.name); }
+      },
+      { touchStateGet: () => touchSelectedEntity, touchStateSet: v => { touchSelectedEntity = v; } }
+    );
   }
 
   // Create SVG
@@ -6694,52 +6252,6 @@ if (enEl) Utils.countUp(enEl, entities.length);
       .attr('clip-path', (d, i) => `url(#tm-clip-${i})`);
 
     // Word-wrap helper: splits name into lines that fit cell width at given font size
-    function wrapName(name, cellW, fontSize) {
-      const charW = fontSize * 0.58;
-      const padW = cellW - 12; // 6px padding each side
-      const maxCharsPerLine = Math.floor(padW / charW);
-      if (maxCharsPerLine < 3) return [];
-      const words = name.split(/\s+/);
-      const lines = [];
-      let current = '';
-      words.forEach(word => {
-        const test = current ? current + ' ' + word : word;
-        if (test.length <= maxCharsPerLine) {
-          current = test;
-        } else {
-          if (current) lines.push(current);
-          current = word.length > maxCharsPerLine ? word.slice(0, maxCharsPerLine - 1) + '…' : word;
-        }
-      });
-      if (current) lines.push(current);
-      return lines;
-    }
-
-    // Compute optimal font size that fits name + amount inside cell
-    function computeLayout(d) {
-      const cellW = d.x1 - d.x0;
-      const cellH = d.y1 - d.y0;
-      const name = d.data.name;
-      const amount = Utils.money(d.data.spend);
-
-      // Try font sizes from large to small
-      for (let fs = Math.min(cellW / 5, cellH / 3, 22); fs >= 7; fs -= 0.5) {
-        const nameLines = wrapName(name, cellW, fs);
-        const amountFs = fs * 0.85;
-        const lineH = fs * 1.25;
-        const amountH = amountFs * 1.3;
-        const totalH = nameLines.length * lineH + amountH + 8; // 8px gap
-        if (totalH < cellH - 8 && nameLines.length > 0 && nameLines.length <= 4) {
-          return { nameLines, fontSize: fs, amountFs, lineH, totalH };
-        }
-      }
-      // Fallback: single truncated line at minimum size
-      const fs = 7;
-      const charW = fs * 0.58;
-      const maxC = Math.floor((cellW - 12) / charW);
-      return { nameLines: [Utils.trunc(name, Math.max(maxC, 3))], fontSize: fs, amountFs: 6, lineH: fs * 1.25, totalH: fs * 2.5 + 8 };
-    }
-
     // Render name + amount with word wrap
     textGroup.each(function(d) {
       const cellW = d.x1 - d.x0;
@@ -6747,7 +6259,7 @@ if (enEl) Utils.countUp(enEl, entities.length);
       if (cellW < 40 || cellH < 25) return;
 
       const g = d3.select(this);
-      const layout = computeLayout(d);
+      const layout = ChartUtils.fitTreemapText(d);
       const startY = (cellH - layout.totalH) / 2 + layout.fontSize;
 
       // Name lines
@@ -6822,47 +6334,11 @@ if (enEl) Utils.countUp(enEl, entities.length);
     .attr('stroke-width', 1);
   
   // Word-wrap for circles: fits name + amount inside bubble diameter
-  function wrapInCircle(name, r, fontSize) {
-    const charW = fontSize * 0.58;
-    const maxW = r * 1.6; // usable width inside circle
-    const maxCharsPerLine = Math.floor(maxW / charW);
-    if (maxCharsPerLine < 3) return [];
-    const words = name.split(/\s+/);
-    const lines = [];
-    let current = '';
-    words.forEach(word => {
-      const test = current ? current + ' ' + word : word;
-      if (test.length <= maxCharsPerLine) {
-        current = test;
-      } else {
-        if (current) lines.push(current);
-        current = word.length > maxCharsPerLine ? word.slice(0, maxCharsPerLine - 1) + '…' : word;
-      }
-    });
-    if (current) lines.push(current);
-    return lines;
-  }
-
-  function computeBubbleLayout(d) {
-    const r = d.r;
-    const name = d.data.name;
-    for (let fs = Math.min(r / 2.5, 20); fs >= 7; fs -= 0.5) {
-      const nameLines = wrapInCircle(name, r, fs);
-      const amountFs = fs * 0.85;
-      const lineH = fs * 1.2;
-      const totalH = nameLines.length * lineH + amountFs * 1.3 + 4;
-      if (totalH < r * 1.6 && nameLines.length > 0 && nameLines.length <= 3) {
-        return { nameLines, fontSize: fs, amountFs, lineH, totalH };
-      }
-    }
-    return null;
-  }
-
   // Render name + amount with word wrap inside circles
   nodes.each(function(d) {
     if (d.r < 25) return;
     const g = d3.select(this);
-    const layout = computeBubbleLayout(d);
+    const layout = ChartUtils.fitCircleText(d);
     if (!layout) return;
 
     const startY = -(layout.totalH / 2) + layout.fontSize * 0.8;
@@ -6967,17 +6443,7 @@ App.renderSubBubbleChart = function() {
   }
   
   // Apply subaward drill filter (same logic as renderSubawardSankey)
-  let filtered = subawards;
-  const drill = App.subawardDrillState || {};
-  
-  if (drill.level > 0 && drill.path && drill.path.length > 0) {
-    drill.path.forEach(step => {
-      if (step.type === 'agency') filtered = filtered.filter(s => (s['Awarding Agency'] || 'Unknown Agency') === step.name);
-      else if (step.type === 'subagency') filtered = filtered.filter(s => (s['Awarding Sub Agency'] || 'Unknown Sub Agency') === step.name);
-      else if (step.type === 'prime') filtered = filtered.filter(s => (s['Prime Recipient Name'] || 'Unknown Prime') === step.name);
-      else if (step.type === 'sub') filtered = filtered.filter(s => (s['Sub-Awardee Name'] || 'Unknown Sub') === step.name);
-    });
-  }
+  let filtered = applySubDrillFilter(subawards, App.subawardDrillState || {});
   
   if (filtered.length === 0) {
     panel.style.display = 'none';
@@ -7062,63 +6528,18 @@ App.renderSubBubbleChart = function() {
   let subTouchSelected = null;
 
   function attachSubInteractions(selection) {
-    function buildSubTooltip(e) {
-      const share = totalSpend > 0 ? ((e.spend / totalSpend) * 100).toFixed(1) : '0';
-      const partnerLabel = mode === 'primes' ? 'subs' : 'primes';
-      return `
-        <div class="bubble-tooltip-name">${e.name}</div>
-        <div class="bubble-tooltip-amount">${Utils.money(e.spend)}</div>
-        <div class="bubble-tooltip-meta">${e.count} subawards · ${e.partnerCount} ${partnerLabel} · ${share}%</div>
-        <div style="color:var(--accent);font-size:var(--text-xs);margin-top:4px;">${isTouchDevice ? 'Tap again' : 'Click'} to drill →</div>
-      `;
-    }
-
-    if (isTouchDevice) {
-      selection.on('click', function(event, d) {
-        event.stopPropagation();
-        const e = d.data || d;
-        if (subTouchSelected === e.name) {
-          tooltip.classList.remove('visible');
-          subTouchSelected = null;
-          App.drillSubaward(e.name, mode === 'primes' ? 'prime' : 'sub');
-        } else {
-          subTouchSelected = e.name;
-          tooltip.innerHTML = buildSubTooltip(e);
-          tooltip.style.left = '50%';
-          tooltip.style.top = 'auto';
-          tooltip.style.bottom = '8px';
-          tooltip.style.transform = 'translateX(-50%)';
-          tooltip.style.maxWidth = '90%';
-          tooltip.classList.add('visible');
-        }
-      });
-      svg.on('click', function() { tooltip.classList.remove('visible'); subTouchSelected = null; });
-    } else {
-      selection
-        .on('mouseover', function(event, d) {
-          const e = d.data || d;
-          tooltip.innerHTML = buildSubTooltip(e);
-          tooltip.classList.add('visible');
-        })
-        .on('mousemove', function(event) {
-          const cr = container.getBoundingClientRect();
-          let tx = event.clientX - cr.left + 15;
-          let ty = event.clientY - cr.top - 10;
-          if (tx + 260 > w) tx -= 280;
-          if (ty + 90 > h) ty -= 100;
-          tooltip.style.left = tx + 'px';
-          tooltip.style.top = ty + 'px';
-          tooltip.style.bottom = 'auto';
-          tooltip.style.transform = 'none';
-          tooltip.style.maxWidth = '';
-        })
-        .on('mouseout', function() { tooltip.classList.remove('visible'); })
-        .on('click', function(event, d) {
-          tooltip.classList.remove('visible');
-          const e = d.data || d;
-          App.drillSubaward(e.name, mode === 'primes' ? 'prime' : 'sub');
-        });
-    }
+    attachChartInteractions(selection, svg, tooltip, container, w, h, isTouchDevice,
+      function(e) {
+        const share = totalSpend > 0 ? ((e.spend / totalSpend) * 100).toFixed(1) : '0';
+        const partnerLabel = mode === 'primes' ? 'subs' : 'primes';
+        return `<div class="bubble-tooltip-name">${e.name}</div>
+          <div class="bubble-tooltip-amount">${Utils.money(e.spend)}</div>
+          <div class="bubble-tooltip-meta">${e.count} subawards · ${e.partnerCount} ${partnerLabel} · ${share}%</div>
+          <div style="color:var(--accent);font-size:var(--text-xs);margin-top:4px;">${isTouchDevice ? 'Tap again' : 'Click'} to drill →</div>`;
+      },
+      function(e) { App.drillSubaward(e.name, mode === 'primes' ? 'prime' : 'sub'); },
+      { touchStateGet: () => subTouchSelected, touchStateSet: v => { subTouchSelected = v; } }
+    );
   }
 
   const svg = d3.select(container)
@@ -7164,52 +6585,12 @@ App.renderSubBubbleChart = function() {
     const textGroup = cells.append('g')
       .attr('clip-path', (d, i) => `url(#stm-clip-${i})`);
 
-    function wrapNameSub(name, cellW, fontSize) {
-      const charW = fontSize * 0.58;
-      const padW = cellW - 12;
-      const maxCharsPerLine = Math.floor(padW / charW);
-      if (maxCharsPerLine < 3) return [];
-      const words = name.split(/\s+/);
-      const lines = [];
-      let current = '';
-      words.forEach(word => {
-        const test = current ? current + ' ' + word : word;
-        if (test.length <= maxCharsPerLine) {
-          current = test;
-        } else {
-          if (current) lines.push(current);
-          current = word.length > maxCharsPerLine ? word.slice(0, maxCharsPerLine - 1) + '…' : word;
-        }
-      });
-      if (current) lines.push(current);
-      return lines;
-    }
-
-    function computeSubTreeLayout(d) {
-      const cellW = d.x1 - d.x0;
-      const cellH = d.y1 - d.y0;
-      const name = d.data.name;
-      for (let fs = Math.min(cellW / 5, cellH / 3, 22); fs >= 7; fs -= 0.5) {
-        const nameLines = wrapNameSub(name, cellW, fs);
-        const amountFs = fs * 0.85;
-        const lineH = fs * 1.25;
-        const totalH = nameLines.length * lineH + amountFs * 1.3 + 8;
-        if (totalH < cellH - 8 && nameLines.length > 0 && nameLines.length <= 4) {
-          return { nameLines, fontSize: fs, amountFs, lineH, totalH };
-        }
-      }
-      const fs = 7;
-      const charW = fs * 0.58;
-      const maxC = Math.floor((cellW - 12) / charW);
-      return { nameLines: [Utils.trunc(d.data.name, Math.max(maxC, 3))], fontSize: fs, amountFs: 6, lineH: fs * 1.25, totalH: fs * 2.5 + 8 };
-    }
-
     textGroup.each(function(d) {
       const cellW = d.x1 - d.x0;
       const cellH = d.y1 - d.y0;
       if (cellW < 40 || cellH < 25) return;
       const g = d3.select(this);
-      const layout = computeSubTreeLayout(d);
+      const layout = ChartUtils.fitTreemapText(d);
       const startY = (cellH - layout.totalH) / 2 + layout.fontSize;
       layout.nameLines.forEach((line, i) => {
         g.append('text')
@@ -7264,47 +6645,10 @@ App.renderSubBubbleChart = function() {
     .attr('stroke', 'rgba(241, 238, 233, 0.1)')
     .attr('stroke-width', 1);
   
-  // Word-wrap for circles
-  function wrapInCircleSub(name, r, fontSize) {
-    const charW = fontSize * 0.58;
-    const maxW = r * 1.6;
-    const maxCharsPerLine = Math.floor(maxW / charW);
-    if (maxCharsPerLine < 3) return [];
-    const words = name.split(/\s+/);
-    const lines = [];
-    let current = '';
-    words.forEach(word => {
-      const test = current ? current + ' ' + word : word;
-      if (test.length <= maxCharsPerLine) {
-        current = test;
-      } else {
-        if (current) lines.push(current);
-        current = word.length > maxCharsPerLine ? word.slice(0, maxCharsPerLine - 1) + '…' : word;
-      }
-    });
-    if (current) lines.push(current);
-    return lines;
-  }
-
-  function computeSubBubbleLayout(d) {
-    const r = d.r;
-    const name = d.data.name;
-    for (let fs = Math.min(r / 2.5, 20); fs >= 7; fs -= 0.5) {
-      const nameLines = wrapInCircleSub(name, r, fs);
-      const amountFs = fs * 0.85;
-      const lineH = fs * 1.2;
-      const totalH = nameLines.length * lineH + amountFs * 1.3 + 4;
-      if (totalH < r * 1.6 && nameLines.length > 0 && nameLines.length <= 3) {
-        return { nameLines, fontSize: fs, amountFs, lineH, totalH };
-      }
-    }
-    return null;
-  }
-
   nodes.each(function(d) {
     if (d.r < 25) return;
     const g = d3.select(this);
-    const layout = computeSubBubbleLayout(d);
+    const layout = ChartUtils.fitCircleText(d);
     if (!layout) return;
     const startY = -(layout.totalH / 2) + layout.fontSize * 0.8;
     layout.nameLines.forEach((line, i) => {
@@ -7371,36 +6715,6 @@ App.togglePresentationMode = function() {
 
 App.init();
 
-// Responsive placeholder: shorter on mobile
-(function() {
-  const mini = document.getElementById('miniSearch');
-  if (!mini) return;
-  function setPlaceholder() {
-    mini.placeholder = window.innerWidth <= 600 ? 'Search...' : 'Search keywords, companies, NAICS, agencies...';
-  }
-  setPlaceholder();
-  window.addEventListener('resize', setPlaceholder);
-})();
-
-// Keyboard shortcut: / to focus search (standard in data tools)
-document.addEventListener('keydown', (e) => {
-  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
-  if (e.metaKey || e.ctrlKey || e.altKey) return;
-
-  if (e.key === '/') {
-    e.preventDefault();
-    const mini = document.getElementById('miniSearch');
-    const main = document.getElementById('mainSearchInput');
-    if (mini && mini.offsetParent !== null) { mini.focus(); mini.select(); }
-    else if (main) { main.focus(); main.select(); }
-  }
-
-  if (e.key === 'Escape') {
-    if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
-      document.activeElement.blur();
-    }
-  }
-});
 </script>
 </body>
 </html>
