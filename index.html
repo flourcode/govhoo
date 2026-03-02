@@ -800,7 +800,8 @@ svg { border: none !important; outline: none !important; }
 .bubble-tooltip-amount { color: var(--text-primary); font-size: var(--text-base); font-weight: 700; }
 .bubble-tooltip-meta { color: var(--text-secondary); font-size: var(--text-xs); margin-top: 4px; }
 
-.bubble-toggle-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.bubble-toggle-row { display: flex; gap: 0.35rem; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
+.toggle-sep { border-left: 1px solid var(--border); height: 1.2rem; margin: 0 0.15rem; }
 .bubble-toggle-btn {
   padding: 0.35rem 0.75rem;
   font-family: 'Google Sans Flex', sans-serif;
@@ -814,6 +815,7 @@ svg { border: none !important; outline: none !important; }
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.15s ease;
+  white-space: nowrap;
 }
 .bubble-toggle-btn.active { background: var(--brand); border-color: var(--brand); color: var(--brand-text); }
 .bubble-toggle-btn:hover:not(.active) { border-color: var(--brand); color: var(--brand); }
@@ -1289,7 +1291,8 @@ svg { border: none !important; outline: none !important; }
 }
 
 .ai-msg-arti .strategic-read {
-    margin-top: -1.25rem; 
+    margin-top: 0; 
+    padding-top: 0.5rem;
     flex: 1; 
     min-width: 0;
 }
@@ -1304,9 +1307,9 @@ svg { border: none !important; outline: none !important; }
 }
 .ai-msg-arti .strategic-read > p:first-child,
 .ai-msg-arti .strategic-read > p:first-of-type {
-    font-size: var(--text-base);
-    border-left: none;
-    padding-left: 0;
+    font-size: var(--text-base) !important;
+    border-left: none !important;
+    padding-left: 0 !important;
 }
 .ai-msg-arti .strategic-read p:first-child { margin-top: 0; }
 .ai-msg-arti .strategic-read p:last-child { margin-bottom: 0; }
@@ -1523,6 +1526,7 @@ svg { border: none !important; outline: none !important; }
   .icon-btn-pres { display: none; }
   .job-links { gap: 6px; }
   #bubbleChartContainer { min-height: 320px; }
+  .toggle-sep { width: 100%; height: 0; border: none; margin: 0; }
   
   /* Arti banner: compact single-line with CTA */
   .ai-banner { 
@@ -2525,7 +2529,7 @@ body {
     <div class="hero-suggestions">
       <a href="?q=ZERO+TRUST%2C+FIREWALL" class="hero-suggestion-chip">ZERO TRUST, FIREWALL</a>
       <a href="?q=541512+AND+AIR FORCE" class="hero-suggestion-chip">541512 AND AIR FORCE</a>
-      <a href="?q=SOCOM" class="hero-suggestion-chip">SOCOM</a>
+      <a href="?q=Department+of+Homeland+Security&drill=Department+of+Homeland+Security" class="hero-suggestion-chip">DHS</a>
       <a href="?q=SBIR+PHASE+III" class="hero-suggestion-chip">SBIR PHASE III</a>
     </div>
 
@@ -2722,7 +2726,7 @@ body {
                 <button class="bubble-toggle-btn active" onclick="App.setBubbleMode('vendors')" id="bubbleToggleVendors">Vendors</button>
                 <button class="bubble-toggle-btn" onclick="App.setBubbleMode('agencies')" id="bubbleToggleAgencies">Agencies</button>
                 <button class="bubble-toggle-btn" onclick="App.setBubbleMode('subagencies')" id="bubbleToggleSubAgencies" style="display:none;">Sub-Agencies</button>
-                <span style="border-left: 1px solid var(--border); height: 1.2rem; margin: 0 0.25rem;"></span>
+                <span class="toggle-sep"></span>
                 <button class="bubble-toggle-btn active" onclick="App.setBubbleChartType('bubbles')" id="chartTypeBubbles">Bubbles</button>
                 <button class="bubble-toggle-btn" onclick="App.setBubbleChartType('treemap')" id="chartTypeTreemap">Treemap</button>
               </div>
@@ -2837,7 +2841,7 @@ body {
                 <div class="bubble-toggle-row" style="margin-bottom: 0;">
                   <button class="bubble-toggle-btn active" onclick="App.setSubBubbleMode('primes')" id="subBubbleTogglePrimes">Primes</button>
                   <button class="bubble-toggle-btn" onclick="App.setSubBubbleMode('subs')" id="subBubbleToggleSubs">Subs</button>
-                  <span style="border-left: 1px solid var(--border); height: 1.2rem; margin: 0 0.25rem;"></span>
+                  <span class="toggle-sep"></span>
                   <button class="bubble-toggle-btn active" onclick="App.setSubBubbleChartType('bubbles')" id="subChartTypeBubbles">Bubbles</button>
                   <button class="bubble-toggle-btn" onclick="App.setSubBubbleChartType('treemap')" id="subChartTypeTreemap">Treemap</button>
                 </div>
