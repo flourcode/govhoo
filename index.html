@@ -2627,28 +2627,33 @@ body {
 
   <div id="appView" style="display:none;">
     <header class="app-header">
-      <div class="header-left">
-        <span class="logo-btn" data-action="showHero" title="Back to home"><span class="logo-home-icon"><i class="fa-solid fa-angle-left"></i></span><span class="logo-name">Govhoo</span></span>
-        <div class="mini-search-wrapper">
-          <input type="text" id="miniSearch" class="mini-search" placeholder="Search keywords, companies, NAICS, agencies...">
-        </div>
-      </div>
-      <div class="header-actions">
-        <button class="icon-btn icon-btn-slack" data-action="shareBrief" title="Share Link">
-          <i class="fa-regular fa-paper-plane"></i>
-        </button>
-        <button class="icon-btn icon-btn-csv" title="Download CSV" data-action="exportCSV">
-          <i class="fas fa-arrow-down"></i>
-        </button>
-        <button class="icon-btn icon-btn-pres" id="presToggleBtn" onclick="App.togglePresentationMode()" title="Light Mode">
-          <i class="fas fa-rainbow"></i>
-        </button>
-      </div>
-    </header>
+  <div class="header-left">
+    <span class="logo-btn" data-action="showHero" title="Back to home">
+      <span class="logo-home-icon"><i class="fa-solid fa-angle-left"></i></span>
+      <span class="logo-name">Govhoo</span>
+    </span>
+    <div class="mini-search-wrapper" style="display: flex; gap: 8px; align-items: center;">
+      <input type="text" id="miniSearch" class="mini-search" placeholder="Search keywords, companies, NAICS...">
+      <button class="icon-btn" onclick="App.runSearch(document.getElementById('miniSearch').value)" title="Execute Search" style="flex-shrink: 0;">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </button>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="icon-btn icon-btn-slack" data-action="shareBrief" title="Share Link">
+      <i class="fa-regular fa-share-nodes"></i>
+    </button>
+    <button class="icon-btn icon-btn-pres" id="presToggleBtn" onclick="App.togglePresentationMode()" title="Light Mode">
+      <i class="fas fa-rainbow"></i>
+    </button>
+  </div>
+</header>
 
     <div id="dashboardContainer" class="dashboard-container">
       <div id="searchModeView" class="view-section active">
-        
+        <div id="quickFiltersBar" style="display: none; padding: 0.75rem 1rem 0; overflow-x: auto; white-space: nowrap; gap: 0.5rem; scrollbar-width: none;">
+  <div id="quickFiltersInner" style="display: flex; gap: 0.5rem;"></div>
+</div>
         <div id="aiIntelligenceBanner" class="ai-banner">
           <div class="ai-banner-wrapper">
             <img src="images/arti.png" alt="Arti" class="ai-avatar-float">
@@ -2791,10 +2796,13 @@ body {
         <div id="recompetesList" style="margin-bottom: var(--section-gap);"></div>
 
         <div class="section-header">
-          <div class="section-title-group">
-            <span class="section-title">Recent Awards</span>
-          </div>
-        </div>
+  <div class="section-title-group">
+    <span class="section-title">Recent Awards</span>
+  </div>
+  <button class="action-btn" title="Download CSV" data-action="exportCSV" style="font-size: var(--text-xs); padding: 6px 10px;">
+    <i class="fas fa-file-csv" style="margin-right: 4px;"></i> Export
+  </button>
+</div>
         <div id="feedGrid" class="feed-grid"></div>
 
         <div id="primeExplainerBox" class="explainer-box" style="display:none;">
@@ -3731,7 +3739,6 @@ const API = {
     return (await res.json()).results || [];
   },
   
-  // Forecast Mode APIs
 
   // NAICS breakdown via spending_by_category/naics — the spending_by_award endpoint
   // returns null for NAICS fields, so we use this dedicated aggregation endpoint.
@@ -3746,6 +3753,7 @@ const API = {
     if (!res.ok) { console.warn('USAspending API error:', res.status); return []; }
     return (await res.json()).results || [];
   },
+
 
   // ==================== SUBAWARDS ====================
   async getSubawards(keywords) {
