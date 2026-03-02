@@ -788,7 +788,7 @@ svg { border: none !important; outline: none !important; }
   font-size: var(--text-sm);
   color: var(--text-primary);
   pointer-events: none;
-  z-index: 50;
+  z-index: 150;
   white-space: nowrap;
   backdrop-filter: blur(8px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.4);
@@ -2529,7 +2529,7 @@ body {
     <div class="hero-suggestions">
       <a href="?q=ZERO+TRUST%2C+FIREWALL" class="hero-suggestion-chip">ZERO TRUST, FIREWALL</a>
       <a href="?q=541512+AND+AIR FORCE" class="hero-suggestion-chip">541512 AND AIR FORCE</a>
-      <a href="?q=Department+of+Homeland+Security&drill=Department+of+Homeland+Security" class="hero-suggestion-chip">DHS</a>
+      <a href="?q=POTATO" class="hero-suggestion-chip">POTATO</a>
       <a href="?q=SBIR+PHASE+III" class="hero-suggestion-chip">SBIR PHASE III</a>
     </div>
 
@@ -2628,7 +2628,7 @@ body {
   <div id="appView" style="display:none;">
     <header class="app-header">
       <div class="header-left">
-        <span class="logo-btn" data-action="showHero" title="Back to home"><span class="logo-home-icon"><i class="fa-solid fa-house"></i></span><span class="logo-name">Govhoo</span></span>
+        <span class="logo-btn" data-action="showHero" title="Back to home"><span class="logo-home-icon"><i class="fa-brands fa-google"></i></span><span class="logo-name">Govhoo</span></span>
         <div class="mini-search-wrapper">
           <input type="text" id="miniSearch" class="mini-search" placeholder="Search keywords, companies, NAICS, agencies...">
         </div>
@@ -3125,17 +3125,17 @@ copyFields(pairs, btn) {
   
 getColor: (() => {
   const palette = [
-    '#8A9B94', // 1. Chart: Muted Sage
-    '#7B6D8D', // 2. Chart: Muted Purple
-    '#5B7C99', // 3. Chart: Slate Blue
-    '#E07A5F', // 4. Chart: Terracotta
-    '#D98895', // 5. Chart: Dusty Rose
-    '#3D405B', // 6. Chart: Dark Navy
-    '#F2E8CF', // 7. Chart: Newsprint
-    '#A8B5B0', // 8. Chart: Fog
-    '#778DA9', // 9. Chart: Blue-Grey
-    '#8C8577'  // 10. Army Surplus (Drab Olive)
-  ];
+  '#4F6F64', // 1. Deep Sage (restores green without colliding w/ money)
+  '#756781', // 2. Editorial Purple (cool, serious)
+  '#58718E', // 3. Slate Blue (analytical anchor)
+  '#D97A5F', // 4. Burnt Terracotta (warm signal)
+  '#C98592', // 5. Muted Rose (secondary warm)
+  '#3A3E56', // 6. Inker Navy (dark anchor)
+  '#EFE9D8', // 7. Newsprint (light contrast node)
+  '#7F9C92', // 8. Cold Mint (green family but not money)
+  '#6F85A3', // 9. Blue Grey (infrastructure tone)
+  '#7A7C5C'  // 10. Olive Drab (institutional, not military cosplay)
+];
 
   const assigned = new Map();
   let nextIdx = 0;
@@ -3659,6 +3659,7 @@ const API = {
           method: 'POST', headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ filters, fields: this.AWARD_FIELDS, limit: 70, sort: 'Award Amount', order: 'desc' })
         });
+        if (!res.ok) { console.warn('USAspending API error:', res.status); return []; }
         return (await res.json()).results || [];
       } else {
         // All keywords, no codes or agencies — send as keywords, client-side AND filter
@@ -3711,7 +3712,8 @@ const API = {
         method: 'POST', headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ filters, fields: this.AWARD_FIELDS, limit: 70, sort: 'Award Amount', order: 'desc' })
       });
-      return (await res.json()).results || [];
+      if (!res.ok) { console.warn('USAspending API error:', res.status); return []; }
+    return (await res.json()).results || [];
     }
     
     // Mixed types: build a single combined filter (agencies + keywords + codes work together)
@@ -3725,6 +3727,7 @@ const API = {
       method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ filters, fields: this.AWARD_FIELDS, limit: 70, sort: 'Award Amount', order: 'desc' })
     });
+    if (!res.ok) { console.warn('USAspending API error:', res.status); return []; }
     return (await res.json()).results || [];
   },
   
@@ -3740,6 +3743,7 @@ const API = {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ category: 'naics', filters, limit: 10 })
     });
+    if (!res.ok) { console.warn('USAspending API error:', res.status); return []; }
     return (await res.json()).results || [];
   },
 
@@ -3767,6 +3771,7 @@ const API = {
         order: 'desc'
       })
     });
+    if (!res.ok) { console.warn('USAspending API error:', res.status); return []; }
     return (await res.json()).results || [];
   }
 };
@@ -6173,13 +6178,18 @@ if (enEl) Utils.countUp(enEl, entities.length);
   const w = Math.max(rect.width || 600, 300);
   const h = Math.max(420, Math.min(w * 0.7, 600));
   
-  // Color palette — Govhoo vintage chalk tones
-  const bubbleColors = [
-    '#8A9B94', '#7B6D8D', '#5B7C99', '#E07A5F',
-    '#D98895', '#3D405B', '#F2E8CF', '#A8B5B0',
-    '#778DA9', '#8C8577'
+const bubbleColors = [
+  '#4F6F64', // 1. Deep Sage (restores green without colliding w/ money)
+  '#756781', // 2. Editorial Purple (cool, serious)
+  '#58718E', // 3. Slate Blue (analytical anchor)
+  '#D97A5F', // 4. Burnt Terracotta (warm signal)
+  '#C98592', // 5. Muted Rose (secondary warm)
+  '#3A3E56', // 6. Inker Navy (dark anchor)
+  '#EFE9D8', // 7. Newsprint (light contrast node)
+  '#7F9C92', // 8. Cold Mint (green family but not money)
+  '#6F85A3', // 9. Blue Grey (infrastructure tone)
+  '#7A7C5C'  // 10. Olive Drab (institutional, not military cosplay)
 ];
-
   // Shared tooltip + click handler builder (touch-aware)
   const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   let touchSelectedEntity = null; // Track which entity is "focused" on touch
