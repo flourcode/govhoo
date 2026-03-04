@@ -3734,9 +3734,9 @@ App.aiState = { history: [], count: 0, max: 5 };
 
       // Rank-gradient badge: #1 is full hero green, fades toward dark by #5
       // #5EA88A at opacity: 1.0, 0.75, 0.55, 0.38, 0.22
-      const badgeOpacity = [1.0, 0.75, 0.55, 0.38, 0.22][i] || 0.22;
+      const badgeOpacity = [1.0, 0.78, 0.58, 0.42, 0.30][i] || 0.30;
       const badgeBg = `rgba(94, 168, 138, ${badgeOpacity})`;
-      const badgeText = badgeOpacity >= 0.5 ? '#070B09' : 'var(--text-secondary)';
+      const badgeText = '#070B09';
 
       // Market share % of total
       const sharePct = totalSpend > 0 ? Math.round((a.spend / totalSpend) * 100) : 0;
