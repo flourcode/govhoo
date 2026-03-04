@@ -3640,7 +3640,7 @@ App.aiState = { history: [], count: 0, max: 5 };
       insight.push(`${a.vendorCount} vendor${a.vendorCount !== 1 ? 's' : ''}`);
       if (!isDrilled && a.officeCount > 1) insight.push(`${a.officeCount} offices`);
 
-      return `<div class="reach-row" onclick="App.${clickAction}('${esc(a.name)}')">
+      return `<div class="reach-row" onclick="App._pendingDrillScroll=true;App.${clickAction}('${esc(a.name)}')">
         <div style="min-width: 0; flex: 1;">
           <div style="display: flex; align-items: center; gap: 0.5rem;">
             <span style="font-size: var(--text-xs); font-weight: 700; color: ${badgeText}; background: ${badgeBg}; width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;">${i + 1}</span>
@@ -4022,7 +4022,6 @@ App.aiState = { history: [], count: 0, max: 5 };
   } else {
     if (drillControlsBar) {
       drillControlsBar.style.display = 'block';
-      App._pendingDrillScroll = true;
     }
     bc.style.display = 'flex'; 
 
