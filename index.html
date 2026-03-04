@@ -3075,7 +3075,66 @@ async runAiActionPlan() {
           }
       }, 100); // 100ms interval for ultra-smooth progress bar and timer updates
 
-      const summaryPayload = App.searchData.active;
+      // Build compact summary for AI — much smaller than raw contracts, higher signal
+      const summaryPayload = (() => {
+        const data = App.searchData.active;
+        const raw = App.searchData.raw;
+        const drill = App.drillState || {};
+        const recompetes = App.forecastData?.analysis?.recompetes || [];
+
+        // Top agencies by spend
+        const agencySpend = {};
+        const vendorSpend = {};
+        const agencyVendors = {};
+        data.forEach(c => {
+          const a = c['Awarding Agency'] || 'Unknown';
+          const v = c['Recipient Name'] || 'Unknown';
+          const amt = parseFloat(c['Award Amount']) || 0;
+          agencySpend[a] = (agencySpend[a] || 0) + amt;
+          vendorSpend[v] = (vendorSpend[v] || 0) + amt;
+          if (!agencyVendors[a]) agencyVendors[a] = new Set();
+          agencyVendors[a].add(v);
+        });
+
+        const topAgencies = Object.entries(agencySpend)
+          .sort((a, b) => b[1] - a[1]).slice(0, 8)
+          .map(([name, spend]) => ({ name, spend, vendors: agencyVendors[name]?.size || 0 }));
+
+        const topVendors = Object.entries(vendorSpend)
+          .sort((a, b) => b[1] - a[1]).slice(0, 10)
+          .map(([name, spend]) => ({ name, spend }));
+
+        // Expiring contracts summary
+        const expiringByAgency = {};
+        recompetes.forEach(r => {
+          const a = r['Awarding Agency'] || 'Unknown';
+          const risk = Utils.missionGapRisk(r);
+          if (!expiringByAgency[a]) expiringByAgency[a] = { count: 0, value: 0, highRisk: 0 };
+          expiringByAgency[a].count++;
+          expiringByAgency[a].value += parseFloat(r['Award Amount']) || 0;
+          if (risk.level === 'high') expiringByAgency[a].highRisk++;
+        });
+
+        // Target accounts scores (if computed)
+        const targetScores = topAgencies.map(a => ({
+          ...a,
+          expiring: expiringByAgency[a.name] || { count: 0, value: 0, highRisk: 0 }
+        }));
+
+        return {
+          query: App.currentQuery,
+          drill_context: drill.level > 0 ? drill.path.map(p => p.name).join(' > ') : null,
+          total_spend: data.reduce((s, c) => s + (parseFloat(c['Award Amount']) || 0), 0),
+          total_contracts: data.length,
+          total_agencies: new Set(data.map(c => c['Awarding Agency'])).size,
+          total_vendors: new Set(data.map(c => c['Recipient Name'])).size,
+          top_agencies: targetScores,
+          top_vendors: topVendors,
+          expiring_total: { count: recompetes.length, value: recompetes.reduce((s, r) => s + (parseFloat(r['Award Amount']) || 0), 0) },
+          // Include 30 most valuable raw contracts for specific IDs and details
+          sample_contracts: data.sort((a, b) => (parseFloat(b['Award Amount']) || 0) - (parseFloat(a['Award Amount']) || 0)).slice(0, 30)
+        };
+      })();
 
       try {
           // 5. Fetch from Lambda
@@ -3204,7 +3263,7 @@ async sendAiChatMessage() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                   request_type: 'govhoo_chat', 
-                  market_data: App.searchData.active, 
+                  market_data: App.searchData.active.slice(0, 40), 
                   history: App.aiState.history,
                   conference_context: ConferenceEngine.formatForPrompt(App.searchData.active, App.currentQuery)
               })
