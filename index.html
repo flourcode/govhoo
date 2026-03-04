@@ -1775,6 +1775,9 @@ svg { border: none; outline: none; }
             <span class="data-panel-title">Target Accounts</span>
             <span class="data-panel-subtitle">Ranked by opportunity quality</span>
           </div>
+          <div id="targetBreadcrumbBar" style="display:none; padding: 0.25rem 0 0.4rem;">
+            <div id="targetBreadcrumb" style="display: flex; align-items: center; flex-wrap: wrap; gap: 0.25rem;"></div>
+          </div>
           <div class="data-panel-body" id="targetAccountsBody"></div>
           <div id="targetAccountsLegend" style="display:none; padding: 0.5rem 0 0.35rem; border-top: 1px solid var(--border); margin-top: 0.5rem;">
             <div style="font-size: var(--text-xs); color: var(--text-tertiary); display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.25rem;">
@@ -3635,9 +3638,26 @@ App.aiState = { history: [], count: 0, max: 5 };
     const titleEl = panel.querySelector('.data-panel-title');
     const subtitleEl = panel.querySelector('.data-panel-subtitle');
     if (titleEl) titleEl.textContent = isDrilled ? 'Target Offices' : 'Target Accounts';
-    if (subtitleEl) subtitleEl.textContent = isDrilled
-      ? `In ${Utils.trunc(drill.currentAgency.replace(/^Department of (the )?/i, ''), 28)}`
-      : 'Ranked by opportunity quality';
+    if (subtitleEl) subtitleEl.textContent = 'Ranked by opportunity quality';
+
+    // Build breadcrumb pills (same pattern as Sankey/bubble breadcrumbs)
+    const bcBar = document.getElementById('targetBreadcrumbBar');
+    const bcInner = document.getElementById('targetBreadcrumb');
+    if (bcBar && bcInner) {
+      if (isDrilled) {
+        bcBar.style.display = 'block';
+        let bcHtml = `<div class="breadcrumb-item" onclick="App.resetDrill()"><span>All</span></div>`;
+        drill.path.forEach((p, i) => {
+          const isLast = i === drill.path.length - 1;
+          const label = Utils.trunc(p.name.replace(/^Department of (the )?/i, '').replace(/^Office of (the )?/i, ''), 22);
+          bcHtml += `<span class="breadcrumb-separator"></span>`;
+          bcHtml += `<div class="breadcrumb-item ${isLast ? 'active' : ''}" ${isLast ? '' : `onclick="App.drillToLevel(${i + 1})"`}><span>${label}</span></div>`;
+        });
+        bcInner.innerHTML = bcHtml;
+      } else {
+        bcBar.style.display = 'none';
+      }
+    }
 
     // Filter recompetes to match drill state
     const allRecompetes = (App.forecastData?.analysis?.recompetes || []);
