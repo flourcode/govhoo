@@ -2574,6 +2574,80 @@ const ChartUtils = {
 const attachChartInteractions = ChartUtils.attachInteractions.bind(ChartUtils);
 
 // ==================== AUTOCOMPLETE ====================
+// ==================== CONFERENCE INTELLIGENCE ====================
+const ConferenceEngine = {
+  // Maps agencies/keywords to their primary industry conferences
+  // Each entry: { name, typical_month, location, agencies[], domains[], description }
+  events: [
+    { name: 'AFCEA West', month: 'February', location: 'San Diego, CA', agencies: ['Department of the Navy', 'Department of Defense'], keywords: ['navy', 'marines', 'usmc', 'disa', 'cyber', 'c4isr', 'signal'], desc: 'Navy/Marine Corps IT and cyber — DISA, PEO C4I, and SPAWAR leadership attend' },
+    { name: 'HIMSS', month: 'March', location: 'Varies', agencies: ['Department of Health and Human Services'], keywords: ['hhs', 'cms', 'nih', 'fda', 'va health', 'health it', 'ehr', 'medical', 'clinical', 'hipaa'], desc: 'Healthcare IT — HHS, CMS, NIH, FDA, and VA health leadership' },
+    { name: 'RSA Conference', month: 'April', location: 'San Francisco, CA', agencies: ['Department of Homeland Security', 'Department of Defense'], keywords: ['cyber', 'zero trust', 'security', 'cisa', 'nsa', 'soc', 'firewall', 'encryption'], desc: 'Cybersecurity — CISA, NSA, DoD cyber commands, and federal CISOs' },
+    { name: 'AUSA Annual', month: 'October', location: 'Washington, DC', agencies: ['Department of the Army'], keywords: ['army', 'peo', 'cecom', 'amcom', 'inscom', 'devcom'], desc: 'Army modernization — PEOs, CECOM, Army Futures Command' },
+    { name: 'AWS re:Invent Public Sector', month: 'June', location: 'Washington, DC', agencies: [], keywords: ['cloud', 'aws', 'migration', 'fedramp', 'saas', 'iaas', 'paas', 'devops', 'devsecops'], desc: 'Cloud and digital transformation — federal CIOs and CTOs across all agencies' },
+    { name: 'DoDIIS Worldwide', month: 'August', location: 'Varies', agencies: ['Department of Defense'], keywords: ['intelligence', 'dia', 'nsa', 'nro', 'nga', 'sigint', 'geoint', 'humint', 'osint'], desc: 'Defense intelligence community — DIA, NSA, NGA, NRO leadership' },
+    { name: 'AFCEA TechNet Cyber', month: 'May', location: 'Baltimore, MD', agencies: ['Department of Defense'], keywords: ['disa', 'cyber command', 'jfhq-dodin', 'network', 'zero trust', 'identity'], desc: 'DoD cyber operations — DISA, Cyber Command, JFHQ-DODIN' },
+    { name: 'Modern Day Marine', month: 'June', location: 'Washington, DC', agencies: ['Department of the Navy'], keywords: ['marines', 'usmc', 'expeditionary', 'tactical'], desc: 'Marine Corps modernization and expeditionary technology' },
+    { name: 'Sea-Air-Space', month: 'April', location: 'National Harbor, MD', agencies: ['Department of the Navy'], keywords: ['navy', 'coast guard', 'maritime', 'shipbuilding', 'navsea'], desc: 'Naval warfare and maritime — Navy, Coast Guard, NAVSEA' },
+    { name: 'GEOINT Symposium', month: 'May', location: 'Varies', agencies: [], keywords: ['geoint', 'nga', 'geospatial', 'imagery', 'mapping', 'remote sensing'], desc: 'Geospatial intelligence — NGA and commercial geospatial ecosystem' },
+    { name: 'AFCEA TechNet Augusta', month: 'August', location: 'Augusta, GA', agencies: ['Department of the Army'], keywords: ['army', 'signal', 'cyber', 'netcom', 'cecom'], desc: 'Army signal and cyber — Fort Eisenhower, Army Cyber Command' },
+    { name: 'SOF Week', month: 'May', location: 'Tampa, FL', agencies: ['Department of Defense'], keywords: ['socom', 'special operations', 'sof', 'jsoc'], desc: 'Special Operations Command — SOCOM acquisition and technology' },
+    { name: 'ATARC Federal IT', month: 'Multiple', location: 'Washington, DC', agencies: [], keywords: ['cloud', 'data', 'ai', 'zero trust', 'modernization', 'fedramp'], desc: 'Cross-agency IT modernization — federal CIO/CTO community' },
+    { name: 'DHS Cybersecurity Summit', month: 'September', location: 'Washington, DC', agencies: ['Department of Homeland Security'], keywords: ['cisa', 'dhs', 'critical infrastructure', 'election security'], desc: 'DHS and CISA leadership — critical infrastructure protection' },
+    { name: 'Air & Space Forces Assoc. (AFA)', month: 'September', location: 'National Harbor, MD', agencies: ['Department of the Air Force'], keywords: ['air force', 'space force', 'ussf', 'usaf', 'kessel run', 'platform one'], desc: 'Air Force and Space Force — acquisition, digital transformation' },
+    { name: 'SAP NS2 Government Summit', month: 'March', location: 'Washington, DC', agencies: [], keywords: ['erp', 'sap', 'financial', 'logistics', 'supply chain', 'hcm'], desc: 'Federal ERP and business systems modernization' },
+    { name: 'FedHealthIT', month: 'Multiple', location: 'Washington, DC', agencies: ['Department of Veterans Affairs', 'Department of Health and Human Services'], keywords: ['va', 'health', 'ehr', 'cerner', 'oracle health', 'mhs genesis'], desc: 'VA and MHS health IT — EHR modernization, telehealth' },
+    { name: 'Intelligence & National Security Summit', month: 'September', location: 'Washington, DC', agencies: [], keywords: ['odni', 'cia', 'intelligence', 'ic', 'fbi', 'counterintelligence'], desc: 'IC leadership — ODNI, CIA, FBI, and allied intelligence community' },
+    { name: 'Google Public Sector Summit', month: 'June', location: 'Washington, DC', agencies: [], keywords: ['google', 'gcp', 'cloud', 'workspace', 'ai', 'data analytics'], desc: 'Google Cloud for government — federal cloud and AI adoption' },
+    { name: 'Microsoft Government Summit', month: 'March', location: 'Washington, DC', agencies: [], keywords: ['microsoft', 'azure', 'm365', 'teams', 'copilot', 'windows'], desc: 'Microsoft federal — Azure Gov, M365, and AI for government' },
+  ],
+
+  // Find relevant conferences based on agencies and search terms in the data
+  findRelevant(data, query) {
+    if (!data || data.length === 0) return [];
+
+    // Collect agencies present in the data
+    const agencies = new Set(data.map(c => c['Awarding Agency']).filter(Boolean));
+    const queryLower = (query || '').toLowerCase();
+
+    // Also collect NAICS descriptions and contract descriptions for keyword matching
+    const allText = [
+      queryLower,
+      ...data.slice(0, 50).map(c => (c['Description'] || '').toLowerCase()),
+      ...data.slice(0, 50).map(c => (c['NAICS Description'] || '').toLowerCase()),
+      ...data.slice(0, 50).map(c => (c['PSC Description'] || '').toLowerCase())
+    ].join(' ');
+
+    const scored = this.events.map(evt => {
+      let score = 0;
+
+      // Agency match (strongest signal)
+      evt.agencies.forEach(a => { if (agencies.has(a)) score += 10; });
+
+      // Keyword match against query and contract text
+      evt.keywords.forEach(kw => {
+        if (queryLower.includes(kw)) score += 5;
+        else if (allText.includes(kw)) score += 2;
+      });
+
+      return { ...evt, score };
+    }).filter(e => e.score > 0);
+
+    return scored.sort((a, b) => b.score - a.score).slice(0, 4);
+  },
+
+  // Format as a concise context string for the AI prompt
+  formatForPrompt(data, query) {
+    const relevant = this.findRelevant(data, query);
+    if (relevant.length === 0) return '';
+
+    const lines = relevant.map(e =>
+      `${e.name} (${e.month}) — ${e.desc}`
+    );
+
+    return `\n\nRELEVANT INDUSTRY CONFERENCES for this market:\n${lines.join('\n')}\nWeave 1-2 of the most relevant conferences into your strategic advice as networking or relationship-building opportunities. Be specific about which buyers or program offices attend. Do not list all conferences — only mention the ones most directly connected to the agencies and mission areas in this data. Frame them as action items (e.g., "AFCEA West in February would be a strong venue to connect with DISA and Navy cyber leadership").`;
+  }
+};
+
 const VehicleDetector = {
   // GWAC/IDIQ/Vehicle detection from Award ID (PIID) prefixes
   patterns: [
@@ -3005,13 +3079,15 @@ async runAiActionPlan() {
 
       try {
           // 5. Fetch from Lambda
+          const conferenceContext = ConferenceEngine.formatForPrompt(App.searchData.active, App.currentQuery);
           const res = await fetch(App.AI_ENDPOINT, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                   request_type: 'govhoo_action_plan',
                   market_data: summaryPayload,
-                  objective: 'Account Intelligence'
+                  objective: 'Account Intelligence',
+                  conference_context: conferenceContext
               })
           });
 
@@ -3129,7 +3205,8 @@ async sendAiChatMessage() {
               body: JSON.stringify({
                   request_type: 'govhoo_chat', 
                   market_data: App.searchData.active, 
-                  history: App.aiState.history
+                  history: App.aiState.history,
+                  conference_context: ConferenceEngine.formatForPrompt(App.searchData.active, App.currentQuery)
               })
           });
 
