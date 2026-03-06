@@ -1733,7 +1733,7 @@ svg { border: none; outline: none; }
         <p style="font-size:var(--text-sm); color:var(--text-secondary); line-height:1.5; max-width:420px; margin:0 auto 1rem auto;">
           Add Govhoo to your home screen for a fullscreen, app-like experience. No download, no app store &mdash; it loads fresh every time.
         </p>
-        <a href="/install.html" style="text-decoration:none; display:flex; justify-content:center;">
+        <a href="/install" style="text-decoration:none; display:flex; justify-content:center;">
           <button class="btn-primary" style="padding:0.5rem 1.5rem; font-size:var(--text-sm); border-radius:var(--radius-pill); width:auto;">
             <i class="fa-solid fa-arrow-up-from-bracket" style="margin-right:0.4rem;"></i>How to Install
           </button>
@@ -1745,7 +1745,7 @@ svg { border: none; outline: none; }
     </footer>
   </div>
 
-  <div id="appView" style="display:none;">
+  <div id="appView" style="display:none; background:var(--bg-app); min-height:100vh;">
     <header class="app-header">
   <div class="header-left">
     <span class="logo-btn" data-action="showHero">
@@ -1776,7 +1776,7 @@ svg { border: none; outline: none; }
 </div>
         <div id="aiIntelligenceBanner" class="ai-banner">
           <div class="ai-banner-wrapper">
-            <img src="images/arti.png" alt="Arti" class="ai-avatar-float">
+            <img src="/images/arti.png" alt="Arti" class="ai-avatar-float">
             <h4 class="ai-banner-title">Want help with this market?</h4>
             <p class="ai-banner-desc">Ask Arti where the opportunities are, who to team with, and how to engage. Get a quick read, then dig deeper if it’s worth it.</p>
           </div>
@@ -1788,7 +1788,7 @@ svg { border: none; outline: none; }
         <div id="aiActionPanel" class="ai-action-panel">
           <div class="ai-header">
             <div class="ai-header-title">
-              <img src="images/arti.png" alt="Arti" class="ai-avatar">
+              <img src="/images/arti.png" alt="Arti" class="ai-avatar">
               <h3>Arti's Advice</h3>
             </div>
             <button id="copyAiBtn" class="btn-ai-outline" onclick="App.copyAiPlan()" style="display: none;">Copy</button>
@@ -3352,7 +3352,7 @@ async runAiActionPlan() {
       content.innerHTML = `
           <div style="padding: 0.75rem 0 1.5rem 0;">
               <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
-                  <img src="images/arti.png" class="ai-avatar small" style="animation: artiPulse 2s infinite ease-in-out;" alt="Arti">
+                  <img src="/images/arti.png" class="ai-avatar small" style="animation: artiPulse 2s infinite ease-in-out;" alt="Arti">
                   <div style="flex: 1; min-width: 0;">
                       <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
                           <span style="font-size: var(--text-sm); font-weight: 600; color: var(--text-primary);">Arti</span>
@@ -3581,7 +3581,7 @@ async sendAiChatMessage() {
       const loaderId = 'arti-load-' + Date.now();
       historyEl.insertAdjacentHTML('beforeend', `
           <div class="ai-msg-arti arti-thinking" id="${loaderId}">
-              <img src="images/arti.png" class="ai-avatar small">
+              <img src="/images/arti.png" class="ai-avatar small">
               <div id="${loaderId}-text" style="padding-top: 8px; color: var(--text-secondary); font-size: var(--text-sm); font-style: italic;">
                   Reviewing the data
               </div>
@@ -3630,7 +3630,7 @@ async sendAiChatMessage() {
           clearInterval(progressTimer);
           loaderEl.classList.remove('arti-thinking');
           loaderEl.innerHTML = `
-              <img src="images/arti.png" class="ai-avatar small">
+              <img src="/images/arti.png" class="ai-avatar small">
               <div class="strategic-read">${renderedHtml}</div>
           `;
 
