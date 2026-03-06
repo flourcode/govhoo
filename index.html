@@ -802,7 +802,7 @@ svg { border: none; outline: none; }
 }
 #bubbleChartContainer, #subBubbleContainer { width: 100%; position: relative; }
 #bubbleChartContainer { min-height: 420px; }
-#bubbleChartContainer svg, #subBubbleContainer svg { width: 100%; height: 100%; display: block; }
+#bubbleChartContainer svg, #subBubbleContainer svg { width: 100%; height: auto; display: block; }
 
 .bubble-node { cursor: pointer; transition: opacity 0.15s ease; }
 .bubble-node:hover { opacity: 0.95; }
@@ -1431,8 +1431,8 @@ svg { border: none; outline: none; }
 
 @media (min-width: 1024px) {
   /* Cap treemap height on large screens so target list is visible without scrolling */
-  #bubbleChartContainer { min-height: 280px; max-height: 45vh; }
-  #bubbleChartContainer svg { max-height: 45vh; }
+  #bubbleChartContainer { min-height: 280px; }
+  #bubbleChartContainer svg { width: 100%; height: auto; }
 
   /* Tighten vertical spacing for presentation density */
   .ai-banner { padding-top: 0.5rem; padding-bottom: 0.5rem; }
@@ -6002,14 +6002,14 @@ const bubbleColors = [
     // Scroll to bubble panel if a drill action requested it
     if (App._pendingDrillScroll) {
       App._pendingDrillScroll = false;
-      requestAnimationFrame(() => {
+      requestAnimationFrame(() => requestAnimationFrame(() => {
         setTimeout(() => {
           const anchor = document.getElementById('bubbleScrollAnchor');
           if (anchor) {
             anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
-        }, 350);
-      });
+        }, 450);
+      }));
     }
 
     return;
@@ -6093,14 +6093,14 @@ const bubbleColors = [
   // Scroll to bubble panel if a drill action requested it
   if (App._pendingDrillScroll) {
     App._pendingDrillScroll = false;
-    requestAnimationFrame(() => {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
       setTimeout(() => {
         const anchor = document.getElementById('bubbleScrollAnchor');
         if (anchor) {
           anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-      }, 350);
-    });
+      }, 450);
+    }));
   }
 };
 
