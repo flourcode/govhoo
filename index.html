@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0A0F0D">
   <meta name="color-scheme" content="dark light">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Govhoo">
+  <meta name="mobile-web-app-capable" content="yes">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'><rect width='400' height='400' rx='80' fill='%230E1111'/><text x='200' y='215' text-anchor='middle' dominant-baseline='central' font-family='Google Sans Flex, sans-serif' font-weight='600' fill='%23C0C8C4' font-size='220'>G</text></svg>">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/manifest.json">
@@ -138,9 +142,14 @@
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
 }
 
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; background: var(--bg-app); }
+
+a, button, input, select, textarea, [onclick], [role="button"] {
+  touch-action: manipulation;
+}
 
 body {
   margin: 0;
@@ -159,6 +168,9 @@ body {
   text-rendering: optimizeLegibility;
   overscroll-behavior-y: none;
 }
+
+::selection { background: rgba(94, 168, 138, 0.3); color: inherit; }
+::-moz-selection { background: rgba(94, 168, 138, 0.3); color: inherit; }
 
 /* Inherit font on form elements (they don't by default) */
 button, input, select, textarea {
@@ -359,6 +371,7 @@ button, input, select, textarea {
   transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
 }
 .hero-view.slide-up { transform: translateY(-100%); }
 .hero-view.hidden { display: none; }
@@ -377,11 +390,12 @@ button, input, select, textarea {
 }
 
 .hero-subtitle {
-  margin-bottom: 1rem; text-align: center;
+  margin-top: 0.5em; margin-bottom: 1rem; text-align: center;
   font-size: var(--text-lg);
   color: var(--text-secondary);
   font-weight: 400;
   line-height: 1.5;
+  padding-left: 1em;
 }
 
 .search-box-container { position: relative; z-index: 210; width: 100%; max-width: 500px; margin-top: 1.5rem; }
@@ -1709,6 +1723,20 @@ svg { border: none; outline: none; }
           </div>
         </div>
 
+      </div>
+      <div class="footer-section" style="text-align:center; padding-top:1.5rem;">
+        <div style="display:inline-flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+          <i class="fa-solid fa-mobile-screen-button" style="color:var(--brand); font-size:1.1rem;"></i>
+          <span style="font-size:var(--text-base); font-weight:600; color:var(--text-primary); letter-spacing:-0.02em;">Use Govhoo like an app</span>
+        </div>
+        <p style="font-size:var(--text-sm); color:var(--text-secondary); line-height:1.5; max-width:420px; margin:0 auto 1rem auto;">
+          Add Govhoo to your home screen for a fullscreen, app-like experience. Loads fresh every time.
+        </p>
+        <a href="/install.html" style="text-decoration:none; display:flex; justify-content:center;">
+          <button class="btn-primary" style="padding:0.5rem 1.5rem; font-size:var(--text-sm); border-radius:var(--radius-pill); width:auto;">
+            <i class="fa-solid fa-arrow-up-from-bracket" style="margin-right:0.4rem;"></i>How to Install
+          </button>
+        </a>
       </div>
       <div class="footer-bottom">
         <div class="footer-copyright">© 2026 <span style="font-weight:500;color:var(--text-secondary);">Govhoo.com</span> Data via USASpending.gov</div>
@@ -6452,7 +6480,7 @@ App.presentationMode = false;
       document.documentElement.classList.add('light-mode');
       document.body.classList.add('light-mode');
       // Update iOS status bar
-      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#FFFFFF');
+      document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute('content', '#FFFFFF'));
       // Update toggle button icon once DOM is ready
       requestAnimationFrame(() => {
         const btn = document.getElementById('presToggleBtn');
@@ -6476,12 +6504,14 @@ App.togglePresentationMode = function() {
     btn.classList.add('active');
     btn.innerHTML = '<i class="fas fa-moon"></i>';
     if (themeMeta) themeMeta.setAttribute('content', '#FFFFFF');
+    document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute('content', '#FFFFFF'));
   } else {
     document.documentElement.classList.remove('light-mode');
     document.body.classList.remove('light-mode');
     btn.classList.remove('active');
     btn.innerHTML = '<i class="fas fa-rainbow"></i>';
     if (themeMeta) themeMeta.setAttribute('content', '#0A0F0D');
+    document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute('content', '#0A0F0D'));
   }
   
   // Persist across page loads
