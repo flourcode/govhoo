@@ -377,6 +377,17 @@ button, input, select, textarea {
 .hero-view.slide-up { transform: translateY(-100%); }
 .hero-view.hidden { display: none; }
 
+/* App view — fixed full-screen scroller like hero, ensures dark Safari toolbars */
+#appView {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: var(--bg-app);
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: none;
+}
+
 .terminal-logo {
   font-size: 36px; font-weight: 600;
   color: var(--text-primary); text-align: center;
