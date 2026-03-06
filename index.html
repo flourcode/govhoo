@@ -1859,6 +1859,7 @@ svg { border: none; outline: none; }
         </div>
 
         <div id="bubbleChartPanel" style="display: none;">
+          <div id="bubbleScrollAnchor" style="scroll-margin-top: 90px;"></div>
           <div id="bubbleChartHeader" style="margin-bottom: 0.75rem; scroll-margin-top: 90px;">
             <div class="stat-row">
               <div id="bubble-stat-vol" class="stat-hero">-</div>
@@ -4005,14 +4006,16 @@ App.aiState = { history: [], count: 0, max: 5 };
     if (data.length === 0) { panel.style.display = 'none'; return; }
 
     // When drilled into an agency, pivot to rank sub-agencies (offices)
-    const isDrilled = drill.level >= 1 && drill.currentAgency;
-    const groupField = isDrilled ? 'Awarding Sub Agency' : 'Awarding Agency';
-    const clickAction = isDrilled ? 'drillToSubAgency' : 'drillToAgency';
+    // When drilled into a vendor, show agencies that vendor serves
+    const isDrilled = drill.level >= 1;
+    const isVendorDrill = drill.level === 3 && drill.path.some(p => p.type === 'vendor');
+    const groupField = isVendorDrill ? 'Awarding Agency' : (isDrilled && drill.currentAgency ? 'Awarding Sub Agency' : 'Awarding Agency');
+    const clickAction = isVendorDrill ? 'drillToAgency' : (isDrilled && drill.currentAgency ? 'drillToSubAgency' : 'drillToAgency');
 
     // Update title/subtitle
     const titleEl = panel.querySelector('.data-panel-title');
     const subtitleEl = panel.querySelector('.data-panel-subtitle');
-    if (titleEl) titleEl.textContent = isDrilled ? 'Target Offices' : 'Target Accounts';
+    if (titleEl) titleEl.textContent = isVendorDrill ? 'Target Agencies' : (isDrilled && drill.currentAgency ? 'Target Offices' : 'Target Accounts');
     if (subtitleEl) subtitleEl.textContent = '';
 
     // Build breadcrumb pills (same pattern as Sankey/bubble breadcrumbs)
@@ -4078,7 +4081,8 @@ App.aiState = { history: [], count: 0, max: 5 };
     });
 
     // Score each group (0-100)
-    const groups = Object.values(groupMap).filter(a => a.count >= 2);
+    const minCount = isDrilled ? 1 : 2;
+    const groups = Object.values(groupMap).filter(a => a.count >= minCount);
     if (groups.length === 0) { panel.style.display = 'none'; return; }
 
     const maxSpend = Math.max(...groups.map(a => a.spend));
@@ -4288,6 +4292,7 @@ App.aiState = { history: [], count: 0, max: 5 };
     App.activeFeedSource = 'prime';
     App.activeVehicleFilter = null;
     App.bubbleMode = 'auto';
+    App._pendingDrillScroll = true;
     Utils.syncUrlState();
     App.updateSearchDashboard(); 
   },
@@ -5999,11 +6004,9 @@ const bubbleColors = [
       App._pendingDrillScroll = false;
       requestAnimationFrame(() => {
         setTimeout(() => {
-          const bp = document.getElementById('bubbleChartPanel');
-          if (bp) {
-            const rect = bp.getBoundingClientRect();
-            const scrollTop = window.pageYOffset + rect.top - 60;
-            window.scrollTo({ top: scrollTop, behavior: 'smooth' });
+          const anchor = document.getElementById('bubbleScrollAnchor');
+          if (anchor) {
+            anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
         }, 350);
       });
@@ -6092,11 +6095,9 @@ const bubbleColors = [
     App._pendingDrillScroll = false;
     requestAnimationFrame(() => {
       setTimeout(() => {
-        const bp = document.getElementById('bubbleChartPanel');
-        if (bp) {
-          const rect = bp.getBoundingClientRect();
-          const scrollTop = window.pageYOffset + rect.top - 60;
-          window.scrollTo({ top: scrollTop, behavior: 'smooth' });
+        const anchor = document.getElementById('bubbleScrollAnchor');
+        if (anchor) {
+          anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       }, 350);
     });
