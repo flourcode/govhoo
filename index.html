@@ -154,6 +154,8 @@ a, button, input, select, textarea, [onclick], [role="button"] {
 body {
   margin: 0;
   padding: 0;
+  padding-top: env(safe-area-inset-top, 0);
+  padding-bottom: env(safe-area-inset-bottom, 0);
   font-family: 'Google Sans Flex', -apple-system, SF Pro Text, sans-serif;
   background: var(--bg-app);
   color: var(--text-primary);
@@ -1743,7 +1745,7 @@ svg { border: none; outline: none; }
     </footer>
   </div>
 
-  <div id="appView" style="display:none; background:var(--bg-app); position:fixed; inset:0; overflow-y:auto; -webkit-overflow-scrolling:touch;">
+  <div id="appView" style="display:none; background:var(--bg-app); min-height:100vh;">
     <header class="app-header">
   <div class="header-left">
     <span class="logo-btn" data-action="showHero">
