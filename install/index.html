@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#1A1A1A">
+  <meta name="theme-color" content="#191919">
   <meta name="color-scheme" content="dark light">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -13,14 +13,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,1..1000&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #1A1A1A;
-      --bg-card: rgba(180, 176, 170, 0.05);
-      --border: rgba(180, 176, 170, 0.1);
-      --text: #E8E5E0;
-      --text-dim: rgba(200, 196, 190, 0.55);
-      --text-mid: rgba(200, 196, 190, 0.75);
-      --brand: #85AB5B;
-      --radius: 16px;
+      --bg: #191919;
+      --bg-card: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.08);
+      --text: #D0CECC;
+      --text-dim: rgba(212,210,206,0.45);
+      --text-mid: rgba(212,210,206,0.65);
+      --brand: #5C7C6A;
+      --radius: 10px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
@@ -93,7 +93,7 @@
     .tab:hover { color: var(--text-mid); }
     .tab.active {
       background: var(--brand);
-      color: #1A1A1A;
+      color: #191919;
     }
 
     .platform { display: none; }
@@ -111,7 +111,7 @@
       align-items: flex-start;
       padding: 1.25rem;
       background: var(--bg-card);
-      border: 1px solid var(--border);
+      border: none;
       border-radius: var(--radius);
     }
 
@@ -120,7 +120,7 @@
       width: 32px;
       height: 32px;
       border-radius: 50%;
-      background: rgba(133, 171, 91, 0.15);
+      background: rgba(92,124,106,0.15);
       color: var(--brand);
       font-weight: 600;
       font-size: 0.85rem;
@@ -147,7 +147,7 @@
       justify-content: center;
       width: 22px;
       height: 22px;
-      background: rgba(180, 176, 170, 0.1);
+      background: rgba(255,255,255,0.07);
       border-radius: 5px;
       vertical-align: middle;
       margin: 0 2px;
@@ -158,7 +158,7 @@
       margin-top: 2.5rem;
       padding: 1.5rem;
       background: var(--bg-card);
-      border: 1px solid var(--border);
+      border: none;
       border-radius: var(--radius);
     }
 
@@ -203,7 +203,7 @@
     .faq-item {
       padding: 1rem 1.25rem;
       background: var(--bg-card);
-      border: 1px solid var(--border);
+      border: none;
       border-radius: var(--radius);
       margin-bottom: 0.75rem;
     }
