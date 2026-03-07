@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#222222">
+  <meta name="theme-color" content="#191919">
   <meta name="color-scheme" content="dark light">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Govhoo">
   <meta name="mobile-web-app-capable" content="yes">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'><rect width='400' height='400' rx='80' fill='%23222222'/><text x='200' y='215' text-anchor='middle' dominant-baseline='central' font-family='Google Sans Flex, sans-serif' font-weight='600' fill='%23D4D2CE' font-size='220'>G</text></svg>">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'><rect width='400' height='400' rx='80' fill='%23191919'/><text x='200' y='215' text-anchor='middle' dominant-baseline='central' font-family='Google Sans Flex, sans-serif' font-weight='600' fill='%23D4D2CE' font-size='220'>G</text></svg>">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/manifest.json">
   <title>Govhoo - Free Federal Contract Search & Market Intelligence | FPDS ezSearch Alternative</title>
@@ -73,19 +73,19 @@
      ============================================ */
 
   /* Backgrounds — e-ink dark */
-  --bg-app: #222222;
-  --bg-secondary: #292929;
-  --bg-tertiary: #303030;
-  --bg-card: #303030;
-  --bg-input: #292929;
-  --bg-elevated: #383838;
+  --bg-app: #191919;
+  --bg-secondary: #1F1F1F;
+  --bg-tertiary: #262626;
+  --bg-card: #262626;
+  --bg-input: #1F1F1F;
+  --bg-elevated: #2E2E2E;
 
   /* Text — e-ink soft */
-  --text-primary: #D4D2CE;
-  --text-secondary: #908C88;
-  --text-tertiary: #6A6864;
-  --text-quaternary: #504E4A;
-  --link: #908C88;
+  --text-primary: #D0CECC;
+  --text-secondary: #A8A6A2;
+  --text-tertiary: #868480;
+  --text-quaternary: #6A6866;
+  --link: #A8A6A2;
 
   /* Borders */
   --border: rgba(255,255,255,0.08);
@@ -99,14 +99,14 @@
   --brand-text: #FFFFFF;
 
   /* Money / Data values */
-  --money: #B0ACA8;
-  --money-strong: #D4D2CE;
+  --money: #C0BEBA;
+  --money-strong: #D0CECC;
   --money-dim: rgba(255,255,255,0.06);
-  --money-ink: #222222;
+  --money-ink: #191919;
 
   /* Accent */
-  --accent: #908C88;
-  --accent-light: #B0ACA8;
+  --accent: #A8A6A2;
+  --accent-light: #C0BEBA;
   --accent-dim: rgba(255,255,255,0.06);
 
   /* Functional — e-ink muted */
@@ -247,7 +247,7 @@ button, input, select, textarea {
 
 .loader {
   position: fixed; inset: 0; z-index: 300;
-  background: rgba(34, 34, 34, 0.92);
+  background: rgba(25, 25, 25, 0.92);
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   display: none; flex-direction: column; align-items: center; justify-content: center;
 }
@@ -468,7 +468,7 @@ button, input, select, textarea {
    =========================================== */
 .app-header {
   position: sticky; top: 0; z-index: 100;
-  background: rgba(34, 34, 34, 0.88);
+  background: rgba(25, 25, 25, 0.88);
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   padding: 0.6rem 1rem; padding-top: max(0.6rem, var(--safe-top));
   border-bottom: 1px solid var(--border);
@@ -807,11 +807,11 @@ svg { border: none; outline: none; }
 .bubble-node { cursor: pointer; transition: opacity 0.15s ease; }
 .bubble-node:hover { opacity: 0.95; }
 .bubble-label {
-  fill: #D4D2CE; pointer-events: none;
+  fill: #D0CECC; pointer-events: none;
   text-anchor: middle; dominant-baseline: central;
 }
 .bubble-amount-label {
-  fill: rgba(212, 210, 206, 0.7); pointer-events: none; text-anchor: middle;
+  fill: rgba(208, 206, 204, 0.7); pointer-events: none; text-anchor: middle;
 }
 .bubble-tooltip {
   position: absolute;
@@ -1253,12 +1253,12 @@ svg { border: none; outline: none; }
 /* 23. LIGHT MODE
    =========================================== */
 .light-mode {
-  --bg-app: #F3F2F0;
-  --bg-secondary: #EEEDEA;
-  --bg-tertiary: #E8E7E3;
-  --bg-card: #EEEDEA;
-  --bg-input: #E8E7E3;
-  --bg-elevated: #EEEDEA;
+  --bg-app: #FAFAFA;
+  --bg-secondary: #F2F2F2;
+  --bg-tertiary: #EAEAEA;
+  --bg-card: #F2F2F2;
+  --bg-input: #EAEAEA;
+  --bg-elevated: #F2F2F2;
   --text-primary: #3A3A38;
   --text-secondary: #6E6B67;
   --text-tertiary: #8f8c87;
@@ -1267,11 +1267,11 @@ svg { border: none; outline: none; }
   --money: #3A3832;
   --money-strong: #2C2C2A;
   --money-dim: rgba(0,0,0,0.06);
-  --money-ink: #F3F2F0;
+  --money-ink: #FAFAFA;
   --brand: #4E6E5A;
   --brand-hover: #6E9E78;
   --brand-dim: rgba(107,142,124,0.12);
-  --brand-text: #F3F2F0;
+  --brand-text: #FAFAFA;
   --accent: #6E6B67;
   --accent-light: #8f8c87;
   --accent-dim: rgba(0,0,0,0.06);
@@ -1285,13 +1285,13 @@ svg { border: none; outline: none; }
 }
 
 .light-mode body, body.light-mode {
-  background: #F3F2F0 !important;
+  background: #FAFAFA !important;
   color: #3A3A38 !important;
 }
 
 /* Light: header */
 .light-mode .app-header {
-  background: rgba(243,242,240,0.92);
+  background: rgba(250,250,250,0.92);
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   border-bottom-color: rgba(0,0,0, 0.06);
 }
@@ -1363,7 +1363,7 @@ svg { border: none; outline: none; }
 
 /* Light: bubble tooltip */
 .light-mode .bubble-tooltip {
-  background: rgba(243,242,240,0.95);
+  background: rgba(250,250,250,0.95);
   border-color: rgba(0,0,0, 0.08);
   color: #2C2C2A;
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
@@ -1379,10 +1379,10 @@ svg { border: none; outline: none; }
 
 /* Light: toast & loader */
 .light-mode .toast {
-  background: rgba(243,242,240,0.95); color: #2C2C2A;
+  background: rgba(250,250,250,0.95); color: #2C2C2A;
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
 }
-.light-mode .loader { background: rgba(243,242,240,0.95); }
+.light-mode .loader { background: rgba(250,250,250,0.95); }
 .light-mode .spinner { border-color: rgba(0,0,0, 0.1); border-top-color: rgba(0,0,0, 0.5); }
 .light-mode #loaderText { color: rgba(0,0,0, 0.6); }
 
@@ -1753,7 +1753,7 @@ svg { border: none; outline: none; }
         <p style="font-size:var(--text-sm); color:var(--text-secondary); line-height:1.5; max-width:420px; margin:0 auto 1rem auto;">
           Add Govhoo to your phone for a fullscreen, app-like experience. No subscription, delete anytime.
         </p>
-        <a href="/install/" style="text-decoration:none; display:flex; justify-content:center;">
+        <a href="/install" style="text-decoration:none; display:flex; justify-content:center;">
           <button class="btn-primary" style="padding:0.5rem 1.5rem; font-size:var(--text-sm); border-radius:var(--radius-pill); width:auto;">
             <i class="fa-solid fa-arrow-up-from-bracket" style="margin-right:0.4rem;"></i>How to Install
           </button>
@@ -2705,7 +2705,7 @@ const ChartUtils = {
       .text(d => Utils.trunc(d.name, isNarrow ? 25 : 40))
       .style('font-size', '11px')
       .style('font-weight', d => (d.y1 - d.y0 > 30) ? '700' : '400')
-      .style('fill', App.presentationMode ? '#222222' : '#D4D2CE')
+      .style('fill', App.presentationMode ? '#191919' : '#D0CECC')
       .style('pointer-events', 'none');
 
     return { nodes: gn, links: gl, w, h };
@@ -4133,7 +4133,7 @@ App.aiState = { history: [], count: 0, max: 5 };
       // #E07D54 at opacity: 1.0, 0.75, 0.55, 0.38, 0.22
       const badgeOpacity = [1.0, 0.78, 0.58, 0.42, 0.30][i] || 0.30;
       const badgeBg = `rgba(90,126,106, ${badgeOpacity})`;
-      const badgeText = '#222222';
+      const badgeText = '#191919';
 
       // Build ONE natural-language "why" line
       let why = '';
@@ -4751,11 +4751,11 @@ _renderSankeyInner(container) {
       const descRaw = (c['Description'] || '').toLowerCase();
       let badge = 'Award';
       let badgeColor = 'rgba(144,136,128,0.06)';
-      let badgeText = '#908880';
+      let badgeText = '#868480';
       if (descRaw.includes('renew') || descRaw.includes('renewal') || descRaw.includes('annual')) { badge = 'Renewal'; badgeColor = 'rgba(120,144,160,0.12)'; badgeText = '#7890A0'; }
       else if (descRaw.includes('new ') || descRaw.includes('new,') || descRaw.includes('procurement of new') || descRaw.includes('initial')) { badge = 'New'; badgeColor = 'rgba(90,126,106,0.12)'; badgeText = '#5C7C6A'; }
       else if (descRaw.includes('re-compete') || descRaw.includes('recompete') || descRaw.includes('re-competition')) { badge = 'Recompete'; badgeColor = 'rgba(184,168,120,0.12)'; badgeText = '#B8A878'; }
-      else if (descRaw.includes('modification') || descRaw.includes('option year') || descRaw.includes('option period')) { badge = 'Mod/Option'; badgeColor = 'rgba(144,136,128,0.08)'; badgeText = '#908880'; }
+      else if (descRaw.includes('modification') || descRaw.includes('option year') || descRaw.includes('option period')) { badge = 'Mod/Option'; badgeColor = 'rgba(144,136,128,0.08)'; badgeText = '#868480'; }
       else if (descRaw.includes('professional services') || descRaw.includes('support services')) { badge = 'Services'; badgeColor = 'rgba(160,128,138,0.10)'; badgeText = '#A08088'; }
       
       // Freshness — border accent for recent awards
@@ -6565,7 +6565,7 @@ App.presentationMode = false;
       document.documentElement.classList.add('light-mode');
       document.body.classList.add('light-mode');
       // Update iOS status bar
-      document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute('content', '#F3F2F0'));
+      document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute('content', '#FAFAFA'));
       // Update toggle button icon once DOM is ready
       requestAnimationFrame(() => {
         const btn = document.getElementById('presToggleBtn');
@@ -6588,15 +6588,15 @@ App.togglePresentationMode = function() {
     document.body.classList.add('light-mode');
     btn.classList.add('active');
     btn.innerHTML = '<i class="fas fa-moon"></i>';
-    if (themeMeta) themeMeta.setAttribute('content', '#F3F2F0');
-    document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute('content', '#F3F2F0'));
+    if (themeMeta) themeMeta.setAttribute('content', '#FAFAFA');
+    document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute('content', '#FAFAFA'));
   } else {
     document.documentElement.classList.remove('light-mode');
     document.body.classList.remove('light-mode');
     btn.classList.remove('active');
     btn.innerHTML = '<i class="fas fa-rainbow"></i>';
-    if (themeMeta) themeMeta.setAttribute('content', '#222222');
-    document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute('content', '#222222'));
+    if (themeMeta) themeMeta.setAttribute('content', '#191919');
+    document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute('content', '#191919'));
   }
   
   // Persist across page loads
@@ -6606,7 +6606,7 @@ App.togglePresentationMode = function() {
   Utils.getColor.reset();
   
   // Re-render charts so D3 inline fills respect the mode
-  const textColor = App.presentationMode ? '#222222' : '#D4D2CE';
+  const textColor = App.presentationMode ? '#191919' : '#D0CECC';
   
   // Prime Sankey labels
   d3.select('#chartContainer').selectAll('text').style('fill', textColor);
