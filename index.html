@@ -81,11 +81,11 @@
   --bg-elevated: #2E2E2E;
 
   /* Text — e-ink soft */
-  --text-primary: #D0CECC;
-  --text-secondary: #A8A6A2;
-  --text-tertiary: #868480;
-  --text-quaternary: #6A6866;
-  --link: #A8A6A2;
+  --text-primary: #ECECEC;
+  --text-secondary: #B0B0B0;
+  --text-tertiary: #888888;
+  --text-quaternary: #666666;
+  --link: #B0B0B0;
 
   /* Borders */
   --border: rgba(255,255,255,0.08);
@@ -93,32 +93,32 @@
   --border-opaque: rgba(255,255,255,0.06);
 
   /* Brand — dollar bill green */
-  --brand: #5C7C6A;
+  --brand: #6EA098;
   --brand-hover: #6A9078;
-  --brand-dim: rgba(90,126,106,0.15);
+  --brand-dim: rgba(110,160,152,0.15);
   --brand-text: #FFFFFF;
 
   /* Money / Data values */
-  --money: #C0BEBA;
-  --money-strong: #D0CECC;
+  --money: #D0D0D0;
+  --money-strong: #ECECEC;
   --money-dim: rgba(255,255,255,0.06);
   --money-ink: #191919;
 
   /* Accent */
-  --accent: #A8A6A2;
-  --accent-light: #C0BEBA;
+  --accent: #B0B0B0;
+  --accent-light: #D0D0D0;
   --accent-dim: rgba(255,255,255,0.06);
 
   /* Functional — e-ink muted */
-  --success: #5C7C6A;
-  --warning: #B8A878;
-  --danger: #A88080;
-  --info: #7890A0;
+  --success: #6EA098;
+  --warning: #9080A8;
+  --danger: #A87880;
+  --info: #7098A0;
 
   /* Radius — iOS native */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
+  --radius-sm: 10px;
+  --radius-md: 13px;
+  --radius-lg: 20px;
   --radius-pill: 9999px;
 
   /* Type scale */
@@ -169,8 +169,8 @@ body {
   overscroll-behavior-y: none;
 }
 
-::selection { background: rgba(90,126,106,0.20); color: inherit; }
-::-moz-selection { background: rgba(90,126,106,0.20); color: inherit; }
+::selection { background: rgba(110,160,152,0.20); color: inherit; }
+::-moz-selection { background: rgba(110,160,152,0.20); color: inherit; }
 
 /* Inherit font on form elements (they don't by default) */
 button, input, select, textarea {
@@ -291,7 +291,7 @@ button, input, select, textarea {
    =========================================== */
 .main-input, .mini-search, select, textarea {
   width: 100%;
-  background: rgba(255,255,255,0.04);
+  background: rgba(255,255,255,0.08);
   border: none;
   color: var(--text-primary);
   padding: 1rem;
@@ -303,8 +303,13 @@ button, input, select, textarea {
 }
 .main-input:focus, .mini-search:focus {
   outline: none;
-  background: rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.12);
   box-shadow: none;
+}
+.main-input::placeholder, .mini-search::placeholder {
+  color: var(--text-quaternary);
+  font-size: 0.92em;
+  font-weight: 400;
 }
 
 .btn-row { display: flex; gap: 0.75rem; margin-top: 1rem; }
@@ -314,7 +319,7 @@ button, input, select, textarea {
   padding: 0.875rem;
   font-weight: 600;
   border: none;
-  background: rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.12);
   color: var(--text-primary);
   border-radius: var(--radius-md);
   font-size: var(--text-base);
@@ -391,7 +396,7 @@ button, input, select, textarea {
 .terminal-logo {
   font-size: 36px; font-weight: 600;
   color: var(--text-primary); text-align: center;
-  display: flex; align-items: baseline; justify-content: center;
+  display: flex; align-items: center; justify-content: center;
 }
 .terminal-logo .logo-gt,
 .terminal-logo .logo-us { display: none; }
@@ -399,12 +404,40 @@ button, input, select, textarea {
   font-size: 36px; font-weight: 600;
   color: var(--text-primary);
   line-height: 1;
+  display: inline-flex; align-items: center; gap: 0.2em;
+}
+
+.logo-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  color: var(--brand);
+}
+.logo-icon-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 15%;
+  border-radius: 3px;
+  background: var(--text-primary);
+  z-index: 0;
+}
+.logo-icon-wrap i {
+  position: relative;
+  z-index: 1;
+}
+.light-mode .logo-icon-wrap::before {
+  display: none;
+}
+.logo-icon-sm {
+  font-size: 0.9em;
+  vertical-align: baseline;
 }
 
 .hero-subtitle {
   margin-top: 0.35rem; margin-bottom: 1.5rem; text-align: center;
   font-size: var(--text-sm);
-  color: var(--text-quaternary);
+  color: var(--text-secondary);
   font-weight: 400;
   line-height: 1.5;
   letter-spacing: 0.01em;
@@ -424,8 +457,8 @@ button, input, select, textarea {
 }
 .hero-suggestion-chip,
 #heroView a[href^="?q="] {
-  color: var(--text-tertiary);
-  background: rgba(255,255,255,0.04);
+  color: var(--text-secondary);
+  background: rgba(255,255,255,0.08);
   padding: 10px 18px;
   border-radius: var(--radius-pill);
   text-decoration: none;
@@ -468,31 +501,32 @@ button, input, select, textarea {
    =========================================== */
 .app-header {
   position: sticky; top: 0; z-index: 100;
-  background: rgba(25, 25, 25, 0.88);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  background: var(--bg-app);
+  backdrop-filter: none; -webkit-backdrop-filter: none;
   padding: 0.6rem 1rem; padding-top: max(0.6rem, var(--safe-top));
-  border-bottom: 1px solid var(--border);
+  border-bottom: none;
   display: flex; justify-content: space-between; align-items: center;
   gap: 0.75rem; overflow: hidden;
 }
 .header-left { display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 0; }
 
 .logo-btn {
-  display: inline-flex; align-items: baseline;
-  font-size: var(--text-xl); cursor: pointer; flex-shrink: 0; padding: 0.25rem;
+  display: inline-flex; align-items: center;
+  font-size: 1.4rem; cursor: pointer; flex-shrink: 0; padding: 0.25rem;
 }
 .logo-btn .logo-home-icon { display: none; }
 .logo-btn .logo-gt, .logo-btn .logo-us { display: none; }
 .logo-btn .logo-name {
-  font-weight: 700; color: var(--text-primary); line-height: 1;
+  font-weight: 600; color: var(--text-primary); line-height: 1;
   letter-spacing: -0.03em;
   transition: color 0.15s ease;
+  display: inline-flex; align-items: center; gap: 0.25em;
 }
 
 .mini-search {
-  background: rgba(255,255,255,0.04); border: none; color: var(--text-primary);
-  padding: 0.45rem 0.85rem; border-radius: 10px; border-bottom: none;
-  font-size: var(--text-base); flex: 1; min-width: 0; width: 100%;
+  background: rgba(255,255,255,0.08); border: none; color: var(--text-primary);
+  padding: 0.55rem 0.95rem; border-radius: 10px; border-bottom: none;
+  font-size: 1.05rem; flex: 1; min-width: 0; width: 100%;
   box-shadow: none;
 }
 .mini-search-wrapper { flex: 1; min-width: 0; overflow: hidden; }
@@ -807,11 +841,11 @@ svg { border: none; outline: none; }
 .bubble-node { cursor: pointer; transition: opacity 0.15s ease; }
 .bubble-node:hover { opacity: 0.95; }
 .bubble-label {
-  fill: #D0CECC; pointer-events: none;
+  fill: #ECECEC; pointer-events: none;
   text-anchor: middle; dominant-baseline: central;
 }
 .bubble-amount-label {
-  fill: rgba(208, 206, 204, 0.7); pointer-events: none; text-anchor: middle;
+  fill: rgba(236, 236, 236, 0.7); pointer-events: none; text-anchor: middle;
 }
 .bubble-tooltip {
   position: absolute;
@@ -883,7 +917,7 @@ svg { border: none; outline: none; }
 }
 
 .btn-ai {
-  background: rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.12);
   color: var(--text-primary); border: none;
   border-radius: var(--radius-pill); cursor: pointer;
   font-weight: 600; padding: 0.5rem 1rem;
@@ -1268,17 +1302,17 @@ svg { border: none; outline: none; }
   --money-strong: #2C2C2A;
   --money-dim: rgba(0,0,0,0.06);
   --money-ink: #FAFAFA;
-  --brand: #4E6E5A;
+  --brand: #5A8E86;
   --brand-hover: #6E9E78;
   --brand-dim: rgba(107,142,124,0.12);
   --brand-text: #FAFAFA;
   --accent: #6E6B67;
   --accent-light: #8f8c87;
   --accent-dim: rgba(0,0,0,0.06);
-  --success: #6A7E5E;
-  --warning: #A89460;
-  --danger: #9E6E62;
-  --info: #607888;
+  --success: #5A8E86;
+  --warning: #786890;
+  --danger: #906068;
+  --info: #508088;
   --border: rgba(0,0,0,0.08);
   --border-hover: rgba(0,0,0,0.16);
   --border-opaque: rgba(0,0,0,0.06);
@@ -1291,16 +1325,16 @@ svg { border: none; outline: none; }
 
 /* Light: header */
 .light-mode .app-header {
-  background: rgba(250,250,250,0.92);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border-bottom-color: rgba(0,0,0, 0.06);
+  background: var(--bg-app);
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+  border-bottom-color: transparent;
 }
 
 /* Light: logo */
 .light-mode .logo-btn .logo-name,
 .light-mode .terminal-logo .logo-name { color: #2C2C2A; }
 .light-mode .logo-btn .logo-home-icon {
-  background: rgba(0,0,0, 0.08); color: #2C2C2A;
+  background: transparent; color: var(--brand);
 }
 
 /* Light: inputs */
@@ -1374,7 +1408,7 @@ svg { border: none; outline: none; }
 
 /* Light: AI */
 .light-mode .btn-ai-outline { background: rgba(0,0,0, 0.06); color: #666666; }
-.light-mode .ai-avatar, .light-mode .ai-avatar-float { background: rgba(90,126,106, 0.12); }
+.light-mode .ai-avatar, .light-mode .ai-avatar-float { background: rgba(110,160,152, 0.12); }
 .light-mode .ai-msg-user { background: rgba(0,0,0, 0.06); color: #2C2C2A; }
 
 /* Light: toast & loader */
@@ -1554,8 +1588,8 @@ svg { border: none; outline: none; }
   .logo-btn .logo-home-icon {
     display: flex; align-items: center; justify-content: center;
     width: 36px; height: 36px; border-radius: 50%;
-    background: rgba(255,255,255,0.1); color: var(--accent);
-    font-size: 15px; font-weight: 600; transition: opacity 0.15s ease;
+    background: transparent; color: var(--brand);
+    font-size: 20px; transition: opacity 0.15s ease;
   }
   .header-actions { gap: 0.2rem; flex-shrink: 0; }
   .icon-btn { width: 36px; height: 36px; font-size: 14px; }
@@ -1621,7 +1655,7 @@ svg { border: none; outline: none; }
   .stat-subtitle { font-size: var(--text-xs); }
   .app-header { padding: 0.35rem 0.5rem; padding-top: max(0.35rem, var(--safe-top)); }
   .icon-btn { width: 34px; height: 34px; font-size: 13px; }
-  .logo-btn .logo-home-icon { width: 34px; height: 34px; font-size: 14px; }
+  .logo-btn .logo-home-icon { width: 34px; height: 34px; font-size: 18px; }
 }
 </style>
 </head>
@@ -1629,7 +1663,7 @@ svg { border: none; outline: none; }
 
   <div id="heroView" class="hero-view">
     <div class="terminal-logo">
-      <span class="logo-name"><i class="fa-solid fa-square-arrow-up-right" style="color: var(--brand);"></i> Govhoo</span>
+      <span class="logo-name"><span class="logo-icon-wrap"><i class="fa-solid fa-square-arrow-up-right"></i></span> Govhoo</span>
     </div>
     <p class="hero-subtitle">Follow the Money.</p>
     
@@ -1769,8 +1803,8 @@ svg { border: none; outline: none; }
     <header class="app-header">
   <div class="header-left">
     <span class="logo-btn" data-action="showHero">
-      <span class="logo-home-icon"><i class="fa-solid fa-angles-left"></i></span>
-      <span class="logo-name">Govhoo</span>
+      <span class="logo-home-icon"><span class="logo-icon-wrap" style="transform: scaleX(-1);"><i class="fa-solid fa-square-arrow-up-right"></i></span></span>
+      <span class="logo-name"><span class="logo-icon-wrap logo-icon-sm"><i class="fa-solid fa-square-arrow-up-right"></i></span> Govhoo</span>
     </span>
     <div class="mini-search-wrapper" style="display: flex; gap: 8px; align-items: center;">
       <input type="text" id="miniSearch" class="mini-search" placeholder="Search keywords, companies, NAICS...">
@@ -2673,10 +2707,10 @@ const ChartUtils = {
       .attr('d', d3.sankeyLinkHorizontal())
       .attr('stroke', (d, i) => `url(#${gradientPrefix}-${i})`)
       .attr('stroke-width', d => Math.max(1, d.width))
-      .attr('stroke-opacity', 0.4)
+      .attr('stroke-opacity', 0.55)
       .style('transition', 'stroke-opacity 0.2s')
-      .on('mouseover', function() { d3.select(this).attr('stroke-opacity', 0.8); })
-      .on('mouseout', function() { d3.select(this).attr('stroke-opacity', 0.4); })
+      .on('mouseover', function() { d3.select(this).attr('stroke-opacity', 0.75); })
+      .on('mouseout', function() { d3.select(this).attr('stroke-opacity', 0.55); })
       .append('title').text(d => `${d.source.name} \u2192 ${d.target.name}\n${Utils.money(d.value)}`);
 
     // Nodes
@@ -2686,13 +2720,13 @@ const ChartUtils = {
       .attr('height', d => Math.max(1, d.y1 - d.y0))
       .attr('width', d => d.x1 - d.x0)
       .attr('fill', d => Utils.getColor(d.name))
-      .attr('opacity', d => isActive(d) ? 1 : 0.8)
+      .attr('opacity', 1)
       .attr('stroke', d => isActive(d) ? '#F1EEE9' : 'transparent')
       .attr('stroke-width', d => isActive(d) ? 0 : (isTouch ? 24 : 0))
       .style('cursor', d => isDrillable(d) ? 'pointer' : 'default')
       .on('click', function(e, d) { if (isDrillable(d)) onNodeClick(d, this); })
-      .on('mouseover', function(e, d) { if (isDrillable(d)) d3.select(this).attr('opacity', 1); })
-      .on('mouseout', function(e, d) { d3.select(this).attr('opacity', isActive(d) ? 1 : 0.8); })
+      .on('mouseover', function(e, d) { if (isDrillable(d)) d3.select(this).attr('opacity', 0.85); })
+      .on('mouseout', function(e, d) { d3.select(this).attr('opacity', 1); })
       .append('title').text(d => `${d.name}\n${Utils.money(d.value)}`);
 
     // Labels
@@ -2705,7 +2739,7 @@ const ChartUtils = {
       .text(d => Utils.trunc(d.name, isNarrow ? 25 : 40))
       .style('font-size', '11px')
       .style('font-weight', d => (d.y1 - d.y0 > 30) ? '700' : '400')
-      .style('fill', App.presentationMode ? '#191919' : '#D0CECC')
+      .style('fill', App.presentationMode ? '#191919' : '#ECECEC')
       .style('pointer-events', 'none');
 
     return { nodes: gn, links: gl, w, h };
@@ -3214,14 +3248,14 @@ const PipelineEngine = {
   // Format for display
   getTypeBadge(type) {
     const colors = {
-      'Expiring': 'rgba(184,168,120,0.12)',
-      'Recurring': 'rgba(120,144,160,0.12)',
-      'Adjacent': 'rgba(144,136,128,0.10)'
+      'Expiring': 'rgba(144,128,168,0.14)',
+      'Recurring': 'rgba(112,152,160,0.14)',
+      'Adjacent': 'rgba(120,120,160,0.12)'
     };
     const textColors = {
-      'Expiring': '#B8A878',
-      'Recurring': '#7890A0',
-      'Adjacent': '#908880'
+      'Expiring': '#9080A8',
+      'Recurring': '#7098A0',
+      'Adjacent': '#7878A0'
     };
     return `<span style="font-size:var(--text-xs);padding:2px 8px;border-radius:var(--radius-pill);background:${colors[type] || 'rgba(255,255,255,0.1)'};color:${textColors[type] || 'var(--text-secondary)'};font-weight:500;">${type}</span>`;
   },
@@ -4132,7 +4166,7 @@ App.aiState = { history: [], count: 0, max: 5 };
       // Rank-gradient badge: #1 is full hero green, fades toward dark by #5
       // #E07D54 at opacity: 1.0, 0.75, 0.55, 0.38, 0.22
       const badgeOpacity = [1.0, 0.78, 0.58, 0.42, 0.30][i] || 0.30;
-      const badgeBg = `rgba(90,126,106, ${badgeOpacity})`;
+      const badgeBg = `rgba(110,160,152, ${badgeOpacity})`;
       const badgeText = '#191919';
 
       // Build ONE natural-language "why" line
@@ -4750,18 +4784,18 @@ _renderSankeyInner(container) {
       // Activity badge — parse description for intent signals
       const descRaw = (c['Description'] || '').toLowerCase();
       let badge = 'Award';
-      let badgeColor = 'rgba(144,136,128,0.06)';
-      let badgeText = '#868480';
-      if (descRaw.includes('renew') || descRaw.includes('renewal') || descRaw.includes('annual')) { badge = 'Renewal'; badgeColor = 'rgba(120,144,160,0.12)'; badgeText = '#7890A0'; }
-      else if (descRaw.includes('new ') || descRaw.includes('new,') || descRaw.includes('procurement of new') || descRaw.includes('initial')) { badge = 'New'; badgeColor = 'rgba(90,126,106,0.12)'; badgeText = '#5C7C6A'; }
-      else if (descRaw.includes('re-compete') || descRaw.includes('recompete') || descRaw.includes('re-competition')) { badge = 'Recompete'; badgeColor = 'rgba(184,168,120,0.12)'; badgeText = '#B8A878'; }
-      else if (descRaw.includes('modification') || descRaw.includes('option year') || descRaw.includes('option period')) { badge = 'Mod/Option'; badgeColor = 'rgba(144,136,128,0.08)'; badgeText = '#868480'; }
-      else if (descRaw.includes('professional services') || descRaw.includes('support services')) { badge = 'Services'; badgeColor = 'rgba(160,128,138,0.10)'; badgeText = '#A08088'; }
+      let badgeColor = 'rgba(136,128,152,0.08)';
+      let badgeText = '#8880A0';
+      if (descRaw.includes('renew') || descRaw.includes('renewal') || descRaw.includes('annual')) { badge = 'Renewal'; badgeColor = 'rgba(112,152,160,0.14)'; badgeText = '#7098A0'; }
+      else if (descRaw.includes('new ') || descRaw.includes('new,') || descRaw.includes('procurement of new') || descRaw.includes('initial')) { badge = 'New'; badgeColor = 'rgba(110,160,152,0.12)'; badgeText = '#6EA098'; }
+      else if (descRaw.includes('re-compete') || descRaw.includes('recompete') || descRaw.includes('re-competition')) { badge = 'Recompete'; badgeColor = 'rgba(144,128,168,0.14)'; badgeText = '#9080A8'; }
+      else if (descRaw.includes('modification') || descRaw.includes('option year') || descRaw.includes('option period')) { badge = 'Mod/Option'; badgeColor = 'rgba(120,136,152,0.10)'; badgeText = '#7888A0'; }
+      else if (descRaw.includes('professional services') || descRaw.includes('support services')) { badge = 'Services'; badgeColor = 'rgba(168,120,136,0.12)'; badgeText = '#A87888'; }
       
       // Freshness — border accent for recent awards
       const isFresh = daysAgo !== null && daysAgo <= 30;
       const isWarm = daysAgo !== null && daysAgo <= 90;
-      const borderLeft = isFresh ? 'border-left: 3px solid rgba(90,126,106,0.7);' : isWarm ? 'border-left: 3px solid rgba(90,126,106,0.20);' : '';
+      const borderLeft = isFresh ? 'border-left: 3px solid rgba(110,160,152,0.5);' : isWarm ? 'border-left: 3px solid rgba(110,160,152,0.25);' : '';
       
       // Meta tags
       let metaTags = '';
@@ -5447,7 +5481,7 @@ renderRecompetes(recompetes, showAll = false) {
         vendorHtml: '',
         metaHtml: `<span class="meta-tag" style="background:rgba(255,255,255,0.06);border-color:var(--border);color:var(--text-secondary);">${fiscalPeriod}</span><span class="meta-tag mission-gap ${risk.level}">${riskLabel}</span>${r['PSC Code'] ? `<span class="meta-tag psc">PSC: ${esc(r['PSC Code'])}</span>` : ''}`,
         signalsHtml: risk.reasons.length > 0 && risk.level !== 'low' ? `<div class="mission-gap-signals">Signals: ${esc(risk.reasons.join(', '))}</div>` : '',
-        dateHtml: `<span style="color:${urgency === 'urgent' ? 'var(--danger)' : urgency === 'soon' ? '#B8A878' : 'var(--text-secondary)'}">Expires: ${Utils.date(r['End Date'])} (${daysUntil} days)</span>`,
+        dateHtml: `<span style="color:${urgency === 'urgent' ? 'var(--danger)' : urgency === 'soon' ? '#9080A8' : 'var(--text-secondary)'}">Expires: ${Utils.date(r['End Date'])} (${daysUntil} days)</span>`,
         subText: `Incumbent: ${esc(Utils.trunc((() => { const n = r['Recipient Name'] || ''; return n === n.toUpperCase() ? Utils.titleCase(n) : n; })(), 35))}`,
         url: awardUrl
       });
@@ -6606,7 +6640,7 @@ App.togglePresentationMode = function() {
   Utils.getColor.reset();
   
   // Re-render charts so D3 inline fills respect the mode
-  const textColor = App.presentationMode ? '#191919' : '#D0CECC';
+  const textColor = App.presentationMode ? '#191919' : '#ECECEC';
   
   // Prime Sankey labels
   d3.select('#chartContainer').selectAll('text').style('fill', textColor);
