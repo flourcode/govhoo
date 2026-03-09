@@ -3062,14 +3062,21 @@ const App = {
       clearTimeout(resizeTimer);
       if (window.innerWidth === lastWidth) return;
       lastWidth = window.innerWidth;
+      
       resizeTimer = setTimeout(() => { 
-        if(App.searchData?.active?.length > 0) {
+        // FIX: Check if the search view is actually visible before wasting CPU cycles
+        const searchView = document.getElementById('searchModeView');
+        const isAppVisible = searchView && searchView.classList.contains('active');
+        
+        if (isAppVisible && App.searchData?.active?.length > 0) {
           App.renderSankey(); 
           App.renderBubbleChart();
-        }
-        const subawardWrapper = document.getElementById('subawardWrapper');
-        if(App.forecastData?.subawards && subawardWrapper && subawardWrapper.style.display !== 'none') {
-          App.renderSubawardSankey(App.forecastData.subawards);
+          
+          const subawardWrapper = document.getElementById('subawardWrapper');
+          if (App.forecastData?.subawards && subawardWrapper && subawardWrapper.style.display !== 'none') {
+            App.renderSubawardSankey(App.forecastData.subawards);
+            App.renderSubBubbleChart(); // Also good to catch this one while we are at it!
+          }
         }
       }, 500); 
     });
