@@ -1426,6 +1426,19 @@ button, input, select, textarea {
 .light-mode .deal-footer .action-btn { background: rgba(0,0,0, 0.06); color: rgba(0,0,0, 0.6); }
 .light-mode .mission-gap-toggle.active { background: rgba(0,0,0, 0.1); color: #2C2C2A; }
 
+.light-mode .data-panel, 
+.light-mode .stat-panel,
+.light-mode .ai-action-panel {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(0,0,0,0.06) !important;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.03) !important;
+}
+
+.light-mode .feed-card {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(0,0,0,0.08) !important;
+}
+
 /* 24. DESKTOP
    =========================================== */
 @media (min-width: 768px) {
@@ -1645,19 +1658,6 @@ details > summary::-webkit-details-marker { display: none; }
           <span></span>
         </div>
 
-        <div id="masterStatsPanel" class="stat-panel" style="display: none; padding-bottom: 0;">
-          <div style="margin-bottom: 0.5rem;">
-            <div class="stat-row">
-              <div id="stat-vol" class="stat-hero">-</div>
-              <div id="searchStatsCompact" class="stat-group">
-                <div class="stat-item"><span id="stat-agencies" class="stat-value">-</span><span class="stat-label">Agencies</span></div>
-                <div class="stat-item"><span id="stat-count" class="stat-value">-</span><span class="stat-label">Contracts</span></div>
-                <div class="stat-item"><span id="stat-vendors" class="stat-value">-</span><span class="stat-label">Vendors</span></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div id="sankeyPanel" class="stat-panel sankey-panel" style="margin-top: 0.5rem;">
           <div class="section-header" style="margin-top: 0; margin-bottom: 0.5rem; border-bottom: none; padding-bottom: 0;">
             <div class="section-title-group">
@@ -1835,7 +1835,8 @@ details > summary::-webkit-details-marker { display: none; }
             Export
           </button>
         </div>
-        <div id="feedGrid" class="feed-grid"></div>
+        <div id="emptySearchState" style="display: none; grid-column: 1/-1; width: 100%;"></div>
+<div id="feedGrid" class="feed-grid"></div>
 
         <div id="primeExplainerBox" class="explainer-box" style="display:none;">
           <div style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 0.5rem 0;" data-action="toggleExplainer">
@@ -3263,33 +3264,31 @@ renderRecentSearches() {
   },
 
   showHero() {
+    // If we are deep in a drill-down, the first click on the logo acts as a 'Back to Dashboard'
+    if (this.drillState && this.drillState.level > 0) {
+      Utils.vibrate(10);
+      this.resetDrill();
+      return;
+    }
+
     const landing = document.getElementById('landingState');
     const searchView = document.getElementById('searchModeView');
     const quickJump = document.getElementById('quickJumpMenu');
     
-    // 1. Show the landing view, hide the search results and menu
     if (landing) landing.style.display = 'flex';
     if (searchView) searchView.classList.remove('active');
     if (quickJump) quickJump.style.display = 'none';
     
-    // 2. Keep the main container visible so we can actually see the landing view
     document.getElementById('dashboardContainer').classList.add('active');
-    
     const mini = document.getElementById('miniSearch');
     if(mini) mini.value = '';
     document.title = 'Govhoo - Follow the Money';
     
-    // 3. Clear the URL so it looks like the home page
     history.pushState({ view: 'hero' }, '', window.location.pathname);
-
-    // 4. Force a re-render of the chips so the "Back to Results" button appears!
     App.renderRecentSearches();
 
-    // 5. Reset the scroll position to the very top instantly
     const appView = document.getElementById('appView');
-    if (appView) {
-      appView.scrollTo({ top: 0, behavior: 'instant' });
-    }
+    if (appView) appView.scrollTo({ top: 0, behavior: 'instant' });
     window.scrollTo({ top: 0, behavior: 'instant' });
   },
   transitionToApp() {
@@ -3665,18 +3664,17 @@ renderRecentSearches() {
     if (content) { content.innerHTML = ''; delete content.dataset.rawPlan; }
     if (btn) { btn.innerHTML = 'ASK ARTI'; btn.disabled = false; }
   },
-
-  // --- Data Fetching ---
+// --- Data Fetching ---
   _searchId: 0,
   async runSearch(val) {
-    let query = val || document.getElementById('miniSearch').value; if(!query) return;
+    let query = val || document.getElementById('miniSearch').value; 
+    if(!query) return;
+    
     const rawQuery = query.toUpperCase();
     query = Utils.normalizeQuery(rawQuery);
-    
     document.getElementById('miniSearch').value = query;
     document.title = `Govhoo | ${query}`;
     
-    // Save to Recent Searches (Keeps the last 5 unique queries)
     let history = JSON.parse(localStorage.getItem('govhoo-recent') || '[]');
     history = history.filter(q => q !== query);
     history.unshift(query);
@@ -3685,13 +3683,9 @@ renderRecentSearches() {
 
     if(query !== App.currentQuery) { 
       App.searchData = { raw: [], active: [], filter: null, loaded: false }; 
-      App.forecastData = { loaded: false }; App.naicsData = null; 
+      App.forecastData = { loaded: false }; 
       App.resetDrill(); 
       App.subawardDrillState = { level: 0, path: [], filter: null, filterType: null }; 
-      
-      // UX Housekeeping: Close accordions and snap to top for a fresh view
-      const subAcc = document.getElementById('subawardAccordion');
-      if (subAcc) subAcc.open = false;
       document.querySelectorAll('details').forEach(d => d.open = false);
       window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     }
@@ -3699,16 +3693,15 @@ renderRecentSearches() {
     App.originalQuery = rawQuery;
 
     const thisSearch = ++App._searchId;
-    const loadingMessages = [
-      "Bypassing SAM.gov search...", "Making some coffee...", "Finding out who does the work...",
-      "Following the money...", "Skipping industry day...", "Waiting for the KO to reply...",
-      "Deciphering a 500-page RFP...", "Bypassing the gatekeepers..."
-    ];
-    const randomMsg = loadingMessages[Math.floor(Math.random() * loadingMessages.length)];
-    
-    App.showLoader('Scanning ' + query, randomMsg);
+    App.showLoader('Scanning ' + query);
 
     try {
+      // RESET THE UI: Ensure everything is visible and the empty state is hidden
+      const panels = ['sankeyPanel', 'bubbleChartPanel', 'targetAccountsPanel', 'teamingPanel', 'aiIntelligenceBanner', 'feedGrid'];
+      panels.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = ''; });
+      const emptyEl = document.getElementById('emptySearchState');
+      if (emptyEl) emptyEl.style.display = 'none';
+
       const [, searchResults] = await Promise.all([
         LibLoader.loadD3(),
         API.searchAwards(query)
@@ -3716,7 +3709,39 @@ renderRecentSearches() {
 
       if (thisSearch !== App._searchId) return;
 
-      App.searchData.raw = Utils.filterActiveContracts(searchResults); 
+      const filteredResults = Utils.filterActiveContracts(searchResults);
+
+      // --- EMPTY STATE LOGIC ---
+      if (!filteredResults || filteredResults.length === 0) {
+        App.hideLoader();
+        App.transitionToApp(); 
+        
+        // Hide standard panels
+        panels.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+
+        const emptySearch = document.getElementById('emptySearchState');
+        if (emptySearch) {
+          emptySearch.style.display = 'block';
+          emptySearch.innerHTML = `
+            <div style="padding: 8vh 2rem; text-align: center; background: var(--bg-elevated); border-radius: var(--radius-lg); border: 1px dashed var(--border);">
+              <div style="font-size: 3rem; margin-bottom: 1.5rem;">🔍</div>
+              <h3 style="margin-bottom: 0.75rem; color: var(--text-primary); font-size: var(--text-lg); font-weight: 800; text-transform: uppercase;">No live awards found</h3>
+              <p style="color: var(--text-secondary); max-width: 420px; margin: 0 auto 2rem auto; line-height: 1.6;">
+                We couldn't find active contract spending for "<strong>${Html.escapeHtml(query)}</strong>" in the last 12 months.
+              </p>
+              <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+                 <button class="hero-suggestion-chip" onclick="App.runSearch('Cyber')">Try "Cyber"</button>
+                 <button class="hero-suggestion-chip" onclick="App.runSearch('541512')">Try NAICS 541512</button>
+                 <button class="hero-suggestion-chip" onclick="App.showHero()">New Search</button>
+              </div>
+            </div>
+          `;
+        }
+        return; 
+      }
+      // --- END EMPTY STATE LOGIC ---
+
+      App.searchData.raw = filteredResults;
       App.searchData.active = App.searchData.raw; 
       App.searchData.loaded = true;
       
@@ -3731,97 +3756,33 @@ renderRecentSearches() {
       this.loadBackgroundData(query);
     } catch(e) { 
       if (thisSearch !== App._searchId) return;
-      console.error(e);
-      App.toast('Error retrieving data. Check your connection and try again.', 'error', 5000);
+      App.toast('Error retrieving data.', 'error');
     } finally { App.hideLoader(); }
   },
 
-  async loadBackgroundData(query) {
-    this.loadForecastInBackground(query);
-    try { this.loadNaicsBreakdown(query); } catch(e) { console.warn('NAICS load failed:', e); }
-    try { setTimeout(() => this.loadSubcontractingData(query), 0); } catch(e) { console.warn('Background data failure:', e); }
-  },
-
-  async loadNaicsBreakdown(query) {
-    try {
-      const results = await API.getNaicsBreakdown(query);
-      App.naicsData = results;
-      App.renderNaicsMix();
-    } catch(e) { console.warn('[NAICS] API call failed:', e); }
-  },
-
-  async loadForecastInBackground(query) {
-    if (!query) return;
-    const awards = App.searchData.raw || [];
-    const recompetes = ForecastEngine.detectRecompetes(awards);
-    App.forecastData = {
-      analysis: { recompetes },
-      subawards: App.forecastData?.subawards || null,
-      loaded: true
-    };
-    App.renderStrategyTools();
-  },
-
-  async loadSubcontractingData(query) {
-    if (App.forecastData.subawards && App.currentQuery === query) return;
-    const body = document.getElementById('subcontractingBody');
-    if (!body) return;
-    
-    body.innerHTML = `<div style="text-align:center; padding:2rem; color:var(--text-secondary);"> Loading subaward flow...</div>`;
-    const timeout = setTimeout(() => {
-      if (body.querySelector('.icon-spin')) {
-        body.innerHTML = `<div style="text-align:center; padding:1rem; color:var(--text-secondary); font-size:var(--text-base);">
-           Subaward data is taking too long to load.
-          <br><a href="#" onclick="App.loadSubcontractingData('${query.replace(/'/g, "\\'")}'); return false;" style="color:var(--accent); text-decoration:underline; font-size:var(--text-sm);">Retry</a>
-        </div>`;
-      }
-    }, 15000);
-    
-    try {
-      API.getSubawards(query)
-        .then(subawards => {
-          clearTimeout(timeout);
-          App.forecastData.subawards = subawards;
-          this.renderSubawardSankey(subawards);
-          this.renderSearchTopPrimes(subawards);
-          this.renderSearchTopSubs(subawards);
-          this.renderSubawardFeed();
-          App.renderSubBubbleChart();
-        })
-        .catch(e => { clearTimeout(timeout); console.error(e); });
-    } catch (e) {
-      clearTimeout(timeout);
-      body.innerHTML = `<div style="text-align:center; padding:1rem; color:var(--text-secondary); font-size:var(--text-base);">
-         Unable to load subaward data.
-        <br><a href="#" onclick="App.loadSubcontractingData('${query.replace(/'/g, "\\'")}'); return false;" style="color:var(--accent); text-decoration:underline; font-size:var(--text-sm);">Retry</a>
-      </div>`;
-    }
-  },
-
-  // --- Rendering Dashboards ---
   updateSearchDashboard() {
+    const emptyState = document.getElementById('emptySearchState');
+    if (emptyState) emptyState.style.display = 'none';
+
     App.resetAiPanel();
     const quickJump = document.getElementById('quickJumpMenu');
     if (quickJump) quickJump.style.display = 'flex';
     
     const data = App.searchData.active;
     const totalObligations = data.reduce((acc, c) => acc + (c['Award Amount']||0), 0);
-    Utils.countUp(document.getElementById('stat-vol'), totalObligations, Utils.money);
-    document.getElementById('stat-count').innerText = data.length;
+    
+    const sVol = document.getElementById('sankey-stat-vol');
+    if (sVol) Utils.countUp(sVol, totalObligations, Utils.money);
     
     const uniqueVendors = new Set(data.map(c => c['Recipient Name'])).size;
     const uniqueAgencies = new Set(data.map(c => c['Awarding Agency'])).size;
-    document.getElementById('stat-vendors').innerText = uniqueVendors;
-    document.getElementById('stat-agencies').innerText = uniqueAgencies;
     
-    // Populate the new identical Prime Sankey stats
-    const sVol = document.getElementById('sankey-stat-vol');
-    if (sVol) Utils.countUp(sVol, totalObligations, Utils.money);
     const sCount = document.getElementById('sankey-stat-count');
-    if (sCount) sCount.innerText = data.length;
     const sAgencies = document.getElementById('sankey-stat-agencies');
-    if (sAgencies) sAgencies.innerText = uniqueAgencies;
     const sVendors = document.getElementById('sankey-stat-vendors');
+
+    if (sCount) sCount.innerText = data.length;
+    if (sAgencies) sAgencies.innerText = uniqueAgencies;
     if (sVendors) sVendors.innerText = uniqueVendors;
 
     App.renderFeed();
@@ -3834,7 +3795,7 @@ renderRecentSearches() {
       App.renderBubbleChart();
       App.renderStrategyTools();
     });
-    
+
     App.generateEditorialHeadlines(data, totalObligations);
     
     const primeExpl = document.getElementById('primeExplainerBox');
@@ -3869,7 +3830,6 @@ renderRecentSearches() {
     this.renderRecompetes(filteredRecompetes);
     this.renderTargetAccounts();
   },
-
   generateEditorialHeadlines(data, totalObligations) {
     if (!data || data.length === 0) return;
     const query = App.currentQuery ? App.currentQuery.toUpperCase() : '';
