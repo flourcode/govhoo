@@ -3358,27 +3358,31 @@ transitionToApp() {
     });
   },
 
-// --- Custom Scroll Helper ---
-  scrollToPanel(id) {
+scrollToPanel(id) {
     const el = document.getElementById(id);
     const container = document.getElementById('appView');
-    if (el && container) {
-      // BASELINE: 170 works best for the Flow chart
-      let offset = 170; 
+    const header = document.querySelector('.app-header'); // Grab the header
+    
+    if (el && container && header) {
+      // 1. Get the exact physical height of the header (this automatically includes the PWA notch padding!)
+      const headerHeight = header.offsetHeight;
+      
+      // 2. Apply your relative breathing room preferences
+      let extraSpace = 40; // Default spacing for Flow chart
       
       if (id === 'feedGrid') {
-        // INCREASED OFFSET: 190 pulls the section further down 
-        // so the "Recent Awards" header doesn't hide under the sticky menu
-        offset = 190; 
+        extraSpace = 60; // Needs more space so "Recent Awards" isn't hidden
       } else if (id === 'bubbleChartPanel' || id === 'agencyReachPanel' || id === 'subawardWrapper' || id === 'targetAccountsPanel') {
-        offset = 130; 
+        extraSpace = 0; // Tighter fit for the data panels
       }
+      
+      // 3. Combine them for the perfect dynamic offset
+      const offset = headerHeight + extraSpace;
       
       const y = el.getBoundingClientRect().top + container.scrollTop - container.getBoundingClientRect().top - offset;
       container.scrollTo({ top: y, behavior: 'smooth' });
     }
   },
-
   // --- AI Chat & Brief ---
   AI_ENDPOINT: 'https://76unm1rlj0.execute-api.us-east-1.amazonaws.com/default/grumpy2', 
   aiState: { history: [], count: 0, max: 5 },
