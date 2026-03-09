@@ -3318,17 +3318,20 @@ transitionToApp() {
     // REMOVED CLONING LOGIC: Your footer is already at the bottom of #appView.
   },
 
-  // --- Custom Scroll Helper ---
+// --- Custom Scroll Helper ---
   scrollToPanel(id) {
     const el = document.getElementById(id);
     const container = document.getElementById('appView');
     if (el && container) {
-      // Fine-tuned offsets for perfect top framing
-      let offset = 190; // Default (works perfectly for Prime Flow)
+      // BASELINE: 170 works best for the Flow chart
+      let offset = 170; 
+      
       if (id === 'feedGrid') {
-        offset = 240; // Needs more breathing room to clear the header
-      } else if (id === 'bubbleChartPanel' || id === 'agencyReachPanel' || id === 'subawardWrapper') {
-        offset = 140; // Needs less gap so it doesn't look empty above the title
+        // INCREASED OFFSET: 190 pulls the section further down 
+        // so the "Recent Awards" header doesn't hide under the sticky menu
+        offset = 190; 
+      } else if (id === 'bubbleChartPanel' || id === 'agencyReachPanel' || id === 'subawardWrapper' || id === 'targetAccountsPanel') {
+        offset = 130; 
       }
       
       const y = el.getBoundingClientRect().top + container.scrollTop - container.getBoundingClientRect().top - offset;
@@ -3685,7 +3688,6 @@ transitionToApp() {
       App.resetDrill(); 
       App.subawardDrillState = { level: 0, path: [], filter: null, filterType: null }; 
       document.querySelectorAll('details').forEach(d => d.open = false);
-      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     }
     App.currentQuery = query;
     App.originalQuery = rawQuery;
@@ -3694,9 +3696,14 @@ transitionToApp() {
     App.showLoader('Scanning ' + query);
 
     try {
-      // RESET THE UI
-      const panels = ['sankeyPanel', 'bubbleChartPanel', 'targetAccountsPanel', 'teamingPanel', 'aiIntelligenceBanner', 'feedGrid'];
-      panels.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = ''; });
+      // 1. RESET THE UI: Make sure everything is potentially visible before fetching
+      const allPanels = [
+        'sankeyPanel', 'aiIntelligenceBanner', 'aiActionPanel', 'teamingPanel', 
+        'agencyReachPanel', 'bubbleChartPanel', 'targetAccountsPanel', 
+        'pipelineTargetsSection', 'recompetesList', 'feedGrid', 'subawardWrapper'
+      ];
+      allPanels.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = ''; });
+      
       const emptyEl = document.getElementById('emptySearchState');
       if (emptyEl) emptyEl.style.display = 'none';
 
@@ -3713,12 +3720,15 @@ transitionToApp() {
       if (!filteredResults || filteredResults.length === 0) {
         App.hideLoader();
         App.transitionToApp(); 
-        panels.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+        
+        // 2. HIDE EVERYTHING EXCEPT THE MESSAGE: This removes all sections above your message
+        allPanels.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+
         const emptySearch = document.getElementById('emptySearchState');
         if (emptySearch) {
           emptySearch.style.display = 'block';
           emptySearch.innerHTML = `
-            <div style="padding: 8vh 2rem; text-align: center; background: var(--bg-elevated); border-radius: var(--radius-lg); border: 1px dashed var(--border);">
+            <div style="padding: 10vh 2rem; text-align: center; background: var(--bg-elevated); border-radius: var(--radius-lg); border: 1px dashed var(--border);">
               <div style="font-size: 3rem; margin-bottom: 1.5rem;">🔍</div>
               <h3 style="margin-bottom: 0.75rem; color: var(--text-primary); font-size: var(--text-lg); font-weight: 800; text-transform: uppercase;">No live awards found</h3>
               <p style="color: var(--text-secondary); max-width: 420px; margin: 0 auto 2rem auto; line-height: 1.6;">
@@ -3732,8 +3742,14 @@ transitionToApp() {
             </div>
           `;
         }
+        
+        // 3. SNAP TO TOP: Ensures they see the magnifying glass immediately
+        const appView = document.getElementById('appView');
+        if (appView) appView.scrollTo({ top: 0, behavior: 'instant' });
+        
         return; 
       }
+      // --- END EMPTY STATE LOGIC ---
 
       App.searchData.raw = filteredResults;
       App.searchData.active = App.searchData.raw; 
@@ -3748,13 +3764,14 @@ transitionToApp() {
         App.renderPrimeReach(); 
       });
       this.loadBackgroundData(query);
-    } catch(err) { 
+    } catch(e) { 
       if (thisSearch !== App._searchId) return;
-      console.error(err);
+      console.error(e);
       App.toast('Search failed.', 'error');
-    } finally { App.hideLoader(); }
+    } finally { 
+      App.hideLoader(); 
+    }
   },
-
   async loadBackgroundData(query) {
     this.loadForecastInBackground(query);
     try { this.loadNaicsBreakdown(query); } catch(e) { console.warn('NAICS load failed:', e); }
