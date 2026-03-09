@@ -1811,7 +1811,7 @@ details > summary::-webkit-details-marker { display: none; }
         <div id="aiIntelligenceBanner" class="ai-banner">
           <div class="ai-banner-wrapper">
             <img src="/images/arti.png" alt="Arti" class="ai-avatar-float">
-            <h4 class="ai-banner-title">Want help synthesizing this market?</h4>
+            <h4 class="ai-banner-title">Want help with this market?</h4>
             <p class="ai-banner-desc">Ask Arti to summarize opportunities, teaming partners, and engagement strategy.</p>
           </div>
           <button id="triggerAiPlanBtn" class="btn-ai" data-action="runAiPlan">
@@ -1829,7 +1829,14 @@ details > summary::-webkit-details-marker { display: none; }
           </div>
           <div id="aiContentContainer" class="ai-result-content"></div>
           <div id="aiChatHistory" class="ai-chat-history" style="display: none;"></div>
-          <div id="aiChatInputWrapper" class="ai-chat-input-wrapper" style="display: none;">
+          
+          <div id="aiPromptSuggestions" style="display: none; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem; margin-top: 1.5rem;">
+            <button class="meta-tag" onclick="document.getElementById('aiChatInput').value='Give me 5 real pipeline opps.'; App.sendAiChatMessage();" style="cursor:pointer; border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--text-primary); transition: background 0.2s;">Give me 5 real pipeline opps.</button>
+            <button class="meta-tag" onclick="document.getElementById('aiChatInput').value='How do I approach the customer without sounding like a used car salesman?'; App.sendAiChatMessage();" style="cursor:pointer; border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--text-primary); transition: background 0.2s;">How do I approach the customer?</button>
+            <button class="meta-tag" onclick="document.getElementById('aiChatInput').value='Suggest 3 teaming partners to bridge our mission gap.'; App.sendAiChatMessage();" style="cursor:pointer; border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--text-primary); transition: background 0.2s;">Suggest 3 teaming partners.</button>
+          </div>
+
+          <div id="aiChatInputWrapper" class="ai-chat-input-wrapper" style="display: none; margin-top: 0;">
             <input type="text" id="aiChatInput" class="main-input" placeholder="What else do you want to know?" autocomplete="off" style="font-size: var(--text-base); padding: 0.75rem 1rem; height: auto;">
             <button id="aiChatSendBtn" class="btn-ai" data-action="sendAiChat" style="padding: 0 1.25rem;">Send</button>
           </div>
@@ -2144,6 +2151,13 @@ const LibLoader = {
 // 2. UTILITIES
 // ========================================
 const Utils = {
+  vibrate(duration = 10) {
+    // Fails silently on desktop, fires a satisfying physical tap on mobile!
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      try { navigator.vibrate(duration); } catch(e) {}
+    }
+  },
+
   showMoreBtn(onclick, label) {
     return `<button onclick="${onclick}" class="show-more-btn">${label}</button>`;
   },
@@ -2480,6 +2494,7 @@ const ChartUtils = {
     if (isTouch) {
       selection.on('click', function(event, d) {
         event.stopPropagation();
+        Utils.vibrate(15); // Haptic feedback for Bubbles and Treemap
         const e = d.data || d;
         if (touchState.touchStateGet() === e.name) {
           tooltip.classList.remove('visible'); touchState.touchStateSet(null); doDrill(e);
@@ -2555,7 +2570,7 @@ const ChartUtils = {
       .attr('stroke', d => isActive(d) ? '#F1EEE9' : 'transparent')
       .attr('stroke-width', d => isActive(d) ? 0 : (isTouch ? 24 : 0))
       .style('cursor', d => isDrillable(d) ? 'pointer' : 'default')
-      .on('click', function(e, d) { if (isDrillable(d)) onNodeClick(d, this); })
+      .on('click', function(e, d) { Utils.vibrate(15); if (isDrillable(d)) onNodeClick(d, this); })
       .on('mouseover', function(e, d) { if (isDrillable(d)) d3.select(this).attr('opacity', 0.85); })
       .on('mouseout', function(e, d) { d3.select(this).attr('opacity', 1); })
       .append('title').text(d => `${d.name}\n${Utils.money(d.value)}`);
@@ -3160,6 +3175,8 @@ const App = {
       const target = e.target.closest('[data-action]');
       if (!target) return;
       
+      Utils.vibrate(10); // Instantly adds a physical tap to Quick Jump, Search, Explainer, AI buttons, etc!
+      
       const action = target.dataset.action;
       const value = target.dataset.value;
       const query = target.dataset.query;
@@ -3496,6 +3513,8 @@ const App = {
       copyBtn.style.display = 'inline-block';
 
       document.getElementById('aiChatInputWrapper').style.display = 'flex';
+      const aiPrompts = document.getElementById('aiPromptSuggestions');
+      if (aiPrompts) aiPrompts.style.display = 'flex'; // Show suggestions!
       document.getElementById('aiChatCounter').style.display = 'block';
       document.getElementById('aiChatCounter').innerText = `${App.aiState.max} questions remaining for this view.`;
       document.getElementById('aiDisclaimer').style.display = 'block';
@@ -3522,6 +3541,10 @@ const App = {
     const sendBtn = document.getElementById('aiChatSendBtn');
     const msg = inputEl.value.trim();
     if (!msg) return;
+    
+    // Hide the suggestions once the user starts chatting
+    const aiPrompts = document.getElementById('aiPromptSuggestions');
+    if (aiPrompts) aiPrompts.style.display = 'none'; 
 
     const historyEl = document.getElementById('aiChatHistory');
     historyEl.style.display = 'flex';
@@ -3651,6 +3674,8 @@ const App = {
     if (historyEl) { historyEl.innerHTML = ''; historyEl.style.display = 'none'; }
     const inputWrap = document.getElementById('aiChatInputWrapper');
     if (inputWrap) inputWrap.style.display = 'none';
+    const suggestionsEl = document.getElementById('aiPromptSuggestions');
+    if (suggestionsEl) suggestionsEl.style.display = 'none';
     const counterEl = document.getElementById('aiChatCounter');
     if (counterEl) counterEl.style.display = 'none';
     const disclaimerEl = document.getElementById('aiDisclaimer');
