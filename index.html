@@ -583,6 +583,7 @@ button, input, select, textarea {
   letter-spacing: -0.03em !important;
   line-height: 1.1 !important;
   margin: 0 !important;
+  white-space: nowrap !important; /* Prevents awkward word-wrapping */
 }
 
 /* Level 3: Important Data Values (Amounts) */
@@ -717,9 +718,14 @@ button, input, select, textarea {
 .data-panel-header {
   display: flex; align-items: baseline; justify-content: space-between;
   padding: 0 0 0.25rem; border-bottom: none; margin-bottom: 0.25rem;
+  gap: 0.75rem; /* Ensures title and subtitle never touch */
 }
-.data-panel-body { padding: 0.25rem 0; display: flex; flex-direction: column; gap: 0.65rem; } 
-
+.data-panel-subtitle {
+  text-align: right;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; /* Gracefully truncates long agency names */
+  flex: 1; min-width: 0;
+}
+.data-panel-body { padding: 0.25rem 0; display: flex; flex-direction: column; gap: 0.65rem; }
 .reach-row {
   display: flex; align-items: flex-start; justify-content: space-between;
   padding: 0.15rem 0; gap: 0.5rem; cursor: pointer; border-bottom: none;
@@ -2043,7 +2049,7 @@ details > summary::-webkit-details-marker { display: none; }
           <div class="bento-row" style="margin-top: var(--section-gap);">
             <div id="subPrimesPanel" class="data-panel" style="display: none;">
               <div class="data-panel-header">
-                <span class="data-panel-title">Top Primes</span>
+                <span class="data-panel-title">Primes</span>
                 <span class="data-panel-subtitle"></span>
               </div>
               <div class="data-panel-body" id="searchTopPrimesBody"></div>
@@ -2051,7 +2057,7 @@ details > summary::-webkit-details-marker { display: none; }
 
             <div id="subSubsPanel" class="data-panel" style="display: none;">
               <div class="data-panel-header">
-                <span class="data-panel-title">Top Subs</span>
+                <span class="data-panel-title">Subcontractors</span>
                 <span class="data-panel-subtitle"></span>
               </div>
               <div class="data-panel-body" id="searchTopSubsBody"></div>
@@ -4276,7 +4282,7 @@ const App = {
     if (panel) {
       const titleEl = panel.querySelector('.data-panel-title');
       const subtitleEl = panel.querySelector('.data-panel-subtitle');
-      if (titleEl) titleEl.textContent = drill.level >= 1 ? 'Top Offices' : 'Top Agencies';
+      if (titleEl) titleEl.textContent = drill.level >= 1 ? 'Offices' : 'Agencies';
       if (subtitleEl) subtitleEl.textContent = drill.level >= 1
         ? `In ${Utils.trunc(drill.path[drill.path.length - 1].name.replace(/^Department of (the )?/i, ''), 25)}`
         : '';
@@ -4322,7 +4328,7 @@ const App = {
     const titleEl = panel.querySelector('.data-panel-title');
     const subtitleEl = panel.querySelector('.data-panel-subtitle');
     const drill = App.drillState || {};
-    if (titleEl) titleEl.textContent = drill.level >= 1 ? 'Top Vendors' : 'Prime Reach';
+    if (titleEl) titleEl.textContent = drill.level >= 1 ? 'Vendors' : 'Prime Reach';
     if (subtitleEl) subtitleEl.textContent = drill.level >= 1 
       ? `In ${Utils.trunc(drill.path[drill.path.length - 1].name.replace(/^Department of (the )?/i, ''), 25)}` : '';
 
@@ -4393,7 +4399,7 @@ const App = {
 
     const titleEl = panel.querySelector('.data-panel-title');
     const subtitleEl = panel.querySelector('.data-panel-subtitle');
-    if (titleEl) titleEl.textContent = isVendorDrill ? 'Target Agencies' : (isDrilled && drill.currentAgency ? 'Target Offices' : 'Target Accounts');
+    if (titleEl) titleEl.textContent = isVendorDrill ? 'Agencies' : (isDrilled && drill.currentAgency ? 'Offices' : 'Target Accounts');
     if (subtitleEl) subtitleEl.textContent = '';
 
     const bcBar = document.getElementById('targetBreadcrumbBar');
