@@ -3329,10 +3329,12 @@ renderRecentSearches() {
 transitionToApp() {
     const landing = document.getElementById('landingState');
     const searchView = document.getElementById('searchModeView');
+    const quickJump = document.getElementById('quickJumpMenu'); // FIX: Grab the menu
     
     // Hide landing, show search results
     if (landing) landing.style.display = 'none';
     if (searchView) searchView.classList.add('active');
+    if (quickJump) quickJump.style.display = 'flex'; // FIX: Unhide the menu!
     
     const mini = document.getElementById('miniSearch');
     if(mini) mini.value = App.currentQuery;
@@ -3344,7 +3346,7 @@ transitionToApp() {
       history.pushState({ view: 'app' }, '', window.location.href);
     }
     
-    // FIX: Force charts to recalculate their dimensions now that they are visible again
+    // Force charts to recalculate their dimensions now that they are visible again
     requestAnimationFrame(() => {
       if (App.searchData && App.searchData.active && App.searchData.active.length > 0) {
         App.renderSankey();
