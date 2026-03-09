@@ -1594,32 +1594,6 @@ details > summary::-webkit-details-marker { display: none; }
 </head>
 <body ontouchstart="">
 
-  <div id="heroView" class="hero-view" style="display:none;">
-    <div class="terminal-logo">
-      <span class="logo-name">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="96 96 448 448"><path d="M480 96C515.3 96 544 124.7 544 160L544 480C544 515.3 515.3 544 480 544L160 544C124.7 544 96 515.3 96 480L96 160C96 124.7 124.7 96 160 96L480 96z"/><path d="M368 360C368 373.3 378.7 384 392 384C405.3 384 416 373.3 416 360L416 248C416 234.7 405.3 224 392 224L280 224C266.7 224 256 234.7 256 248C256 261.3 266.7 272 280 272L334.1 272L231.1 375C221.7 384.4 221.7 399.6 231.1 408.9C240.5 418.2 255.7 418.3 265 408.9L368 305.9L368 360z"/></svg>Govhoo
-      </span>
-    </div>
-    <p class="hero-subtitle">Follow the Money.</p>
-    
-    <div class="search-box-container">
-      <div style="position: relative;">
-        <input type="search" id="mainSearchInput" class="main-input" placeholder="Keywords, NAICS codes, companies, agencies..." enterkeyhint="search" autocorrect="off" autocapitalize="none">
-        <button class="input-clear" data-action="clearMainSearch" aria-label="Clear search">×</button>
-      </div>
-      <div class="btn-row">
-        <button id="searchBtn" class="btn-primary" data-action="searchMain" style="flex: none; width: 100%;">
-          Search
-        </button>
-      </div>
-    </div>
-
-    <div class="hero-suggestions">
-      <a href="?q=ZERO+TRUST" class="hero-suggestion-chip" data-action="runSuggestion" data-query="ZERO TRUST">ZERO TRUST</a>
-      <a href="?q=541512" class="hero-suggestion-chip" data-action="runSuggestion" data-query="541512">541512</a>
-      <a href="?q=DHS" class="hero-suggestion-chip" data-action="runSuggestion" data-query="DHS">DHS</a>
-    </div>
-
     <footer class="hero-footer">
       <div class="footer-grid">
         <div class="footer-section">
@@ -1757,18 +1731,19 @@ details > summary::-webkit-details-marker { display: none; }
 
     <div id="dashboardContainer" class="dashboard-container">
       
-      <div id="landingState" style="display:flex; flex-direction:column; align-items:center; padding-top: max(6vh, 2rem); min-height: 60vh;">
-        <div class="terminal-logo" style="margin-bottom: 0.35rem;">
-          <span class="logo-name">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="96 96 448 448"><path d="M480 96C515.3 96 544 124.7 544 160L544 480C544 515.3 515.3 544 480 544L160 544C124.7 544 96 515.3 96 480L96 160C96 124.7 124.7 96 160 96L480 96z"/><path d="M368 360C368 373.3 378.7 384 392 384C405.3 384 416 373.3 416 360L416 248C416 234.7 405.3 224 392 224L280 224C266.7 224 256 234.7 256 248C256 261.3 266.7 272 280 272L334.1 272L231.1 375C221.7 384.4 221.7 399.6 231.1 408.9C240.5 418.2 255.7 418.3 265 408.9L368 305.9L368 360z"/></svg>Govhoo
-          </span>
+      <div id="landingState" style="display:flex; flex-direction:column; align-items:center; padding-top: max(8vh, 3rem); min-height: 60vh; width: 100%; max-width: 640px; margin: 0 auto;">
+        <h1 style="font-size: clamp(2rem, 5vw, 2.75rem); font-weight: 900; color: var(--text-primary); text-align: center; margin-top: 0; margin-bottom: 0.75rem; letter-spacing: -0.03em; line-height: 1.1;">Follow the money.</h1>
+        <p style="font-size: var(--text-lg); color: var(--text-secondary); text-align: center; margin-top: 0; margin-bottom: 2.5rem; max-width: 540px; line-height: 1.5; font-weight: 400;">
+          Search federal contract awards, find incumbents, and visualize agency spending patterns instantly.
+        </p>
+
+        <div style="width: 100%; position: relative; margin-bottom: 1.5rem;">
+          <svg class="icon" viewBox="0 0 640 640" style="position: absolute; left: 1.35rem; top: 50%; transform: translateY(-50%); font-size: 1.35rem; color: var(--text-tertiary); pointer-events: none;"><path fill="currentColor" d="M266.7 64C154.8 64 64 154.8 64 266.7C64 378.5 154.8 469.3 266.7 469.3C314.9 469.3 359.1 452.4 394.5 424.4L522.5 552.5C530.8 560.8 544.3 560.8 552.5 552.5C560.8 544.2 560.8 530.8 552.5 522.5L424.4 394.5C452.4 359.1 469.3 314.9 469.3 266.7C469.3 154.8 378.5 64 266.7 64zM266.7 106.7C355.2 106.7 426.7 178.1 426.7 266.7C426.7 355.2 355.2 426.7 266.7 426.7C178.1 426.7 106.7 355.2 106.7 266.7C106.7 178.1 178.1 106.7 266.7 106.7z"/></svg>
+          <input type="search" id="mainSearchInput" class="main-input" placeholder="Search keywords, NAICS, companies..." enterkeyhint="search" autocorrect="off" autocapitalize="none" style="width: 100%; border-radius: var(--radius-pill); padding: 1.25rem 1.5rem 1.25rem 3.5rem; background: var(--bg-elevated); border: 1px solid var(--border); font-size: var(--text-lg); box-shadow: 0 4px 20px rgba(0,0,0,0.15); transition: border-color 0.2s;">
         </div>
-       <p class="hero-subtitle">Follow the Money.</p>
-        <div class="hero-suggestions" style="margin-bottom: 3rem; justify-content: center;">
-          <a href="?q=ZERO+TRUST" class="hero-suggestion-chip" data-action="runSuggestion" data-query="ZERO TRUST">ZERO TRUST</a>
-          <a href="?q=541512" class="hero-suggestion-chip" data-action="runSuggestion" data-query="541512">NAICS 541512</a>
-          <a href="?q=DHS" class="hero-suggestion-chip" data-action="runSuggestion" data-query="DHS">DHS</a>
-        </div>
+
+        <div id="recentSearchesContainer" class="hero-suggestions" style="margin-bottom: 3rem; justify-content: center; min-height: 44px;">
+          </div>
       </div>
 
 <div id="searchModeView" class="view-section active">
@@ -3094,6 +3069,7 @@ const App = {
   init() {
     this.setupEventDelegation();
     this.setupInputListeners();
+    this.renderRecentSearches(); // Loads search history on boot
 
     // Listen for iPhone native back-swipe
     window.addEventListener('popstate', (e) => {
@@ -3176,6 +3152,36 @@ const App = {
     }
   }, 
   
+renderRecentSearches() {
+    const container = document.getElementById('recentSearchesContainer');
+    if (!container) return;
+    
+    const history = JSON.parse(localStorage.getItem('govhoo-recent') || '[]');
+    let html = '';
+
+    // DYNAMIC ESCAPE HATCH: If a search is already loaded in the background, show a back button!
+    if (App.searchData && App.searchData.loaded && App.currentQuery) {
+      html += `<button class="hero-suggestion-chip" onclick="App.transitionToApp()" style="background: var(--brand); color: var(--brand-text); font-weight: 700; border: none; cursor: pointer; box-shadow: 0 4px 14px rgba(74, 155, 120, 0.25);">
+        ← Back to ${Html.escapeHtml(Utils.trunc(App.currentQuery, 15))}
+      </button>`;
+    }
+    
+    if (history.length === 0) {
+      html += `
+        <a href="?q=ZERO+TRUST%2C+FIREWALL" class="hero-suggestion-chip" data-action="runSuggestion" data-query="ZERO TRUST, FIREWALL">ZERO TRUST, FIREWALL</a>
+        <a href="?q=541512+AND+AIR FORCE" class="hero-suggestion-chip" data-action="runSuggestion" data-query="541512 AND AIR FORCE">541512 AND AIR FORCE</a>
+        <a href="?q=DHS" class="hero-suggestion-chip" data-action="runSuggestion" data-query="DHS">DHS</a>
+      `;
+    } else {
+      html += history.map(q => 
+        `<a href="?q=${encodeURIComponent(q)}" class="hero-suggestion-chip" data-action="runSuggestion" data-query="${Html.escapeHtml(q)}">
+          <svg class="icon" viewBox="0 0 640 640" style="margin-right: 6px; font-size: 0.9em; opacity: 0.6;"><path fill="currentColor" d="M320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64zM320 106.7C438 106.7 533.3 202 533.3 320C533.3 438 438 533.3 320 533.3C202 533.3 106.7 438 106.7 320C106.7 202 202 106.7 320 106.7zM320 149.3C308.2 149.3 298.7 158.9 298.7 170.7L298.7 320C298.7 325.7 300.9 331.1 304.9 335.1L384.9 415.1C393.3 423.4 406.8 423.4 415.1 415.1C423.4 406.8 423.4 393.3 415.1 384.9L341.3 311.1L341.3 170.7C341.3 158.9 331.8 149.3 320 149.3z"/></svg>
+          ${Html.escapeHtml(q)}
+        </a>`
+      ).join('');
+    }
+    container.innerHTML = html;
+  },
   setupEventDelegation() {
     document.addEventListener('click', (e) => {
       const target = e.target.closest('[data-action]');
@@ -3311,7 +3317,7 @@ const App = {
     if (searchView) searchView.classList.remove('active');
     if (quickJump) quickJump.style.display = 'none';
     
-    // 2. Keep the main container visible so we can actually see the landing view!
+    // 2. Keep the main container visible so we can actually see the landing view
     document.getElementById('dashboardContainer').classList.add('active');
     
     const mini = document.getElementById('miniSearch');
@@ -3321,7 +3327,10 @@ const App = {
     // 3. Clear the URL so it looks like the home page
     history.pushState({ view: 'hero' }, '', window.location.pathname);
 
-    // 4. Reset the scroll position to the very top instantly!
+    // 4. Force a re-render of the chips so the "Back to Results" button appears!
+    App.renderRecentSearches();
+
+    // 5. Reset the scroll position to the very top instantly
     const appView = document.getElementById('appView');
     if (appView) {
       appView.scrollTo({ top: 0, behavior: 'instant' });
@@ -3712,6 +3721,13 @@ const App = {
     document.getElementById('miniSearch').value = query;
     document.title = `Govhoo | ${query}`;
     
+    // Save to Recent Searches (Keeps the last 5 unique queries)
+    let history = JSON.parse(localStorage.getItem('govhoo-recent') || '[]');
+    history = history.filter(q => q !== query);
+    history.unshift(query);
+    localStorage.setItem('govhoo-recent', JSON.stringify(history.slice(0, 5)));
+    App.renderRecentSearches();
+
     if(query !== App.currentQuery) { 
       App.searchData = { raw: [], active: [], filter: null, loaded: false }; 
       App.forecastData = { loaded: false }; App.naicsData = null; 
