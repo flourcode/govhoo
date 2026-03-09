@@ -3182,10 +3182,16 @@ renderRecentSearches() {
         'copyAiPlan': () => App.copyAiPlan(),
         'sendAiChat': () => App.sendAiChatMessage(),
         'sendAiPrompt': () => {
+          // If the AI panel is closed, "click" the Read Briefing button first to open it
+          const panel = document.getElementById('aiActionPanel');
+          if (panel && panel.style.display === 'none') {
+            App.runAiActionPlan();
+          }
           const input = document.getElementById('aiChatInput');
           if (input) {
             input.value = value;
-            App.sendAiChatMessage();
+            // Wait a split second for the panel to initialize, then send
+            setTimeout(() => App.sendAiChatMessage(), 500);
           }
         },
         'togglePipeline': () => App.togglePipelineTargets(),
@@ -3291,7 +3297,7 @@ renderRecentSearches() {
     if (appView) appView.scrollTo({ top: 0, behavior: 'instant' });
     window.scrollTo({ top: 0, behavior: 'instant' });
   },
-  transitionToApp() {
+transitionToApp() {
     const landing = document.getElementById('landingState');
     const searchView = document.getElementById('searchModeView');
     
@@ -3304,20 +3310,12 @@ renderRecentSearches() {
     
     document.getElementById('dashboardContainer').classList.add('active');
     
-    // Push a new state so the iPhone user can swipe backward!
+    // Push a new state so the iPhone user can swipe backward
     if (!history.state || history.state.view !== 'app') {
       history.pushState({ view: 'app' }, '', window.location.href);
     }
     
-    const dashContainer = document.getElementById('dashboardContainer');
-    if (!dashContainer.querySelector('.hero-footer')) {
-      const heroFooter = document.querySelector('#heroView .hero-footer');
-      if (heroFooter) {
-        const footerClone = heroFooter.cloneNode(true);
-        footerClone.removeAttribute('id');
-        dashContainer.appendChild(footerClone);
-      }
-    }
+    // REMOVED CLONING LOGIC: Your footer is already at the bottom of #appView.
   },
 
   // --- Custom Scroll Helper ---
@@ -3696,7 +3694,7 @@ renderRecentSearches() {
     App.showLoader('Scanning ' + query);
 
     try {
-      // RESET THE UI: Ensure everything is visible and the empty state is hidden
+      // RESET THE UI
       const panels = ['sankeyPanel', 'bubbleChartPanel', 'targetAccountsPanel', 'teamingPanel', 'aiIntelligenceBanner', 'feedGrid'];
       panels.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = ''; });
       const emptyEl = document.getElementById('emptySearchState');
@@ -3715,10 +3713,7 @@ renderRecentSearches() {
       if (!filteredResults || filteredResults.length === 0) {
         App.hideLoader();
         App.transitionToApp(); 
-        
-        // Hide standard panels
         panels.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
-
         const emptySearch = document.getElementById('emptySearchState');
         if (emptySearch) {
           emptySearch.style.display = 'block';
@@ -3739,7 +3734,6 @@ renderRecentSearches() {
         }
         return; 
       }
-      // --- END EMPTY STATE LOGIC ---
 
       App.searchData.raw = filteredResults;
       App.searchData.active = App.searchData.raw; 
@@ -3754,12 +3748,76 @@ renderRecentSearches() {
         App.renderPrimeReach(); 
       });
       this.loadBackgroundData(query);
-    } catch(e) { 
+    } catch(err) { 
       if (thisSearch !== App._searchId) return;
-      App.toast('Error retrieving data.', 'error');
+      console.error(err);
+      App.toast('Search failed.', 'error');
     } finally { App.hideLoader(); }
   },
 
+  async loadBackgroundData(query) {
+    this.loadForecastInBackground(query);
+    try { this.loadNaicsBreakdown(query); } catch(e) { console.warn('NAICS load failed:', e); }
+    try { setTimeout(() => this.loadSubcontractingData(query), 0); } catch(e) { console.warn('Background data failure:', e); }
+  },
+
+  async loadNaicsBreakdown(query) {
+    try {
+      const results = await API.getNaicsBreakdown(query);
+      App.naicsData = results;
+      App.renderNaicsMix();
+    } catch(e) { console.warn('[NAICS] API call failed:', e); }
+  },
+
+  async loadForecastInBackground(query) {
+    if (!query) return;
+    const awards = App.searchData.raw || [];
+    const recompetes = ForecastEngine.detectRecompetes(awards);
+    App.forecastData = {
+      analysis: { recompetes },
+      subawards: App.forecastData?.subawards || null,
+      loaded: true
+    };
+    App.renderStrategyTools();
+  },
+
+  async loadSubcontractingData(query) {
+    if (App.forecastData.subawards && App.currentQuery === query) return;
+    const body = document.getElementById('subcontractingBody');
+    if (!body) return;
+    
+    body.innerHTML = `<div style="text-align:center; padding:2rem; color:var(--text-secondary);"> Loading subaward flow...</div>`;
+    const timeout = setTimeout(() => {
+      if (body.querySelector('.icon-spin')) {
+        body.innerHTML = `<div style="text-align:center; padding:1rem; color:var(--text-secondary); font-size:var(--text-base);">
+           Subaward data is taking too long to load.
+          <br><a href="#" onclick="App.loadSubcontractingData('${query.replace(/'/g, "\\'")}'); return false;" style="color:var(--accent); text-decoration:underline; font-size:var(--text-sm);">Retry</a>
+        </div>`;
+      }
+    }, 15000);
+    
+    try {
+      API.getSubawards(query)
+        .then(subawards => {
+          clearTimeout(timeout);
+          App.forecastData.subawards = subawards;
+          this.renderSubawardSankey(subawards);
+          this.renderSearchTopPrimes(subawards);
+          this.renderSearchTopSubs(subawards);
+          this.renderSubawardFeed();
+          App.renderSubBubbleChart();
+        })
+        .catch(e => { clearTimeout(timeout); console.error(e); });
+    } catch (e) {
+      clearTimeout(timeout);
+      body.innerHTML = `<div style="text-align:center; padding:1rem; color:var(--text-secondary); font-size:var(--text-base);">
+         Unable to load subaward data.
+        <br><a href="#" onclick="App.loadSubcontractingData('${query.replace(/'/g, "\\'")}'); return false;" style="color:var(--accent); text-decoration:underline; font-size:var(--text-sm);">Retry</a>
+      </div>`;
+    }
+  },
+
+  // --- Rendering Dashboards ---
   updateSearchDashboard() {
     const emptyState = document.getElementById('emptySearchState');
     if (emptyState) emptyState.style.display = 'none';
@@ -3830,6 +3888,7 @@ renderRecentSearches() {
     this.renderRecompetes(filteredRecompetes);
     this.renderTargetAccounts();
   },
+
   generateEditorialHeadlines(data, totalObligations) {
     if (!data || data.length === 0) return;
     const query = App.currentQuery ? App.currentQuery.toUpperCase() : '';
@@ -3858,7 +3917,6 @@ renderRecentSearches() {
       }
     }
   },
-
   // --- Drill & Filter Logic ---
   resetDrill() { 
     App.drillState = { level: 0, path: [], currentAgency: null, currentSubAgency: null }; 
@@ -4579,7 +4637,9 @@ renderRecentSearches() {
         </div>
         <div class="deal-desc" style="font-size:var(--text-sm);font-weight:400;color:var(--text-secondary);margin-bottom:0.25rem;">${desc}</div>
         ${metaTags ? `<div class="deal-meta">${metaTags}</div>` : ''}
-        <div class="deal-footer"><div><div class="deal-date">${Utils.date(c['Start Date'])}${c['End Date'] ? ' \u2013 ' + Utils.date(c['End Date']) : ''}</div></div>
+        <div class="deal-footer"><div><div class="deal-date" style="color:${isFresh ? 'var(--brand)' : 'var(--text-secondary)'}; font-weight:${isFresh ? '700' : '400'};">
+  ${Utils.date(c['Start Date'])}${c['End Date'] ? ' \u2013 ' + Utils.date(c['End Date']) : ''}
+</div></div>
           <div style="display:flex;gap:0.5rem;align-items:center;"><a href="${linkedInPeopleUrl}" target="_blank" class="job-link">People</a><a href="${linkedInUrl}" target="_blank" class="job-link">Jobs</a>${url ? `<a href="${url}" target="_blank" class="action-btn">View</a>` : ''}</div>
         </div></div>`;
     }).join('');
