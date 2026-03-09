@@ -1731,7 +1731,7 @@ details > summary::-webkit-details-marker { display: none; }
           <div id="searchJobPanel" style="margin: 0; padding: 0; position: relative;">
             <div id="agencyReachPanel" class="data-panel" style="display: none;">
               <div class="data-panel-header">
-                <span class="data-panel-title">Top Agencies</span>
+                <span class="data-panel-title">Agencies</span>
                 <span class="data-panel-subtitle"></span>
               </div>
               <div class="data-panel-body" id="searchTopBuyersBody"></div>
@@ -1740,7 +1740,7 @@ details > summary::-webkit-details-marker { display: none; }
 
           <div id="teamingPanel" class="data-panel" style="display: none;">
             <div class="data-panel-header">
-              <span class="data-panel-title">Prime Reach</span>
+              <span class="data-panel-title">Primes</span>
               <span class="data-panel-subtitle"></span>
             </div>
             <div class="data-panel-body" id="teamingList"></div>
@@ -1848,7 +1848,7 @@ details > summary::-webkit-details-marker { display: none; }
             <strong>Treemap</strong> — market concentration at a glance. Size = spend. Tap to drill into agencies, offices, and vendors.
             <strong>Target accounts</strong> — agencies ranked by opportunity quality: spend, recompete pipeline, vendor fragmentation, urgency, and program activity.
             <strong>Sankey</strong> — where the money flows from agencies to primes. Tap any bar to drill in.
-            <strong>Prime reach</strong> — vendors ranked by agency breadth, your strongest teaming candidates.
+            <strong>Primes</strong> — vendors ranked by agency breadth, your strongest teaming candidates.
             <strong>Ask Arti</strong> — AI strategy brief grounded in your live data.
           </div>
         </div>
@@ -4342,7 +4342,7 @@ transitionToApp() {
     const titleEl = panel.querySelector('.data-panel-title');
     const subtitleEl = panel.querySelector('.data-panel-subtitle');
     const drill = App.drillState || {};
-    if (titleEl) titleEl.textContent = drill.level >= 1 ? 'Vendors' : 'Prime Reach';
+    if (titleEl) titleEl.textContent = drill.level >= 1 ? 'Primes' : 'Primes';
     if (subtitleEl) subtitleEl.textContent = drill.level >= 1 
       ? `In ${Utils.trunc(drill.path[drill.path.length - 1].name.replace(/^Department of (the )?/i, ''), 25)}` : '';
 
