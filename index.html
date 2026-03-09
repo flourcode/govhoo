@@ -1703,7 +1703,7 @@ details > summary::-webkit-details-marker { display: none; }
         <p style="font-size:var(--text-sm); color:var(--text-secondary); line-height:1.5; max-width:420px; margin:0 auto 1rem auto;">
           Add Govhoo to your phone for a fullscreen, app-like experience. No subscription, delete anytime.
         </p>
-        <a href="/install" style="text-decoration:none; display:flex; justify-content:center;">
+        <a href="/install/" style="text-decoration:none; display:flex; justify-content:center;">
           <button class="btn-primary" style="padding:0.5rem 1.5rem; font-size:var(--text-sm); border-radius:var(--radius-pill); width:auto;">
             <svg class="icon" aria-hidden="true" viewBox="0 0 640 640"><path fill="currentColor" d="M342.6 73.4C330.1 60.9 309.8 60.9 297.3 73.4L169.3 201.4C156.8 213.9 156.8 234.2 169.3 246.7C181.8 259.2 202.1 259.2 214.6 246.7L288 173.3L288 384C288 401.7 302.3 416 320 416C337.7 416 352 401.7 352 384L352 173.3L425.4 246.7C437.9 259.2 458.2 259.2 470.7 246.7C483.2 234.2 483.2 213.9 470.7 201.4L342.7 73.4zM160 416C160 398.3 145.7 384 128 384C110.3 384 96 398.3 96 416L96 480C96 533 139 576 192 576L448 576C501 576 544 533 544 480L544 416C544 398.3 529.7 384 512 384C494.3 384 480 398.3 480 416L480 480C480 497.7 465.7 512 448 512L192 512C174.3 512 160 497.7 160 480L160 416z"/></svg>How to Install
           </button>
@@ -1830,15 +1830,15 @@ details > summary::-webkit-details-marker { display: none; }
           <div id="aiContentContainer" class="ai-result-content"></div>
           <div id="aiChatHistory" class="ai-chat-history" style="display: none;"></div>
           
-          <div id="aiPromptSuggestions" style="display: none; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem; margin-top: 1.5rem;">
-            <button class="meta-tag" onclick="document.getElementById('aiChatInput').value='Give me 5 real pipeline opps.'; App.sendAiChatMessage();" style="cursor:pointer; border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--text-primary); transition: background 0.2s;">Give me 5 real pipeline opps.</button>
-            <button class="meta-tag" onclick="document.getElementById('aiChatInput').value='How do I approach the customer without sounding like a used car salesman?'; App.sendAiChatMessage();" style="cursor:pointer; border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--text-primary); transition: background 0.2s;">How do I approach the customer?</button>
-            <button class="meta-tag" onclick="document.getElementById('aiChatInput').value='Suggest 3 teaming partners to bridge our mission gap.'; App.sendAiChatMessage();" style="cursor:pointer; border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--text-primary); transition: background 0.2s;">Suggest 3 teaming partners.</button>
+          <div id="aiPromptSuggestions" class="bubble-toggle-row" style="display: none; margin-top: 2.5rem; margin-bottom: 0.5rem; padding-bottom: 0.25rem;">
+            <button class="bubble-toggle-btn" data-action="sendAiPrompt" data-value="Give me 5 Salesforce-ready pipeline opportunities based on this data." style="border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--text-primary); white-space: nowrap;">Top 5 pipeline opps</button>
+            <button class="bubble-toggle-btn" data-action="sendAiPrompt" data-value="Write a cold outreach email to a program manager at this agency. Make it highly relevant to their recent spending, and do not sound like a generic sales pitch or a used car salesman." style="border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--text-primary); white-space: nowrap;">Draft a non-salesy email</button>
+            <button class="bubble-toggle-btn" data-action="sendAiPrompt" data-value="Recommend 2 or 3 specific teaming partners that would make us more competitive here." style="border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--text-primary); white-space: nowrap;">Suggest teaming partners</button>
           </div>
 
-          <div id="aiChatInputWrapper" class="ai-chat-input-wrapper" style="display: none; margin-top: 0;">
-            <input type="text" id="aiChatInput" class="main-input" placeholder="What else do you want to know?" autocomplete="off" style="font-size: var(--text-base); padding: 0.75rem 1rem; height: auto;">
-            <button id="aiChatSendBtn" class="btn-ai" data-action="sendAiChat" style="padding: 0 1.25rem;">Send</button>
+          <div id="aiChatInputWrapper" class="ai-chat-input-wrapper" style="display: none; margin-top: 0.5rem; padding-top: 0.5rem;">
+            <input type="text" id="aiChatInput" class="main-input" placeholder="What else do you want to know?" autocomplete="off" style="font-size: var(--text-base); padding: 0.75rem 1rem; height: auto; border-radius: var(--radius-xl);">
+            <button id="aiChatSendBtn" class="btn-ai" data-action="sendAiChat" style="padding: 0 1.25rem; border-radius: var(--radius-xl);">Send</button>
           </div>
           <div id="aiChatCounter" class="ai-chat-counter" style="display: none;">5 questions remaining</div>
           <div id="aiDisclaimer" class="ai-disclaimer" style="display: none;">
@@ -3213,6 +3213,13 @@ const App = {
         'runAiPlan': () => App.runAiActionPlan(),
         'copyAiPlan': () => App.copyAiPlan(),
         'sendAiChat': () => App.sendAiChatMessage(),
+        'sendAiPrompt': () => {
+          const input = document.getElementById('aiChatInput');
+          if (input) {
+            input.value = value;
+            App.sendAiChatMessage();
+          }
+        },
         'togglePipeline': () => App.togglePipelineTargets(),
         'exportPipelineCSV': () => App.exportPipelineCSV(),
         'setBubbleMode': () => App.setBubbleMode(value),
@@ -3547,10 +3554,6 @@ const App = {
     const sendBtn = document.getElementById('aiChatSendBtn');
     const msg = inputEl.value.trim();
     if (!msg) return;
-    
-    // Hide the suggestions once the user starts chatting
-    const aiPrompts = document.getElementById('aiPromptSuggestions');
-    if (aiPrompts) aiPrompts.style.display = 'none'; 
 
     const historyEl = document.getElementById('aiChatHistory');
     historyEl.style.display = 'flex';
@@ -3623,14 +3626,14 @@ const App = {
       
       if (remaining > 1) {
         counterEl.innerText = `${remaining} questions remaining for this view.`;
-        counterEl.style.color = 'var(--money-strong)';
+        counterEl.style.color = 'var(--text-tertiary)';
         inputEl.disabled = false; sendBtn.disabled = false;
-        if (window.innerWidth > 768) setTimeout(() => inputEl.focus(), 100);
+        if (window.innerWidth > 1024) setTimeout(() => inputEl.focus(), 100); // Disabled on mobile to prevent keyboard jumping
       } else if (remaining === 1) {
         counterEl.innerText = "Make it count. I've got time for one more question on this dataset.";
-        counterEl.style.color = 'var(--money-strong)'; 
+        counterEl.style.color = 'var(--warning)'; 
         inputEl.disabled = false; sendBtn.disabled = false;
-        if (window.innerWidth > 768) setTimeout(() => inputEl.focus(), 100);
+        if (window.innerWidth > 1024) setTimeout(() => inputEl.focus(), 100);
       } else {
         counterEl.innerText = "That's all for this dataset. Run a new search or drill into an agency to reset my limits.";
         counterEl.style.color = 'var(--money-strong)';
