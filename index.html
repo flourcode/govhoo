@@ -3337,7 +3337,18 @@ transitionToApp() {
       history.pushState({ view: 'app' }, '', window.location.href);
     }
     
-    // REMOVED CLONING LOGIC: Your footer is already at the bottom of #appView.
+    // FIX: Force charts to recalculate their dimensions now that they are visible again
+    requestAnimationFrame(() => {
+      if (App.searchData && App.searchData.active && App.searchData.active.length > 0) {
+        App.renderSankey();
+        App.renderBubbleChart();
+        // Catch the subaward charts too, just in case they were open
+        if (App.forecastData && App.forecastData.subawards) {
+          App.renderSubawardSankey(App.forecastData.subawards);
+          App.renderSubBubbleChart();
+        }
+      }
+    });
   },
 
 // --- Custom Scroll Helper ---
