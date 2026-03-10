@@ -4769,7 +4769,7 @@ async renderHistoricalTimeline(query) {
     // Update the title to include their specific search terms
     if (titleEl) {
       const shortQuery = Utils.trunc(query.toUpperCase(), 35);
-      titleEl.textContent = `5-Year Trend: ${shortQuery}`;
+      titleEl.textContent = `5-Year Trend for ${shortQuery}`;
     }
 
     panel.style.display = 'block';
