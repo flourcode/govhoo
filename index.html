@@ -1955,6 +1955,17 @@ details > summary::-webkit-details-marker { display: none; }
           <div id="historicalContextBox" class="historical-context-box">
             Tap any year to reveal top buyers
           </div>
+
+          <div class="explainer-box" style="margin-top: 1rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 0.5rem 0;" data-action="toggleExplainer">
+              <span style="font-size: var(--text-sm); font-weight: 600; color: var(--text-primary);">Why do these numbers differ from the main dashboard?</span>
+              <span class="etm-toggle-icon" style="font-size: var(--text-sm); color: var(--text-tertiary); transition: transform 0.2s ease; display: inline-flex;">&#8250;</span>
+            </div>
+            <div class="explainer-box-content" style="display: none; padding-top: 0.5rem; border-top: 1px solid rgba(143, 158, 152, 0.08); font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.5;">
+              <strong>The Main Dashboard</strong> shows the current footprint: the lifetime value of contracts that are <em>currently active today</em>.<br><br>
+              <strong>This 5-Year Trend</strong> shows historical origination. It plots the total value of contracts based on the <em>Fiscal Year they were originally awarded</em>, including contracts that have since expired. Use this to spot buying cycles, see when an agency historically makes its big bets, and identify if a market is growing or shrinking.
+            </div>
+          </div>
         </div>
         <div id="pipelineTargetsSection" style="display: none; margin-bottom: var(--section-gap);">
           <div id="pipelineCTA" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid var(--border);">
@@ -2883,7 +2894,7 @@ const API = {
     'NAICS Code', 'NAICS Description', 'PSC Code', 'PSC Description'
   ],
   
-  async searchAwards(keywords) {
+async searchAwards(keywords) {
     const timePeriod = Utils.getTrailing12Mo();
     const period = timePeriod[0];
     const { pscCodes, naicsCodes, keywordTerms, andGroups } = Utils.parseSearchTerms(keywords);
@@ -2893,6 +2904,7 @@ const API = {
       const pscPat = /^[A-Z]{1,2}\d{1,3}$|^\d{1,2}[A-Z]\d{0,2}$/i;
       const naicsPat = /^\d{6}$/;
       const codes = [], kws = [], agencies = [];
+      
       group.forEach(term => {
         const agencyMatch = Utils.resolveAgencyAlias(term);
         if (naicsPat.test(term)) codes.push({ type: 'naics', value: term });
@@ -2906,6 +2918,7 @@ const API = {
         if (c.type === 'naics') { filters.naics_codes = filters.naics_codes || { require: [] }; filters.naics_codes.require.push(c.value); }
         else { filters.psc_codes = filters.psc_codes || []; filters.psc_codes.push(c.value); }
       });
+      
       if (agencies.length > 0) filters.agencies = agencies;
       if (kws.length > 0) filters.keywords = kws;
       
@@ -2914,30 +2927,67 @@ const API = {
           method: 'POST', headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })
         });
-        if (!res.ok) return [];
-        return (await res.json()).results || [];
+        let data = res.ok ? ((await res.json()).results || []) : [];
+
+        // --- BULLETPROOF FALLBACK ---
+        // If USASpending's backend drops the cross-reference, we fetch by keyword globally,
+        // and filter by the strict agency column locally. No brittle text matching required!
+        if (data.length === 0 && kws.length > 0) {
+          const fallbackFilters = { time_period: [period], award_type_codes: this.CONTRACT_TYPES, keywords: kws };
+          const fallbackRes = await fetch(`${this.baseUrl}/search/spending_by_award/`, {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ filters: fallbackFilters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })
+          });
+          const pool = fallbackRes.ok ? ((await fallbackRes.json()).results || []) : [];
+          
+          data = pool.filter(award => {
+            let keep = true;
+            if (agencies.length > 0) {
+              const match = agencies.some(a => {
+                const t = a.name.toLowerCase();
+                return (award['Awarding Agency'] && award['Awarding Agency'].toLowerCase() === t) || 
+                       (award['Awarding Sub Agency'] && award['Awarding Sub Agency'].toLowerCase() === t);
+              });
+              if (!match) keep = false;
+            }
+            if (codes.length > 0) {
+              const match = codes.some(c => (c.type === 'naics' && award['NAICS Code'] === c.value) || (c.type === 'psc' && award['PSC Code'] === c.value));
+              if (!match) keep = false;
+            }
+            return keep;
+          });
+        }
+        
+        return data.sort((a,b) => b['Award Amount'] - a['Award Amount']);
       } else {
+        // Pure keyword cross-referencing (e.g. "Cloud AND Migration")
         filters.keywords = kws;
         const res = await fetch(`${this.baseUrl}/search/spending_by_award/`, {
           method: 'POST', headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })
         });
         const pool = (await res.json()).results || [];
-        const filtered = pool.filter(award => {
-          const haystack = [
-            award['Recipient Name'], award['Awarding Agency'], award['Awarding Sub Agency'],
-            award['Description'], award['NAICS Description'], award['PSC Description'], award['Award ID']
-          ].filter(Boolean).join(' ').toLowerCase();
-          return kws.every(term => haystack.includes(term.toLowerCase()));
-        });
-        return filtered.sort((a,b) => b['Award Amount'] - a['Award Amount']);
+        
+        if (kws.length > 1) {
+          const filtered = pool.filter(award => {
+            const haystack = [
+              award['Recipient Name'], award['Awarding Agency'], award['Awarding Sub Agency'],
+              award['Description'], award['NAICS Description'], award['PSC Description'], award['Award ID']
+            ].filter(Boolean).join(' ').toLowerCase();
+            return kws.every(term => haystack.includes(term.toLowerCase()));
+          });
+          return filtered.sort((a,b) => b['Award Amount'] - a['Award Amount']);
+        }
+        return pool.sort((a,b) => b['Award Amount'] - a['Award Amount']);
       }
     }
     
+    // --- STANDARD SEARCHES (No 'AND' operator) ---
     const hasPsc = pscCodes.length > 0;
     const hasNaics = naicsCodes.length > 0;
     const agencyFilters = [];
     const plainKeywords = [];
+    
     keywordTerms.forEach(term => {
       const agencyMatch = Utils.resolveAgencyAlias(term);
       if (agencyMatch) agencyFilters.push({ type: 'awarding', tier: agencyMatch.tier, name: agencyMatch.name });
@@ -2947,7 +2997,6 @@ const API = {
     const hasKeywords = plainKeywords.length > 0;
     const hasAgencies = agencyFilters.length > 0;
     const typeCount = (hasPsc ? 1 : 0) + (hasNaics ? 1 : 0) + (hasKeywords ? 1 : 0) + (hasAgencies ? 1 : 0);
-    
     const filters = { time_period: [period], award_type_codes: this.CONTRACT_TYPES };
     
     if (typeCount === 1) {
@@ -2968,7 +3017,7 @@ const API = {
     });
     if (!res.ok) return [];
     return (await res.json()).results || [];
-  },
+  },  
 
   async getNaicsBreakdown(keywords) {
     const timePeriod = Utils.getTrailing12Mo();
@@ -2981,69 +3030,169 @@ const API = {
     if (!res.ok) return [];
     return (await res.json()).results || [];
   },
-  
-  async getHistoricalTrend(query) {
+async getHistoricalTrend(query) {
     const currentYear = new Date().getFullYear();
     const startYear = currentYear - 5;
+    const timePeriod = [{ start_date: `${startYear}-10-01`, end_date: `${currentYear}-09-30` }];
     
-    // We use your exact Utils parser to extract the keywords and agencies
-    const searchTerms = Utils.parseSearchTerms(query);
-    const filterObject = {
-      time_period: [{ start_date: `${startYear}-10-01`, end_date: `${currentYear}-09-30` }],
-      award_type_codes: this.CONTRACT_TYPES
-    };
-
-    if (searchTerms.keywordTerms && searchTerms.keywordTerms.length > 0) {
-      filterObject.keywords = searchTerms.keywordTerms; 
+    const { pscCodes, naicsCodes, keywordTerms, andGroups } = Utils.parseSearchTerms(query);
+    const filters = { time_period: timePeriod, award_type_codes: this.CONTRACT_TYPES };
+    let kws = [], agencies = [], codes = [];
+    
+    // 1. Perfectly parse the "AND" groups
+    if (andGroups.length > 0) {
+      andGroups[0].forEach(term => {
+        const agencyMatch = Utils.resolveAgencyAlias(term);
+        if (/^\d{6}$/.test(term)) codes.push({ type: 'naics', value: term });
+        else if (/^[A-Z]{1,2}\d{1,3}$|^\d{1,2}[A-Z]\d{0,2}$/i.test(term)) codes.push({ type: 'psc', value: term.toUpperCase() });
+        else if (agencyMatch) agencies.push({ type: 'awarding', tier: agencyMatch.tier, name: agencyMatch.name });
+        else kws.push(term);
+      });
+    } else {
+      keywordTerms.forEach(term => {
+        const agencyMatch = Utils.resolveAgencyAlias(term);
+        if (agencyMatch) agencies.push({ type: 'awarding', tier: agencyMatch.tier, name: agencyMatch.name });
+        else kws.push(term);
+      });
+      pscCodes.forEach(c => codes.push({ type: 'psc', value: c }));
+      naicsCodes.forEach(c => codes.push({ type: 'naics', value: c }));
     }
-    
-    // Check if any of the terms are known agencies to apply strict filters
-    const agencyFilters = [];
-    searchTerms.allTerms.forEach(term => {
-      const agencyMatch = Utils.resolveAgencyAlias(term);
-      if (agencyMatch) agencyFilters.push({ type: 'awarding', tier: agencyMatch.tier, name: agencyMatch.name });
+
+    codes.forEach(c => {
+      if (c.type === 'naics') { filters.naics_codes = filters.naics_codes || { require: [] }; filters.naics_codes.require.push(c.value); }
+      else { filters.psc_codes = filters.psc_codes || []; filters.psc_codes.push(c.value); }
     });
-    if (agencyFilters.length > 0) {
-      filterObject.agencies = agencyFilters;
-    }
+    if (agencies.length > 0) filters.agencies = agencies;
+    if (kws.length > 0) filters.keywords = kws;
 
+    // 2. Try the primary endpoint
     const response = await fetch(`${this.baseUrl}/search/spending_over_time/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ group: "fiscal_year", filters: filterObject })
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ group: "fiscal_year", filters })
     });
+    
+    let results = response.ok ? ((await response.json()).results || []) : [];
+    const totalAgg = results.reduce((sum, r) => sum + r.aggregated_amount, 0);
 
-    if (!response.ok) throw new Error('Failed to fetch historical data');
-    const data = await response.json();
-    return data.results; 
+    // 3. --- BULLETPROOF FALLBACK ---
+    // If the backend fails the intersection and returns $0, we bypass it, 
+    // fetch the raw awards, and manually calculate the fiscal years.
+    if (totalAgg === 0 && kws.length > 0) {
+      const fallbackFilters = { time_period: timePeriod, award_type_codes: this.CONTRACT_TYPES, keywords: kws };
+      const fallbackRes = await fetch(`${this.baseUrl}/search/spending_by_award/`, {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ filters: fallbackFilters, fields: this.AWARD_FIELDS, limit: 500, sort: 'Award Amount', order: 'desc' })
+      });
+      
+      if (fallbackRes.ok) {
+        const pool = (await fallbackRes.json()).results || [];
+        const filteredPool = pool.filter(award => {
+          let keep = true;
+          if (agencies.length > 0) {
+            const match = agencies.some(a => {
+              const t = a.name.toLowerCase();
+              return (award['Awarding Agency'] && award['Awarding Agency'].toLowerCase() === t) || 
+                     (award['Awarding Sub Agency'] && award['Awarding Sub Agency'].toLowerCase() === t);
+            });
+            if (!match) keep = false;
+          }
+          return keep;
+        });
+
+        // Group the filtered contracts into Fiscal Years
+        const yearMap = {};
+        for (let y = startYear; y <= currentYear; y++) yearMap[y.toString()] = 0;
+        
+        filteredPool.forEach(award => {
+          if (award['Start Date']) {
+            const d = new Date(award['Start Date']);
+            const fy = (d.getMonth() >= 9 ? d.getFullYear() + 1 : d.getFullYear()).toString();
+            if (yearMap[fy] !== undefined) yearMap[fy] += (parseFloat(award['Award Amount']) || 0);
+          }
+        });
+        
+        results = Object.entries(yearMap).map(([fy, amt]) => ({
+          time_period: { fiscal_year: fy }, aggregated_amount: amt
+        }));
+      }
+    }
+
+    // Ensure all 5 years map properly even if empty
+    const finalResults = [];
+    for (let y = startYear; y <= currentYear; y++) {
+      const fyStr = y.toString();
+      const existing = results.find(r => r.time_period.fiscal_year === fyStr);
+      finalResults.push(existing || { time_period: { fiscal_year: fyStr }, aggregated_amount: 0 });
+    }
+    return finalResults;
   },
 async getTopAgenciesForYear(query, fy) {
     const startYear = parseInt(fy) - 1;
-    const searchTerms = Utils.parseSearchTerms(query);
-    const filterObject = {
-      time_period: [{ start_date: `${startYear}-10-01`, end_date: `${fy}-09-30` }],
-      award_type_codes: this.CONTRACT_TYPES
-    };
-
-    if (searchTerms.keywordTerms && searchTerms.keywordTerms.length > 0) {
-      filterObject.keywords = searchTerms.keywordTerms; 
-    }
+    const timePeriod = [{ start_date: `${startYear}-10-01`, end_date: `${fy}-09-30` }];
     
-    const agencyFilters = [];
-    searchTerms.allTerms.forEach(term => {
-      const agencyMatch = Utils.resolveAgencyAlias(term);
-      if (agencyMatch) agencyFilters.push({ type: 'awarding', tier: agencyMatch.tier, name: agencyMatch.name });
-    });
-    if (agencyFilters.length > 0) filterObject.agencies = agencyFilters;
+    const { pscCodes, naicsCodes, keywordTerms, andGroups } = Utils.parseSearchTerms(query);
+    const filters = { time_period: timePeriod, award_type_codes: this.CONTRACT_TYPES };
+    let kws = [], agencies = [];
+    
+    if (andGroups.length > 0) {
+      andGroups[0].forEach(term => {
+        const agencyMatch = Utils.resolveAgencyAlias(term);
+        if (agencyMatch) agencies.push({ type: 'awarding', tier: agencyMatch.tier, name: agencyMatch.name });
+        else if (!/^\d{6}$/.test(term) && !/^[A-Z]{1,2}\d{1,3}$|^\d{1,2}[A-Z]\d{0,2}$/i.test(term)) kws.push(term);
+      });
+    } else {
+      keywordTerms.forEach(term => {
+        const agencyMatch = Utils.resolveAgencyAlias(term);
+        if (agencyMatch) agencies.push({ type: 'awarding', tier: agencyMatch.tier, name: agencyMatch.name });
+        else kws.push(term);
+      });
+    }
 
-    const res = await fetch(`${this.baseUrl}/search/spending_by_category/awarding_agency`, {
+    if (agencies.length > 0) filters.agencies = agencies;
+    if (kws.length > 0) filters.keywords = kws;
+
+    // CHANGE 1: Ask the API specifically for the Sub-Agency breakdown
+    const res = await fetch(`${this.baseUrl}/search/spending_by_category/awarding_subagency`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ category: 'awarding_agency', filters: filterObject, limit: 3 })
+      body: JSON.stringify({ category: 'awarding_subagency', filters, limit: 3 })
     });
-    if (!res.ok) return [];
-    return (await res.json()).results || [];
+    
+    let results = res.ok ? ((await res.json()).results || []) : [];
+
+    // --- BULLETPROOF FALLBACK FOR SUB-AGENCIES ---
+    if (results.length === 0 && kws.length > 0) {
+       const fallbackFilters = { time_period: timePeriod, award_type_codes: this.CONTRACT_TYPES, keywords: kws };
+       const fallbackRes = await fetch(`${this.baseUrl}/search/spending_by_award/`, {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ filters: fallbackFilters, fields: this.AWARD_FIELDS, limit: 200, sort: 'Award Amount', order: 'desc' })
+       });
+       if (fallbackRes.ok) {
+         const pool = (await fallbackRes.json()).results || [];
+         const filteredPool = pool.filter(award => {
+           if (agencies.length === 0) return true;
+           return agencies.some(a => {
+              const t = a.name.toLowerCase();
+              return (award['Awarding Agency'] && award['Awarding Agency'].toLowerCase() === t) || 
+                     (award['Awarding Sub Agency'] && award['Awarding Sub Agency'].toLowerCase() === t);
+           });
+         });
+         
+         const agencyMap = {};
+         filteredPool.forEach(award => {
+           // CHANGE 2: Grab the Sub-Agency first. If it's missing, fall back to Top-Tier Agency.
+           const agencyName = award['Awarding Sub Agency'] || award['Awarding Agency'];
+           if (agencyName) agencyMap[agencyName] = (agencyMap[agencyName] || 0) + (parseFloat(award['Award Amount']) || 0);
+         });
+         
+         results = Object.entries(agencyMap)
+           .map(([name, amount]) => ({ name, amount }))
+           .sort((a,b) => b.amount - a.amount).slice(0, 3);
+       }
+    }
+    return results;
   },
-  async getSubawards(keywords) {
+  
+async getSubawards(keywords) {
     const timePeriod = Utils.getTrailing12Mo();
     const filters = Utils.buildFilters(keywords, timePeriod);
     const res = await fetch(`${this.baseUrl}/search/spending_by_award/`, {
