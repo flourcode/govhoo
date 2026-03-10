@@ -1261,13 +1261,16 @@ button, input, select, textarea {
   -webkit-touch-callout: none;
 }
 
-/* Reading prose — selectable */
-.ai-result-content, .strategic-read p, .footer-text, .use-case-desc,
-.explainer-box-content {
+/* Reading prose & Descriptions — selectable */
+.ai-result-content, 
+.strategic-read p, 
+.deal-desc,      /* Makes BOTH Recent Awards and Expiring Awards descriptions selectable */
+.pipeline-desc   /* Makes Pipeline Worksheet descriptions selectable */ {
   line-height: 1.7;
   color: var(--text-secondary);
+  -webkit-user-select: text !important; /* Forces Safari/iOS to allow highlighting */
+  user-select: text !important; /* Forces Chrome/Edge to allow highlighting */
 }
-
 /* 23. LIGHT MODE
    =========================================== */
 .light-mode {
@@ -1615,6 +1618,62 @@ button, input, select, textarea {
   scroll-margin-top: 140px !important; 
 }
 details > summary::-webkit-details-marker { display: none; }
+/* Highlight-to-Search Tooltip */
+.quick-search-tooltip {
+  position: absolute;
+  z-index: 9999;
+  display: none;
+  background: rgba(35, 35, 35, 0.95);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: var(--radius-md);
+  padding: 4px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  transform: translateX(-50%); /* Centers it perfectly above the cursor */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.light-mode .quick-search-tooltip {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: rgba(0,0,0,0.15);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+#quickSearchBtn {
+  background: transparent;
+  color: var(--text-primary);
+  border: none;
+  padding: 6px 12px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
+}
+#quickSearchBtn:hover {
+  background: rgba(255,255,255,0.1);
+}
+.light-mode #quickSearchBtn:hover {
+  background: rgba(0,0,0,0.06);
+}
+/* Custom Text Selection Color */
+::selection {
+  background: rgba(122, 144, 132, 0.4); /* Your sage green tint */
+  color: inherit;
+}
+::-moz-selection {
+  background: rgba(122, 144, 132, 0.4);
+  color: inherit;
+}
+
+/* Light mode selection color */
+.light-mode ::selection {
+  background: rgba(0, 0, 0, 0.15);
+  color: inherit;
+}
+.light-mode ::-moz-selection {
+  background: rgba(0, 0, 0, 0.15);
+  color: inherit;
+}
 </style>
 </head>
 <body ontouchstart="">
@@ -2063,7 +2122,12 @@ details > summary::-webkit-details-marker { display: none; }
   </div>
 
   <div id="toastContainer" class="toast-container"></div>
-
+<div id="quickSearchTooltip" class="quick-search-tooltip">
+    <button id="quickSearchBtn">
+      <svg class="icon" viewBox="0 0 640 640" style="margin-right:6px;"><path fill="currentColor" d="M266.7 64C154.8 64 64 154.8 64 266.7C64 378.5 154.8 469.3 266.7 469.3C314.9 469.3 359.1 452.4 394.5 424.4L522.5 552.5C530.8 560.8 544.3 560.8 552.5 552.5C560.8 544.2 560.8 530.8 552.5 522.5L424.4 394.5C452.4 359.1 469.3 314.9 469.3 266.7C469.3 154.8 378.5 64 266.7 64zM266.7 106.7C355.2 106.7 426.7 178.1 426.7 266.7C426.7 355.2 355.2 426.7 266.7 426.7C178.1 426.7 106.7 355.2 106.7 266.7C106.7 178.1 178.1 106.7 266.7 106.7z"/></svg>
+      Search
+    </button>
+  </div>
   <div id="loader" class="loader">
     <div style="display:flex;flex-direction:column;align-items:center;gap:1rem;max-width:320px;text-align:center;">
       <div class="spinner"></div>
@@ -3061,7 +3125,8 @@ const App = {
   init() {
     this.setupEventDelegation();
     this.setupInputListeners();
-    this.renderRecentSearches(); // Loads search history on boot
+	this.setupHighlightSearch();
+    this.renderRecentSearches();
 
     // Listen for iPhone native back-swipe
     window.addEventListener('popstate', (e) => {
@@ -3323,6 +3388,59 @@ renderRecentSearches() {
     }
   },
 
+setupHighlightSearch() {
+    const tooltip = document.getElementById('quickSearchTooltip');
+    const btn = document.getElementById('quickSearchBtn');
+    let selectedText = '';
+
+    // Listen for when the user finishes selecting text
+    document.addEventListener('mouseup', (e) => {
+      // Don't do anything if they are clicking the tooltip itself
+      if (tooltip.contains(e.target)) return;
+
+      const selection = window.getSelection();
+      selectedText = selection.toString().trim();
+
+      // Only show if they highlighted between 2 and 40 characters (so they don't accidentally search a whole paragraph)
+      if (selectedText.length > 2 && selectedText.length <= 40) {
+        // Calculate exactly where on the screen the highlight is
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        
+        // Position the tooltip centered right above the highlighted text
+        tooltip.style.left = `${rect.left + (rect.width / 2) + window.scrollX}px`;
+        tooltip.style.top = `${rect.top + window.scrollY - 45}px`; 
+        tooltip.style.display = 'block';
+      } else {
+        tooltip.style.display = 'none';
+      }
+    });
+
+    // Hide the tooltip if they click anywhere else on the page
+    document.addEventListener('mousedown', (e) => {
+      if (!tooltip.contains(e.target)) {
+        tooltip.style.display = 'none';
+      }
+    });
+
+    // When they click the "Search" button inside the tooltip
+    btn.addEventListener('click', () => {
+      if (selectedText) {
+        tooltip.style.display = 'none';
+        window.getSelection().removeAllRanges(); // Clear the blue highlight
+        
+        // Update the search bar UI so they know what happened
+        document.getElementById('miniSearch').value = selectedText;
+        
+        // Run the actual search!
+        App.runSearch(selectedText);
+        
+        // Scroll them back up to the top so they can see the new results
+        const appView = document.getElementById('appView');
+        if(appView) appView.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+  },
   showHero() {
     // If we are deep in a drill-down, the first click on the logo acts as a 'Back to Dashboard'
     if (this.drillState && this.drillState.level > 0) {
@@ -5536,7 +5654,7 @@ renderPipelineTargets() {
               ${PipelineEngine.getTypeBadge(t.type)}
               <span class="reach-name" style="font-size: 1.15rem;">${Html.escapeHtml(shortAccount)}</span>
             </div>
-            <div style="font-size:var(--text-sm);font-weight:500;color:var(--text-secondary);line-height:1.4;">${Html.escapeHtml(shortDesc)}</div>
+            <div class="pipeline-desc" style="font-size:var(--text-sm);font-weight:500;color:var(--text-secondary);line-height:1.4;">${Html.escapeHtml(shortDesc)}</div>
           </div>
           <div style="text-align: right; flex-shrink: 0;">
             <div class="reach-amount">${Utils.money(t.amount)}</div>
