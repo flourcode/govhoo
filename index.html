@@ -2264,9 +2264,9 @@ const Utils = {
 
   agencyAliases: {
     'dod': 'Department of Defense', 'doj': 'Department of Justice', 'dhs': 'Department of Homeland Security',
-    'hhs': 'Health and Human Services', 'dot': 'Department of Transportation', 'doe': 'Department of Energy',
+    'hhs': 'Department of Health and Human Services', 'dot': 'Department of Transportation', 'doe': 'Department of Energy',
     'doi': 'Department of the Interior', 'dol': 'Department of Labor', 'doc': 'Department of Commerce',
-    'dos': 'Department of State', 'ed': 'Department of Education', 'hud': 'Housing and Urban Development',
+    'dos': 'Department of State', 'ed': 'Department of Education', 'hud': 'Department of Housing and Urban Development',
     'usda': 'Department of Agriculture', 'va': 'Department of Veterans Affairs',
     'army': 'Department of the Army', 'navy': 'Department of the Navy', 'usaf': 'Department of the Air Force',
     'ussf': 'Space Force', 'usmc': 'Marine Corps',
@@ -2315,18 +2315,33 @@ const Utils = {
     'usps': 'Postal Service', 'amtrak': 'Amtrak',
   },
 
-  resolveAgencyAlias(term) {
+ resolveAgencyAlias(term) {
     const lower = term.toLowerCase().trim();
+    // 1. Check if they typed an acronym (e.g., 'hhs')
     if (this.agencyAliases[lower]) return { tier: 'toptier', name: this.agencyAliases[lower] };
     if (this.subAgencyAliases[lower]) return { tier: 'subtier', name: this.subAgencyAliases[lower] };
+    
+    // 2. Reverse lookup: check if they typed the full name (or the name missing "Department of")
+    const topVals = Object.values(this.agencyAliases).map(v => v.toLowerCase());
+    const topIdx = topVals.findIndex(v => v === lower || v === 'department of ' + lower);
+    if (topIdx !== -1) return { tier: 'toptier', name: Object.values(this.agencyAliases)[topIdx] };
+    
+    const subVals = Object.values(this.subAgencyAliases).map(v => v.toLowerCase());
+    const subIdx = subVals.findIndex(v => v === lower || v === 'department of ' + lower);
+    if (subIdx !== -1) return { tier: 'subtier', name: Object.values(this.subAgencyAliases)[subIdx] };
+    
     return null;
   },
-
   normalizeQuery(query) {
     const lower = query.toLowerCase().trim();
     if (this.queryAliases[lower]) return this.queryAliases[lower];
     if (this.agencyAliases[lower]) return this.agencyAliases[lower];
     if (this.subAgencyAliases[lower]) return this.subAgencyAliases[lower];
+    
+    // If they typed the full name, ensure it is perfectly capitalized
+    const agencyMatch = this.resolveAgencyAlias(query);
+    if (agencyMatch) return agencyMatch.name;
+    
     return query;
   },
 
@@ -2409,6 +2424,13 @@ const Utils = {
     let andGroups = [];
     if (hasAndOperator) {
       keywordTerms.forEach(term => {
+        // FIX: Protect agency names that naturally contain "AND"
+        if (Utils.resolveAgencyAlias(term)) {
+          andGroups.push([term]);
+          return;
+        }
+        
+        // Otherwise, split normal keywords by AND
         const parts = term.split(/\+|\bAND\b/).map(s => s.trim()).filter(s => s.length > 0);
         if (parts.length > 1) {
           const expanded = parts.map(p => {
