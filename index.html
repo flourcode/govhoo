@@ -48,7 +48,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,1..1000&display=swap" rel="stylesheet">
   <link rel="preconnect" href="https://api.usaspending.gov">
   <link rel="dns-prefetch" href="https://api.usaspending.gov">
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js" defer></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-T343V4RFHV"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -2915,23 +2915,41 @@ const Html = {
   parseAiMarkdown(rawText) {
     if (!rawText) return '';
     
-    // 1. Antifragile Scrub: Nuke any complete thinking blocks, then nuke any orphaned tags
+    // 1. Antifragile Scrub: Nuke any orphaned thinking tags
     let processed = rawText.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '').replace(/<\/?thinking>/gi, '').trim();
     
-    // 2. Parse the custom highlights
-    processed = processed.replace(/==([^=]+)==/g, '<mark>$1</mark>');
+    // 2. Tokenize Highlights: Convert <mark> and ==text== into safe text tokens
+    processed = processed.replace(/<\/?mark>/gi, match => match.includes('/') ? '[[/MARK]]' : '[[MARK]]');
+    processed = processed.replace(/==([^=]+)==/g, '[[MARK]]$1[[/MARK]]');
     
-    // 3. Render the Markdown
-    if (window.marked && typeof window.marked.parse === 'function') {
-      marked.setOptions({ breaks: true, gfm: true });
-      return marked.parse(processed);
+    // 3. Render the Markdown safely
+    let html = '';
+    if (typeof window.marked !== 'undefined') {
+      try {
+        // Support both old (.setOptions) and new (.use) marked.js configuration styles
+        if (window.marked.use) {
+          window.marked.use({ breaks: true, gfm: true });
+        } else if (window.marked.setOptions) {
+          window.marked.setOptions({ breaks: true, gfm: true });
+        }
+        
+        // Support both marked.parse() and marked() function styles
+        html = typeof window.marked.parse === 'function' ? window.marked.parse(processed) : window.marked(processed);
+      } catch (err) {
+        console.warn("Markdown parsing failed, falling back to raw text", err);
+        html = `<pre style="white-space: pre-wrap; font-size: var(--text-sm); line-height: 1.5;">${this.escapeHtml(processed)}</pre>`;
+      }
+    } else {
+      // Fallback if the CDN is blocked by a corporate firewall
+      html = `<pre style="white-space: pre-wrap; font-size: var(--text-sm); line-height: 1.5;">${this.escapeHtml(processed)}</pre>`;
     }
     
-    // 4. Fallback if marked.js fails to load
-    const safe = Html.escapeHtml(processed).replace(/&lt;mark&gt;/g, '<mark>').replace(/&lt;\/mark&gt;/g, '</mark>');
-    return `<pre style="white-space: pre-wrap; font-size: var(--text-sm); line-height: 1.5;">${safe}</pre>`;
+    // 4. Restore Highlights: Swap tokens back to HTML
+    html = html.replace(/\[\[MARK\]\]/g, '<mark>').replace(/\[\[\/MARK\]\]/g, '</mark>');
+    
+    return html;
   }
-};
+};;
 
 const API = {
   baseUrl: 'https://api.usaspending.gov/api/v2',
