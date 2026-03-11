@@ -2334,27 +2334,39 @@ const Utils = {
   countUp: (element, targetValue, formatter = val => Math.round(val).toLocaleString()) => {
     if (!element) return;
     const numericTarget = Number(targetValue) || 0;
+    
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       element.innerText = formatter(numericTarget);
       return;
     }
+    
     const duration = 400; 
-    const frameRate = 16; 
-    const totalFrames = Math.round(duration / frameRate);
-    let frame = 0;
     const easeOutExpo = t => t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+    let startTime = null;
 
-    clearInterval(element.countInterval);
-    element.countInterval = setInterval(() => {
-      frame++;
-      const progress = easeOutExpo(frame / totalFrames);
-      const currentValue = numericTarget * progress;
-      element.innerText = formatter(currentValue);
-      if (frame >= totalFrames) {
-        clearInterval(element.countInterval);
+    // Cancel any currently running animation on this element to prevent "fighting" numbers
+    if (element.countRef) cancelAnimationFrame(element.countRef);
+
+    const step = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      
+      // Calculate progress based on actual time elapsed, capped at 1 (100%)
+      const rawProgress = Math.min((timestamp - startTime) / duration, 1);
+      const easedProgress = easeOutExpo(rawProgress);
+      
+      element.innerText = formatter(numericTarget * easedProgress);
+      
+      if (rawProgress < 1) {
+        // Request the next frame
+        element.countRef = requestAnimationFrame(step);
+      } else {
+        // Ensure the final frame lands on the exact target value
         element.innerText = formatter(numericTarget); 
       }
-    }, frameRate);
+    };
+    
+    // Kick off the animation
+    element.countRef = requestAnimationFrame(step);
   },
 
   money: n => {
