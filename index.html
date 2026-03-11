@@ -2521,39 +2521,35 @@ queryAliases: {
     'dia': 'Defense Intelligence Agency'
   },
 
-  resolveAgencyAlias(term) {
+resolveAgencyAlias(term) {
     const lower = term.toLowerCase().trim();
-    // 1. Check if they typed an acronym (e.g., 'hhs')
     if (this.agencyAliases[lower]) return { tier: 'toptier', name: this.agencyAliases[lower] };
     if (this.subAgencyAliases[lower]) return { tier: 'subtier', name: this.subAgencyAliases[lower] };
     
-    // 2. Reverse lookup: check if they typed the full name (or the name missing "Department of")
-    const topVals = Object.values(this.agencyAliases).map(v => v.toLowerCase());
-    const topIdx = topVals.findIndex(v => v === lower || v === 'department of ' + lower);
-    if (topIdx !== -1) return { tier: 'toptier', name: Object.values(this.agencyAliases)[topIdx] };
+    const topMatch = Object.entries(this.agencyAliases).find(([key, val]) => 
+      val.toLowerCase() === lower || 'department of ' + val.toLowerCase() === lower
+    );
+    if (topMatch) return { tier: 'toptier', name: topMatch[1] };
     
-    const subVals = Object.values(this.subAgencyAliases).map(v => v.toLowerCase());
-    const subIdx = subVals.findIndex(v => v === lower || v === 'department of ' + lower);
-    if (subIdx !== -1) return { tier: 'subtier', name: Object.values(this.subAgencyAliases)[subIdx] };
+    const subMatch = Object.entries(this.subAgencyAliases).find(([key, val]) => 
+      val.toLowerCase() === lower || 'department of ' + val.toLowerCase() === lower
+    );
+    if (subMatch) return { tier: 'subtier', name: subMatch[1] };
     
     return null;
   },
 
-normalizeQuery(query) {
-    // 0. THE SHIELD: Collapse full agency names into safe acronyms 
-    // so their internal "AND"s aren't destroyed by the search engine.
+  normalizeQuery(query) {
     let collapsedQuery = query;
     const allDicts = [this.agencyAliases, this.subAgencyAliases, this.queryAliases];
     
     allDicts.forEach(dict => {
       Object.entries(dict).forEach(([acronym, fullName]) => {
-        // Only protect phrases with spaces (e.g. "Health and Human Services")
         if (fullName.length > 5 && fullName.includes(' ')) {
           const safeName = fullName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
           const regex = new RegExp(`\\b${safeName}\\b`, 'gi');
           collapsedQuery = collapsedQuery.replace(regex, acronym);
           
-          // Also protect the lazy version without "Department of"
           const strippedName = fullName.replace(/^(Department of (the )?|Office of (the )?)/i, '');
           if (strippedName !== fullName && strippedName.length > 5 && strippedName.includes(' ')) {
              const regexStripped = new RegExp(`\\b${strippedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
@@ -2563,7 +2559,6 @@ normalizeQuery(query) {
       });
     });
 
-    // 1. THE PRE-WASH: Clean up messy user input
     let cleanQuery = collapsedQuery
       .replace(/\s+/g, ' ')                   
       .replace(/\s+AND\s*$/i, '')             
@@ -2571,7 +2566,6 @@ normalizeQuery(query) {
       .replace(/,\s*$/, '')                   
       .trim();
 
-    // 2. The Translator Helper
     const translate = (str) => {
       const l = str.toLowerCase().trim();
       if (this.queryAliases[l]) return this.queryAliases[l];
@@ -2582,21 +2576,19 @@ normalizeQuery(query) {
       return str.trim();
     };
 
-    // 3. Rebuild the query safely
-    // We only split on uppercase AND or + to protect lowercase "and"
     return cleanQuery.split(',').map(commaPart => {
-      if (/\bAND\b|\+/.test(commaPart)) {
-        return commaPart.split(/\bAND\b|\+/).map(andPart => translate(andPart)).join(' AND ');
+      if (/\bAND\b/.test(commaPart)) {
+        return commaPart.split(/\bAND\b/).map(andPart => translate(andPart)).join(' AND ');
       }
       return translate(commaPart);
     }).join(', ');
   },
+
   missionGapRisk(award) {
     const endDate = new Date(award['End Date']);
     const daysUntil = Math.ceil((endDate - new Date()) / (1000 * 60 * 60 * 24));
     const amt = parseFloat(award['Award Amount']) || 0;
     
-    // Wrap them all in String() to permanently bulletproof them against API data-type changes
     const desc = String(award['Description'] || '').toLowerCase();
     const pscDesc = String(award['PSC Description'] || '').toLowerCase();
     const naicsDesc = String(award['NAICS Description'] || '').toLowerCase();
@@ -2611,7 +2603,11 @@ normalizeQuery(query) {
     ];
 
     const text = `${desc} ${pscDesc} ${naicsDesc}`;
-    const supportHits = supportTerms.filter(t => text.includes(t));
+    const supportHits = supportTerms.filter(t => {
+      const regex = new RegExp(`\\b${t}\\b`, 'i');
+      return regex.test(text);
+    });
+    
     const looksOperational = supportHits.length >= 2;
     const servicePscPrefixes = ['D', 'R', 'J'];
     const isServicePsc = servicePscPrefixes.includes(psc.slice(0, 1));
@@ -2658,10 +2654,10 @@ normalizeQuery(query) {
   parseSearchTerms(keywords) {
     const pscPattern = /^[A-Z]{1,2}\d{1,3}$|^\d{1,2}[A-Z]\d{0,2}$/i;
     const naicsPattern = /^\d{6}$/;
-    const hasAndOperator = keywords.includes('+') || /\bAND\b/.test(keywords);
+    const hasAndOperator = /\bAND\b/.test(keywords);
     
     const cleaned = keywords
-      .replace(/,?\s*(L\.?L\.?C\.?|INC\.?|CORP\.?|CORPORATION|INCORPORATED|COMPANY|CO\.?|LTD\.?|L\.?P\.?|P\.?C\.?|P\.?L\.?L\.?C\.?)\.?(?=\s*,|\s*$|\s+AND\b|\s*\+)/gi, '')
+      .replace(/,?\s*(L\.?L\.?C\.?|INC\.?|CORP\.?|CORPORATION|INCORPORATED|COMPANY|CO\.?|LTD\.?|L\.?P\.?|P\.?C\.?|P\.?L\.?L\.?C\.?)\.?(?=\s*,|\s*$|\s+AND\b)/gi, '')
       .replace(/,\s*$/, '')
       .trim();
     
@@ -2673,14 +2669,12 @@ normalizeQuery(query) {
     let andGroups = [];
     if (hasAndOperator) {
       keywordTerms.forEach(term => {
-        // FIX: Protect agency names that naturally contain "AND"
         if (Utils.resolveAgencyAlias(term)) {
           andGroups.push([term]);
           return;
         }
         
-        // Otherwise, split normal keywords by AND
-        const parts = term.split(/\+|\bAND\b/).map(s => s.trim()).filter(s => s.length > 0);
+        const parts = term.split(/\bAND\b/).map(s => s.trim()).filter(s => s.length > 0);
         if (parts.length > 1) {
           const expanded = parts.map(p => {
             const lower = p.toLowerCase().trim();
