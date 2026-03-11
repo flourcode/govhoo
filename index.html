@@ -2498,6 +2498,7 @@ queryAliases: {
     'saic': 'Science Applications International',
     'usps': 'Postal Service', 
     'amtrak': 'Amtrak',
+	'wwt': 'World Wide Technology',
 
     /* --- TECH BUZZWORDS --- */
     'ai': 'Artificial Intelligence',
@@ -2604,7 +2605,8 @@ resolveAgencyAlias(term) {
 
     const text = `${desc} ${pscDesc} ${naicsDesc}`;
     const supportHits = supportTerms.filter(t => {
-      const regex = new RegExp(`\\b${t}\\b`, 'i');
+      const safeTerm = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`\\b${safeTerm}\\b`, 'i');
       return regex.test(text);
     });
     
@@ -3689,7 +3691,10 @@ const App = {
         if (drillParam && App.searchData.raw.length > 0) {
           setTimeout(() => {
             const drillParts = drillParam.split('|||');
-            drillParts.forEach(name => App.drillDown(name));
+            drillParts.forEach((name, idx) => {
+              const isLast = idx === drillParts.length - 1;
+              App.drillDown(name, !isLast); 
+            });
           }, 100);
         }
       });
@@ -4697,17 +4702,20 @@ scrollToPanel(id) {
       border-radius: var(--radius-sm); cursor: pointer;">Clear</button>` : '');
   },
 
-  drillToAgency(name) {
+  drillToAgency(name, preventRender = false) {
     App.drillState = { level: 1, currentAgency: name, currentSubAgency: null, path: [{type: 'agency', name: name}] };
     App.searchData.active = App.searchData.raw.filter(d => d['Awarding Agency'] === name);
     App.searchData.filter = name;
     App.activeFeedSource = 'prime';
     if (App.bubbleMode !== 'vendors' && App.bubbleMode !== 'agencies') App.bubbleMode = 'auto';
-    Utils.syncUrlState();
-    App.updateSearchDashboard();
+    
+    if (!preventRender) {
+      Utils.syncUrlState();
+      App.updateSearchDashboard();
+    }
   },
 
-  drillToSubAgency(name) {
+  drillToSubAgency(name, preventRender = false) {
     App.drillState.level = 2;
     App.drillState.currentSubAgency = name;
     App.drillState.path = [{type: 'agency', name: App.drillState.currentAgency}, {type: 'sub', name: name}];
@@ -4715,18 +4723,21 @@ scrollToPanel(id) {
     App.searchData.filter = name;
     App.activeFeedSource = 'prime';
     if (App.bubbleMode !== 'vendors' && App.bubbleMode !== 'agencies') App.bubbleMode = 'auto';
-    Utils.syncUrlState();
-    App.updateSearchDashboard();
+    
+    if (!preventRender) {
+      Utils.syncUrlState();
+      App.updateSearchDashboard();
+    }
   },
   
-  drillToLevel(lvl) { 
+  drillToLevel(lvl, preventRender = false) { 
     App.searchData.active = App.searchData.raw;
-    if (lvl === 0) App.resetDrill();
-    else if (lvl === 1) App.drillToAgency(App.drillState.path[0].name); 
-    else if (lvl === 2) App.drillToSubAgency(App.drillState.path[1].name);
+    if (lvl === 0) App.resetDrill(); 
+    else if (lvl === 1) App.drillToAgency(App.drillState.path[0].name, preventRender); 
+    else if (lvl === 2) App.drillToSubAgency(App.drillState.path[1].name, preventRender);
   },
 
-  drillDown(name) {
+  drillDown(name, preventRender = false) {
     const data = App.searchData.raw;
     const agencyMatch = data.find(d => d['Awarding Agency'] === name);
     const subAgencyMatch = data.find(d => d['Awarding Sub Agency'] === name);
@@ -4735,11 +4746,11 @@ scrollToPanel(id) {
     App.searchData.active = data;
 
     if (agencyMatch && !subAgencyMatch) {
-      App.drillToAgency(name);
+      App.drillToAgency(name, preventRender);
     } else if (subAgencyMatch) {
       const parentName = subAgencyMatch['Awarding Agency'];
       App.drillState.currentAgency = parentName; 
-      App.drillToSubAgency(name);
+      App.drillToSubAgency(name, preventRender);
     } else if (vendorMatch) {
       if (App.drillState.level === 3) App.drillState.path.pop();
       App.drillState.level = 3; 
@@ -4747,8 +4758,11 @@ scrollToPanel(id) {
       App.searchData.filter = `Vendor: ${name}`;
       App.activeFeedSource = 'prime'; 
       App.searchData.active = data.filter(d => d['Recipient Name'] === name);
-      Utils.syncUrlState();
-      App.updateSearchDashboard();
+      
+      if (!preventRender) { 
+        Utils.syncUrlState(); 
+        App.updateSearchDashboard(); 
+      }
     }
   },
 
