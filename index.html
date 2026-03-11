@@ -1711,30 +1711,6 @@ details > summary::-webkit-details-marker { display: none; }
   line-height: 1.5; 
   font-weight: 400;
 }
-/* --- AWARD DOSSIER SLIDE-OUT --- */
-.dossier-overlay {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(15, 18, 16, 0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
-  z-index: 9998; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
-}
-.dossier-overlay.active { opacity: 1; pointer-events: auto; }
-
-.dossier-panel {
-  position: fixed; top: 0; right: -100%; bottom: 0;
-  width: 100%; max-width: 500px; background: var(--bg-default);
-  box-shadow: -8px 0 32px rgba(0,0,0,0.5); z-index: 9999;
-  transition: right 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  display: flex; flex-direction: column; border-left: 1px solid var(--border);
-}
-.dossier-panel.active { right: 0; }
-.dossier-header {
-  padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);
-  display: flex; justify-content: space-between; align-items: center; background: var(--bg-elevated);
-}
-.dossier-content { padding: 1.5rem; overflow-y: auto; flex: 1; }
-.dossier-bento { background: rgba(255,255,255,0.02); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border); }
-.dossier-bento-label { font-size: var(--text-xs); color: var(--text-tertiary); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em; }
-.dossier-bento-val { font-size: var(--text-sm); font-weight: 600; color: var(--text-primary); line-height: 1.4; }
 </style>
 </head>
 <body ontouchstart="">
@@ -2296,16 +2272,6 @@ details > summary::-webkit-details-marker { display: none; }
         <div style="position:absolute;top:0;left:0;width:40%;height:100%;background:rgba(255,255,255,0.3);border-radius:9999px;animation:loaderSlide 1.2s ease-in-out infinite;"></div>
       </div>
     </div>
-  </div>
-  <div id="dossierOverlay" class="dossier-overlay" data-action="closeDossier"></div>
-  <div id="dossierPanel" class="dossier-panel">
-    <div class="dossier-header">
-      <h2 style="margin:0; font-size: 1.15rem; font-weight: 800; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.05em;">Award Details</h2>
-      <button data-action="closeDossier" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; padding: 0.5rem; display: flex; align-items: center; justify-content: center;">
-        <svg class="icon" viewBox="0 0 640 640" style="font-size: 1.5rem;"><path fill="currentColor" d="M464 206.6L433.4 176L320 289.4L206.6 176L176 206.6L289.4 320L176 433.4L206.6 464L320 350.6L433.4 464L464 433.4L350.6 320L464 206.6z"/></svg>
-      </button>
-    </div>
-    <div id="dossierContent" class="dossier-content"></div>
   </div>
 <script>
 // ============================================================
@@ -4583,70 +4549,7 @@ scrollToPanel(id) {
     Utils.syncUrlState();
     App.updateSearchDashboard(); 
   },
-async openDossier(internalId) {
-    if (!internalId) return;
-    
-    document.getElementById('dossierOverlay').classList.add('active');
-    document.getElementById('dossierPanel').classList.add('active');
-    
-    const content = document.getElementById('dossierContent');
-    content.innerHTML = `<div style="display:flex; justify-content:center; padding: 4rem 0; color: var(--brand);"><svg class="icon icon-spin" viewBox="0 0 640 640" style="font-size: 2rem;"><path fill="currentColor" d="M320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64zM320 160C346.5 160 368 181.5 368 208C368 234.5 346.5 256 320 256C293.5 256 272 234.5 272 208C272 181.5 293.5 160 320 160zM112 320C112 205.1 205.1 112 320 112V64C178.6 64 64 178.6 64 320H112z"/></svg></div>`;
-    
-    const data = await API.getAwardDetails(internalId);
-    
-    if (!data) {
-      content.innerHTML = `<div style="color:var(--danger); padding: 2rem; text-align: center;">Failed to load contract intelligence.</div>`;
-      return;
-    }
 
-    const tx = data.latest_transaction_contract_data || {};
-    const vehicle = data.parent_award ? data.parent_award.piid : null;
-    const usaSpendingUrl = `https://www.usaspending.gov/award/${internalId}`;
-
-    content.innerHTML = `
-      <div style="margin-bottom: 2rem;">
-        <div style="font-size: var(--text-xs); color: var(--brand); font-weight: 700; text-transform: uppercase; margin-bottom: 0.25rem;">${Html.escapeHtml(data.awarding_agency?.toptier_agency?.name || 'Unknown Agency')}</div>
-        <h3 style="font-size: 1.5rem; font-weight: 800; margin: 0 0 0.5rem 0; color: var(--text-primary); line-height: 1.2;">${Html.escapeHtml(Utils.titleCase(data.recipient?.recipient_name || 'Unknown Vendor'))}</h3>
-        <div style="font-size: 2rem; font-weight: 900; color: var(--text-primary); letter-spacing: -0.02em;">${Utils.money(data.total_obligation)}</div>
-        <div style="font-size: var(--text-sm); color: var(--text-secondary); margin-top: 0.5rem;">${Html.escapeHtml(data.description || '')}</div>
-      </div>
-
-      <h4 style="font-size: var(--text-sm); font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 1rem;">Capture Intelligence</h4>
-      
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.5rem;">
-        <div class="dossier-bento">
-          <div class="dossier-bento-label">Pricing Strategy</div>
-          <div class="dossier-bento-val">${tx.type_of_contract_pricing_description || 'N/A'}</div>
-        </div>
-        <div class="dossier-bento">
-          <div class="dossier-bento-label">Competition</div>
-          <div class="dossier-bento-val">${tx.extent_competed_description || 'N/A'}</div>
-          ${tx.number_of_offers_received ? `<div style="font-size:var(--text-xs); color:var(--text-secondary); margin-top:0.2rem;">${tx.number_of_offers_received} Offers Received</div>` : ''}
-        </div>
-        <div class="dossier-bento" style="grid-column: span 2;">
-          <div class="dossier-bento-label">Subcontracting Requirement</div>
-          <div class="dossier-bento-val" style="color: ${tx.subcontracting_plan_description && tx.subcontracting_plan_description.includes('REQUIRED') ? 'var(--brand)' : 'inherit'}">${tx.subcontracting_plan_description || 'Not specified'}</div>
-        </div>
-        ${vehicle ? `
-        <div class="dossier-bento" style="grid-column: span 2; display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <div class="dossier-bento-label">Procurement Vehicle</div>
-            <div class="dossier-bento-val">Parent GWAC / IDIQ: ${vehicle}</div>
-          </div>
-          <button class="action-btn" onclick="App.runSearch('${vehicle}'); App.closeDossier();">Filter Vehicle</button>
-        </div>` : ''}
-      </div>
-
-      <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); display: flex; gap: 0.75rem;">
-        <a href="${usaSpendingUrl}" target="_blank" style="flex: 1; text-align: center; padding: 0.75rem; background: rgba(255,255,255,0.05); color: var(--text-primary); border-radius: var(--radius-md); text-decoration: none; font-weight: 600; font-size: var(--text-sm); border: 1px solid var(--border);">View Original Record</a>
-      </div>
-    `;
-  },
-
-  closeDossier() {
-    document.getElementById('dossierOverlay').classList.remove('active');
-    document.getElementById('dossierPanel').classList.remove('active');
-  },
   viewFootprint(vendorName) {
     const clean = JobLinks.cleanVendorName(vendorName);
     if (!clean || clean.length < 2) return;
@@ -5377,9 +5280,9 @@ renderTargetAccounts() {
     
     const cards = displayData.map((c, idx) => {
       const internalId = c['generated_internal_id'];
-      const dossierBtn = internalId 
-        ? `<button onclick="App.openDossier('${internalId}')" class="action-btn" style="background:var(--brand);color:var(--brand-text);border:none;">Details</button>`
-        : (c['Award ID'] ? `<a href="https://www.usaspending.gov/search/?hash=&filters=${encodeURIComponent(JSON.stringify({keyword: c['Award ID']}))}" target="_blank" class="action-btn">View</a>` : '');
+      const detailsBtn = internalId 
+  ? `<a href="https://www.usaspending.gov/award/${internalId}" target="_blank" class="action-btn" style="background:var(--brand); color:var(--brand-text); border:none; text-decoration:none; display:inline-block; text-align:center;">Details</a>`
+  : (c['Award ID'] ? `<a href="https://www.usaspending.gov/search/?hash=&filters=${encodeURIComponent(JSON.stringify({keyword: c['Award ID']}))}" target="_blank" class="action-btn">View</a>` : '');
       
       const startDate = c['Start Date'] ? new Date(c['Start Date']) : null;
       const daysAgo = startDate ? Math.floor((now - startDate) / 86400000) : null;
@@ -5459,12 +5362,15 @@ renderTargetAccounts() {
         <div class="deal-desc" style="font-size:var(--text-sm);font-weight:400;color:var(--text-secondary);margin-bottom:0.25rem;">${desc}</div>
         ${metaTags ? `<div class="deal-meta">${metaTags}</div>` : ''}
         <div class="deal-footer"><div><div class="deal-date" style="color:${isFresh ? 'var(--brand)' : 'var(--text-secondary)'}; font-weight:${isFresh ? '700' : '400'};">
-  ${Utils.date(c['Start Date'])}${c['End Date'] ? ' \u2013 ' + Utils.date(c['End Date']) : ''}
+${Utils.date(c['Start Date'])}${c['End Date'] ? ' \u2013 ' + Utils.date(c['End Date']) : ''}
 </div></div>
-          <div style="display:flex;gap:0.5rem;align-items:center;"><a href="${linkedInPeopleUrl}" target="_blank" class="job-link">People</a><a href="${linkedInUrl}" target="_blank" class="job-link">Jobs</a>${dossierBtn}</div>
+          <div style="display:flex;gap:0.5rem;align-items:center;">
+            <a href="${linkedInPeopleUrl}" target="_blank" class="job-link">People</a>
+            <a href="${linkedInUrl}" target="_blank" class="job-link">Jobs</a>
+            <a href="https://www.usaspending.gov/award/${internalId}" target="_blank" class="action-btn">Details</a>
+          </div>
         </div></div>`;
     }).join('');
-
     const showMoreBtn = hasMore ? Utils.showMoreBtn('App.renderFeed(true)', `Show All ${data.length} Contracts`) : '';
     div.innerHTML = cards + showMoreBtn;
     Utils.animateCards(div);
