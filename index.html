@@ -1792,7 +1792,18 @@ details > summary::-webkit-details-marker { display: none; }
           <svg class="icon" viewBox="0 0 640 640" style="position: absolute; left: 1.35rem; top: 50%; transform: translateY(-50%); font-size: 1.35rem; color: var(--text-tertiary); pointer-events: none;"><path fill="currentColor" d="M266.7 64C154.8 64 64 154.8 64 266.7C64 378.5 154.8 469.3 266.7 469.3C314.9 469.3 359.1 452.4 394.5 424.4L522.5 552.5C530.8 560.8 544.3 560.8 552.5 552.5C560.8 544.2 560.8 530.8 552.5 522.5L424.4 394.5C452.4 359.1 469.3 314.9 469.3 266.7C469.3 154.8 378.5 64 266.7 64zM266.7 106.7C355.2 106.7 426.7 178.1 426.7 266.7C426.7 355.2 355.2 426.7 266.7 426.7C178.1 426.7 106.7 355.2 106.7 266.7C106.7 178.1 178.1 106.7 266.7 106.7z"/></svg>
           <input type="search" id="mainSearchInput" class="main-input" placeholder="Search keywords, NAICS, companies..." enterkeyhint="search" autocorrect="off" autocapitalize="none" style="width: 100%; border-radius: var(--radius-pill); padding: 1.25rem 1.5rem 1.25rem 3.5rem; background: var(--bg-elevated); border: 1px solid var(--border); font-size: var(--text-lg); box-shadow: 0 4px 20px rgba(0,0,0,0.15); transition: border-color 0.2s;">
         </div>
-
+	<div style="width: 100%; max-width: 540px; margin: 0 auto 2.5rem auto; background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid rgba(255,255,255,0.06); text-align: left;">
+          <h4 style="font-size: var(--text-sm); font-weight: 700; color: var(--text-primary); margin-top: 0; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.5rem;">
+            <svg class="icon" viewBox="0 0 640 640" style="font-size: 1.1rem; color: var(--brand);"><path fill="currentColor" d="M320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64zM320 160C346.5 160 368 181.5 368 208C368 234.5 346.5 256 320 256C293.5 256 272 234.5 272 208C272 181.5 293.5 160 320 160zM368 464L272 464L272 416L288 416L288 320L272 320L272 272L352 272L352 416L368 416L368 464z"/></svg>
+            Search like a pro
+          </h4>
+          <ul style="font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.6; padding-left: 1.2rem; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;">
+            <li><strong>Keep it literal:</strong> This is a rigid database, not Google. Search <code style="color:var(--brand); background:rgba(74,155,120,0.1); padding:2px 6px; border-radius:4px;">Zero Trust</code> instead of <em style="color:var(--text-tertiary);">"agencies buying zero trust"</em>.</li>
+            <li><strong>Intersect targets:</strong> Type <code style="color:var(--brand); background:rgba(74,155,120,0.1); padding:2px 6px; border-radius:4px;">DHS AND Splunk</code> to find the exact overlap of an agency and a keyword/vendor.</li>
+            <li><strong>Commas mean "OR":</strong> Searching <code style="color:var(--brand); background:rgba(74,155,120,0.1); padding:2px 6px; border-radius:4px;">Cloud, Cyber</code> will return contracts containing <em>either</em> word.</li>
+            <li><strong>Use codes to cut through noise:</strong> Type a 6-digit NAICS (<code style="color:var(--brand); background:rgba(74,155,120,0.1); padding:2px 6px; border-radius:4px;">541512</code>) or a 4-character PSC (<code style="color:var(--brand); background:rgba(74,155,120,0.1); padding:2px 6px; border-radius:4px;">D316</code>) to capture poorly-titled contracts.</li>
+          </ul>
+        </div>
         <div id="recentSearchesContainer" class="hero-suggestions" style="margin-bottom: 3rem; justify-content: center; min-height: 44px;">
           </div>
       </div>
@@ -2136,7 +2147,6 @@ details > summary::-webkit-details-marker { display: none; }
 <footer class="hero-footer">
   <div class="footer-grid">
 
-    <!-- COLUMN 1 -->
     <div class="footer-section">
       <div class="footer-label">How it works</div>
 
@@ -2148,10 +2158,8 @@ details > summary::-webkit-details-marker { display: none; }
           </div>
           <div style="font-size:var(--text-sm);color:var(--text-secondary);line-height:1.5;">
             Enter a keyword, NAICS code, company, or agency to 
-            <em class="explainer-highlight">instantly see who's buying, who's winning, and how big the market is</em>.
-            It’s the same discovery loop you used in FPDS ezSearch, just faster and visual.
-            Use <strong>AND</strong> to narrow queries like <em>541512 AND Air Force</em>.
-            Use commas to broaden searches like <em>Cloud, Cyber</em>.
+            <em class="explainer-highlight">instantly see who's buying, who's winning, and how big the market is</em>. 
+            <strong style="color:var(--text-primary);">Note: This is a literal database, not Google.</strong> Keep your terms exact. Use <strong>AND</strong> to intersect targets (e.g., <em>DHS AND Splunk</em>), commas to search multiple terms (<em>Cloud, Cyber</em>), or NAICS/PSC codes to cut through noisy descriptions.
           </div>
         </li>
 
@@ -2161,8 +2169,8 @@ details > summary::-webkit-details-marker { display: none; }
           </div>
           <div style="font-size:var(--text-sm);color:var(--text-secondary);line-height:1.5;">
             The <em class="explainer-highlight">Market and Recent Awards</em> view
-            highlight agencies with real opportunity by looking at vendor concentration,
-            expring contracts, and buying signals.
+            highlights agencies with real opportunity by looking at vendor concentration,
+            expiring contracts, and buying signals.
           </div>
         </li>
 
@@ -4284,7 +4292,7 @@ scrollToPanel(id) {
         // 2. HIDE EVERYTHING EXCEPT THE MESSAGE: This removes all sections above your message
         allPanels.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
 
-        const emptySearch = document.getElementById('emptySearchState');
+	const emptySearch = document.getElementById('emptySearchState');
         if (emptySearch) {
           emptySearch.style.display = 'block';
           emptySearch.innerHTML = `
@@ -4299,9 +4307,10 @@ scrollToPanel(id) {
               <div style="text-align: left; max-width: 520px; margin: 0 auto 2.5rem auto; background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid rgba(255,255,255,0.06);">
                 <h4 style="font-size: var(--text-sm); font-weight: 700; color: var(--text-primary); margin-top: 0; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">Pro Search Tips</h4>
                 <ul style="font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.6; padding-left: 1.2rem; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;">
-                  <li><strong>Keep it broad:</strong> The database ignores exact quotes. Search <code style="color:var(--brand); background:rgba(74,155,120,0.1); padding:2px 6px; border-radius:4px;">Cyber</code> instead of <code style="color:var(--text-tertiary);">"Cybersecurity Services"</code>.</li>
-                  <li><strong>Intersect targets:</strong> Use the word AND to combine filters. <code style="color:var(--brand); background:rgba(74,155,120,0.1); padding:2px 6px; border-radius:4px;">DHS AND Zero Trust</code></li>
-                  <li><strong>Ditch the corporate suffix:</strong> Government data is messy. Try <code style="color:var(--brand); background:rgba(74,155,120,0.1); padding:2px 6px; border-radius:4px;">Booz Allen</code> instead of <code style="color:var(--text-tertiary);">Booz Allen Hamilton Inc.</code></li>
+                  <li><strong>Keep it literal:</strong> This is a rigid database, not Google. Search <code style="color:var(--brand); background:rgba(74,155,120,0.1); padding:2px 6px; border-radius:4px;">Zero Trust</code> instead of <em style="color:var(--text-tertiary);">"agencies buying zero trust"</em>.</li>
+                  <li><strong>Intersect targets:</strong> Type <code style="color:var(--brand); background:rgba(74,155,120,0.1); padding:2px 6px; border-radius:4px;">DHS AND Splunk</code> to find the exact overlap of an agency and a keyword/vendor.</li>
+                  <li><strong>Commas mean "OR":</strong> Searching <code style="color:var(--brand); background:rgba(74,155,120,0.1); padding:2px 6px; border-radius:4px;">Cloud, Cyber</code> will return contracts containing <em>either</em> word.</li>
+                  <li><strong>Use codes to cut through noise:</strong> Type a 6-digit NAICS (<code style="color:var(--brand); background:rgba(74,155,120,0.1); padding:2px 6px; border-radius:4px;">541512</code>) or a 4-character PSC (<code style="color:var(--brand); background:rgba(74,155,120,0.1); padding:2px 6px; border-radius:4px;">D316</code>) to capture poorly-titled contracts.</li>
                 </ul>
               </div>
 
