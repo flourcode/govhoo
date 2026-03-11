@@ -392,28 +392,11 @@ button, input, select, textarea {
 .logo-name svg path:first-child, .footer-logo-text svg path:first-child { fill: var(--brand); }
 .logo-name svg path:last-child, .footer-logo-text svg path:last-child { fill: var(--brand-text); } /* Now perfectly matches the matte numbers! */
 
-.terminal-logo {
-  font-size: clamp(2.5rem, 8vw, 4rem); /* Massive fluid sizing for the splash page */
-  color: var(--text-primary); text-align: center;
-  display: flex; align-items: center; justify-content: center;
-}
-.terminal-logo .logo-name { font-size: inherit; }
 
 .icon { width: 1em; height: 1em; vertical-align: -0.125em; fill: currentColor; overflow: visible; display: inline-block; }
 @keyframes icon-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 .icon-spin { animation: icon-spin 1s linear infinite; }
 
-.hero-subtitle {
-  margin-top: 0.25rem; /* Pulled much tighter to the logo for a cohesive lockup */
-  margin-bottom: 2.5rem; text-align: center;
-  font-size: clamp(1.35rem, 4vw, 1.85rem); /* PROPORTIONALLY BUMPED UP to match the massive Hero logo */
-  color: var(--text-secondary); 
-  font-weight: 400; 
-  letter-spacing: 0.01em; 
-}
-.search-box-container { position: relative; z-index: 210; width: 100%; max-width: 500px; margin-top: 1.5rem; }
-#heroView .search-box-container { display: flex; flex-direction: column; gap: 12px; }
-#heroView .main-input { height: 50px; border-radius: 14px; font-size: var(--text-base); padding: 0 1rem; }
 #searchBtn { height: 50px; border-radius: 14px; font-size: var(--text-base); font-weight: 600; letter-spacing: 0; }
 
 .hero-suggestions {
@@ -444,26 +427,7 @@ button, input, select, textarea {
   transition: opacity 0.05s ease;
 }
 
-/* Syntax tooltip */
-.syntax-tooltip-wrapper {
-  position: relative; display: inline-flex; align-items: center;
-  margin-left: 0.25rem; cursor: help;
-}
-.syntax-icon { font-size: var(--text-sm); color: var(--text-tertiary); transition: color 0.2s; }
-.syntax-tooltip-wrapper:hover .syntax-icon { color: var(--accent); }
-.syntax-tooltip {
-  position: absolute; bottom: 150%; left: 50%;
-  transform: translateX(-50%) translateY(5px);
-  background: var(--bg-elevated); border: 1px solid var(--border);
-  padding: 0.75rem 1rem; border-radius: var(--radius-md);
-  color: var(--text-primary); font-size: var(--text-sm);
-  white-space: nowrap; opacity: 0; visibility: hidden;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 100;
-}
-.syntax-tooltip-wrapper:hover .syntax-tooltip {
-  opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0);
-}
+
 /* 7. APP HEADER
    =========================================== */
 .app-header {
@@ -746,28 +710,14 @@ button, input, select, textarea {
 }
 .reach-row:last-child { border-bottom: none; }
 .reach-row:active { opacity: 0.5; background: rgba(255,255,255, 0.06); transition: opacity 0.05s ease; }
-.reach-badge {
-  font-size: var(--text-micro); padding: 0; background: none;
-  color: var(--text-tertiary); white-space: nowrap;
-}
-.reach-badge.accent { background: rgba(255,255,255,0.07); color: var(--text-secondary); }
 .reach-count { font-size: var(--text-xs); color: var(--text-tertiary); }
 .reach-overflow { font-size: var(--text-xs); color: var(--text-secondary); text-align: center; margin-top: 0.35rem; }
 
-.panel-footer {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-top: 0.6rem; padding-top: 0.6rem;
-  border-top: 1px solid var(--border);
-  font-size: var(--text-xs); color: var(--text-secondary);
-}
 
 /* Job panel */
 #searchJobPanel { overflow: hidden; max-width: 100%; box-sizing: border-box; }
 #searchJobPanel .data-panel { margin-bottom: 0; }
-.job-intel-panel {
-  background: transparent; border: none;
-  border-radius: 0; padding: 1rem 0; overflow: hidden;
-}
+
 .job-link {
   font-size: var(--text-xs); color: var(--text-secondary); text-decoration: none;
   display: inline-flex; align-items: center; gap: 3px; padding: 2px 4px;
@@ -817,7 +767,7 @@ button, input, select, textarea {
   border-radius: 0; padding: 0;
   margin-bottom: var(--section-gap); overflow: hidden;
 }
-#bubbleChartPanel .bubble-header {
+#bubbleChartPanel {
   font-size: var(--text-sm); color: var(--text-secondary);
   font-weight: 400; letter-spacing: -0.01em; margin-bottom: 0.5rem;
 }
@@ -871,7 +821,6 @@ button, input, select, textarea {
 }
 .bubble-bc-item.active { color: var(--text-primary); font-weight: 700; cursor: default; }
 .bubble-bc-item.active:hover { background: transparent; }
-.bubble-bc-sep { color: var(--text-tertiary); font-size: var(--text-xs); }
 
 /* 15. AI BANNER & PANEL
    =========================================== */
@@ -1089,7 +1038,6 @@ button, input, select, textarea {
   border-radius: var(--radius-pill);
   transition: width 0.2s ease-out;
 }
-.govhoo-progress-glow { display: none; }
 
 /* Arti typing indicator */
 .arti-typing-dots {
@@ -1243,7 +1191,6 @@ button, input, select, textarea {
   .breadcrumb-item:hover { opacity: 0.7; }
   .action-btn:hover { color: var(--text-primary); background: rgba(255,255,255,0.08); }
   .job-link:hover { color: var(--text-primary); }
-  .hero-suggestion-chip:hover, #heroView a[href^="?q="]:hover { opacity: 0.7; color: var(--text-primary); }
   .icon-btn:hover { opacity: 0.7; }
   .btn-ai:hover { background: var(--brand-hover); opacity: 1; }
   .btn-ai-outline:hover { background: var(--brand-dim); color: var(--text-primary); }
@@ -1513,7 +1460,6 @@ button, input, select, textarea {
     padding-left: 1rem; padding-right: 1rem;
     overflow-x: hidden;
   }
-  .job-intel-panel > div { grid-template-columns: 1fr; }
   .btn-row { flex-direction: column; }
   .chart-container { min-width: auto; width: 100%; }
   .sankey-panel { padding: 0.25rem 0; }
@@ -1782,17 +1728,20 @@ details > summary::-webkit-details-marker { display: none; }
 
     <div id="dashboardContainer" class="dashboard-container">
       
-      <div id="landingState" style="display:flex; flex-direction:column; align-items:center; padding-top: max(8vh, 3rem); min-height: 60vh; width: 100%; max-width: 640px; margin: 0 auto;">
+     <div id="landingState" style="display:flex; flex-direction:column; align-items:center; padding-top: max(8vh, 3rem); min-height: 60vh; width: 100%; max-width: 640px; margin: 0 auto;">
         <h1 style="font-size: clamp(2rem, 5vw, 2.75rem); font-weight: 900; color: var(--text-primary); text-align: center; margin-top: 0; margin-bottom: 0.75rem; letter-spacing: -0.03em; line-height: 1.1;">Follow the money.</h1>
         <p style="font-size: var(--text-lg); color: var(--text-secondary); text-align: center; margin-top: 0; margin-bottom: 2.5rem; max-width: 540px; line-height: 1.5; font-weight: 400;">
           Search federal contract awards, find incumbents, and visualize agency spending patterns instantly.
         </p>
 
-        <div style="width: 100%; position: relative; margin-bottom: 1.5rem;">
-          <svg class="icon" viewBox="0 0 640 640" style="position: absolute; left: 1.35rem; top: 50%; transform: translateY(-50%); font-size: 1.35rem; color: var(--text-tertiary); pointer-events: none;"><path fill="currentColor" d="M266.7 64C154.8 64 64 154.8 64 266.7C64 378.5 154.8 469.3 266.7 469.3C314.9 469.3 359.1 452.4 394.5 424.4L522.5 552.5C530.8 560.8 544.3 560.8 552.5 552.5C560.8 544.2 560.8 530.8 552.5 522.5L424.4 394.5C452.4 359.1 469.3 314.9 469.3 266.7C469.3 154.8 378.5 64 266.7 64zM266.7 106.7C355.2 106.7 426.7 178.1 426.7 266.7C426.7 355.2 355.2 426.7 266.7 426.7C178.1 426.7 106.7 355.2 106.7 266.7C106.7 178.1 178.1 106.7 266.7 106.7z"/></svg>
+        <div style="width: 100%; position: relative; margin-bottom: 0.5rem;"> <svg class="icon" viewBox="0 0 640 640" style="position: absolute; left: 1.35rem; top: 50%; transform: translateY(-50%); font-size: 1.35rem; color: var(--text-tertiary); pointer-events: none;"><path fill="currentColor" d="M266.7 64C154.8 64 64 154.8 64 266.7C64 378.5 154.8 469.3 266.7 469.3C314.9 469.3 359.1 452.4 394.5 424.4L522.5 552.5C530.8 560.8 544.3 560.8 552.5 552.5C560.8 544.2 560.8 530.8 552.5 522.5L424.4 394.5C452.4 359.1 469.3 314.9 469.3 266.7C469.3 154.8 378.5 64 266.7 64zM266.7 106.7C355.2 106.7 426.7 178.1 426.7 266.7C426.7 355.2 355.2 426.7 266.7 426.7C178.1 426.7 106.7 355.2 106.7 266.7C106.7 178.1 178.1 106.7 266.7 106.7z"/></svg>
           <input type="search" id="mainSearchInput" class="main-input" placeholder="Search keywords, NAICS, companies..." enterkeyhint="search" autocorrect="off" autocapitalize="none" style="width: 100%; border-radius: var(--radius-pill); padding: 1.25rem 1.5rem 1.25rem 3.5rem; background: var(--bg-elevated); border: 1px solid var(--border); font-size: var(--text-lg); box-shadow: 0 4px 20px rgba(0,0,0,0.15); transition: border-color 0.2s;">
         </div>
-	<div style="width: 100%; max-width: 540px; margin: 0 auto 2.5rem auto; background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid rgba(255,255,255,0.06); text-align: left;">
+
+        <div id="recentSearchesContainer" class="hero-suggestions" style="margin-bottom: 2.5rem; justify-content: center; min-height: 44px; margin-top: 0.5rem;">
+        </div>
+
+        <div style="width: 100%; max-width: 540px; margin: 0 auto 3rem auto; background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid rgba(255,255,255,0.06); text-align: left;">
           <h4 style="font-size: var(--text-sm); font-weight: 700; color: var(--text-primary); margin-top: 0; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.5rem;">
             <svg class="icon" viewBox="0 0 640 640" style="font-size: 1.1rem; color: var(--brand);"><path fill="currentColor" d="M320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64zM320 160C346.5 160 368 181.5 368 208C368 234.5 346.5 256 320 256C293.5 256 272 234.5 272 208C272 181.5 293.5 160 320 160zM368 464L272 464L272 416L288 416L288 320L272 320L272 272L352 272L352 416L368 416L368 464z"/></svg>
             Search like a pro
@@ -1804,15 +1753,10 @@ details > summary::-webkit-details-marker { display: none; }
             <li><strong>Use codes to cut through noise:</strong> Type a 6-digit NAICS (<code style="color:var(--brand); background:rgba(74,155,120,0.1); padding:2px 6px; border-radius:4px;">541512</code>) or a 4-character PSC (<code style="color:var(--brand); background:rgba(74,155,120,0.1); padding:2px 6px; border-radius:4px;">D316</code>) to capture poorly-titled contracts.</li>
           </ul>
         </div>
-        <div id="recentSearchesContainer" class="hero-suggestions" style="margin-bottom: 3rem; justify-content: center; min-height: 44px;">
-          </div>
+
       </div>
 
 <div id="searchModeView" class="view-section active">
-
-        <div id="drillHint" class="drill-hint" style="display:none;">
-          <span></span>
-        </div>
 
         <div id="sankeyPanel" class="stat-panel sankey-panel" style="margin-top: 0.5rem;">
           <div class="section-header" style="margin-top: 0; margin-bottom: 0.5rem; border-bottom: none; padding-bottom: 0;">
@@ -3750,16 +3694,6 @@ renderRecentSearches() {
       }
     });
 
-    const btn = document.querySelector('.input-clear');
-    if (main && btn) {
-      const wrapper = main.parentElement;
-      if (wrapper && btn.parentNode !== wrapper) { wrapper.style.position = 'relative'; wrapper.appendChild(btn); }
-      const toggle = () => btn.classList.toggle('visible', main.value.length > 0);
-      main.addEventListener('input', toggle);
-      main.addEventListener('change', toggle);
-      toggle();
-    }
-
     if (mini) {
       const setPlaceholder = () => { mini.placeholder = window.innerWidth <= 600 ? 'Search...' : 'Search keywords, companies, NAICS, agencies...'; };
       setPlaceholder();
@@ -4304,7 +4238,13 @@ scrollToPanel(id) {
                 We couldn't find any active contract spending for "<strong>${Html.escapeHtml(query)}</strong>" in the last 12 months. Either this market doesn't exist, or the Contracting Officer spelled it weird. Try these tips and let's get you back to building your pipeline.
               </p>
               
-              <div style="text-align: left; max-width: 520px; margin: 0 auto 2.5rem auto; background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid rgba(255,255,255,0.06);">
+              <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2.5rem;">
+                 <button class="hero-suggestion-chip" onclick="App.runSearch('DHS AND Zero Trust')">Try "DHS AND Zero Trust"</button>
+                 <button class="hero-suggestion-chip" onclick="App.runSearch('541512')">Try NAICS 541512</button>
+                 <button class="hero-suggestion-chip" onclick="App.showHero()" style="border-color: var(--brand); color: var(--brand);">Start Over</button>
+              </div>
+
+              <div style="text-align: left; max-width: 520px; margin: 0 auto; background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid rgba(255,255,255,0.06);">
                 <h4 style="font-size: var(--text-sm); font-weight: 700; color: var(--text-primary); margin-top: 0; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">Pro Search Tips</h4>
                 <ul style="font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.6; padding-left: 1.2rem; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;">
                   <li><strong>Keep it literal:</strong> This is a rigid database, not Google. Search <code style="color:var(--brand); background:rgba(74,155,120,0.1); padding:2px 6px; border-radius:4px;">Zero Trust</code> instead of <em style="color:var(--text-tertiary);">"agencies buying zero trust"</em>.</li>
@@ -4314,11 +4254,6 @@ scrollToPanel(id) {
                 </ul>
               </div>
 
-              <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
-                 <button class="hero-suggestion-chip" onclick="App.runSearch('DHS AND Zero Trust')">Try "DHS AND Zero Trust"</button>
-                 <button class="hero-suggestion-chip" onclick="App.runSearch('541512')">Try NAICS 541512</button>
-                 <button class="hero-suggestion-chip" onclick="App.showHero()" style="border-color: var(--brand); color: var(--brand);">Start Over</button>
-              </div>
             </div>
           `;
         }
