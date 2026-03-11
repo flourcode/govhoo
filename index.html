@@ -3694,7 +3694,6 @@ renderRecentSearches() {
         'shareLink': () => App.shareLink(target),
         'shareBrief': () => App.shareBrief(target),
         'exportCSV': () => App.exportCSV(target),
-		'closeDossier': () => App.closeDossier(),
         'resetSubawardDrill': () => App.resetSubawardDrill(),
         'runAiPlan': () => App.runAiActionPlan(),
         'copyAiPlan': () => App.copyAiPlan(),
@@ -5442,7 +5441,7 @@ ${Utils.date(c['Start Date'])}${c['End Date'] ? ' \u2013 ' + Utils.date(c['End D
           signalsHtml: risk.reasons.length > 0 && risk.level !== 'low' ? `<div class="mission-gap-signals">Signals: ${Html.escapeHtml(risk.reasons.join(', '))}</div>` : '',
           dateHtml: `<span style="color:${urgency === 'urgent' ? 'var(--danger)' : urgency === 'soon' ? '#9080A8' : 'var(--text-secondary)'}">Expires: ${Utils.date(r['End Date'])} (${daysUntil} days)</span>`,
           subText: `Incumbent: ${Html.escapeHtml(Utils.trunc((() => { const n = r['Recipient Name'] || ''; return n === n.toUpperCase() ? Utils.titleCase(n) : n; })(), 35))}`,
-          footerLinks: internalId ? `<button onclick="App.openDossier('${internalId}')" class="action-btn" style="background:var(--brand);color:var(--brand-text);border:none;">Details</button>` : ''
+          footerLinks: internalId ? `<a href="https://www.usaspending.gov/award/${internalId}" target="_blank" class="action-btn" style="background:var(--brand);color:var(--brand-text);border:none;text-decoration:none;">Details</a>` : ''
         });
       }).join('');
       
