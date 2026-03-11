@@ -2914,11 +2914,20 @@ const Html = {
   },
   parseAiMarkdown(rawText) {
     if (!rawText) return '';
-    const processed = rawText.replace(/==([^=]+)==/g, '<mark>$1</mark>');
+    
+    // 1. Antifragile Scrub: Nuke any complete thinking blocks, then nuke any orphaned tags
+    let processed = rawText.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '').replace(/<\/?thinking>/gi, '').trim();
+    
+    // 2. Parse the custom highlights
+    processed = processed.replace(/==([^=]+)==/g, '<mark>$1</mark>');
+    
+    // 3. Render the Markdown
     if (window.marked && typeof window.marked.parse === 'function') {
       marked.setOptions({ breaks: true, gfm: true });
       return marked.parse(processed);
     }
+    
+    // 4. Fallback if marked.js fails to load
     const safe = Html.escapeHtml(processed).replace(/&lt;mark&gt;/g, '<mark>').replace(/&lt;\/mark&gt;/g, '</mark>');
     return `<pre style="white-space: pre-wrap; font-size: var(--text-sm); line-height: 1.5;">${safe}</pre>`;
   }
