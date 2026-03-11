@@ -445,98 +445,140 @@
 
             </div> </details> </div>
       </div>
-<footer class="hero-footer"> 
+<footer class="hero-footer">
   <div class="footer-grid">
 
-    <div class="footer-section"> 
-      <div class="footer-label">How Govhoo works</div>
+    <!-- COLUMN 1 -->
+    <div class="footer-section">
+      <div class="footer-label">How it works</div>
+
       <ol class="steps-list" style="list-style:none;padding-left:0;">
-        <li style="margin-bottom:1rem;"> 
-          <div><strong>Search the Market</strong></div> 
-          <div style="font-size:var(--text-sm);color:var(--text-secondary);line-height:1.5;"> Enter a keyword, NAICS, company, or agency and instantly see <em class="explainer-highlight">who’s buying, who’s winning, and how big the market actually is</em>. Shorthand like DHS, VA, DISA works too. </div> 
+
+        <li style="margin-bottom:1rem;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <strong>Search the market</strong>
+          </div>
+          <div style="font-size:var(--text-sm);color:var(--text-secondary);line-height:1.5;">
+            Enter a keyword, NAICS code, company, or agency to 
+            <em class="explainer-highlight">instantly see who's buying, who's winning, and how big the market is</em>.
+            It’s the same discovery loop you used in FPDS ezSearch, just faster and visual.
+            Use <strong>AND</strong> to narrow queries like <em>541512 AND Air Force</em>.
+            Use commas to broaden searches like <em>Cloud, Cyber</em>.
+          </div>
         </li>
-        <li style="margin-bottom:1rem;"> 
-          <div><strong>Find Where the Work Is</strong></div> 
-          <div style="font-size:var(--text-sm);color:var(--text-secondary);line-height:1.5;"> The treemap and <em class="explainer-highlight">Target Accounts panel surface agencies with real pipeline</em> based on spend patterns, vendor fragmentation, and upcoming recompetes. </div> 
+
+        <li style="margin-bottom:1rem;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <strong>Find active spend</strong>
+          </div>
+          <div style="font-size:var(--text-sm);color:var(--text-secondary);line-height:1.5;">
+            The <em class="explainer-highlight">Market and Recent Awards</em> view
+            highlight agencies with real opportunity by looking at vendor concentration,
+            expring contracts, and buying signals.
+          </div>
         </li>
-        <li> 
-          <div><strong>Ask Arti What It Means</strong></div> 
-          <div style="font-size:var(--text-sm);color:var(--text-secondary);line-height:1.5;"> Tap <em class="explainer-highlight">Ask Arti</em> to turn the data into a quick read. Arti highlights likely sales plays, partner ecosystems, and where to start digging. </div> 
+
+        <li>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <strong>Ask Arti for a read</strong>
+          </div>
+          <div style="font-size:var(--text-sm);color:var(--text-secondary);line-height:1.5;">
+            Tap <em class="explainer-highlight">Ask Arti</em> for a quick strategy brief.
+            Arti surfaces expiring contracts, partner ecosystems, and likely entry points.
+          </div>
         </li>
-      </ol> 
+
+      </ol>
     </div>
 
-    <div class="footer-section"> 
+
+    <!-- COLUMN 2 -->
+    <div class="footer-section">
       <div class="footer-label">Understanding the numbers</div>
-      <div class="use-cases">
-        <div class="use-case" style="padding-top:0;"> 
-          <div class="use-case-title">Agency checkbooks, not keywords</div> 
-          <div class="use-case-desc"> 
-            If you're used to legacy tools, Govhoo's market totals might seem surprisingly high. Standard databases rely on keyword matches, which miss billions in vaguely titled awards. Govhoo uses entity-resolution to pull the <em class="explainer-highlight">entire official checkbook</em> for an agency, capturing the true market size.
-          </div> 
-        </div>
-        <div class="use-case"> 
-          <div class="use-case-title">Lifetime value vs. annual spend</div> 
-          <div class="use-case-desc"> 
-            The dollars shown aren't just this year's incremental budget. They represent the <em class="explainer-highlight">total cumulative obligations</em> to date for every active contract that has received funding in the past 12 months. It shows the massive incumbent footprint you are actually competing against.
-          </div> 
-        </div>
-      </div> 
-    </div>
 
-    <div class="footer-section"> 
-      <div class="footer-label">Where teams use it</div>
       <div class="use-cases">
-        <div class="use-case" style="padding-top:0;">
-          <div class="use-case-title">Competitive Intelligence</div>
+
+        <div class="use-case">
+          <div class="use-case-title">Why totals look high</div>
           <div class="use-case-desc">
-            The <em class="explainer-highlight">Recent Awards feed</em> shows who just won work in your market. It's the fastest way to spot which vendors are gaining traction and where new work is actually landing.
+            Govhoo's market totals might seem surprisingly high.
+            The totals represent <em class="explainer-highlight">cumulative obligations to date</em>,
+            which is the actual money the government has put on contract,
+            not the ceiling value or a single year's budget.
           </div>
         </div>
-        <div class="use-case"> 
-          <div class="use-case-title">Territory Planning</div> 
-          <div class="use-case-desc"> Quickly size a market and see which agencies actually fund it. Useful before pipeline reviews or territory resets. </div> 
+
+        <div class="use-case">
+          <div class="use-case-title">Active contracts only</div>
+          <div class="use-case-desc">
+            Govhoo filters for contracts that have recorded funding actions in the past 12 months
+            and then shows the <em class="explainer-highlight">full lifetime obligated value</em>
+            of those contracts so you can see the real footprint of the market.
+          </div>
         </div>
-        <div class="use-case"> 
-          <div class="use-case-title">Partner Strategy</div> 
-          <div class="use-case-desc"> Identify which primes dominate a market and which subs appear across multiple agencies. Helpful for teaming strategy and partner mapping. </div> 
+
+        <div class="use-case">
+          <div class="use-case-title">Built for decision speed</div>
+          <div class="use-case-desc">
+            Govhoo isn’t a granular opportunity tracker. It’s a way to turn contract data
+            into <em class="explainer-highlight">visuals that help teams quickly understand a market</em>.
+            In a QBR you can pull up a market and everyone in the room sees the same picture.
+          </div>
         </div>
-      </div> 
+
+      </div>
     </div>
 
-    <div class="footer-section" style="grid-column: 1 / -1; max-width: 800px; margin: 0 auto; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255, 0.07);"> 
-      <div class="footer-label">Built by a seller</div> 
-      <p class="footer-text"> 
-        <img src="https://govhoo.com/images/oldmark.jpg" alt="Mark Flournoy" class="tip-bio-img"> 
-        Hi, I'm Mark. <em class="explainer-highlight">I've sold at AWS, F5, and Red Hat, served as a DISA COTR, and spent 20 years in the Marines</em>. Even with that background, I still <em class="explainer-highlight">wasted hours digging through FPDS ezSearch, USASpending, SAM.gov, and industry day decks</em> just to understand where money was flowing and who owned the workshare. I built Govhoo to <em class="explainer-highlight">visualize federal markets</em> so you can follow the money, identify the right partners, and spend more time with customers. All data is pulled live from USASpending.gov. And it's free. 
-      </p> 
-      <div style="padding:1rem 0;margin-top:1.2rem;border-top:1px solid var(--border);">
-        <div style="font-size:var(--text-base);font-weight:600;color:var(--text-primary);margin-bottom:0.5rem;"> Need help? </div>
-        <div style="font-size:var(--text-sm);color:var(--text-secondary);margin-bottom:1rem;line-height:1.5;"> Bring your territory or target market. We'll pull the data together live and build a plan you can drop into your next QBR or pipeline review. Everything discussed is kept confidential. </div>
-        <a href="https://calendly.com/markflournoy/govhoo" target="_blank" style="text-decoration:none;"> 
-          <button class="btn-primary" style="width:100%; max-width: 320px; padding:0.6rem;font-size:var(--text-sm);justify-content:center;"> Book a Google Meet </button> 
-        </a>
-      </div> 
-    </div> 
+
+   <!-- COLUMN 3 -->
+<div class="footer-section">
+  <div class="footer-label">Built by a seller</div>
+
+  <p class="footer-text">
+    <img src="https://govhoo.com/images/oldmark.jpg" alt="Mark Flournoy" class="tip-bio-img">
+
+    Hi, I'm Mark. <em class="explainer-highlight">I've sold at AWS, F5, and Red Hat, served as a DISA COTR, and spent 20 years in the Marines</em>.
+
+    Even with that background, I still spent hours digging through <em class="explainer-highlight">FPDS ezSearch, USASpending, SAM.gov, and industry day decks</em> just trying to figure out where the money was flowing and who owned the workshare.
+
+    <br><br>
+
+    Govhoo lets you quickly size a market, see who the players are, and <em class="explainer-highlight">walk into a meeting sounding like a genius</em>. Pull it up before a customer meeting or during a QBR on your phone to <em class="explainer-highlight">sanity-check where the money is actually going</em>.
+
+    <br><br>
+
+    It also makes it a lot easier to <em class="explainer-highlight">show your boss, product team, and marketing why you're chasing the opportunities you are</em>.
+  </p>
+
+  <div style="padding:1rem 0;margin-top:1.2rem;border-top:1px solid var(--border);">
+
+    <div style="font-size:var(--text-base);font-weight:600;color:var(--text-primary);margin-bottom:0.5rem;">
+      Walk through your market
+    </div>
+
+    <div style="font-size:var(--text-sm);color:var(--text-secondary);line-height:1.5;margin-bottom:1rem;">
+      Bring your territory or a target market and we'll <em class="explainer-highlight">pull the data together live</em>. 
+      You'll see how to use the charts, target accounts, and recent awards to quickly understand a market and walk into your next meeting prepared.
+    </div>
+
+    <a href="https://calendly.com/markflournoy/govhoo" target="_blank" style="text-decoration:none;">
+      <button class="btn-primary" style="width:100%;padding:0.6rem;font-size:var(--text-sm);justify-content:center;">
+        Book a Session
+      </button>
+    </a>
+
+  </div>
+</div>
+
   </div>
 
-  <div class="footer-section" style="text-align:center; padding-top:1.5rem;"> 
-    <div style="display:inline-flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;"> 
-      <svg class="icon" viewBox="0 0 640 640" style="color:var(--brand);font-size:1.1rem;"><path fill="currentColor" d="M144 128C144 92.7 172.7 64 208 64L432 64C467.3 64 496 92.7 496 128L496 512C496 547.3 467.3 576 432 576L208 576C172.7 576 144 547.3 144 512L144 128zM208 128L208 432L432 432L432 128L208 128zM320 536C337.7 536 352 521.7 352 504C352 486.3 337.7 472 320 472C302.3 472 288 486.3 288 504C288 521.7 302.3 536 320 536z"/></svg> 
-      <span style="font-size:var(--text-base); font-weight:600; color:var(--text-primary);">Use Govhoo like an app</span> 
-    </div> 
-    <a href="/install/" style="text-decoration:none; display:flex; justify-content:center;">
-      <button class="btn-primary" style="padding:0.5rem 1.5rem; font-size:var(--text-sm); border-radius:var(--radius-pill); width:auto;">How to Install</button>
-    </a> 
+
+  <div class="footer-bottom">
+    <div class="footer-copyright">
+      © 2026 <span style="font-weight:500;color:var(--text-secondary);">Govhoo.com</span> — Data via USASpending.gov
+    </div>
   </div>
 
-  <div class="footer-bottom" style="text-align:center; padding-top: 2.5rem;"> 
-    <div style="display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:600; color:#F5F4F2; margin-bottom:0.3rem;" class="footer-logo-text"> 
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="96 96 448 448"><path d="M480 96C515.3 96 544 124.7 544 160L544 480C544 515.3 515.3 544 480 544L160 544C124.7 544 96 515.3 96 480L96 160C96 124.7 124.7 96 160 96L480 96z"/><path d="M368 360C368 373.3 378.7 384 392 384C405.3 384 416 373.3 416 360L416 248C416 234.7 405.3 224 392 224L280 224C266.7 224 256 234.7 256 248C256 261.3 266.7 272 280 272L334.1 272L231.1 375C221.7 384.4 221.7 399.6 231.1 408.9C240.5 418.2 255.7 418.3 265 408.9L368 305.9L368 360z"/></svg>Govhoo 
-    </div> 
-    <p style="color:var(--text-tertiary); font-size:var(--text-xs); margin-top:-0.1rem; margin-bottom:1.5rem;">Follow the Money.</p> 
-    <div class="footer-copyright">© 2026 <span style="font-weight:500;color:var(--text-secondary);">Govhoo.com</span></div> 
-  </div> 
 </footer>
 </div>
   </div>
