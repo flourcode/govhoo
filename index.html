@@ -4288,16 +4288,27 @@ scrollToPanel(id) {
         if (emptySearch) {
           emptySearch.style.display = 'block';
           emptySearch.innerHTML = `
-            <div style="padding: 10vh 2rem; text-align: center; background: var(--bg-elevated); border-radius: var(--radius-lg); border: 1px dashed var(--border);">
-              <div style="font-size: 3rem; margin-bottom: 1.5rem;">🔍</div>
-              <h3 style="margin-bottom: 0.75rem; color: var(--text-primary); font-size: var(--text-lg); font-weight: 800; text-transform: uppercase;">No live awards found</h3>
-              <p style="color: var(--text-secondary); max-width: 420px; margin: 0 auto 2rem auto; line-height: 1.6;">
-                We couldn't find active contract spending for "<strong>${Html.escapeHtml(query)}</strong>" in the last 12 months.
+            <div style="padding: 8vh 2rem; text-align: center; background: var(--bg-elevated); border-radius: var(--radius-lg); border: 1px dashed var(--border);">
+              
+              <div style="font-size: 2.5rem; margin-bottom: 1rem; color: var(--text-tertiary); font-weight: 400;">¯\\_(ツ)_/¯</div>
+              <h3 style="margin-bottom: 0.75rem; color: var(--text-primary); font-size: var(--text-lg); font-weight: 800; text-transform: uppercase;">Well, this is awkward</h3>
+              <p style="color: var(--text-secondary); max-width: 480px; margin: 0 auto 2.5rem auto; line-height: 1.6;">
+                We couldn't find any active contract spending for "<strong>${Html.escapeHtml(query)}</strong>" in the last 12 months. Either this market doesn't exist, or the Contracting Officer spelled it weird.
               </p>
+              
+              <div style="text-align: left; max-width: 520px; margin: 0 auto 2.5rem auto; background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid rgba(255,255,255,0.06);">
+                <h4 style="font-size: var(--text-sm); font-weight: 700; color: var(--text-primary); margin-top: 0; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">Pro Search Tips</h4>
+                <ul style="font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.6; padding-left: 1.2rem; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;">
+                  <li><strong>Keep it broad:</strong> The database ignores exact quotes. Search <code style="color:var(--brand); background:rgba(74,155,120,0.1); padding:2px 6px; border-radius:4px;">Cyber</code> instead of <code style="color:var(--text-tertiary);">"Cybersecurity Services"</code>.</li>
+                  <li><strong>Intersect targets:</strong> Use the word AND to combine filters. <code style="color:var(--brand); background:rgba(74,155,120,0.1); padding:2px 6px; border-radius:4px;">DHS AND Zero Trust</code></li>
+                  <li><strong>Ditch the corporate suffix:</strong> Government data is messy. Try <code style="color:var(--brand); background:rgba(74,155,120,0.1); padding:2px 6px; border-radius:4px;">Booz Allen</code> instead of <code style="color:var(--text-tertiary);">Booz Allen Hamilton Inc.</code></li>
+                </ul>
+              </div>
+
               <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
-                 <button class="hero-suggestion-chip" onclick="App.runSearch('Cyber')">Try "Cyber"</button>
+                 <button class="hero-suggestion-chip" onclick="App.runSearch('DHS AND Zero Trust')">Try "DHS AND Zero Trust"</button>
                  <button class="hero-suggestion-chip" onclick="App.runSearch('541512')">Try NAICS 541512</button>
-                 <button class="hero-suggestion-chip" onclick="App.showHero()">New Search</button>
+                 <button class="hero-suggestion-chip" onclick="App.showHero()" style="border-color: var(--brand); color: var(--brand);">Start Over</button>
               </div>
             </div>
           `;
