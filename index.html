@@ -1378,9 +1378,9 @@ text-overflow: ellipsis;
 .light-mode #loaderText { color: rgba(0,0,0, 0.6); }
 
 /* Light: inline stat overrides */
-.light-mode #stat-vol, .light-mode #bubble-stat-vol,
+.light-mode #sankey-stat-vol, .light-mode #bubble-stat-vol,
 .light-mode #sub-stat-vol, .light-mode #sub-bubble-stat-vol,
-.light-mode #stat-agencies, .light-mode #stat-count, .light-mode #stat-vendors,
+.light-mode #sankey-stat-agencies, .light-mode #sankey-stat-count, .light-mode #sankey-stat-vendors,
 .light-mode #bubble-stat-agencies, .light-mode #bubble-stat-count, .light-mode #bubble-stat-vendors,
 .light-mode #bubble-stat-entities,
 .light-mode #sub-stat-primes, .light-mode #sub-stat-subs, .light-mode #sub-stat-count,
@@ -1712,7 +1712,6 @@ details > summary::-webkit-details-marker { display: none; }
 
 .trend-bar-wrapper.active {
   cursor: default;     /* Indicates it is not clickable anymore */
-  pointer-events: none; /* Logic fix: disables the click event while active */
 }
 
 .trend-bar-wrapper.active .trend-bar {
@@ -1820,7 +1819,7 @@ details > summary::-webkit-details-marker { display: none; }
       </div>
 	<div class="quick-jump-menu" id="quickJumpMenu">
   <button class="active" data-target="bubbleChartPanel" onclick="App.scrollToPanel('bubbleChartPanel')">Market</button>
-  <button data-target="sankeyHeader" onclick="App.scrollToPanel('sankeyHeader')">Flow</button>
+  <button data-target="sankeyPanel" onclick="App.scrollToPanel('sankeyPanel')">Flow</button>
   <button data-target="agencyReachPanel" onclick="App.scrollToPanel('agencyReachPanel')">Primes</button>
   <button data-target="recentAwardsHeader" onclick="App.scrollToPanel('recentAwardsHeader')">Awards</button>
   <button data-target="subawardWrapper" onclick="const s=document.getElementById('subawardAccordion'); if(s) s.open=true; App.scrollToPanel('subawardWrapper')">Subs</button>
@@ -3652,7 +3651,7 @@ const App = {
     if (appView) {
       appView.addEventListener('scroll', () => {
         // Ensure the observer is looking for the header ID, not the grid ID
-const trackedPanels = ['bubbleChartPanel', 'sankeyHeader', 'agencyReachPanel', 'recentAwardsHeader', 'subawardWrapper'];
+const trackedPanels = ['bubbleChartPanel', 'sankeyPanel', 'agencyReachPanel', 'recentAwardsHeader', 'subawardWrapper'];
         let activePanelId = '';
 
         for (const panelId of trackedPanels) {
@@ -4312,6 +4311,7 @@ scrollToPanel(id) {
     try {
       // 1. RESET THE UI: Make sure everything is potentially visible before fetching
       const allPanels = [
+  'vehicleFilterBar',
   'sankeyPanel', 
   'aiIntelligenceBanner', 
   'aiActionPanel',
