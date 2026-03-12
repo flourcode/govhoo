@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#191919">
+  <meta name="theme-color" content="#0A0A0A" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#FAFAFA" media="(prefers-color-scheme: light)">
   <meta name="color-scheme" content="dark light">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Govhoo">
   <meta name="mobile-web-app-capable" content="yes">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'><rect width='400' height='400' rx='80' fill='%23191919'/><text x='200' y='215' text-anchor='middle' dominant-baseline='central' font-family='Google Sans Flex, sans-serif' font-weight='600' fill='%23D4D2CE' font-size='220'>G</text></svg>">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='96 96 448 448'%3E%3Cstyle%3Epath%7Bfill:%234A9B78%7D .arrow%7Bfill:%23F1EEE9%7D @media (prefers-color-scheme:light)%3E.arrow%7Bfill:%233A3A38%7D%3C/style%3E%3Cpath d='M480 96C515.3 96 544 124.7 544 160L544 480C544 515.3 515.3 544 480 544L160 544C124.7 544 96 515.3 96 480L96 160C96 124.7 124.7 96 160 96L480 96z'/%3E%3Cpath class='arrow' d='M368 360C368 373.3 378.7 384 392 384C405.3 384 416 373.3 416 360L416 248C416 234.7 405.3 224 392 224L280 224C266.7 224 256 234.7 256 248C256 261.3 266.7 272 280 272L334.1 272L231.1 375C221.7 384.4 221.7 399.6 231.1 408.9C240.5 418.2 255.7 418.3 265 408.9L368 305.9L368 360z'/%3E%3C/svg%3E">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/manifest.json">
   <title>Govhoo - Free Federal Contract Search & Market Intelligence | FPDS ezSearch Alternative</title>
@@ -247,7 +248,7 @@ button, input, select, textarea {
 
 .loader {
   position: fixed; inset: 0; z-index: 300;
-  background: rgba(25, 25, 25, 0.92);
+  background: var(--bg-app); /* Use the variable instead of hardcoded #191919 */
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   display: none; flex-direction: column; align-items: center; justify-content: center;
 }
@@ -440,10 +441,10 @@ input[type="search"]::-webkit-search-cancel-button {
   position: sticky; top: 0; z-index: 100;
   background: var(--bg-app); /* Solid matte background, no messy transparency */
   padding: 1rem 1.25rem; padding-top: max(1rem, var(--safe-top));
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08); /* Crisp terminal dividing line */
   display: flex; justify-content: space-between; align-items: center;
   flex-wrap: wrap;
   gap: 0.75rem;
+  box-shadow: 0 -100vh 0 0 var(--bg-app);
 }
 .header-left { display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 0; }
 
@@ -6281,7 +6282,7 @@ renderPipelineTargets() {
         btn.classList.remove('active');
         btn.innerHTML = '<svg class="icon" aria-hidden="true" viewBox="0 0 640 640"><path fill="currentColor" d="M320 160C178.6 160 64 274.6 64 416L64 480C64 497.7 49.7 512 32 512C14.3 512 0 497.7 0 480L0 416C0 239.3 143.3 96 320 96C496.7 96 640 239.3 640 416L640 480C640 497.7 625.7 512 608 512C590.3 512 576 497.7 576 480L576 416C576 274.6 461.4 160 320 160zM320 272C240.5 272 176 336.5 176 416L176 480C176 497.7 161.7 512 144 512C126.3 512 112 497.7 112 480L112 416C112 301.1 205.1 208 320 208C434.9 208 528 301.1 528 416L528 480C528 497.7 513.7 512 496 512C478.3 512 464 497.7 464 480L464 416C464 336.5 399.5 272 320 272zM288 416L288 480C288 497.7 273.7 512 256 512C238.3 512 224 497.7 224 480L224 416C224 363 267 320 320 320C373 320 416 363 416 416L416 480C416 497.7 401.7 512 384 512C366.3 512 352 497.7 352 480L352 416C352 398.3 337.7 384 320 384C302.3 384 288 398.3 288 416z"/></svg>';
       }
-      document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute('content', '#191919'));
+      document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute('content', '#0A0A0A'));
     }
     
     try { localStorage.setItem('govhoo-light-mode', this.presentationMode); } catch(e) {}
