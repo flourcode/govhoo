@@ -49,7 +49,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,1..1000&display=swap" rel="stylesheet">
   <link rel="preconnect" href="https://api.usaspending.gov">
   <link rel="dns-prefetch" href="https://api.usaspending.gov">
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-T343V4RFHV"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -3266,8 +3265,8 @@ const Html = {
 parseAiMarkdown(rawText) {
   if (!rawText) return '';
   
-  // 1. Sanitize text, kill code blocks, and ASSASSINATE ALL MARK TAGS (escaped or not)
-  let processed = rawText
+  // 1. Sanitize — kill anything the AI shouldn't have sent
+  let text = rawText
     .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '')
     .replace(/&lt;\/?thinking&gt;[\s\S]*?&lt;\/?thinking&gt;/gi, '')
     .replace(/<\/?mark>/gi, '')
@@ -3275,25 +3274,35 @@ parseAiMarkdown(rawText) {
     .replace(/\[\[\/?MARK\]\]/gi, '')
     .replace(/```[\s\S]*?```/g, '')
     .replace(/`/g, '')
-    .replace(/^\s*>+\s?/gm, '')          // Kill blockquote markers before marked sees them
-    .replace(/^\s*[-*]\s+/gm, '• ')
-    .replace(/^\s{4,}/gm, '')            // Kill leading indentation that marked treats as code blocks
+    .replace(/#{1,6}\s?/g, '')
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/^\s*>+\s?/gm, '')
     .trim();
+
+  // 2. Escape HTML so AI can't inject tags
+  text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  // 3. Convert to clean HTML — no markdown parser, just predictable rules
+  //    Split on blank lines to get paragraphs
+  const blocks = text.split(/\n\s*\n/).filter(b => b.trim());
   
-  // 2. Parse clean text
-  if (typeof marked !== 'undefined') {
-    marked.setOptions({
-      mangle: false,
-      headerIds: false,
-      breaks: true
-    });
-    let html = marked.parse(processed);
-    // Belt-and-suspenders: unwrap any blockquotes that still snuck through
-    html = html.replace(/<\/?blockquote>/gi, '');
-    return html;
-  } else {
-    return processed.replace(/\n/g, '<br>');
-  }
+  const html = blocks.map(block => {
+    const lines = block.split('\n').map(l => l.trim()).filter(l => l);
+    
+    // Check if this block is a bullet list (lines starting with •, -, or *)
+    const isList = lines.every(l => /^[•\-\*]\s/.test(l));
+    
+    if (isList) {
+      const items = lines.map(l => `<li>${l.replace(/^[•\-\*]\s+/, '')}</li>`).join('');
+      return `<ul>${items}</ul>`;
+    }
+    
+    // Otherwise it's a paragraph — join lines with <br> for single line breaks
+    return `<p>${lines.join('<br>')}</p>`;
+  }).join('');
+
+  return html;
 }
 };
 
