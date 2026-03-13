@@ -1791,7 +1791,7 @@ details > summary::-webkit-details-marker { display: none; }
   max-width: 100%; 
   margin: 3rem auto 0 auto; 
   padding: 2rem 1.25rem 0 1.25rem;
-}
+
 </style>
 </head>
 <body ontouchstart="">
@@ -1908,7 +1908,7 @@ details > summary::-webkit-details-marker { display: none; }
 
           <div id="historicalPanel" style="display: none; margin-top: 0.75rem; margin-bottom: 0.25rem;">
             <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 0.15rem;">
-              <h4 id="historicalPanelTitle" style="margin: 0; font-size: var(--text-base); font-weight: 800; color: var(--text-primary); text-transform: uppercase; letter-spacing: -0.01em;">5-Year Market Trend</h4>
+              <h4 id="historicalPanelTitle" style="margin: 0; font-size: var(--text-base); font-weight: 800; color: var(--text-primary); text-transform: uppercase; letter-spacing: -0.01em;">4-Year Market Trend</h4>
             </div>
             <div class="stat-subtitle" style="margin-bottom: 0.25rem; font-size: var(--text-xs);">Total obligations by FY</div>
             <div id="historicalChart" class="trend-chart-container" style="height: 100px; padding-top: 4px; border-bottom: none; padding-bottom: 0;">
@@ -3196,8 +3196,9 @@ async searchAwards(keywords) {
   },
 async getHistoricalTrend(query) {
     const currentYear = new Date().getFullYear();
-    const startYear = currentYear - 5;
-    const timePeriod = [{ start_date: `${startYear}-10-01`, end_date: `${currentYear}-09-30` }];
+    const startYear = currentYear - 3; // Defines the 4 visible bars
+    const apiStartYear = currentYear - 4; // Starts date range in Oct to catch Q1
+    const timePeriod = [{ start_date: `${apiStartYear}-10-01`, end_date: `${currentYear}-09-30` }];
     
     const { pscCodes, naicsCodes, keywordTerms, andGroups } = Utils.parseSearchTerms(query);
     const filters = { time_period: timePeriod, award_type_codes: this.CONTRACT_TYPES };
@@ -5330,11 +5331,11 @@ async renderHistoricalTimeline(query) {
 
     if (titleEl) {
       const shortQuery = Utils.trunc(query.toUpperCase(), 35);
-      titleEl.textContent = `5-Year Trend for ${shortQuery}`;
+      titleEl.textContent = `4-Year Trend for ${shortQuery}`;
     }
 
     panel.style.display = 'block';
-    chart.innerHTML = `<div style="width:100%; text-align:center; color:var(--text-tertiary); margin-top: 60px;">Loading 5-year trend...</div>`;
+    chart.innerHTML = `<div style="width:100%; text-align:center; color:var(--text-tertiary); margin-top: 60px;">Loading 4-year trend...</div>`;
     if (contextBox) contextBox.innerHTML = 'Tap any year to reveal top buyers';
 
     try {
