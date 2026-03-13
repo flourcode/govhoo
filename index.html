@@ -961,9 +961,13 @@ text-overflow: ellipsis;
 }
 .strategic-read hr { border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 1.5rem 0; }
 .strategic-read mark {
-  background: rgba(255,255,255, 0.07); color: var(--text-primary);
-  padding: 1px 4px; border-radius: 4px; font-weight: 500;
-  box-decoration-break: clone; -webkit-box-decoration-break: clone;
+  background: rgba(74, 155, 120, 0.14);
+  color: inherit;
+  padding: 1px 3px;
+  border-radius: 3px;
+  font-weight: 600;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 
 /* 17. AI CHAT
@@ -1917,13 +1921,6 @@ details > summary::-webkit-details-marker { display: none; }
   .market-targets-area .reach-amount {
     font-size: 0.85rem !important;
   }
-}
-.strategic-read mark {
-  background: rgba(74, 155, 120, 0.2); /* Matches your brand green */
-  color: var(--text-primary);
-  padding: 2px 4px;
-  border-radius: 4px;
-  font-weight: 600;
 }
 </style>
 </head>
@@ -3157,14 +3154,29 @@ const Html = {
 parseAiMarkdown(rawText) {
   if (!rawText) return '';
   
-  // Strip out the Lambda's internal thinking tags if they somehow leaked
-  let processed = rawText.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '').trim();
+  // 1. Sanitize the AI output, strip code blocks/ticks, and enforce proper Markdown headings
+  let processed = rawText
+    .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '')
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/`/g, '')
+    .replace(/^\s*[-*]\s+/gm, '• ')
+    .replace(/^Observation\s*/im, '### Observation\n')
+    .replace(/^What It Means\s*/im, '### What It Means\n')
+    .replace(/^The Play\s*/im, '### The Play\n')
+    .replace(/^Tactical Moves.*$/im, '### Tactical Moves\n')
+    .trim();
   
-  // Convert custom Lambda highlights into tokens before Markdown processing
+  // 2. Convert custom Lambda highlights into tokens before Markdown processing
   processed = processed.replace(/<mark>/gi, '[[MARK]]').replace(/<\/mark>/gi, '[[/MARK]]');
   
   let html = '';
   if (typeof marked !== 'undefined') {
+    // Safely configure marked.js settings
+    marked.setOptions({
+      mangle: false,
+      headerIds: false,
+      breaks: true
+    });
     // Parse the Markdown into HTML
     html = marked.parse(processed);
   } else {
@@ -3172,7 +3184,7 @@ parseAiMarkdown(rawText) {
     html = processed.replace(/\n/g, '<br>');
   }
   
-  // Re-insert the <mark> tags into the final HTML
+  // 3. Re-insert the <mark> tags into the final HTML
   return html.replace(/\[\[MARK\]\]/g, '<mark>').replace(/\[\[\/MARK\]\]/g, '</mark>');
 }
 };;
