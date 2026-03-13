@@ -901,6 +901,19 @@ text-overflow: ellipsis;
 
 /* 16. STRATEGIC READ (AI Markdown)
    =========================================== */
+.strategic-read, 
+.ai-result-content,
+.ai-msg-user, 
+.ai-msg-arti {
+  overflow-wrap: anywhere;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+.strategic-read code {
+  white-space: pre-wrap !important;
+  word-break: break-all !important;
+}
 .strategic-read h1,
 .strategic-read h2,
 .strategic-read h3 {
