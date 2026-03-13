@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0A0A0A" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#FAFAFA" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
   <meta name="color-scheme" content="dark light">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -13,18 +13,18 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='96 96 448 448'%3E%3Cstyle%3Epath%7Bfill:%234A9B78%7D .arrow%7Bfill:%23F1EEE9%7D @media (prefers-color-scheme:light)%3E.arrow%7Bfill:%233A3A38%7D%3C/style%3E%3Cpath d='M480 96C515.3 96 544 124.7 544 160L544 480C544 515.3 515.3 544 480 544L160 544C124.7 544 96 515.3 96 480L96 160C96 124.7 124.7 96 160 96L480 96z'/%3E%3Cpath class='arrow' d='M368 360C368 373.3 378.7 384 392 384C405.3 384 416 373.3 416 360L416 248C416 234.7 405.3 224 392 224L280 224C266.7 224 256 234.7 256 248C256 261.3 266.7 272 280 272L334.1 272L231.1 375C221.7 384.4 221.7 399.6 231.1 408.9C240.5 418.2 255.7 418.3 265 408.9L368 305.9L368 360z'/%3E%3C/svg%3E">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/manifest.json">
-  <title>Govhoo - Free Federal Contract Search & Market Intelligence | FPDS ezSearch Alternative</title>
-  <meta name="title" content="Govhoo - Free Federal Contract Search & Market Intelligence | FPDS ezSearch Alternative">
-  <meta name="description" content="Search federal contract awards, find who won government contracts, and visualize agency spending — free. The FPDS ezSearch replacement with live USASpending data, competitive analysis, AI strategy briefs, and recompete tracking for federal sales and BD teams.">
+  <title>Govhoo - Federal Market Intelligence for BD &amp; Sales Teams | Free FPDS Alternative</title>
+  <meta name="title" content="Govhoo - Federal Market Intelligence for BD &amp; Sales Teams | Free FPDS Alternative">
+  <meta name="description" content="Know any federal market before the meeting starts. Who's buying, who's winning, what's expiring — in one search. Live USASpending data, competitive intelligence, and AI strategy briefs for federal sales and BD teams.">
   <meta name="keywords" content="federal contract search, FPDS replacement, FPDS ezSearch alternative, government contract awards, who won federal contracts, USASpending search tool, federal market intelligence, government sales prospecting, federal BD tools, defense contract search, SAM.gov contract data, federal recompete tracker, government vendor lookup, federal agency spending, free govwin alternative, federal territory planning, incumbent search, contract vehicle finder">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://govhoo.com/">
-  <meta property="og:title" content="Govhoo | Free Federal Contract Search & Market Intelligence">
-  <meta property="og:description" content="Search who won federal contracts, visualize agency spending, and get AI strategy briefs — free. The modern replacement for FPDS ezSearch.">
+  <meta property="og:title" content="Govhoo | Federal Market Intelligence for BD Teams">
+  <meta property="og:description" content="Know any federal market before the meeting starts. Who's buying, who's winning, what's expiring — in one search.">
   <meta property="og:image" content="https://govhoo.com/social.png">
   <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:title" content="Govhoo | Free Federal Contract Search — FPDS ezSearch Replacement">
-  <meta property="twitter:description" content="Search federal contract awards, find incumbents, and visualize government spending. Free, live data from USASpending.gov.">
+  <meta property="twitter:title" content="Govhoo | Know Any Federal Market Before the Meeting Starts">
+  <meta property="twitter:description" content="Who's buying, who's winning, what's expiring. Live USASpending data, competitive intelligence, and AI strategy briefs — free.">
   <link rel="canonical" href="https://govhoo.com/">
   <script type="application/ld+json">
   {
@@ -32,7 +32,7 @@
     "@type": "WebApplication",
     "name": "Govhoo",
     "url": "https://govhoo.com",
-    "description": "Free federal contract search and market intelligence tool. Search government contract awards, find incumbents, visualize agency spending, and get AI strategy briefs. The modern replacement for FPDS ezSearch.",
+    "description": "Federal market intelligence for BD and sales teams. Know any federal market before the meeting starts — who's buying, who's winning, what's expiring. Live USASpending data, competitive intelligence, and AI strategy briefs.",
     "applicationCategory": "BusinessApplication",
     "operatingSystem": "Web",
     "offers": {
@@ -237,7 +237,6 @@ button, input, select, textarea {
     transition-duration: 0.01ms !important;
   }
   html { scroll-behavior: auto !important; }
-  .mini-search.is-loading { animation: none !important; }
   .toast { animation: none !important; opacity: 1 !important; }
   #chartContainer.sankey-fade-in { animation: none !important; opacity: 1 !important; }
 }
@@ -366,16 +365,6 @@ input[type="search"]::-webkit-search-cancel-button {
 
 /* 6. HERO VIEW & LOGO
    =========================================== */
-.hero-view {
-  position: fixed; inset: 0; z-index: 200;
-  display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-  padding: 1.5rem; padding-top: max(8vh, var(--safe-top));
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain;
-  background: var(--bg-app);
-}
-.hero-view.slide-up { transform: translateY(-100%); }
-.hero-view.hidden { display: none; }
 
 #appView {
   position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 50;
@@ -683,7 +672,6 @@ text-overflow: ellipsis;
 .meta-tag.mission-gap.low { background: rgba(255,255,255,0.05); color: var(--text-secondary) !important; }
 
 /* Mission gap controls */
-.mission-gap-filter { display: flex; align-items: center; gap: 0.5rem; }
 .mission-gap-toggle {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
   padding: 0 12px; height: 34px; min-width: 34px; background: transparent;
@@ -720,7 +708,6 @@ text-overflow: ellipsis;
 }
 .reach-row:last-child { border-bottom: none; }
 .reach-row:active { opacity: 0.5; background: rgba(255,255,255, 0.06); transition: opacity 0.05s ease; }
-.reach-count { font-size: var(--text-xs); color: var(--text-tertiary); }
 .reach-overflow { font-size: var(--text-xs); color: var(--text-secondary); text-align: center; margin-top: 0.35rem; }
 
 
@@ -1242,12 +1229,12 @@ text-overflow: ellipsis;
 /* 23. LIGHT MODE
    =========================================== */
 .light-mode {
-  --bg-app: #FAFAFA;
-  --bg-secondary: #F2F2F2;
-  --bg-tertiary: #EAEAEA;
-  --bg-card: #F2F2F2;
-  --bg-input: #EAEAEA;
-  --bg-elevated: #F2F2F2;
+  --bg-app: #FFFFFF;
+  --bg-secondary: #FFFFFF;
+  --bg-tertiary: #F5F5F5;
+  --bg-card: #FFFFFF;
+  --bg-input: #F5F5F5;
+  --bg-elevated: #FFFFFF;
   --text-primary: #3A3A38;
   --text-secondary: #6E6B67;
   --text-tertiary: #8f8c87;
@@ -1256,7 +1243,7 @@ text-overflow: ellipsis;
   --money: #3A3832;
   --money-strong: #2C2C2A;
   --money-dim: rgba(0,0,0,0.06);
-  --money-ink: #FAFAFA;
+  --money-ink: #FFFFFF;
   --brand: #4A9B78;
   --brand-hover: #6E9E78;
   --brand-dim: rgba(107,142,124,0.12);
@@ -1339,7 +1326,6 @@ text-overflow: ellipsis;
 .light-mode .section-header,
 .light-mode .reach-row,
 .light-mode .data-panel-header,
-.light-mode .panel-footer,
 .light-mode .ai-banner,
 .light-mode .ai-action-panel,
 .light-mode .explainer-box { border-color: rgba(0,0,0, 0.08); }
@@ -1378,9 +1364,9 @@ text-overflow: ellipsis;
 .light-mode #loaderText { color: rgba(0,0,0, 0.6); }
 
 /* Light: inline stat overrides */
-.light-mode #sankey-stat-vol, .light-mode #bubble-stat-vol,
+.light-mode #stat-vol, .light-mode #bubble-stat-vol,
 .light-mode #sub-stat-vol, .light-mode #sub-bubble-stat-vol,
-.light-mode #sankey-stat-agencies, .light-mode #sankey-stat-count, .light-mode #sankey-stat-vendors,
+.light-mode #stat-agencies, .light-mode #stat-count, .light-mode #stat-vendors,
 .light-mode #bubble-stat-agencies, .light-mode #bubble-stat-count, .light-mode #bubble-stat-vendors,
 .light-mode #bubble-stat-entities,
 .light-mode #sub-stat-primes, .light-mode #sub-stat-subs, .light-mode #sub-stat-count,
@@ -1418,50 +1404,12 @@ text-overflow: ellipsis;
   box-shadow: none !important;
 }
 
-.light-mode .feed-card {
-  background: #FFFFFF !important;
-  border: 1px solid rgba(0,0,0,0.08) !important;
-}
-
 /* 24. DESKTOP
    =========================================== */
 @media (min-width: 768px) {
   .footer-grid { grid-template-columns: 1fr 1fr 1fr; gap: 2rem; }
   .footer-section { border-bottom: none; padding-bottom: 0; }
 }
-
-@media (min-width: 1024px) {
-  #bubbleChartContainer { min-height: 280px; }
-  #bubbleChartContainer svg { width: 100%; height: auto; }
-
-  .ai-banner { padding-top: 0.5rem; padding-bottom: 0.5rem; }
-  .stat-row { margin-bottom: 0; }
-  #sankeyPanel > div:first-child { margin-bottom: 0.5rem; }
-
- /* Desktop text variables removed to allow fluid clamp() scaling to work globally! */
-  .reach-row { padding: 0.75rem 0; gap: 0.75rem; }
-  .reach-name, .reach-amount { font-size: var(--text-base); }
-  .reach-meta { font-size: var(--text-sm); margin-top: 0.2rem; }
-  .reach-count { font-size: var(--text-sm); }
-  .data-panel-header { padding: 0 0 0.5rem; border-bottom-width: 1.5px; }
-  .data-panel-title { font-size: var(--text-base); }
-  #targetAccountsPanel .data-panel-title { font-size: var(--text-xl); }
-  #targetAccountsPanel .reach-name, #targetAccountsPanel .reach-amount { font-size: var(--text-lg); }
-  #targetAccountsPanel .reach-meta { font-size: var(--text-base); }
-  .data-panel-subtitle { font-size: var(--text-sm); }
-  .reach-row, .deal-card, .section-header { border-bottom-width: 1.5px; }
-  .deal-agency, .deal-vendor { font-size: var(--text-sm); }
-  .deal-desc { font-size: var(--text-base); }
-  .deal-amount { font-size: var(--text-lg); }
-  .meta-tag { font-size: var(--text-sm); padding: 5px 12px; }
-  .job-link { font-size: var(--text-sm); }
-  .panel-footer { font-size: var(--text-sm); border-top-width: 1.5px; }
-  .stat-label { font-size: var(--text-sm); }
-  .stat-value { font-size: var(--text-base); }
-  .section-title { font-size: var(--text-lg); }
-  .ai-banner-title, .ai-banner-desc { font-size: var(--text-base); }
-}
-
 @media (min-width: 1400px) {
   .dashboard-container { padding-left: 2.5rem; padding-right: 2.5rem; }
 }
@@ -1712,6 +1660,7 @@ details > summary::-webkit-details-marker { display: none; }
 
 .trend-bar-wrapper.active {
   cursor: default;     /* Indicates it is not clickable anymore */
+  pointer-events: none; /* Logic fix: disables the click event while active */
 }
 
 .trend-bar-wrapper.active .trend-bar {
@@ -1760,38 +1709,215 @@ details > summary::-webkit-details-marker { display: none; }
   line-height: 1.5; 
   font-weight: 400;
 }
-/* 9. DATA PANELS (TRUE SWISS EDITORIAL - NO BOXES)
-   =========================================== */
-.stat-panel, .data-panel, .ai-action-panel, .recompete-accordion {
-  background: transparent !important; 
-  border: none !important; 
-  box-shadow: none !important;
-  border-radius: 0 !important; 
-  padding: 0 !important; /* Stripped: Forces text perfectly flush-left to the master grid */
-  margin-bottom: 2.5rem !important; /* Generous vertical whitespace to separate "chapters" */
-  overflow: visible;
+/* --- DESKTOP "BENTO BOX" LAYOUT FOR SCREENSHOTS --- */
+@media (min-width: 1024px) {
+
+  /* === PANEL CONTAINER === */
+  #bubbleChartPanel {
+    padding-top: 0.5rem !important;
+    margin-top: 0.5rem !important;
+  }
+
+  /* === HEADER: Bloomberg-style title stack === */
+  #marketPanelTitle {
+    font-size: 0.875rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.08em !important;
+    line-height: 1.3 !important;
+    color: var(--text-secondary) !important;
+    text-transform: uppercase !important;
+    display: block;
+    word-break: break-word;
+  }
+  #marketPanelTitle span {
+    font-size: 1rem !important;
+    letter-spacing: 0.04em !important;
+  }
+
+  /* Hero number */
+  #bubbleChartPanel .stat-hero {
+    font-size: clamp(2.5rem, 4.5vw, 3.75rem) !important;
+    letter-spacing: -0.04em !important;
+  }
+
+  /* Stat row */
+  #bubbleChartPanel .stat-row {
+    flex-direction: row !important;
+    align-items: baseline !important;
+    gap: 1.25rem !important;
+  }
+
+  /* Secondary stats */
+  #bubbleChartPanel .stat-group {
+    margin-left: 1rem !important;
+    padding-left: 1rem !important;
+    border-left: 1px solid rgba(255,255,255,0.08) !important;
+    gap: 1rem !important;
+  }
+  #bubbleChartPanel .stat-value {
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+  }
+  #bubbleChartPanel .stat-label {
+    font-size: 0.8rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+  }
+
+  /* Toggle row: recede */
+  #bubbleToggleRow {
+    opacity: 0.55;
+    transition: opacity 0.2s;
+  }
+  #bubbleToggleRow:hover {
+    opacity: 1;
+  }
+
+  /* Methodology line: quiet attribution */
+  #heroMethodology {
+    font-size: 0.7rem !important;
+    letter-spacing: 0.02em !important;
+    margin-top: 0.3rem !important;
+    opacity: 0.6;
+  }
+
+  /* === GRID === */
+  .market-desktop-grid {
+    display: grid;
+    grid-template-columns: 3fr 2fr; 
+    grid-template-rows: auto auto auto;
+    gap: 0 48px;
+    margin-bottom: 0.5rem;
+    align-items: start;
+  }
+  .market-header-area {
+    grid-column: 1 / -1; 
+    margin-bottom: 0.5rem;
+  }
+  .market-chart-area {
+    grid-column: 1;
+    grid-row: 2;
+    margin-bottom: 0.5rem;
+    min-width: 0;
+  }
+
+  /* Treemap container */
+  #bubbleChartContainer {
+    min-height: 280px !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  #bubbleChartContainer svg {
+    width: 100% !important;
+    height: auto !important;
+    display: block;
+  }
+
+  /* === TREND (bottom-left) === */
+  .market-trend-area {
+    grid-column: 1;
+    grid-row: 3;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    border-top: none !important;
+  }
+  .trend-chart-container {
+    height: 120px !important;
+    padding-top: 18px !important;
+    gap: 10px !important;
+  }
+  .market-trend-area h4 {
+    font-size: 0.8rem !important;
+    letter-spacing: 0.06em !important;
+    color: var(--text-tertiary) !important;
+  }
+  .market-trend-area .stat-subtitle {
+    display: none !important;
+  }
+  .market-trend-area .historical-context-box {
+    margin-top: 0.2rem !important;
+    padding: 0.35rem 0.75rem !important;
+    min-height: 30px !important;
+    font-size: 0.8rem !important;
+    border: none !important;
+    background: none !important;
+    text-align: left !important;
+  }
+  .trend-bar-value {
+    font-size: 0.75rem !important;
+    margin-bottom: 5px !important;
+  }
+  .trend-bar-label {
+    font-size: 0.8rem !important;
+    margin-top: 6px !important;
+  }
+
+  /* === SIGNALS (right column) === */
+  .market-signals-area {
+    grid-column: 2;
+    grid-row: 2 / 4; 
+    padding-left: 48px !important;
+    border-left: 1px solid rgba(255,255,255,0.06) !important; 
+    border-top: none !important;
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+
+  .market-signals-area h4 {
+    font-size: 0.8rem !important;
+    letter-spacing: 0.08em !important;
+    color: var(--text-tertiary) !important;
+    margin-bottom: 0.6rem !important;
+  }
+  #copyBriefBtn {
+    font-size: 0.75rem !important;
+    padding: 4px 10px !important;
+    opacity: 0.4;
+    transition: opacity 0.2s;
+  }
+  #copyBriefBtn:hover {
+    opacity: 1;
+  }
+
+  #meetingBriefBullets {
+    display: flex !important;
+    flex-direction: column;
+    gap: 1.2rem !important;
+  }
+  #meetingBriefBullets strong {
+    font-size: 0.92rem !important;
+    letter-spacing: 0.02em !important;
+    color: var(--text-primary) !important;
+    margin-bottom: 0.25rem !important;
+  }
+  #meetingBriefBullets span {
+    font-size: 0.88rem !important;
+    line-height: 1.5 !important;
+    color: var(--text-secondary) !important;
+  }
+
+  /* Target Accounts inside signals column */
+  .market-targets-area {
+    border-top: 1px solid rgba(255,255,255,0.06) !important;
+  }
+  .market-targets-area .data-panel-title {
+    font-size: 0.8rem !important;
+    letter-spacing: 0.08em !important;
+    color: var(--text-tertiary) !important;
+  }
+  .market-targets-area .data-panel-body {
+    font-size: 0.85rem !important;
+  }
+  /* Slim down reach rows inside the market view */
+  .market-targets-area .reach-row {
+    padding: 0.4rem 0 !important;
+    min-height: auto !important;
+  }
+  .market-targets-area .reach-name,
+  .market-targets-area .reach-amount {
+    font-size: 0.85rem !important;
+  }
 }
-
-.light-mode .stat-panel, .light-mode .data-panel, .light-mode .ai-action-panel, .light-mode .recompete-accordion {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-
-.stat-hero {
-  font-size: clamp(1.75rem, 6vw, 3.5rem) !important; 
-  font-weight: 800 !important; 
-  color: var(--text-primary) !important; 
-  line-height: 1 !important; 
-  letter-spacing: -0.03em !important; 
-}
-
-.hero-footer { 
-  width: 100%; 
-  max-width: 100%; 
-  margin: 3rem auto 0 auto; 
-  padding: 2rem 1.25rem 0 1.25rem;
-
 </style>
 </head>
 <body ontouchstart="">
@@ -1819,19 +1945,20 @@ details > summary::-webkit-details-marker { display: none; }
       </div>
 	<div class="quick-jump-menu" id="quickJumpMenu">
   <button class="active" data-target="bubbleChartPanel" onclick="App.scrollToPanel('bubbleChartPanel')">Market</button>
-  <button data-target="sankeyPanel" onclick="App.scrollToPanel('sankeyPanel')">Flow</button>
+  <button data-target="sankeyHeader" onclick="App.scrollToPanel('sankeyHeader')">$Flow</button>
   <button data-target="agencyReachPanel" onclick="App.scrollToPanel('agencyReachPanel')">Primes</button>
   <button data-target="recentAwardsHeader" onclick="App.scrollToPanel('recentAwardsHeader')">Awards</button>
   <button data-target="subawardWrapper" onclick="const s=document.getElementById('subawardAccordion'); if(s) s.open=true; App.scrollToPanel('subawardWrapper')">Subs</button>
+  <button data-target="aiIntelligenceBanner" onclick="App.scrollToPanel('aiIntelligenceBanner'); const btn=document.getElementById('triggerAiPlanBtn'); if(btn && !document.getElementById('aiContentContainer').innerHTML.trim()) btn.click();">AI</button>
 </div>
     </header>
 
     <div id="dashboardContainer" class="dashboard-container">
       
      <div id="landingState" style="display:flex; flex-direction:column; align-items:center; padding-top: max(8vh, 3rem); min-height: 60vh; width: 100%; max-width: 640px; margin: 0 auto;">
-       <h1 class="hero-title" style="font-size: clamp(2rem, 5vw, 3rem); margin-bottom: 0.5rem; line-height: 1.1;">Federal Market Intelligence<br>in 30 Seconds.</h1>
+       <h1 class="hero-title" style="font-size: clamp(2rem, 5vw, 3rem); margin-bottom: 0.5rem; line-height: 1.1;">Know Any Federal Market<br>Before the Meeting Starts.</h1>
 <p class="hero-subtitle" style="font-size: var(--text-lg); color: var(--text-secondary); max-width: 600px; margin-bottom: 2rem;">
-  Instant snapshot of who buys, who wins, and where contracts are expiring.
+  Who's buying, who's winning, and what's expiring — in one search.
 </p>
 
         <div style="width: 100%; position: relative; margin-bottom: 0.5rem;"> <svg class="icon" viewBox="0 0 640 640" style="position: absolute; left: 1.35rem; top: 50%; transform: translateY(-50%); font-size: 1.35rem; color: var(--text-tertiary); pointer-events: none;"><path fill="currentColor" d="M266.7 64C154.8 64 64 154.8 64 266.7C64 378.5 154.8 469.3 266.7 469.3C314.9 469.3 359.1 452.4 394.5 424.4L522.5 552.5C530.8 560.8 544.3 560.8 552.5 552.5C560.8 544.2 560.8 530.8 552.5 522.5L424.4 394.5C452.4 359.1 469.3 314.9 469.3 266.7C469.3 154.8 378.5 64 266.7 64zM266.7 106.7C355.2 106.7 426.7 178.1 426.7 266.7C426.7 355.2 355.2 426.7 266.7 426.7C178.1 426.7 106.7 355.2 106.7 266.7C106.7 178.1 178.1 106.7 266.7 106.7z"/></svg>
@@ -1858,64 +1985,113 @@ details > summary::-webkit-details-marker { display: none; }
 <div id="searchModeView" class="view-section active">
         
         <div id="bubbleChartPanel" class="stat-panel" style="display: none; padding-top: 0.75rem; margin-top: 1rem;">
-          <div class="section-header" style="margin-top: 0; margin-bottom: 0.25rem; border-bottom: none; padding-bottom: 0;">
-            <div class="section-title-group">
-              <span id="marketPanelTitle" class="section-title" style="font-size: clamp(1.25rem, 4vw, 1.75rem); font-weight: 800; letter-spacing: -0.02em; text-transform: uppercase;">
-                Total Active Market
-              </span>
-            </div>
-          </div>
-          
-          <div id="bubbleChartHeader" style="margin-bottom: 1.25rem;">
-            <div class="stat-row" style="margin: 0;">
-              <div id="bubble-stat-vol" class="stat-hero" style="line-height: 1;">-</div>
-              <div class="stat-group">
-                <div class="stat-item"><span id="bubble-stat-agencies" class="stat-value">-</span><span class="stat-label">Agencies</span></div>
-                <div class="stat-item"><span id="bubble-stat-count" class="stat-value">-</span><span class="stat-label">Contracts</span></div>
-                <div class="stat-item"><span id="bubble-stat-vendors" class="stat-value">-</span><span class="stat-label">Vendors</span></div>
+          <div class="market-desktop-grid">
+            
+            <div class="market-header-area">
+              <div class="section-header" style="margin-top: 0; margin-bottom: 0.25rem; border-bottom: none; padding-bottom: 0;">
+                <div class="section-title-group">
+                  <span id="marketPanelTitle" class="section-title" style="font-size: clamp(1.25rem, 4vw, 1.75rem); font-weight: 800; letter-spacing: -0.02em; text-transform: uppercase;">
+                    Total Obligated Value
+                  </span>
+                </div>
+              </div>
+              
+              <div id="bubbleChartHeader" style="margin-bottom: 0.35rem;">
+                <div class="stat-row" style="margin: 0;">
+                  <div id="bubble-stat-vol" class="stat-hero" style="line-height: 1;">-</div>
+                  <div class="stat-group">
+                    <div class="stat-item"><span id="bubble-stat-agencies" class="stat-value">-</span><span class="stat-label">Agencies</span></div>
+                    <div class="stat-item"><span id="bubble-stat-count" class="stat-value">-</span><span class="stat-label">Contracts</span></div>
+                    <div class="stat-item"><span id="bubble-stat-vendors" class="stat-value">-</span><span class="stat-label">Vendors</span></div>
+                  </div>
+                </div>
+                <div id="heroMethodology" class="stat-subtitle" style="margin-top: 0.25rem; font-size: var(--text-xs); color: var(--text-tertiary); line-height: 1.3;">
+                  Cumulative obligations on contracts with activity in the trailing 12 months · Source: USASpending.gov
+                </div>
+              </div>
+
+              <div id="bubbleBreadcrumb" style="display:none; padding: 0; font-size: var(--text-sm);">
+                <div id="bubbleBreadcrumbInner" style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;"></div>
               </div>
             </div>
-          </div>
+            
+            <div class="market-chart-area">
+              <div id="bubbleChartContainer" style="width: 100%; position: relative;">
+                <div class="bubble-tooltip" id="bubbleTooltip"></div>
+              </div>
+              <div style="display: flex; align-items: center; justify-content: flex-end; padding-top: 0.4rem; flex-wrap: wrap; gap: 8px;">
+                <div id="bubbleChartSubtitle" class="stat-subtitle" style="margin-bottom:0; display:none; margin-right: auto;"></div>
+                <div class="bubble-toggle-row" style="margin-bottom: 0;" id="bubbleToggleRow">
+                  <button class="bubble-toggle-btn" data-action="setBubbleMode" data-value="vendors" id="bubbleToggleVendors">Vendor</button>
+                  <button class="bubble-toggle-btn active" data-action="setBubbleMode" data-value="agencies" id="bubbleToggleAgencies">Agency</button>
+                  <button class="bubble-toggle-btn" data-action="setBubbleMode" data-value="subagencies" id="bubbleToggleSubAgencies" style="display:none;">Office</button>
+                  <span class="toggle-sep"></span>
+                  <button class="bubble-toggle-btn" data-action="setBubbleChartType" data-value="bubbles" id="chartTypeBubbles">Bubble</button>
+                  <button class="bubble-toggle-btn active" data-action="setBubbleChartType" data-value="treemap" id="chartTypeTreemap">Tree</button>
+                </div>
+              </div>
+            </div>
 
-          <div id="bubbleBreadcrumb" style="display:none; margin-bottom: 0.5rem; padding: 0; font-size: var(--text-sm);">
-            <div id="bubbleBreadcrumbInner" style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;"></div>
-          </div>
-          
-          <div id="bubbleChartContainer" style="width: 100%; position: relative;">
-            <div class="bubble-tooltip" id="bubbleTooltip"></div>
-          </div>
-          
-          <div style="display: flex; align-items: center; justify-content: flex-end; margin-top: 0.25rem;">
-            <div id="bubbleChartSubtitle" class="stat-subtitle" style="margin-bottom:0; display:none; flex-grow: 1;"></div>
-            <div class="bubble-toggle-row" style="margin-bottom: 0;" id="bubbleToggleRow">
-              <button class="bubble-toggle-btn" data-action="setBubbleMode" data-value="vendors" id="bubbleToggleVendors">Vendor</button>
-              <button class="bubble-toggle-btn active" data-action="setBubbleMode" data-value="agencies" id="bubbleToggleAgencies">Agency</button>
-              <button class="bubble-toggle-btn" data-action="setBubbleMode" data-value="subagencies" id="bubbleToggleSubAgencies" style="display:none;">Office</button>
-              <span class="toggle-sep"></span>
-              <button class="bubble-toggle-btn" data-action="setBubbleChartType" data-value="bubbles" id="chartTypeBubbles">Bubble</button>
-              <button class="bubble-toggle-btn active" data-action="setBubbleChartType" data-value="treemap" id="chartTypeTreemap">Tree</button>
-            </div>
-          </div>
+            <div id="meetingBriefPanel" class="market-signals-area" style="display: none; border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                <h4 style="margin: 0; font-size: var(--text-base); font-weight: 800; color: var(--text-primary); text-transform: uppercase; letter-spacing: -0.01em;">Opportunity Signals</h4>
+                <button id="copyBriefBtn" class="action-btn" onclick="App.copyMeetingBrief()">Copy Brief</button>
+              </div>
+              <div id="meetingBriefBullets" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+              </div>
 
-          <div id="meetingBriefPanel" style="display: none; border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 1rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-              <h4 style="margin: 0; font-size: var(--text-base); font-weight: 800; color: var(--text-primary); text-transform: uppercase; letter-spacing: -0.01em;">Opportunity Signals</h4>
-              <button id="copyBriefBtn" class="action-btn" onclick="App.copyMeetingBrief()">Copy Brief</button>
+              <div id="targetAccountsPanel" class="market-targets-area" style="display: none; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border);">
+                <div class="data-panel-header" style="padding: 0; margin-bottom: 0.25rem;">
+                  <span class="data-panel-title">Target Accounts</span>
+                  <span class="data-panel-subtitle" id="targetSubtitle"></span>
+                </div>
+                <div id="targetBreadcrumbBar" style="display:none; margin-bottom: 0.5rem; padding: 0;">
+                  <div id="targetBreadcrumb" style="display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem; font-size: var(--text-sm);"></div>
+                </div>
+                <div class="data-panel-body" id="targetAccountsBody"></div>
+              </div>
             </div>
-            <div id="meetingBriefBullets" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
-            </div>
-          </div>
 
-          <div id="historicalPanel" style="display: none; margin-top: 0.75rem; margin-bottom: 0.25rem;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 0.15rem;">
-              <h4 id="historicalPanelTitle" style="margin: 0; font-size: var(--text-base); font-weight: 800; color: var(--text-primary); text-transform: uppercase; letter-spacing: -0.01em;">4-Year Market Trend</h4>
+            <div id="historicalPanel" class="market-trend-area" style="display: none; margin-top: 1.25rem; margin-bottom: 0.25rem;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 0.15rem;">
+                <h4 id="historicalPanelTitle" style="margin: 0; font-size: var(--text-base); font-weight: 800; color: var(--text-primary); text-transform: uppercase; letter-spacing: -0.01em;">4-Year Obligation Trend</h4>
+              </div>
+              <div class="stat-subtitle" style="margin-bottom: 0.25rem; font-size: var(--text-xs);">New obligations by fiscal year</div>
+              <div id="historicalChart" class="trend-chart-container" style="height: 100px; padding-top: 4px; border-bottom: none; padding-bottom: 0;">
+              </div>
+              <div id="historicalContextBox" class="historical-context-box" style="margin-top: 0.25rem; padding: 0.5rem 1rem; min-height: 36px; font-size: var(--text-xs);">
+                Tap any year to reveal top buyers
+              </div>
             </div>
-            <div class="stat-subtitle" style="margin-bottom: 0.25rem; font-size: var(--text-xs);">Total obligations by FY</div>
-            <div id="historicalChart" class="trend-chart-container" style="height: 100px; padding-top: 4px; border-bottom: none; padding-bottom: 0;">
+
+          </div> </div>
+
+        <div id="pipelineTargetsSection" class="data-panel" style="display: none; margin-top: 0.25rem;">
+          <div id="pipelineCTA" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid var(--border);">
+            <div>
+              <span class="section-title" id="pipelineCTATitle">Pipeline Worksheet</span>
+              <div class="stat-subtitle" style="margin: 0 !important;" id="pipelineCTASubtitle">Expiring awards, recurring patterns, and adjacent opportunities</div>
             </div>
-            <div id="historicalContextBox" class="historical-context-box" style="margin-top: 0.25rem; padding: 0.5rem 1rem; min-height: 36px; font-size: var(--text-xs);">
-              Tap any year to reveal top buyers
+            <button data-action="togglePipeline" class="btn-ai" style="flex-shrink: 0;">
+              <span id="pipelineCTALabel">Generate</span>
+            </button>
+          </div>
+          <div id="pipelineTargetsBody" style="display: none;">
+            <div id="pipelineTargetsHeader" style="padding: 0.75rem 0 0.5rem; border-bottom: 1px solid var(--border);">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+                <div>
+                  <span id="pipelineCount" style="font-size: var(--text-lg); font-weight: 700; color: var(--text-primary);"></span>
+                  <span style="font-size: var(--text-sm); color: var(--text-secondary); margin-left: 0.25rem;">Targets for Consideration</span>
+                </div>
+                <button data-action="exportPipelineCSV" class="action-btn">
+                  Export
+                </button>
+              </div>
+              <div style="font-size: var(--text-xs); color: var(--text-tertiary); margin-top: 0.35rem; line-height: 1.5;">
+                Based on historical awards and procurement patterns — not current solicitations. Validate on <a href="https://sam.gov" target="_blank" style="color:var(--text-secondary);text-decoration:underline;">SAM.gov</a>.
+              </div>
             </div>
+            <div id="pipelineTargetsList" style="padding: 0.25rem 0;"></div>
           </div>
         </div>
 
@@ -1954,17 +2130,6 @@ details > summary::-webkit-details-marker { display: none; }
           </div>
         </div>
 
-        <div id="targetAccountsPanel" class="data-panel" style="display: none;">
-          <div class="data-panel-header">
-            <span class="data-panel-title">Target Accounts</span>
-            <span class="data-panel-subtitle" id="targetSubtitle"></span>
-          </div>
-          <div id="targetBreadcrumbBar" style="display:none; margin-bottom: 0.5rem; padding: 0;">
-            <div id="targetBreadcrumb" style="display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem; font-size: var(--text-sm);"></div>
-          </div>
-          <div class="data-panel-body" id="targetAccountsBody"></div>
-        </div>
-
         <div class="bento-row">
           <div id="searchJobPanel" style="margin: 0; padding: 0; position: relative;">
             <div id="agencyReachPanel" class="data-panel" style="display: none;">
@@ -1982,73 +2147,6 @@ details > summary::-webkit-details-marker { display: none; }
               <span class="data-panel-subtitle"></span>
             </div>
             <div class="data-panel-body" id="teamingList"></div>
-          </div>
-        </div>
-
-        <div id="pipelineTargetsSection" class="data-panel" style="display: none; margin-top: 1.5rem;">
-          <div id="pipelineCTA" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid var(--border);">
-            <div>
-              <span class="section-title" id="pipelineCTATitle">Pipeline Worksheet</span>
-              <div class="stat-subtitle" style="margin: 0 !important;" id="pipelineCTASubtitle">Expiring awards, recurring patterns, and adjacent opportunities</div>
-            </div>
-            <button data-action="togglePipeline" class="btn-ai" style="flex-shrink: 0;">
-              <span id="pipelineCTALabel">Generate</span>
-            </button>
-          </div>
-          <div id="pipelineTargetsBody" style="display: none;">
-            <div id="pipelineTargetsHeader" style="padding: 0.75rem 0 0.5rem; border-bottom: 1px solid var(--border);">
-              <div style="display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
-                <div>
-                  <span id="pipelineCount" style="font-size: var(--text-lg); font-weight: 700; color: var(--text-primary);"></span>
-                  <span style="font-size: var(--text-sm); color: var(--text-secondary); margin-left: 0.25rem;">Targets for Consideration</span>
-                </div>
-                <button data-action="exportPipelineCSV" class="action-btn">
-                  Export
-                </button>
-              </div>
-              <div style="font-size: var(--text-xs); color: var(--text-tertiary); margin-top: 0.35rem; line-height: 1.5;">
-                Based on historical awards and procurement patterns — not current solicitations. Validate on <a href="https://sam.gov" target="_blank" style="color:var(--text-secondary);text-decoration:underline;">SAM.gov</a>.
-              </div>
-            </div>
-            <div id="pipelineTargetsList" style="padding: 0.25rem 0;"></div>
-          </div>
-        </div>
-
-        <div id="aiIntelligenceBanner" class="ai-banner data-panel" style="margin-top: 1rem; border-top: 1px solid var(--border);">
-          <div class="ai-banner-wrapper">
-            <img src="/images/arti.png" alt="Arti" class="ai-avatar-float">
-            <h4 class="ai-banner-title">Want help with this market?</h4>
-            <p class="ai-banner-desc">Ask Arti to summarize opportunities, teaming partners, and engagement strategy.</p>
-          </div>
-          <button id="triggerAiPlanBtn" class="btn-ai" data-action="runAiPlan">
-            Read briefing
-          </button>
-        </div>
-
-        <div id="aiActionPanel" class="ai-action-panel">
-          <div class="ai-header">
-            <div class="ai-header-title">
-              <img src="/images/arti.png" alt="Arti" class="ai-avatar">
-              <h3>Arti's Advice</h3>
-            </div>
-            <button id="copyAiBtn" class="btn-ai-outline" data-action="copyAiPlan" style="display: none;">Copy</button>
-          </div>
-          <div id="aiContentContainer" class="ai-result-content"></div>
-          <div id="aiChatHistory" class="ai-chat-history" style="display: none;"></div>
-          
-          <div id="aiPromptSuggestions" class="bubble-toggle-row" style="display: none; margin-top: 2.5rem; margin-bottom: 0.5rem; padding-bottom: 0.25rem;">
-            <button class="bubble-toggle-btn" data-action="sendAiPrompt" data-value="Give me 5 Salesforce-ready pipeline opportunities based on this data." style="border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--text-primary); white-space: nowrap;">Top 5 pipeline opps</button>
-            <button class="bubble-toggle-btn" data-action="sendAiPrompt" data-value="Write a cold outreach email to a program manager at this agency. Make it highly relevant to their recent spending, and do not sound like a generic sales pitch or a used car salesman." style="border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--text-primary); white-space: nowrap;">Draft a non-salesy email</button>
-            <button class="bubble-toggle-btn" data-action="sendAiPrompt" data-value="Recommend 2 or 3 specific teaming partners that would make us more competitive here." style="border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--text-primary); white-space: nowrap;">Suggest teaming partners</button>
-          </div>
-
-          <div id="aiChatInputWrapper" class="ai-chat-input-wrapper" style="display: none; margin-top: 0.5rem; padding-top: 0.5rem;">
-            <input type="text" id="aiChatInput" class="main-input" placeholder="What else do you want to know?" autocomplete="off" style="font-size: var(--text-base); padding: 0.75rem 1rem; height: auto; border-radius: var(--radius-xl);">
-            <button id="aiChatSendBtn" class="btn-ai" data-action="sendAiChat" style="padding: 0 1.25rem; border-radius: var(--radius-xl);">Send</button>
-          </div>
-          <div id="aiChatCounter" class="ai-chat-counter" style="display: none;">5 questions remaining</div>
-          <div id="aiDisclaimer" class="ai-disclaimer" style="display: none;">
-            Always use your own judgment before making strategic decisions.
           </div>
         </div>
 
@@ -2155,6 +2253,45 @@ details > summary::-webkit-details-marker { display: none; }
             </div> 
           </details> 
         </div>
+
+        <div id="aiIntelligenceBanner" class="ai-banner data-panel" style="margin-top: 1rem; border-top: 1px solid var(--border);">
+          <div class="ai-banner-wrapper">
+            <img src="/images/arti.png" alt="Arti" class="ai-avatar-float">
+            <h4 class="ai-banner-title">Your briefing is ready</h4>
+            <p class="ai-banner-desc">Engagement strategy, teaming options, and pipeline targets based on this data.</p>
+          </div>
+          <button id="triggerAiPlanBtn" class="btn-ai" data-action="runAiPlan">
+            Read briefing
+          </button>
+        </div>
+
+        <div id="aiActionPanel" class="ai-action-panel">
+          <div class="ai-header">
+            <div class="ai-header-title">
+              <img src="/images/arti.png" alt="Arti" class="ai-avatar">
+              <h3>Arti's Advice</h3>
+            </div>
+            <button id="copyAiBtn" class="btn-ai-outline" data-action="copyAiPlan" style="display: none;">Copy</button>
+          </div>
+          <div id="aiContentContainer" class="ai-result-content"></div>
+          <div id="aiChatHistory" class="ai-chat-history" style="display: none;"></div>
+          
+          <div id="aiPromptSuggestions" class="bubble-toggle-row" style="display: none; margin-top: 2.5rem; margin-bottom: 0.5rem; padding-bottom: 0.25rem;">
+            <button class="bubble-toggle-btn" data-action="sendAiPrompt" data-value="Give me 5 Salesforce-ready pipeline opportunities based on this data." style="border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--text-primary); white-space: nowrap;">Top 5 pipeline opps</button>
+            <button class="bubble-toggle-btn" data-action="sendAiPrompt" data-value="Write a cold outreach email to a program manager at this agency. Make it highly relevant to their recent spending, and do not sound like a generic sales pitch or a used car salesman." style="border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--text-primary); white-space: nowrap;">Draft a non-salesy email</button>
+            <button class="bubble-toggle-btn" data-action="sendAiPrompt" data-value="Recommend 2 or 3 specific teaming partners that would make us more competitive here." style="border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--text-primary); white-space: nowrap;">Suggest teaming partners</button>
+          </div>
+
+          <div id="aiChatInputWrapper" class="ai-chat-input-wrapper" style="display: none; margin-top: 0.5rem; padding-top: 0.5rem;">
+            <input type="text" id="aiChatInput" class="main-input" placeholder="What else do you want to know?" autocomplete="off" style="font-size: var(--text-base); padding: 0.75rem 1rem; height: auto; border-radius: var(--radius-xl);">
+            <button id="aiChatSendBtn" class="btn-ai" data-action="sendAiChat" style="padding: 0 1.25rem; border-radius: var(--radius-xl);">Send</button>
+          </div>
+          <div id="aiChatCounter" class="ai-chat-counter" style="display: none;">5 questions remaining</div>
+          <div id="aiDisclaimer" class="ai-disclaimer" style="display: none;">
+            Always use your own judgment before making strategic decisions.
+          </div>
+        </div>
+
       </div> <footer class="hero-footer">
         <div class="footer-grid">
 
@@ -3196,9 +3333,9 @@ async searchAwards(keywords) {
   },
 async getHistoricalTrend(query) {
     const currentYear = new Date().getFullYear();
-    const startYear = currentYear - 3; // Defines the 4 visible bars
-    const apiStartYear = currentYear - 4; // Starts date range in Oct to catch Q1
-    const timePeriod = [{ start_date: `${apiStartYear}-10-01`, end_date: `${currentYear}-09-30` }];
+    const startYear = currentYear - 4;
+    // FY starts in October of prior calendar year, so to capture FY(startYear) we need Oct of (startYear-1)
+    const timePeriod = [{ start_date: `${startYear - 1}-10-01`, end_date: `${currentYear}-09-30` }];
     
     const { pscCodes, naicsCodes, keywordTerms, andGroups } = Utils.parseSearchTerms(query);
     const filters = { time_period: timePeriod, award_type_codes: this.CONTRACT_TYPES };
@@ -3282,7 +3419,7 @@ async getHistoricalTrend(query) {
       }
     }
 
-    // Ensure all 5 years map properly even if empty
+    // Ensure all years map properly even if empty
     const finalResults = [];
     for (let y = startYear; y <= currentYear; y++) {
       const fyStr = y.toString();
@@ -4393,13 +4530,12 @@ scrollToPanel(id) {
       App.searchData.active = App.searchData.raw; 
       App.searchData.loaded = true;
       
-// Update the TAM Title, truncating safely if they typed a huge paragraph
-      const displayQuery = query.length > 28 ? query.substring(0, 28) + '...' : query;
+// Update the title — show full query, CSS handles wrapping
+      const displayQuery = query;
       const marketTitleEl = document.getElementById('marketPanelTitle');
       
       if (marketTitleEl) {
-        // Using innerHTML allows us to highlight the query, making the header pop
-        marketTitleEl.innerHTML = `Total Active Market for <span style="color: var(--brand); font-weight: 800;">'${displayQuery}'</span>`;
+        marketTitleEl.innerHTML = `Total Obligated Value for <span style="color: var(--brand); font-weight: 800;">'${displayQuery}'</span>`;
       }
       
       App._pendingDrillScroll = 'bubbleChartPanel';
@@ -4635,8 +4771,6 @@ generateEditorialHeadlines(data, totalObligations) {
   });
 
   const subAgencyCount = subAgencies.size;
-  const trendLabel = recentNewCount > 5 ? 'accelerating' : recentNewCount > 0 ? 'steady' : 'stable';
-  const buyerExpansion = subAgencyCount > 8 ? 'broad agency adoption' : 'concentrated buying';
   
   const topAgenciesArr = Object.entries(agencySpend).sort((a, b) => b[1] - a[1]);
   const top3Agencies = topAgenciesArr.slice(0, 3).map(a => a[0].replace(/^Department of (the )?/i, ''));
@@ -4655,10 +4789,37 @@ generateEditorialHeadlines(data, totalObligations) {
   // PILLAR 1: BUYER LANDSCAPE
   // ==========================================
   let title1 = 'Buyer Landscape';
-  let text1 = `There were ${recentNewCount} new awards in the last 90 days. `;
-  text1 += `Purchasing spans ${subAgencyCount} active offices, led primarily by ${top3Agencies.join(', ')}. `;
+  let text1 = '';
+
+  // Natural list formatter: "A, B, and C"
+  const naturalList = (items) => {
+    if (items.length === 0) return '';
+    if (items.length === 1) return items[0];
+    if (items.length === 2) return `${items[0]} and ${items[1]}`;
+    return items.slice(0, -1).join(', ') + ', and ' + items[items.length - 1];
+  };
+
+  // Recent awards — natural language
+  if (recentNewCount === 0) {
+    text1 += 'No new awards were issued in the last 90 days. ';
+  } else if (recentNewCount === 1) {
+    text1 += `One new award (${Utils.money(recentNewValue)}) was issued in the last 90 days. `;
+  } else {
+    text1 += `${recentNewCount} new awards totaling ${Utils.money(recentNewValue)} were issued in the last 90 days. `;
+  }
+
+  // Buyer breadth
+  if (top3Agencies.length > 0) {
+    if (subAgencyCount > 1) {
+      text1 += `Purchasing spans ${subAgencyCount} offices across ${naturalList(top3Agencies)}. `;
+    } else {
+      text1 += `Spending is led by ${naturalList(top3Agencies)}. `;
+    }
+  }
+
+  // Sub-agency concentration — only if meaningfully different from parent agencies
   if (top2Subs.length > 0) {
-    text1 += `Award volume is specifically heavy from ${top2Subs.join(' and ')}.`;
+    text1 += `The heaviest activity is at ${naturalList(top2Subs)}.`;
   }
   
   bulletsHtml += formatGridItem(title1, text1);
@@ -4668,16 +4829,35 @@ generateEditorialHeadlines(data, totalObligations) {
   // PILLAR 2: VENDOR LANDSCAPE
   // ==========================================
   let title2 = 'Vendor Landscape';
-  let text2 = `The top 5 vendors control ${top5Grip}% of total dollars. `;
-  text2 += `Market leaders include ${top3Vendors.join(', ')}. `;
+  let text2 = '';
   
+  const vendorCount = topVendorsArr.length;
+
+  // Concentration — handle small vendor pools naturally
+  if (vendorCount <= 2) {
+    text2 += vendorCount === 1 
+      ? `A single vendor holds all contract value. `
+      : `Just two vendors share the contract base. `;
+  } else if (vendorCount < 5) {
+    text2 += `The top ${vendorCount} vendors control ${top5Grip}% of total dollars. `;
+  } else {
+    text2 += `The top 5 vendors control ${top5Grip}% of total dollars — a ${fragmentation} market. `;
+  }
+
+  // Leaders
+  if (top3Vendors.length > 0) {
+    text2 += `Leading incumbents are ${naturalList(top3Vendors)}. `;
+  }
+  
+  // Top vendor expiring work
   const topVendor = topVendorsArr[0];
   if (topVendor) {
     const expiring12 = vendorExpiring12m[topVendor[0]] || 0;
     if (expiring12 > 0) {
-      text2 += `The top incumbent, ${Utils.titleCase(topVendor[0])}, has ${Utils.money(expiring12)} expiring within the next 12 months.`;
+      text2 += `${Utils.titleCase(topVendor[0])} has ${Utils.money(expiring12)} in contracts expiring within 12 months.`;
     }
   }
+
   bulletsHtml += formatGridItem(title2, text2);
   tacticalSignals.push(`${title2.toUpperCase()}: ${text2.replace(/<[^>]*>?/gm, '')}`);
 
@@ -4685,23 +4865,36 @@ generateEditorialHeadlines(data, totalObligations) {
   // PILLAR 3: EXPIRING PIPELINE
   // ==========================================
   let title3 = 'Expiring Pipeline';
-  let text3 = `There is ${Utils.money(pipe90Value)} across ${pipe90Count} contracts expiring in the next 90 days. `;
+  let text3 = '';
+
+  // 90-day window
+  if (pipe90Count === 0) {
+    text3 += 'No contracts are set to expire in the next 90 days. ';
+  } else if (pipe90Count === 1) {
+    text3 += `One contract worth ${Utils.money(pipe90Value)} expires in the next 90 days. `;
+  } else {
+    text3 += `${Utils.money(pipe90Value)} across ${pipe90Count} contracts expires in the next 90 days. `;
+  }
   
+  // Near-term targets
   if (targets90.length > 0) {
     const top90 = targets90.sort((a,b) => b.amount - a.amount).slice(0, 2);
-    // Note: No truncation here so the full agency and vendor names read naturally
     const targetDetails = top90.map(t => `${Utils.money(t.amount)} at ${t.agency} (${Utils.titleCase(t.vendor)})`).join(' and ');
-    text3 += `Key near-term targets include ${targetDetails}. `;
+    text3 += `Key near-term targets: ${targetDetails}. `;
   }
 
-  text3 += `Over 12 months, the pipeline expands to ${Utils.money(pipe12mValue)}. `;
+  // 12-month horizon — only if meaningfully larger than 90-day
+  if (pipe12mValue > pipe90Value * 1.2 && pipe12mCount > pipe90Count) {
+    text3 += `Over 12 months, ${Utils.money(pipe12mValue)} across ${pipe12mCount} contracts is set to expire. `;
+  } else if (pipe12mValue > 0 && pipe90Count === 0) {
+    text3 += `Looking ahead 12 months, ${Utils.money(pipe12mValue)} across ${pipe12mCount} contracts is set to expire. `;
+  }
 
+  // Vehicle insight — only if there's a dominant one
   const topVehicle = Object.entries(vehicleMap).sort((a, b) => b[1] - a[1])[0];
   if (topVehicle && topVehicle[1] > (totalObligations * 0.15)) {
     const vPct = Math.round((topVehicle[1] / totalObligations) * 100);
     text3 += `${vPct}% of dollars flow through ${topVehicle[0]}.`;
-  } else {
-    text3 += `Primary procurement is Full & Open, favoring past performance.`;
   }
 
   bulletsHtml += formatGridItem(title3, text3);
@@ -4742,28 +4935,26 @@ generateEditorialHeadlines(data, totalObligations) {
   rawText += `Size: ${Utils.money(totalObligations)} | Contracts: ${data.length} | Vendors: ${Object.keys(vendorSpend).length}\n`;
   rawText += `Top Buyers: ${topAgenciesArr.slice(0, 3).map(a => Utils.titleCase(a[0])).join(', ') || 'Various'}\n\n`;
 
-  rawText += `VENDOR LANDSCAPE\n`;
-  rawText += `Top Vendors: ${topVendorsShort}\n`;
-  rawText += `Concentration: Top 5 vendors control ${top5Grip}% of total spend\n`;
+  rawText += `VENDORS\n`;
+  rawText += `Leaders: ${topVendorsShort}\n`;
+  rawText += `Concentration: Top 5 control ${top5Grip}% of total spend\n`;
   rawText += `New Entrants: ${newVendors} new vendors since FY${String(d3y.getFullYear()).slice(-2)}\n\n`;
 
-  rawText += `EXPIRING CONTRACTS\n`;
-  rawText += `<90 Days: ${pipe90Count} contracts (${Utils.money(pipe90Value)})\n`;
-  rawText += `<12 Months: ${pipe12mCount} contracts (${Utils.money(pipe12mValue)})\n`;
+  rawText += `EXPIRING\n`;
+  rawText += `Next 90 Days: ${pipe90Count} contracts (${Utils.money(pipe90Value)})\n`;
+  rawText += `Next 12 Months: ${pipe12mCount} contracts (${Utils.money(pipe12mValue)})\n`;
   if (targets90.length > 0) {
     const top90 = targets90.sort((a,b) => b.amount - a.amount)[0]; 
     rawText += `Largest Near-Term: ${Utils.money(top90.amount)} at ${Utils.titleCase(top90.agency)} (${Utils.titleCase(top90.vendor)})\n`;
   }
   rawText += `\n`;
 
-  rawText += `PROCUREMENT TRENDS\n`;
-  rawText += `Top 3 offices drive ${top3BuyerPct}% of demand. ${recentNewCount} new awards in the last 90 days. `;
+  rawText += `SIGNALS\n`;
+  rawText += `${recentNewCount} new awards in last 90 days. Top 3 offices drive ${top3BuyerPct}% of demand.`;
   
   if (topVehicle && topVehicle[1] > (totalObligations * 0.15)) {
     const vPct = Math.round((topVehicle[1] / totalObligations) * 100);
-    rawText += `${vPct}% of dollars flow through ${topVehicle[0]}.`;
-  } else {
-    rawText += `Majority of procurement is Full & Open.`;
+    rawText += ` ${vPct}% of dollars flow through ${topVehicle[0]}.`;
   }
   rawText += `\n\n`;
 
@@ -5207,8 +5398,8 @@ copySectionLink(sectionHash, btnElement) {
         </div>
         <div style="text-align: right; flex-shrink: 0;">
           <div class="reach-amount">${Utils.money(item.spend)}</div>
-          <div style="margin-top:0.25rem;width:64px;height:6px;background:rgba(255,255,255,0.1);border-radius:9999px;overflow:hidden;margin-left:auto;">
-            <div style="height:100%;width:${barPct}%;background:rgba(255,255,255,0.2);border-radius:9999px;"></div>
+          <div style="margin-top:0.25rem;width:64px;height:6px;background:var(--brand-dim);border-radius:9999px;overflow:hidden;margin-left:auto;">
+            <div style="height:100%;width:${barPct}%;background:var(--brand);opacity:0.5;border-radius:9999px;"></div>
           </div>
         </div>
       </div>`;
@@ -5314,8 +5505,8 @@ copySectionLink(sectionHash, btnElement) {
         </div>
         <div style="text-align: right; flex-shrink: 0;">
           <div class="reach-amount">${Utils.money(v.totalAmt)}</div>
-          <div style="margin-top:0.25rem;width:64px;height:6px;background:rgba(255,255,255,0.1);border-radius:9999px;overflow:hidden;margin-left:auto;">
-            <div style="height:100%;width:${barPct}%;background:rgba(255,255,255,0.2);border-radius:9999px;"></div>
+          <div style="margin-top:0.25rem;width:64px;height:6px;background:var(--brand-dim);border-radius:9999px;overflow:hidden;margin-left:auto;">
+            <div style="height:100%;width:${barPct}%;background:var(--brand);opacity:0.5;border-radius:9999px;"></div>
           </div>
         </div>
       </div>`;
@@ -5331,7 +5522,7 @@ async renderHistoricalTimeline(query) {
 
     if (titleEl) {
       const shortQuery = Utils.trunc(query.toUpperCase(), 35);
-      titleEl.textContent = `4-Year Trend for ${shortQuery}`;
+      titleEl.textContent = `4-Year Obligation Trend for ${shortQuery}`;
     }
 
     panel.style.display = 'block';
@@ -5545,7 +5736,7 @@ renderTargetAccounts() {
       a.recencyPct = Math.round(recencyPct * 100);
     });
 
-    const ranked = groups.sort((a, b) => b.score - a.score).slice(0, 5);
+    const ranked = groups.sort((a, b) => b.score - a.score).slice(0, 3);
     const totalSpend = data.reduce((s, c) => s + (parseFloat(c['Award Amount']) || 0), 0);
 
     panel.style.display = 'block';
@@ -5553,7 +5744,7 @@ renderTargetAccounts() {
 
     body.innerHTML = ranked.map((a, i) => {
       const shortName = a.name.replace(/^Department of (the )?/i, '').replace(/^Office of (the )?/i, '');
-      const badgeOpacity = [1.0, 0.78, 0.58, 0.42, 0.30][i] || 0.30;
+      const badgeOpacity = [1.0, 0.65, 0.35][i] || 0.35;
       const badgeBg = `rgba(74, 155, 120, ${badgeOpacity})`; /* Updated to new brand RGB */
       const badgeText = '#E8E5E0';
 
@@ -5577,8 +5768,8 @@ renderTargetAccounts() {
         </div>
         <div style="text-align: right; flex-shrink: 0;">
           <div class="reach-amount">${Utils.money(a.spend)}</div>
-          <div style="margin-top:0.25rem;width:64px;height:6px;background:rgba(255,255,255,0.1);border-radius:9999px;overflow:hidden;margin-left:auto;">
-            <div style="height:100%;width:${barPct}%;background:rgba(255,255,255,0.2);border-radius:9999px;"></div>
+          <div style="margin-top:0.25rem;width:64px;height:6px;background:var(--brand-dim);border-radius:9999px;overflow:hidden;margin-left:auto;">
+            <div style="height:100%;width:${barPct}%;background:var(--brand);opacity:0.5;border-radius:9999px;"></div>
           </div>
         </div>
       </div>`;
@@ -6220,8 +6411,9 @@ ${Utils.date(c['Start Date'])}${c['End Date'] ? ' \u2013 ' + Utils.date(c['End D
     
     const rect = container.getBoundingClientRect();
     const w = Math.max(rect.width || 600, 300);
-    const maxH = window.innerWidth >= 1024 ? Math.min(window.innerHeight * 0.45, 450) : 600;
-    const h = Math.max(420, Math.min(w * 0.7, maxH));
+    const isDesktop = window.innerWidth >= 1024;
+    const maxH = isDesktop ? Math.min(window.innerHeight * 0.45, 480) : 600;
+    const h = isDesktop ? Math.max(320, Math.min(w * 0.55, maxH)) : Math.max(420, Math.min(w * 0.7, 600));
     const bubbleColors = ['#4A9B78', '#6B5D7F', '#5B7C99', '#D06A4A', '#C47080', '#3A3D5C', '#B8A88A', '#3D6B58', '#778DA9', '#5A6B32'];
 
     const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
