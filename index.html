@@ -49,7 +49,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,1..1000&display=swap" rel="stylesheet">
   <link rel="preconnect" href="https://api.usaspending.gov">
   <link rel="dns-prefetch" href="https://api.usaspending.gov">
-  <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-T343V4RFHV"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -899,88 +899,89 @@ text-overflow: ellipsis;
   transition: all 0.2s ease;
 }
 
-/* 16. STRATEGIC READ (AI Markdown)
+/* 16. STRATEGIC READ (AI Markdown - NUKED & PAVED)
    =========================================== */
-.strategic-read, 
-.ai-result-content,
-.ai-msg-user, 
-.ai-msg-arti {
+.strategic-read {
+  font-family: inherit;
+  color: var(--text-secondary);
+  font-size: var(--text-base);
+  line-height: 1.6;
   overflow-wrap: anywhere;
   word-wrap: break-word;
   word-break: break-word;
 }
 
+/* Unified Headers: One size, bold, clean spacing */
+.strategic-read h1, 
+.strategic-read h2, 
+.strategic-read h3, 
+.strategic-read h4 {
+  color: var(--text-primary);
+  font-size: var(--text-md); 
+  font-weight: 700;
+  margin: 1.75rem 0 0.5rem 0;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+/* Don't push down the very first header if it's at the top */
+.strategic-read h1:first-child,
+.strategic-read h2:first-child,
+.strategic-read h3:first-child {
+  margin-top: 0;
+}
+
+/* Strict uniform paragraphs */
+.strategic-read p {
+  margin: 0 0 1rem 0;
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* Clean, aligned lists */
+.strategic-read ul, 
+.strategic-read ol {
+  margin: 0 0 1.25rem 0;
+  padding-left: 1.25rem;
+  color: inherit;
+}
+
+.strategic-read li {
+  margin-bottom: 0.4rem;
+  color: inherit;
+}
+
+/* Subtle but distinct bolding */
+.strategic-read strong, 
+.strategic-read b {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.strategic-read em, 
+.strategic-read i {
+  font-style: italic;
+  color: inherit;
+}
+
+/* Stripped down blockquotes */
+.strategic-read blockquote {
+  border-left: 2px solid var(--border);
+  margin: 1.25rem 0;
+  padding: 0.25rem 0 0.25rem 1rem;
+  color: inherit;
+}
+
+/* Safe code wrapping */
 .strategic-read code {
+  font-family: monospace;
+  font-size: 0.85em;
+  background: rgba(255,255,255,0.06);
+  padding: 0.1em 0.3em;
+  border-radius: var(--radius-sm);
   white-space: pre-wrap !important;
   word-break: break-all !important;
-}
-.strategic-read h1,
-.strategic-read h2,
-.strategic-read h3 {
-  color: var(--text-primary);
-  margin-top: 1.75rem; margin-bottom: 0.5rem;
-  font-size: var(--text-base); font-weight: 600;
-  letter-spacing: -0.01em;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 0.4rem;
-}
-.strategic-read h1:first-child,
-.strategic-read h2:first-child { margin-top: 0; }
-.strategic-read h4 {
-  color: var(--text-primary); font-size: var(--text-sm);
-  margin-top: 1.25rem; margin-bottom: 0.35rem; font-weight: 700;
-}
-.strategic-read p {
-  margin-bottom: 0.85rem; color: var(--text-secondary);
-  line-height: 1.7; font-size: var(--text-base);
-}
-.strategic-read > p:first-child,
-.strategic-read > p:first-of-type {
-  color: var(--text-primary);
-  font-size: var(--text-lg); line-height: 1.5;
-  font-weight: 400;
-  border-left: none; padding-left: 0;
-  margin-bottom: 1.25rem;
-}
-.strategic-read ul, .strategic-read ol { padding-left: 1.25rem; margin-bottom: 1rem; }
-.strategic-read li { margin-bottom: 0.4rem; color: var(--text-secondary); line-height: 1.6; }
-.strategic-read li strong { color: var(--text-primary); }
-.strategic-read strong { color: var(--text-primary); font-weight: 700; }
-.strategic-read em { color: var(--text-primary); font-style: normal; font-weight: 600; }
-.strategic-read code {
-  font-size: 0.8em; background: rgba(255,255,255,0.08);
-  padding: 0.15em 0.4em; border-radius: var(--radius-sm); color: var(--text-secondary);
-}
-.strategic-read blockquote {
-  border-left: 3px solid var(--accent);
-  margin: 1rem 0; padding: 0.75rem 1rem;
-  background: rgba(255,255,255, 0.07);
-  border-radius: 0 var(--radius-md) var(--radius-md) 0;
-  font-size: var(--text-base);
-}
-.strategic-read blockquote p { color: var(--text-primary); margin-bottom: 0.25rem; }
-.strategic-read blockquote p:last-child { margin-bottom: 0; }
-.strategic-read table {
-  width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: var(--text-sm);
-}
-.strategic-read th {
-  text-align: left; padding: 0.5rem 0.75rem;
-  background: rgba(255,255,255,0.06); border-bottom: 1px solid var(--border);
-  color: var(--text-secondary); font-size: var(--text-sm); font-weight: 600;
-}
-.strategic-read td {
-  padding: 0.45rem 0.75rem;
-  border-bottom: 1px solid rgba(255,255,255,0.06); color: var(--text-secondary);
-}
-.strategic-read hr { border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 1.5rem 0; }
-.strategic-read mark {
-  background: rgba(74, 155, 120, 0.14);
-  color: inherit;
-  padding: 1px 3px;
-  border-radius: 3px;
-  font-weight: 600;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
 }
 
 /* 17. AI CHAT
@@ -3167,40 +3168,26 @@ const Html = {
 parseAiMarkdown(rawText) {
   if (!rawText) return '';
   
-  // 1. Sanitize the AI output, strip code blocks/ticks, and enforce proper Markdown headings
+  // 1. Sanitize text, kill code blocks, and catch any rogue thinking tags
   let processed = rawText
     .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '')
     .replace(/```[\s\S]*?```/g, '')
     .replace(/`/g, '')
     .replace(/^\s*[-*]\s+/gm, '• ')
-    .replace(/^Observation\s*/im, '### Observation\n')
-    .replace(/^What It Means\s*/im, '### What It Means\n')
-    .replace(/^The Play\s*/im, '### The Play\n')
-    .replace(/^Tactical Moves.*$/im, '### Tactical Moves\n')
     .trim();
   
-  // 2. Convert custom Lambda highlights into tokens before Markdown processing
-  processed = processed.replace(/<mark>/gi, '[[MARK]]').replace(/<\/mark>/gi, '[[/MARK]]');
-  
-  let html = '';
+  // 2. Parse clean text
   if (typeof marked !== 'undefined') {
-    // Safely configure marked.js settings
     marked.setOptions({
       mangle: false,
       headerIds: false,
       breaks: true
     });
-    // Parse the Markdown into HTML
-    html = marked.parse(processed);
+    return marked.parse(processed);
   } else {
-    // Fallback for corporate firewalls blocking CDNs
-    html = processed.replace(/\n/g, '<br>');
+    return processed.replace(/\n/g, '<br>');
   }
-  
-  // 3. Re-insert the <mark> tags into the final HTML
-  return html.replace(/\[\[MARK\]\]/g, '<mark>').replace(/\[\[\/MARK\]\]/g, '</mark>');
-}
-};;
+};
 
 const API = {
   baseUrl: 'https://api.usaspending.gov/api/v2',
