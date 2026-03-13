@@ -1918,6 +1918,13 @@ details > summary::-webkit-details-marker { display: none; }
     font-size: 0.85rem !important;
   }
 }
+.strategic-read mark {
+  background: rgba(74, 155, 120, 0.2); /* Matches your brand green */
+  color: var(--text-primary);
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-weight: 600;
+}
 </style>
 </head>
 <body ontouchstart="">
@@ -3147,43 +3154,27 @@ const Html = {
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   }[m]));
 },
-  parseAiMarkdown(rawText) {
-    if (!rawText) return '';
-    
-    // 1. Antifragile Scrub: Nuke any orphaned thinking tags
-    let processed = rawText.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '').replace(/<\/?thinking>/gi, '').trim();
-    
-    // 2. Tokenize Highlights: Convert <mark> and ==text== into safe text tokens
-    processed = processed.replace(/<\/?mark>/gi, match => match.includes('/') ? '[[/MARK]]' : '[[MARK]]');
-    processed = processed.replace(/==([^=]+)==/g, '[[MARK]]$1[[/MARK]]');
-    
-    // 3. Render the Markdown safely
-    let html = '';
-    if (typeof window.marked !== 'undefined') {
-      try {
-        // Support both old (.setOptions) and new (.use) marked.js configuration styles
-        if (window.marked.use) {
-          window.marked.use({ breaks: true, gfm: true });
-        } else if (window.marked.setOptions) {
-          window.marked.setOptions({ breaks: true, gfm: true });
-        }
-        
-        // Support both marked.parse() and marked() function styles
-        html = typeof window.marked.parse === 'function' ? window.marked.parse(processed) : window.marked(processed);
-      } catch (err) {
-        console.warn("Markdown parsing failed, falling back to raw text", err);
-        html = `<pre style="white-space: pre-wrap; font-size: var(--text-sm); line-height: 1.5;">${this.escapeHtml(processed)}</pre>`;
-      }
-    } else {
-      // Fallback if the CDN is blocked by a corporate firewall
-      html = `<pre style="white-space: pre-wrap; font-size: var(--text-sm); line-height: 1.5;">${this.escapeHtml(processed)}</pre>`;
-    }
-    
-    // 4. Restore Highlights: Swap tokens back to HTML
-    html = html.replace(/\[\[MARK\]\]/g, '<mark>').replace(/\[\[\/MARK\]\]/g, '</mark>');
-    
-    return html;
+parseAiMarkdown(rawText) {
+  if (!rawText) return '';
+  
+  // Strip out the Lambda's internal thinking tags if they somehow leaked
+  let processed = rawText.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '').trim();
+  
+  // Convert custom Lambda highlights into tokens before Markdown processing
+  processed = processed.replace(/<mark>/gi, '[[MARK]]').replace(/<\/mark>/gi, '[[/MARK]]');
+  
+  let html = '';
+  if (typeof marked !== 'undefined') {
+    // Parse the Markdown into HTML
+    html = marked.parse(processed);
+  } else {
+    // Fallback for corporate firewalls blocking CDNs
+    html = processed.replace(/\n/g, '<br>');
   }
+  
+  // Re-insert the <mark> tags into the final HTML
+  return html.replace(/\[\[MARK\]\]/g, '<mark>').replace(/\[\[\/MARK\]\]/g, '</mark>');
+}
 };;
 
 const API = {
