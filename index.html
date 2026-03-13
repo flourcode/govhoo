@@ -3168,9 +3168,10 @@ const Html = {
 parseAiMarkdown(rawText) {
   if (!rawText) return '';
   
-  // 1. Sanitize text, kill code blocks, and catch any rogue thinking tags
+  // 1. Sanitize text, kill code blocks, catch thinking tags, AND NUKE MARK TAGS
   let processed = rawText
     .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '')
+    .replace(/<\/?mark>/gi, '') // <--- THIS SILENTLY ASSASSINATES ALL MARK TAGS
     .replace(/```[\s\S]*?```/g, '')
     .replace(/`/g, '')
     .replace(/^\s*[-*]\s+/gm, '• ')
