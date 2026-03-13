@@ -3084,7 +3084,7 @@ const ChartUtils = {
           addScrollDismiss();
           // Auto-fade after 3 seconds
           clearTimeout(autoFadeTimer);
-          autoFadeTimer = setTimeout(dismissTooltip, 3000);
+          autoFadeTimer = setTimeout(dismissTooltip, 2000);
         }
       });
       svg.on('click', function() { dismissTooltip(); removeScrollDismiss(); clearTimeout(autoFadeTimer); });
@@ -3094,7 +3094,7 @@ const ChartUtils = {
         .on('mouseover', function(event, d) {
           clearTimeout(autoFadeTimer);
           tooltip.innerHTML = buildTip(d.data || d); tooltip.classList.add('visible');
-          autoFadeTimer = setTimeout(dismissTooltip, 3000);
+          autoFadeTimer = setTimeout(dismissTooltip, 2000);
         })
         .on('mousemove', function(event) {
           const cr = container.getBoundingClientRect();
@@ -3103,7 +3103,7 @@ const ChartUtils = {
           tooltip.style.left = tx + 'px'; tooltip.style.top = ty + 'px';
           tooltip.style.bottom = 'auto'; tooltip.style.transform = 'none'; tooltip.style.maxWidth = '';
           clearTimeout(autoFadeTimer);
-          autoFadeTimer = setTimeout(dismissTooltip, 3000);
+          autoFadeTimer = setTimeout(dismissTooltip, 2000);
         })
         .on('mouseout', function() { clearTimeout(autoFadeTimer); tooltip.classList.remove('visible'); })
         .on('click', function(event, d) { clearTimeout(autoFadeTimer); tooltip.classList.remove('visible'); doDrill(d.data || d); });
