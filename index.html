@@ -2067,7 +2067,7 @@ details > summary::-webkit-details-marker { display: none; }
     <div id="dashboardContainer" class="dashboard-container">
       
      <div id="landingState" style="display:flex; flex-direction:column; align-items:center; padding-top: max(8vh, 3rem); min-height: 60vh; width: 100%; max-width: 640px; margin: 0 auto;">
-       <h1 class="hero-title" style="font-size: clamp(2rem, 5vw, 3rem); margin-bottom: 0.5rem; line-height: 1.1;">Follow the Money.</h1>
+      <h1 class="hero-title" style="font-size: clamp(2rem, 5vw, 3rem); margin-bottom: 0.5rem; line-height: 1.1;">Follow the Money.</h1>
 <p class="hero-subtitle" style="font-size: var(--text-lg); color: var(--text-secondary); max-width: 600px; margin-bottom: 2rem;">
   Who's buying. Who's winning. What's expiring.
 </p>
@@ -3045,22 +3045,45 @@ const ChartUtils = {
   },
   
   attachInteractions(selection, svg, tooltip, container, w, h, isTouch, buildTip, doDrill, touchState) {
+    // Dismiss tooltip on scroll or touch outside chart
+    const dismissTooltip = () => { tooltip.classList.remove('visible'); touchState.touchStateSet(null); };
+    const scrollParent = document.getElementById('appView');
+    
     if (isTouch) {
+      // Scroll dismissal
+      let scrollDismissHandler = null;
+      const addScrollDismiss = () => {
+        if (scrollDismissHandler) return;
+        scrollDismissHandler = () => { dismissTooltip(); removeScrollDismiss(); };
+        if (scrollParent) scrollParent.addEventListener('scroll', scrollDismissHandler, { passive: true, once: true });
+      };
+      const removeScrollDismiss = () => {
+        if (scrollDismissHandler && scrollParent) scrollParent.removeEventListener('scroll', scrollDismissHandler);
+        scrollDismissHandler = null;
+      };
+
+      // Touch-outside dismissal
+      const outsideTapHandler = (e) => {
+        if (!container.contains(e.target)) { dismissTooltip(); }
+      };
+      document.addEventListener('touchstart', outsideTapHandler, { passive: true });
+
       selection.on('click', function(event, d) {
         event.stopPropagation();
         Utils.vibrate(15);
         const e = d.data || d;
         if (touchState.touchStateGet() === e.name) {
-          tooltip.classList.remove('visible'); touchState.touchStateSet(null); doDrill(e);
+          dismissTooltip(); removeScrollDismiss(); doDrill(e);
         } else {
           touchState.touchStateSet(e.name);
           tooltip.innerHTML = buildTip(e);
           tooltip.style.left = '50%'; tooltip.style.top = 'auto'; tooltip.style.bottom = '8px';
           tooltip.style.transform = 'translateX(-50%)'; tooltip.style.maxWidth = '90%';
           tooltip.classList.add('visible');
+          addScrollDismiss();
         }
       });
-      svg.on('click', function() { tooltip.classList.remove('visible'); touchState.touchStateSet(null); });
+      svg.on('click', function() { dismissTooltip(); removeScrollDismiss(); });
     } else {
       selection
         .on('mouseover', function(event, d) { tooltip.innerHTML = buildTip(d.data || d); tooltip.classList.add('visible'); })
