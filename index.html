@@ -2067,7 +2067,7 @@ details > summary::-webkit-details-marker { display: none; }
     <div id="dashboardContainer" class="dashboard-container">
       
      <div id="landingState" style="display:flex; flex-direction:column; align-items:center; padding-top: max(8vh, 3rem); min-height: 60vh; width: 100%; max-width: 640px; margin: 0 auto;">
-      <h1 class="hero-title" style="font-size: clamp(2rem, 5vw, 3rem); margin-bottom: 0.5rem; line-height: 1.1;">Follow the Money.</h1>
+       <h1 class="hero-title" style="font-size: clamp(2rem, 5vw, 3rem); margin-bottom: 0.5rem; line-height: 1.1;">Follow the Money.</h1>
 <p class="hero-subtitle" style="font-size: var(--text-lg); color: var(--text-secondary); max-width: 600px; margin-bottom: 2rem;">
   Who's buying. Who's winning. What's expiring.
 </p>
@@ -3048,6 +3048,7 @@ const ChartUtils = {
     // Dismiss tooltip on scroll or touch outside chart
     const dismissTooltip = () => { tooltip.classList.remove('visible'); touchState.touchStateSet(null); };
     const scrollParent = document.getElementById('appView');
+    let autoFadeTimer = null;
     
     if (isTouch) {
       // Scroll dismissal
@@ -3064,7 +3065,7 @@ const ChartUtils = {
 
       // Touch-outside dismissal
       const outsideTapHandler = (e) => {
-        if (!container.contains(e.target)) { dismissTooltip(); }
+        if (!container.contains(e.target)) { dismissTooltip(); clearTimeout(autoFadeTimer); }
       };
       document.addEventListener('touchstart', outsideTapHandler, { passive: true });
 
@@ -3073,7 +3074,7 @@ const ChartUtils = {
         Utils.vibrate(15);
         const e = d.data || d;
         if (touchState.touchStateGet() === e.name) {
-          dismissTooltip(); removeScrollDismiss(); doDrill(e);
+          dismissTooltip(); removeScrollDismiss(); clearTimeout(autoFadeTimer); doDrill(e);
         } else {
           touchState.touchStateSet(e.name);
           tooltip.innerHTML = buildTip(e);
@@ -3081,21 +3082,31 @@ const ChartUtils = {
           tooltip.style.transform = 'translateX(-50%)'; tooltip.style.maxWidth = '90%';
           tooltip.classList.add('visible');
           addScrollDismiss();
+          // Auto-fade after 3 seconds
+          clearTimeout(autoFadeTimer);
+          autoFadeTimer = setTimeout(dismissTooltip, 3000);
         }
       });
-      svg.on('click', function() { dismissTooltip(); removeScrollDismiss(); });
+      svg.on('click', function() { dismissTooltip(); removeScrollDismiss(); clearTimeout(autoFadeTimer); });
     } else {
+      let autoFadeTimer = null;
       selection
-        .on('mouseover', function(event, d) { tooltip.innerHTML = buildTip(d.data || d); tooltip.classList.add('visible'); })
+        .on('mouseover', function(event, d) {
+          clearTimeout(autoFadeTimer);
+          tooltip.innerHTML = buildTip(d.data || d); tooltip.classList.add('visible');
+          autoFadeTimer = setTimeout(dismissTooltip, 3000);
+        })
         .on('mousemove', function(event) {
           const cr = container.getBoundingClientRect();
           let tx = event.clientX - cr.left + 15, ty = event.clientY - cr.top - 10;
           if (tx + 260 > w) tx -= 280; if (ty + 90 > h) ty -= 100;
           tooltip.style.left = tx + 'px'; tooltip.style.top = ty + 'px';
           tooltip.style.bottom = 'auto'; tooltip.style.transform = 'none'; tooltip.style.maxWidth = '';
+          clearTimeout(autoFadeTimer);
+          autoFadeTimer = setTimeout(dismissTooltip, 3000);
         })
-        .on('mouseout', function() { tooltip.classList.remove('visible'); })
-        .on('click', function(event, d) { tooltip.classList.remove('visible'); doDrill(d.data || d); });
+        .on('mouseout', function() { clearTimeout(autoFadeTimer); tooltip.classList.remove('visible'); })
+        .on('click', function(event, d) { clearTimeout(autoFadeTimer); tooltip.classList.remove('visible'); doDrill(d.data || d); });
     }
   },
 
