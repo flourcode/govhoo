@@ -965,6 +965,17 @@ text-overflow: ellipsis;
   color: inherit;
 }
 
+/* The single fixed mark rule */
+.strategic-read mark {
+  background: rgba(74, 155, 120, 0.14);
+  color: inherit;
+  padding: 1px 3px;
+  border-radius: 3px;
+  font-weight: 600;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
 /* Stripped down blockquotes */
 .strategic-read blockquote {
   border-left: 2px solid var(--border);
@@ -3187,6 +3198,7 @@ parseAiMarkdown(rawText) {
   } else {
     return processed.replace(/\n/g, '<br>');
   }
+}
 };
 
 const API = {
