@@ -993,12 +993,14 @@ input[type="search"]::-webkit-search-cancel-button {
   text-decoration: none;
 }
 
-/* Blockquotes */
+/* Blockquotes — render as plain text, no visual treatment */
 .strategic-read blockquote {
-  border-left: 2px solid rgba(255,255,255,0.1);
-  margin: 0.75rem 0;
-  padding: 0.5rem 0.75rem;
-  color: var(--text-secondary);
+  border: none;
+  margin: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  font-style: normal;
 }
 
 /* Images (if AI ever returns any via markdown) */
@@ -1091,7 +1093,7 @@ input[type="search"]::-webkit-search-cancel-button {
 .ai-msg-arti .strategic-read p:first-child { margin-top: 0; }
 .ai-msg-arti .strategic-read p:last-child { margin-bottom: 0; }
 .ai-msg-arti .strategic-read ul { margin-bottom: 0.5rem; }
-.ai-msg-arti .strategic-read blockquote { margin: 0.5rem 0; padding: 0.5rem 0.75rem; }
+.ai-msg-arti .strategic-read blockquote { margin: 0; padding: 0; border: none; background: none; }
 
 .ai-msg-arti, .ai-msg-user { scroll-margin-top: 100px; }
 
@@ -3267,13 +3269,15 @@ parseAiMarkdown(rawText) {
   // 1. Sanitize text, kill code blocks, and ASSASSINATE ALL MARK TAGS (escaped or not)
   let processed = rawText
     .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '')
-    .replace(/&lt;\/?thinking&gt;[\s\S]*?&lt;\/?thinking&gt;/gi, '') // Kill escaped thinking
-    .replace(/<\/?mark>/gi, '') // Kill raw mark tags
-    .replace(/&lt;\/?mark&gt;/gi, '') // Kill escaped mark tags
-    .replace(/\[\[\/?MARK\]\]/gi, '') // Kill any leftover token attempts
+    .replace(/&lt;\/?thinking&gt;[\s\S]*?&lt;\/?thinking&gt;/gi, '')
+    .replace(/<\/?mark>/gi, '')
+    .replace(/&lt;\/?mark&gt;/gi, '')
+    .replace(/\[\[\/?MARK\]\]/gi, '')
     .replace(/```[\s\S]*?```/g, '')
     .replace(/`/g, '')
+    .replace(/^\s*>+\s?/gm, '')          // Kill blockquote markers before marked sees them
     .replace(/^\s*[-*]\s+/gm, '• ')
+    .replace(/^\s{4,}/gm, '')            // Kill leading indentation that marked treats as code blocks
     .trim();
   
   // 2. Parse clean text
@@ -3283,7 +3287,10 @@ parseAiMarkdown(rawText) {
       headerIds: false,
       breaks: true
     });
-    return marked.parse(processed);
+    let html = marked.parse(processed);
+    // Belt-and-suspenders: unwrap any blockquotes that still snuck through
+    html = html.replace(/<\/?blockquote>/gi, '');
+    return html;
   } else {
     return processed.replace(/\n/g, '<br>');
   }
