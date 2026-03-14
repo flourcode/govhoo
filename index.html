@@ -3332,7 +3332,7 @@ scrollToPanel(id) {
       
       const content = DOM.get('aiContentContainer');
       content.innerHTML = `<div class="ai-result-section strategic-read">${renderedHtml}</div>`;
-      content.dataset.rawPlan = strategicText;
+      content.dataset.rawPlan = strategicTextRaw;
       DOM.show('copyAiBtn');
 
       DOM.show('aiChatInputWrapper');
@@ -3343,7 +3343,7 @@ scrollToPanel(id) {
 
       App.aiState.history = [
         { role: 'user', content: `Give me a strategic read on the "${App.currentQuery}" market.` },
-        { role: 'model', content: strategicText }
+        { role: 'model', content: strategicTextRaw }
       ];
         
     } catch (e) {
@@ -3400,14 +3400,15 @@ scrollToPanel(id) {
     App.aiState.history.push({ role: 'user', content: msg });
 
     try {
+      const conferenceContext = ConferenceEngine.formatForPrompt(App.searchData.active, App.currentQuery);
       const res = await fetch(App.AI_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           request_type: 'govhoo_chat', 
-          market_data: App.searchData.active.slice(0, 40), 
+          market_data: App.searchData.active, // FIX: Send full array, let Lambda slice it
           history: App.aiState.history,
-          conference_context: ConferenceEngine.formatForPrompt(App.searchData.active, App.currentQuery)
+          conference_context: conferenceContext
         })
       });
 
@@ -3422,10 +3423,14 @@ scrollToPanel(id) {
 
       clearInterval(progressTimer);
       loaderEl.classList.remove('arti-thinking');
-      loaderEl.innerHTML = `
-        <img src="/images/arti.png" class="ai-avatar small" alt="">
-        <div class="strategic-read">${renderedHtml}</div>
-      `;
+      
+      // FIX: Target only the text area to prevent the Avatar image from "flashing"
+      const textTarget = DOM.get(`${loaderId}-text`);
+      if (textTarget) {
+        textTarget.removeAttribute('style'); // Remove the "Reviewing data" italic styling
+        textTarget.className = 'strategic-read';
+        textTarget.innerHTML = renderedHtml;
+      }
 
       setTimeout(() => { App.scrollToPanel(loaderId); }, 200);
 
