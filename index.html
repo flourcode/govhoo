@@ -2425,36 +2425,32 @@ details > summary::-webkit-details-marker { display: none; }
       </div> <footer class="hero-footer">
         <div class="footer-grid">
 
-          <div class="footer-section">
+                    <div class="footer-section">
             <div class="footer-label">How it works</div>
             <ol class="steps-list" style="list-style:none;padding-left:0;">
               <li style="margin-bottom:1rem;">
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-                  <strong>Search the market</strong>
+                  <strong>Search any market</strong>
                 </div>
                 <div style="font-size:var(--text-sm);color:var(--text-secondary);line-height:1.5;">
-                  Enter a keyword, NAICS code, company, or agency to 
-                  <em class="explainer-highlight">instantly see who's buying, who's winning, and how big the market is</em>. 
-                  <strong style="color:var(--text-primary);">Note: This is a literal database, not Google.</strong> Keep your terms exact. Use <strong>AND</strong> to intersect targets (e.g., <em>DHS AND Splunk</em>), commas to search multiple terms (<em>Cloud, Cyber</em>), or NAICS/PSC codes to cut through noisy descriptions.
+                  Type a keyword, company, agency, or NAICS code. In seconds you’ll see <em class="explainer-highlight">the total obligated value, who’s buying, who’s winning, and what’s expiring</em>.
+                  <strong style="color:var(--text-primary);">This is a literal database, not Google</strong>, so keep terms exact. Use <strong>AND</strong> to intersect (e.g., <em>DHS AND Splunk</em>), commas for OR (<em>Cloud, Cyber</em>).
                 </div>
               </li>
               <li style="margin-bottom:1rem;">
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-                  <strong>Find active spend</strong>
+                  <strong>Read the signals</strong>
                 </div>
-                <div style="font-size:var(--text-sm);color:var(--text-secondary);line-height:1.5;">
-                  The <em class="explainer-highlight">Market and Recent Awards</em> view
-                  highlights agencies with real opportunity by looking at vendor concentration,
-                  expiring contracts, and buying signals.
-                </div>
+               <div style="font-size:var(--text-sm);color:var(--text-secondary);line-height:1.5;">
+The Market Signals view shows you <em class="explainer-highlight">where the money is concentrated, which contracts are expiring, and which accounts to target</em>. The data comes directly from <em class="explainer-highlight">USASpending</em>. Govhoo simply adds an <em class="explainer-highlight">analysis and visualization layer</em> so the market picture is easier to see.
+</div>
               </li>
               <li>
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-                  <strong>Ask Arti for a read</strong>
+                  <strong>Get Arti’s take</strong>
                 </div>
                 <div style="font-size:var(--text-sm);color:var(--text-secondary);line-height:1.5;">
-                  Tap <em class="explainer-highlight">Ask Arti</em> for a quick strategy brief.
-                  Arti surfaces expiring contracts, partner ecosystems, and likely entry points.
+                  Tap <em class="explainer-highlight">Ask Arti</em> for an AI strategy brief that reads the data<em class="explainer-highlight">incumbents, entry points, teaming partners, and recommends what to do next</em>.
                 </div>
               </li>
             </ol>
@@ -2465,28 +2461,24 @@ details > summary::-webkit-details-marker { display: none; }
             <div class="use-cases">
               <div class="use-case">
                 <div class="use-case-title">Why totals look high</div>
+               <div class="use-case-desc">
+The dollar figures reflect the <em class="explainer-highlight">full lifetime obligated value of multi-year contracts</em>, not a single year's spend.
+A 5-year, $50M contract that received a $1M modification last month still appears as $50M. This helps you see the <em class="explainer-highlight">true footprint of the market</em> so you can use historical buying patterns to decide where to focus next.
+</div>
+
+              </div>
+              <div class="use-case">
+                <div class="use-case-title">What’s included</div>
                 <div class="use-case-desc">
-                  Govhoo's market totals might seem surprisingly high.
-                  The totals represent <em class="explainer-highlight">cumulative obligations to date</em>,
-                  which is the actual money the government has put on contract,
-                  not the ceiling value or a single year's budget.
+                  Govhoo shows contracts that have <em class="explainer-highlight">recorded funding actions in the past 12 months</em>, meaning money moved recently.
+                  Award amounts are the sum of federal action obligations as reported to <em class="explainer-highlight">USASpending.gov</em>.
                 </div>
               </div>
               <div class="use-case">
-                <div class="use-case-title">Active contracts only</div>
+                <div class="use-case-title">What this isn’t</div>
                 <div class="use-case-desc">
-                  Govhoo filters for contracts that have recorded funding actions in the past 12 months
-                  and then shows the <em class="explainer-highlight">full lifetime obligated value</em>
-                  of those contracts so you can see the real footprint of the market.
-                </div>
-              </div>
-              <div class="use-case">
-                <div class="use-case-title">Built for decision speed</div>
-                <div class="use-case-desc">
-                  Govhoo isn’t a granular opportunity tracker. It’s a way to turn contract data
-                  into <em class="explainer-highlight">visuals that help teams quickly understand a market</em>.
-                  In a QBR you can pull up a market and everyone in the room sees the same picture.
-                </div>
+Govhoo is not an opportunity tracker or an RFP database. It is <em class="explainer-highlight">market intelligence</em> that helps you quickly see how a federal market is structured so your team can decide where to focus.
+</div>
               </div>
             </div>
           </div>
@@ -2494,21 +2486,20 @@ details > summary::-webkit-details-marker { display: none; }
           <div class="footer-section">
             <div class="footer-label">Built by a seller</div>
             <p class="footer-text">
-              <img src="https://govhoo.com/images/oldmark.jpg" alt="Mark Flournoy" class="tip-bio-img">
-              Hi, I'm Mark. <em class="explainer-highlight">I've sold at AWS, F5, and Red Hat, served as a DISA COTR, and spent 20 years in the Marines</em>.
-              Even with that background, I still spent hours digging through <em class="explainer-highlight">FPDS ezSearch, USASpending, SAM.gov, and industry day decks</em> just trying to figure out where the money was flowing and who owned the workshare.
-              <br><br>
-              Govhoo lets you quickly size a market, see who the players are, and <em class="explainer-highlight">walk into a meeting sounding like a genius</em>. Pull it up before a customer meeting or during a QBR on your phone to <em class="explainer-highlight">sanity-check where the money is actually going</em>.
-              <br><br>
-              It also makes it a lot easier to <em class="explainer-highlight">show your boss, product team, and marketing why you're chasing the opportunities you are</em>.
-            </p>
+  <img src="https://govhoo.com/images/oldmark.jpg" alt="Mark Flournoy" class="tip-bio-img">
+  Hi, I’m Mark. Before building Govhoo I used to spend hours before every pipeline review digging through <em class="explainer-highlight">FPDS ezSearch, USASpending, SAM.gov, and industry day decks</em> just trying to answer a few basic questions: how big is this market, who owns the workshare, and is there actually an opening.
+  <br><br>
+  I’ve sold at AWS, F5, and Red Hat, served as a DISA COTR, and spent 20 years in the Marines. <em class="explainer-highlight">Govhoo is the tool I wished I had at every one of those jobs.</em>
+  <br><br>
+  Pull it up before a customer meeting, during a QBR, or when your boss asks why you’re chasing what you’re chasing. <em class="explainer-highlight">Everyone in the room can see the same picture in seconds and align on where to focus.</em>
+</p>
+
             <div style="padding:1rem 0;margin-top:1.2rem;border-top:1px solid var(--border);">
               <div style="font-size:var(--text-base);font-weight:600;color:var(--text-primary);margin-bottom:0.5rem;">
                 Need help?
               </div>
               <div style="font-size:var(--text-sm);color:var(--text-secondary);line-height:1.5;margin-bottom:1rem;">
-                Bring your territory or a target market and we'll <em class="explainer-highlight">pull the data together live</em>. 
-                You'll see how to use the charts, target accounts, and recent awards to quickly understand a market and walk into your next meeting prepared.
+                Bring a territory or target account. We’ll <em class="explainer-highlight">pull the data together on a call</em> and show you how to read the signals, size the market, and prep for your next meeting in minutes.
               </div>
               <a href="https://calendly.com/markflournoy/govhoo" target="_blank" style="text-decoration:none;">
                 <button class="btn-primary" style="width:100%;padding:0.6rem;font-size:var(--text-sm);justify-content:center;">
