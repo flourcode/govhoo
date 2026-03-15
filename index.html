@@ -439,9 +439,9 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: searchf
 .section-header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-sm); margin: 3rem 0 1.75rem 0; padding-bottom: 0; flex-wrap: wrap; border-bottom: none; }
 .section-title-group { display: flex; align-items: center; gap: var(--space-sm); }
 
-.stat-panel { padding: 0 0 0 0 !important; margin-bottom: 0.15rem; overflow: visible; }
+.stat-panel { padding: 0 0 0 0 !important; margin-bottom: 0; overflow: visible; }
 .stat-row { display: flex; flex-direction: column; align-items: flex-start; gap: 0; flex-wrap: wrap; }
-.stat-group { display: flex; gap: var(--space-lg); align-items: baseline; flex-wrap: wrap; margin-left: 0; padding-left: 0; border-left: none; margin-top: var(--space-xs); }
+.stat-group { display: flex; gap: var(--space-lg); align-items: baseline; flex-wrap: wrap; margin-left: 0; padding-left: 0; border-left: none; margin-top: 0.1rem; }
 .stat-item { display: flex; align-items: baseline; gap: var(--space-xs); }
 
 .feed-grid { display: flex; flex-direction: column; gap: 1rem; }
@@ -848,9 +848,9 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: searchf
   .deal-vendor, .deal-meta { margin-bottom: var(--space-xs); }
   .deal-footer { padding-top: 0.35rem; }
   .main-input, .mini-search, input, select, textarea { font-size: 16px !important; }
-  .stat-panel { padding: 0.75rem 0; }
+  .stat-panel { padding: 0.35rem 0; }
   .stat-subtitle { font-size: var(--text-sm); line-height: 1.5; }
-  .stat-row { flex-direction: column; align-items: flex-start; gap: var(--space-xs); }
+  .stat-row { flex-direction: column; align-items: flex-start; gap: 0; }
   .stat-group { gap: var(--space-md); margin-left: 0; padding-left: 0; border-left: none; }
   .section-title { font-size: 1.15rem !important; line-height: 1.2 !important; white-space: normal !important; }
   .stat-hero { font-size: 2rem !important; line-height: 1 !important; }
@@ -986,7 +986,7 @@ details > summary::-webkit-details-marker { display: none; }
 /* 23. INLINE EXTRACTS 
    =========================================== */
 .code-highlight { color: var(--accent); background: var(--accent-dim); padding: 2px 6px; border-radius: 4px; font-weight: 600; }
-.section-header-flush { margin-top: 0; margin-bottom: 0.5rem; }
+.section-header-flush { margin-top: 0; margin-bottom: 0.25rem; }
 .step-icon-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
 .text-sm-secondary { font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.5; }
 .ai-prompt-btn { border: 1px solid var(--border); background: transparent; color: var(--text-primary); white-space: normal; text-align: left; }
@@ -1010,9 +1010,6 @@ details > summary::-webkit-details-marker { display: none; }
 </head>
 <body>
   <svg aria-hidden="true" style="display: none;">
-    <symbol id="icon-govhoo" viewBox="180 180 280 280">
-      <path fill="currentColor" d="M368 360C368 373.3 378.7 384 392 384C405.3 384 416 373.3 416 360L416 248C416 234.7 405.3 224 392 224L280 224C266.7 224 256 234.7 256 248C256 261.3 266.7 272 280 272L334.1 272L231.1 375C221.7 384.4 221.7 399.6 231.1 408.9C240.5 418.2 255.7 418.3 265 408.9L368 305.9L368 360z"/>
-    </symbol>
     <symbol id="icon-slack" viewBox="0 0 640 640">
       <path fill="currentColor" d="M448 256C501 256 544 213 544 160C544 107 501 64 448 64C395 64 352 107 352 160C352 165.4 352.5 170.8 353.3 176L223.6 248.1C206.7 233.1 184.4 224 160 224C107 224 64 267 64 320C64 373 107 416 160 416C184.4 416 206.6 406.9 223.6 391.9L353.3 464C352.4 469.2 352 474.5 352 480C352 533 395 576 448 576C501 576 544 533 544 480C544 427 501 384 448 384C423.6 384 401.4 393.1 384.4 408.1L254.7 336C255.6 330.8 256 325.5 256 320C256 314.5 255.5 309.2 254.7 304L384.4 231.9C401.3 246.9 423.6 256 448 256z"/>
     </symbol>
