@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#1E1D1B" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#FFFFFF">
   <meta name="color-scheme" content="light dark">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -397,7 +396,7 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: searchf
 /* 10. PANELS & CARDS
    =========================================== */
 .market-section-heading { font-size: var(--text-sm); font-weight: 600; color: var(--text-tertiary); letter-spacing: 0; line-height: 1.3; text-transform: none; }
-#marketBrandLine {
+#marketBrandLine, #sankeyBrandLine {
   font-size: var(--text-sm);
   font-weight: 600;
   color: var(--text-tertiary);
@@ -938,7 +937,7 @@ details > summary::-webkit-details-marker { display: none; }
    =========================================== */
 @media (min-width: 1024px) {
   #bubbleChartPanel { padding-top: 0 !important; margin-top: 0 !important; }
-  #marketBrandLine { font-size: var(--text-sm) !important; margin-bottom: 0.15rem !important; }
+  #marketBrandLine, #sankeyBrandLine { font-size: clamp(1.35rem, 5vw, 2rem) !important; font-weight: 700 !important; color: var(--text-primary) !important; margin-bottom: 0.15rem !important; }
 
   #bubbleChartPanel .stat-row { flex-direction: row !important; align-items: baseline !important; gap: var(--space-md) !important; }
   #bubbleChartPanel .stat-group { margin-left: var(--space-sm) !important; padding-left: var(--space-md) !important; border-left: 1px solid rgba(0,0,0,0.08) !important; gap: var(--space-md) !important; }
@@ -1205,14 +1204,11 @@ details > summary::-webkit-details-marker { display: none; }
         </div>
 
         <div id="sankeyPanel">
-          <div id="sankeyHeader" class="section-header section-header-flush">
-            <div class="section-title-group" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-              <span class="section-title" style="font-size: clamp(1.35rem, 5vw, 2rem); font-weight: 900; letter-spacing: -0.04em;">Prime Money Flow</span>
-              <button class="action-btn" onclick="App.copySectionLink('flow', this)" style="font-weight: 600;"></button>
-            </div>
+          <div id="sankeyHeader">
+            <div id="sankeyBrandLine">Prime Money Flow</div>
           </div>
 
-          <div style="margin-bottom: 1rem;">
+          <div>
             <div class="stat-row">
               <div id="sankey-stat-vol" class="stat-hero">-</div>
               <div class="stat-group">
@@ -1287,7 +1283,7 @@ details > summary::-webkit-details-marker { display: none; }
             <div style="padding-top: 1rem; border-top: 1px solid var(--border); margin-top: 0.5rem;">
               <div style="margin-top: 0.5rem;">
                 <div id="subcontractingPanel" class="stat-panel" style="padding-top: 0;">
-                  <div id="subcontractingStats" style="margin-bottom: 1rem;">
+                  <div id="subcontractingStats" style="margin-bottom: 0;">
                     <div id="subSankeySubtitle" class="stat-subtitle hidden"></div>
                     <div class="stat-row">
                       <div id="sub-stat-vol" class="stat-hero">-</div>
@@ -1305,7 +1301,7 @@ details > summary::-webkit-details-marker { display: none; }
               </div>
 
               <div id="subBubblePanel" class="stat-panel hidden" style="margin-top: var(--section-gap);">
-                <div style="margin-bottom: 0.75rem;">
+                <div style="margin-bottom: 0;">
                   <div class="stat-row">
                     <div id="sub-bubble-stat-vol" class="stat-hero">-</div>
                     <div class="stat-group">
@@ -4532,7 +4528,7 @@ async renderHistoricalTimeline(query) {
           const bars = document.querySelectorAll('.trend-bar-wrapper');
           if (bars.length > 0) bars[bars.length - 1].click();
         }
-      }, 300);
+      }, 600);
 
     } catch (e) {
       console.error(e);
