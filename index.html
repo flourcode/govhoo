@@ -2720,57 +2720,39 @@ async searchAwards(keywords) {
     // Helper: Cleans the vendor names and sorts the data right before returning it
     const cleanAndSort = (dataArray) => {
       return dataArray.map(award => {
-        // Clean Vendor Names
         if (award['Recipient Name']) {
           award['Recipient Name'] = Utils.normalizeVendorName(award['Recipient Name']);
         }
         
-        // --- UNIVERSAL AAC EXTRACTOR & HIERARCHY FIX ---
+        // 1. Promote military branches to Top Agency
         const topAgency = (award['Awarding Agency'] || '').toUpperCase();
-        
-        // 1. Promote military branches to Top Agency if grouped under DoD
         if (topAgency.includes('DEFENSE') && award['Awarding Sub Agency']) {
           award['Awarding Agency'] = award['Awarding Sub Agency'];
         }
         
-        // 2. Extract the first 6 characters (The AAC / DoDAAC)
+        // 2. Extract Codes from Award ID (6-char and 4-char)
         const awardId = String(award['Award ID'] || '').toUpperCase();
-        // 1. Extract potential codes
-        const code6 = awardId.substring(0, 6).toUpperCase();
-        const code4 = awardId.substring(0, 4).toUpperCase();
+        const code6 = awardId.substring(0, 6);
+        const code4 = awardId.substring(0, 4);
         
-        // 2. Check the 6-digit code first, then fallback to the 4-digit code
-        const commandName = Utils.buyingOffices[code6] || Utils.buyingOffices[code4];
+        // 3. Extract Code from Sub-Agency Parentheses
+        const subAgencyRaw = (award['Awarding Sub Agency'] || '').toUpperCase();
+        const match = subAgencyRaw.match(/\(([^)]+)\)/);
+        const subCode = match ? match[1] : null;
         
-        const agencyName = (award['Awarding Agency'] || '').toUpperCase();
-        const subAgencyName = (award['Awarding Sub Agency'] || '').toUpperCase();
+        // 4. MASTER RESOLVE: Priority Order: ID(6) -> ID(4) -> Sub-Agency Code
+        const commandName = Utils.buyingOffices[code6] || 
+                            Utils.buyingOffices[code4] || 
+                            (subCode ? Utils.buyingOffices[subCode] : null);
         
         if (commandName) {
           award['Awarding Sub Agency'] = commandName;
-        } else if (subAgencyName.includes('CONTRACTING OFFICE (')) {
-          // Reach inside the parentheses: "Contracting Office (W6QK)"
-          const match = subAgencyName.match(/\(([^)]+)\)/);
-          if (match) {
-            const extracted = match[1].toUpperCase();
-            // Check 6-char and 4-char versions of the extracted code
-            const resolved = Utils.buyingOffices[extracted] || Utils.buyingOffices[extracted.substring(0,4)];
-            if (resolved) award['Awarding Sub Agency'] = resolved;
-          }
+        } else if (subAgencyRaw.includes('W6QK')) {
+          award['Awarding Sub Agency'] = "ACC Redstone Arsenal";
         }
-        
-        // If it's still a code or the "Contracting Office (XXXXXX)" placeholder,
-        // let's try to strip the junk.
-        const currentSub = award['Awarding Sub Agency'] || '';
-        if (currentSub.startsWith('Contracting Office (')) {
-           const match = currentSub.match(/\(([^)]+)\)/);
-           if (match && Utils.buyingOffices[match[1]]) {
-             award['Awarding Sub Agency'] = Utils.buyingOffices[match[1]];
-           }
-        }
-        // ---------------------------------------------
 
         return award;
-      }).sort((a,b) => b['Award Amount'] - a['Award Amount']);
+      }).sort((a,b) => (b['Award Amount'] || 0) - (a['Award Amount'] || 0));
     };
     const timePeriod = Utils.getTrailing12Mo();
     const period = timePeriod[0];
@@ -2829,7 +2811,7 @@ async searchAwards(keywords) {
           });
         }
         
-        return cleanAndSort(rawData);
+        return cleanAndSort(data);
       } else {
         filters.keywords = kws;
         const pool = (await this._post('/search/spending_by_award/', { filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })).results || [];
