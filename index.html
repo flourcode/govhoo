@@ -2131,15 +2131,14 @@ resolveAgencyAlias(term) {
     // 3. Check the hardcoded acronyms for Sub-Tier
     if (this.subAgencyAliases[lower]) return { tier: 'subtier', name: this.subAgencyAliases[lower] };
     
-    // 4. FUZZY MATCH: If the user typed "CBP" but the dict has "U.S. Customs..."
-    // We look through all aliases to see if the full name contains the term or vice-versa
+    // 4. EXACT MATCH ONLY (Removed the aggressive fuzzy matching)
     const subMatch = Object.entries(this.subAgencyAliases).find(([abbr, fullName]) => 
-      fullName.toLowerCase().includes(lower) || abbr === lower
+      fullName.toLowerCase() === lower || abbr === lower
     );
     if (subMatch) return { tier: 'subtier', name: subMatch[1] };
 
     const topMatch = Object.entries(this.agencyAliases).find(([abbr, fullName]) => 
-      fullName.toLowerCase().includes(lower) || abbr === lower
+      fullName.toLowerCase() === lower || abbr === lower
     );
     if (topMatch) return { tier: 'toptier', name: topMatch[1] };
     
@@ -2691,32 +2690,50 @@ const API = {
   CONTRACT_TYPES: ['A', 'B', 'C', 'D'],
   AWARD_FIELDS: [
     'Award ID', 'Recipient Name', 'Awarding Agency', 'Awarding Sub Agency',
-    'Awarding Office',
-    'Award Amount', 'Description', 'generated_internal_id', 'Start Date', 'End Date',
-    'NAICS', 'PSC'
+    'Awarding Office', 'Award Amount', 'Description', 'generated_internal_id', 
+    'Start Date', 'End Date', 'NAICS', 'PSC'
   ],
 
+  // 1. Add the controllers
+  _searchController: new AbortController(),
+  _autocompleteController: new AbortController(),
+
+  // 2. Add a method to trigger the kill switch
+  abortCurrentSearch() {
+    this._searchController.abort();
+    this._searchController = new AbortController(); // Reset for the new search
+  },
+
+  // 3. Inject the signal into your primary POST method
   async _post(endpoint, body) {
     const res = await fetch(`${this.baseUrl}${endpoint}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
+      signal: this._searchController.signal // Automatically attaches to all requests
     });
     if (!res.ok) throw new Error(`API ${res.status}`);
     return res.json();
   },
-
+  
   async fetchAgencySuggestions(searchText) {
     if (searchText.length < 2) return [];
+    
+    // Kill the previous keystroke's request
+    this._autocompleteController.abort();
+    this._autocompleteController = new AbortController();
+
     try {
       const res = await fetch('https://api.usaspending.gov/api/v2/autocomplete/awarding_agency/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ search_text: searchText, limit: 10 })
+        body: JSON.stringify({ search_text: searchText, limit: 10 }),
+        signal: this._autocompleteController.signal // Add signal here
       });
       const data = await res.json();
       return data.results || [];
     } catch (e) {
+      if (e.name === 'AbortError') return []; // Ignore aborts from fast typing
       console.warn('Autocomplete failed:', e);
       return [];
     }
@@ -2914,7 +2931,13 @@ const startYear = currentYear - 4;
     });
     if (agencies.length > 0) filters.agencies = agencies;
     if (kws.length > 0) filters.keywords = kws;
-    const response = await fetch(`${this.baseUrl}/search/spending_over_time/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ group: "fiscal_year", filters }) });
+    // Change the fetch line to this:
+const response = await fetch(`${this.baseUrl}/search/spending_over_time/`, { 
+  method: 'POST', 
+  headers: { 'Content-Type': 'application/json' }, 
+  body: JSON.stringify({ group: "fiscal_year", filters }),
+  signal: this._searchController.signal // Add the signal here
+});
     let results = response.ok ? ((await response.json()).results || []) : [];
     const finalResults = [];
     for (let y = startYear; y <= currentYear; y++) {
@@ -3902,6 +3925,10 @@ scrollToPanel(id) {
     App.originalQuery = rawQuery;
 
     const thisSearch = ++App._searchId;
+
+    // NEW: Terminate any background API calls from previous searches
+    API.abortCurrentSearch();
+
     App.showLoader('Scanning ' + query);
 
     try {
@@ -3977,14 +4004,23 @@ scrollToPanel(id) {
       });
       this.loadBackgroundData(query);
     } catch(e) { 
+      // NEW: If the error is an intentional abort, just silently exit!
+      if (e.name === 'AbortError') {
+        return; 
+      }
+
       if (thisSearch !== App._searchId) return;
       console.error(e);
       App.toast('Search failed.', 'error');
     } finally { 
-      App.hideLoader(); 
+      // NEW: Only hide the loader if this is STILL the active search
+      // (Prevents an aborted search from hiding the loader of the new search)
+      if (thisSearch === App._searchId) {
+        App.hideLoader(); 
+      }
     }
   },
-  async loadBackgroundData(query) {
+async loadBackgroundData(query) {
     this.loadForecastInBackground(query);
     try { this.loadNaicsBreakdown(query); } catch(e) { console.warn('NAICS load failed:', e); }
     try { setTimeout(() => this.loadSubcontractingData(query), 0); } catch(e) { console.warn('Background data failure:', e); }
@@ -4586,7 +4622,13 @@ copySectionLink(sectionHash, btnElement) {
     App.drillState.level = 2;
     App.drillState.currentSubAgency = name;
     App.drillState.path = [{type: 'agency', name: App.drillState.currentAgency}, {type: 'sub', name: name}];
-    App.searchData.active = App.searchData.raw.filter(d => d['Awarding Agency'] === App.drillState.currentAgency && d['Awarding Sub Agency'] === name);
+    
+    // FIX: Filter by Sub Agency OR Office to support deep DoD drill-downs
+    App.searchData.active = App.searchData.raw.filter(d => 
+      d['Awarding Agency'] === App.drillState.currentAgency && 
+      (d['Awarding Sub Agency'] === name || d['Awarding Office'] === name)
+    );
+    
     App.searchData.filter = name;
     App.activeFeedSource = 'prime';
     if (App.bubbleMode !== 'vendors' && App.bubbleMode !== 'agencies') App.bubbleMode = 'auto';
@@ -4604,21 +4646,18 @@ copySectionLink(sectionHash, btnElement) {
     else if (lvl === 2) App.drillToSubAgency(App.drillState.path[1].name, preventRender);
   },
 
-  drillDown(name, preventRender = false) {
+drillDown(name, preventRender = false) {
     const data = App.searchData.raw;
-    const agencyMatch = data.find(d => d['Awarding Agency'] === name);
-    const subAgencyMatch = data.find(d => d['Awarding Sub Agency'] === name);
+    
+    // Strict matching to figure out exactly what the user clicked
     const vendorMatch = data.find(d => d['Recipient Name'] === name);
+    const officeMatch = data.find(d => d['Awarding Office'] === name);
+    const subAgencyMatch = data.find(d => d['Awarding Sub Agency'] === name);
+    const agencyMatch = data.find(d => d['Awarding Agency'] === name);
 
     App.searchData.active = data;
 
-    if (agencyMatch && !subAgencyMatch) {
-      App.drillToAgency(name, preventRender);
-    } else if (subAgencyMatch) {
-      const parentName = subAgencyMatch['Awarding Agency'];
-      App.drillState.currentAgency = parentName; 
-      App.drillToSubAgency(name, preventRender);
-    } else if (vendorMatch) {
+    if (vendorMatch) {
       if (App.drillState.level === 3) App.drillState.path.pop();
       App.drillState.level = 3; 
       App.drillState.path.push({ type: 'vendor', name: name });
@@ -4630,6 +4669,17 @@ copySectionLink(sectionHash, btnElement) {
         Utils.syncUrlState(); 
         App.updateSearchDashboard(); 
       }
+    } else if (officeMatch) {
+      // NEW: Handles clicks on 'Awarding Office' Sankey nodes
+      App.drillState.currentAgency = officeMatch['Awarding Agency'];
+      App.drillToSubAgency(name, preventRender);
+    } else if (subAgencyMatch && (!agencyMatch || App.drillState.level === 1)) {
+      // If it's a sub-agency (and not simultaneously the parent, OR we are already drilled down)
+      const parentName = subAgencyMatch['Awarding Agency'];
+      App.drillState.currentAgency = parentName; 
+      App.drillToSubAgency(name, preventRender);
+    } else if (agencyMatch) {
+      App.drillToAgency(name, preventRender);
     }
   },
 
