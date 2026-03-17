@@ -1242,7 +1242,7 @@ details > summary::-webkit-details-marker { display: none; }
 
             <div id="marketAttributionFooter" style="grid-column: 1 / -1;">
               <div id="marketAttributionText">
-                Market totals and analytics are calculated using the top 100 largest active contracts in your search results that have received funding in the last 12 months. Source: USASpending.gov API. © Govhoo
+                Top 100 active contracts by value, with funding in the past 12 months. Source: USASpending.gov. © Govhoo
               </div>
             </div>
 
@@ -2125,20 +2125,21 @@ resolveAgencyAlias(term) {
     // 1. Check the dynamic memory bank first (for autocomplete selections)
     if (this.dynamicAgencies[lower]) return this.dynamicAgencies[lower];
 
-    // 2. Check the hardcoded acronyms for Top-Tier
+    // 2. Check the hardcoded acronyms
     if (this.agencyAliases[lower]) return { tier: 'toptier', name: this.agencyAliases[lower] };
-    
-    // 3. Check the hardcoded acronyms for Sub-Tier
     if (this.subAgencyAliases[lower]) return { tier: 'subtier', name: this.subAgencyAliases[lower] };
     
-    // 4. EXACT MATCH ONLY (Removed the aggressive fuzzy matching)
+    // NEW: Helper to strip official prefixes for natural language matching
+    const stripPrefix = name => name.toLowerCase().replace(/^(department of (the )?|office of (the )?|u\.s\. )/, '').trim();
+
+    // 3. EXACT MATCH ONLY (But supports natural names like "Air Force" or "Energy")
     const subMatch = Object.entries(this.subAgencyAliases).find(([abbr, fullName]) => 
-      fullName.toLowerCase() === lower || abbr === lower
+      fullName.toLowerCase() === lower || abbr === lower || stripPrefix(fullName) === lower
     );
     if (subMatch) return { tier: 'subtier', name: subMatch[1] };
 
     const topMatch = Object.entries(this.agencyAliases).find(([abbr, fullName]) => 
-      fullName.toLowerCase() === lower || abbr === lower
+      fullName.toLowerCase() === lower || abbr === lower || stripPrefix(fullName) === lower
     );
     if (topMatch) return { tier: 'toptier', name: topMatch[1] };
     
@@ -5106,8 +5107,8 @@ async renderHistoricalTimeline(query) {
         box.innerHTML = `<span style="color:var(--text-primary); font-weight:500;">FY${fy.substring(2)}:</span> &nbsp; ${Utils.money(totalAmount)} (No agency breakdown available)`;
         return;
       }
-      
-      const agencyStrings = topAgencies.map(a => {
+
+      const agencyStrings = topAgencies.slice(0, 3).map(a => {
         const shortName = Utils.trunc(a.name.replace(/^Department of (the )?/i, ''), 22);
         return `<span style="color:var(--text-secondary);">${shortName}</span> <span style="font-weight:500; color:var(--text-primary);">${Utils.money(a.amount)}</span>`;
       });
