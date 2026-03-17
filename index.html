@@ -1843,8 +1843,8 @@ const Utils = {
     'cdc': 'Centers for Disease Control and Prevention', 'nih': 'National Institutes of Health',
     'cms': 'Centers for Medicare and Medicaid Services',
     'fema': 'Federal Emergency Management Agency', 'tsa': 'Transportation Security Administration',
-    'cbp': 'Customs and Border Protection', 'ice': 'Immigration and Customs Enforcement',
-    'uscis': 'Citizenship and Immigration Services', 'usss': 'Secret Service',
+    'cbp': 'U.S. Customs and Border Protection', 'ice': 'U.S. Immigration and Customs Enforcement',
+    'uscis': 'U.S. Citizenship and Immigration Services', 'usss': 'United States Secret Service',
     'cisa': 'Cybersecurity and Infrastructure Security Agency',
     'faa': 'Federal Aviation Administration', 'fhwa': 'Federal Highway Administration',
     'noaa': 'National Oceanic and Atmospheric Administration', 'nist': 'National Institute of Standards and Technology',
@@ -1895,39 +1895,29 @@ const Utils = {
     
     return null;
   },
-  normalizeQuery(query) {
-    let collapsedQuery = query;
-    const allDicts = [this.agencyAliases, this.subAgencyAliases, this.queryAliases];
-    
-    allDicts.forEach(dict => {
-      Object.entries(dict).forEach(([acronym, fullName]) => {
-        if (fullName.length > 5 && fullName.includes(' ')) {
-          const safeName = fullName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          const regex = new RegExp(`\\b${safeName}\\b`, 'gi');
-          collapsedQuery = collapsedQuery.replace(regex, acronym);
-          
-          const strippedName = fullName.replace(/^(Department of (the )?|Office of (the )?)/i, '');
-          if (strippedName !== fullName && strippedName.length > 5 && strippedName.includes(' ')) {
-             const regexStripped = new RegExp(`\\b${strippedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
-             collapsedQuery = collapsedQuery.replace(regexStripped, acronym);
-          }
-        }
-      });
-    });
+normalizeQuery(query) {
+    // 1. Clean up extra spaces and trailing commas
+    let cleanQuery = query
+      .replace(/\s+/g, ' ')
+      .replace(/\s+AND\s*$/i, '')
+      .replace(/,(\s*,)+/g, ',')
+      .replace(/,\s*$/, '')
+      .trim();
 
-    let cleanQuery = collapsedQuery
-      .replace(/\s+/g, ' ').replace(/\s+AND\s*$/i, '').replace(/,(\s*,)+/g, ',').replace(/,\s*$/, '').trim();
-
+    // 2. Translate acronyms into full names
     const translate = (str) => {
       const l = str.toLowerCase().trim();
       if (this.queryAliases[l]) return this.queryAliases[l];
       if (this.agencyAliases[l]) return this.agencyAliases[l];
       if (this.subAgencyAliases[l]) return this.subAgencyAliases[l];
+      
       const agencyMatch = this.resolveAgencyAlias(str);
       if (agencyMatch) return agencyMatch.name;
+      
       return str.trim();
     };
 
+    // 3. Process the query (respecting the AND/OR operators)
     return cleanQuery.split(',').map(commaPart => {
       if (/\bAND\b/.test(commaPart)) {
         return commaPart.split(/\bAND\b/).map(andPart => translate(andPart)).join(' AND ');
@@ -1935,7 +1925,6 @@ const Utils = {
       return translate(commaPart);
     }).join(', ');
   },
-
   cleanAgency(s) { return (s || '').replace(/^(Department of (the )?|Office of (the )?)/i, '').trim(); },
   titleIfCaps(s) { return s && s === s.toUpperCase() ? Utils.titleCase(s) : (s || ''); },
   displayName(s, len) { return Utils.trunc(Utils.titleIfCaps(s), len); },
