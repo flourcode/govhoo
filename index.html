@@ -2672,19 +2672,19 @@ const Html = {
     }[m]));
   },
   parseAiMarkdown(rawText) {
-    if (!rawText) return '';
-    
-    // 1. Strip out Arti's internal <thinking> tags (we still want to hide these)
-    let text = rawText
-      .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '')
-      .replace(/&lt;\/?thinking&gt;[\s\S]*?&lt;\/?thinking&gt;/gi, '')
-      .trim();
+  if (!rawText) return '';
+  let text = rawText.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '').trim();
 
-    // 2. Let marked.js do all the heavy lifting! 
-    // 'breaks: true' ensures single line breaks become <br> tags
-    marked.setOptions({ breaks: true, gfm: true });
-    return marked.parse(text);
+  // Check if marked loaded successfully
+  if (typeof marked === 'undefined') {
+      console.warn("Marked.js failed to load. Falling back to plain text.");
+      // Simple fallback replacing newlines with <br>
+      return text.replace(/\n/g, '<br>'); 
   }
+
+  marked.setOptions({ breaks: true, gfm: true });
+  return marked.parse(text);
+}
 };
 const API = {
   baseUrl: 'https://api.usaspending.gov/api/v2',
@@ -2738,24 +2738,36 @@ async resolveUnknownOffices(dataArray) {
     const codesToFetch = uniqueCodes.filter(code => !Utils.buyingOffices[code]);
     
     if (codesToFetch.length > 0) {
-      // THE SPEED UP: Run all fetches at the same time (Parallel)
-      await Promise.all(codesToFetch.map(async (code) => {
-        const sample = targets.find(a => a['Awarding Sub Agency'].includes(code));
-        if (!sample || !sample.generated_internal_id) return;
+      // THE SAFE SPEED UP: Run fetches in batches of 5 to prevent API rate limiting (429s)
+      const batchSize = 5;
+      
+      for (let i = 0; i < codesToFetch.length; i += batchSize) {
+        const batch = codesToFetch.slice(i, i + batchSize);
+        
+        // Run this batch of 5 in parallel
+        await Promise.all(batch.map(async (code) => {
+          const sample = targets.find(a => a['Awarding Sub Agency'].includes(code));
+          if (!sample || !sample.generated_internal_id) return;
 
-        try {
-          const res = await fetch(`https://api.usaspending.gov/api/v2/awards/${sample.generated_internal_id}/`);
-          if (res.ok) {
-            const json = await res.json();
-            const realName = json.awarding_agency?.office_agency_name;
-            if (realName) {
-              const cleanName = realName.replace(code, '').replace(/\(|\)/g, '').replace(/^[- ]+/, '').trim().toUpperCase();
-              Utils.buyingOffices[code] = cleanName;
-              memory[code] = cleanName;
+          try {
+            const res = await fetch(`https://api.usaspending.gov/api/v2/awards/${sample.generated_internal_id}/`);
+            if (res.ok) {
+              const json = await res.json();
+              const realName = json.awarding_agency?.office_agency_name;
+              if (realName) {
+                const cleanName = realName.replace(code, '').replace(/\(|\)/g, '').replace(/^[- ]+/, '').trim().toUpperCase();
+                Utils.buyingOffices[code] = cleanName;
+                memory[code] = cleanName;
+              }
             }
+          } catch (e) { 
+            console.warn("Fetch failed for", code); 
           }
-        } catch (e) { console.warn("Fetch failed for", code); }
-      }));
+        }));
+        
+        // Optional: add a tiny 100ms pause between batches if the API is still being strict
+        // await new Promise(resolve => setTimeout(resolve, 100));
+      }
       
       localStorage.setItem('govhoo_learned_offices', JSON.stringify(memory));
     }
@@ -2872,7 +2884,9 @@ async resolveUnknownOffices(dataArray) {
   },
 
   async getHistoricalTrend(query) {
-    const currentYear = new Date().getFullYear(), startYear = currentYear - 4;
+    const now = new Date();
+const currentYear = now.getMonth() >= 9 ? now.getFullYear() + 1 : now.getFullYear();
+const startYear = currentYear - 4;
     const timePeriod = [{ start_date: `${startYear - 1}-10-01`, end_date: `${currentYear}-09-30` }];
     const { pscCodes, naicsCodes, keywordTerms, andGroups } = Utils.parseSearchTerms(query);
     const filters = { time_period: timePeriod, award_type_codes: this.CONTRACT_TYPES };
