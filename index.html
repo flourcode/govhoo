@@ -1817,15 +1817,118 @@ const Utils = {
   },
 
   agencyAliases: {
-    'dod': 'Department of Defense', 'doj': 'Department of Justice', 'dhs': 'Department of Homeland Security',
-    'hhs': 'Department of Health and Human Services', 'dot': 'Department of Transportation', 'doe': 'Department of Energy',
-    'doi': 'Department of the Interior', 'dol': 'Department of Labor', 'doc': 'Department of Commerce',
-    'dos': 'Department of State', 'ed': 'Department of Education', 'hud': 'Department of Housing and Urban Development',
-    'usda': 'Department of Agriculture', 'va': 'Department of Veterans Affairs',
-    'gsa': 'General Services Administration', 'nasa': 'National Aeronautics and Space Administration',
-    'epa': 'Environmental Protection Agency', 'ssa': 'Social Security Administration',
-    'opm': 'Office of Personnel Management', 'sba': 'Small Business Administration',
-    'nara': 'National Archives and Records Administration', 'usaid': 'Agency for International Development',
+    "aahc": "400 Years of African-American History Commission",
+    "usab": "Access Board",
+    "acus": "Administrative Conference of the U.S.",
+    "achp": "Advisory Council on Historic Preservation",
+    "usadf": "African Development Foundation",
+    "usaid": "Agency for International Development",
+    "abmc": "American Battle Monuments Commission",
+    "arc": "Appalachian Regional Commission",
+    "afrh": "Armed Forces Retirement Home",
+    "goldwater": "Barry Goldwater Scholarship and Excellence In Education Foundation",
+    "heritageabroad": "Commission for the Preservation of America's Heritage Abroad",
+    "cfa": "Commission of Fine Arts",
+    "usccr": "Commission on Civil Rights",
+    "abilityone": "Committee for Purchase from People Who Are Blind or Severely Disabled",
+    "cftc": "Commodity Futures Trading Commission",
+    "cfpb": "Consumer Financial Protection Bureau",
+    "cpsc": "Consumer Product Safety Commission",
+    "cncs": "Corporation for National and Community Service",
+    "usace": "Corps of Engineers - Civil Works",
+    "cigie": "Council of the Inspectors General on Integrity and Efficiency",
+    "csosa": "Court Services and Offender Supervision Agency",
+    "dnfsb": "Defense Nuclear Facilities Safety Board",
+    "dra": "Delta Regional Authority",
+    "denali": "Denali Commission",
+    "usda": "Department of Agriculture",
+    "doc": "Department of Commerce",
+    "dod": "Department of Defense",
+    "ed": "Department of Education",
+    "doe": "Department of Energy",
+    "hhs": "Department of Health and Human Services",
+    "dhs": "Department of Homeland Security",
+    "hud": "Department of Housing and Urban Development",
+    "doj": "Department of Justice",
+    "dol": "Department of Labor",
+    "dos": "Department of State",
+    "dot": "Department of Transportation",
+    "va": "Department of Veterans Affairs",
+    "doi": "Department of the Interior",
+    "treas": "Department of the Treasury",
+    "treasury": "Department of the Treasury",
+    "dc courts": "District of Columbia Courts",
+    "eac": "Election Assistance Commission",
+    "epa": "Environmental Protection Agency",
+    "eeoc": "Equal Employment Opportunity Commission",
+    "eop": "Executive Office of the President",
+    "exim": "Export-Import Bank of the United States",
+    "fcsic": "Farm Credit System Insurance Corporation",
+    "fcc": "Federal Communications Commission",
+    "fdic": "Federal Deposit Insurance Corporation",
+    "fec": "Federal Election Commission",
+    "ffiec": "Federal Financial Institutions Examination Council",
+    "flra": "Federal Labor Relations Authority",
+    "fmc": "Federal Maritime Commission",
+    "fmcs": "Federal Mediation and Conciliation Service",
+    "fmshrc": "Federal Mine Safety and Health Review Commission",
+    "fpisc": "Federal Permitting Improvement Steering Council",
+    "ftc": "Federal Trade Commission",
+    "gsa": "General Services Administration",
+    "gao": "Government Accountability Office",
+    "gcerc": "Gulf Coast Ecosystem Restoration Council",
+    "truman": "Harry S Truman Scholarship Foundation",
+    "imls": "Institute of Museum and Library Services",
+    "iaf": "Inter-American Foundation",
+    "usitc": "International Trade Commission",
+    "madison": "James Madison Memorial Fellowship Foundation",
+    "jusfc": "Japan-United States Friendship Commission",
+    "kennedy center": "John F. Kennedy Center for the Performing Arts",
+    "mmc": "Marine Mammal Commission",
+    "mspb": "Merit Systems Protection Board",
+    "mcc": "Millennium Challenge Corporation",
+    "udall": "Morris K. Udall and Stewart L. Udall Foundation",
+    "nasa": "National Aeronautics and Space Administration",
+    "nara": "National Archives and Records Administration",
+    "ncpc": "National Capital Planning Commission",
+    "ncd": "National Council on Disability",
+    "ncua": "National Credit Union Administration",
+    "nea": "National Endowment for the Arts",
+    "neh": "National Endowment for the Humanities",
+    "nlrb": "National Labor Relations Board",
+    "nmb": "National Mediation Board",
+    "nsf": "National Science Foundation",
+    "ntsb": "National Transportation Safety Board",
+    "nbrc": "Northern Border Regional Commission",
+    "nrc": "Nuclear Regulatory Commission",
+    "nwtrb": "Nuclear Waste Technical Review Board",
+    "oshrc": "Occupational Safety and Health Review Commission",
+    "oge": "Office of Government Ethics",
+    "onhir": "Office of Navajo and Hopi Indian Relocation",
+    "opm": "Office of Personnel Management",
+    "osc": "Office of Special Counsel",
+    "opic": "Overseas Private Investment Corporation",
+    "pcortf": "Patient-Centered Outcomes Research Trust Fund",
+    "pc": "Peace Corps",
+    "pbgc": "Pension Benefit Guaranty Corporation",
+    "presidio": "Presidio Trust",
+    "pclob": "Privacy and Civil Liberties Oversight Board",
+    "pbrb": "Public Buildings Reform Board",
+    "rrb": "Railroad Retirement Board",
+    "sec": "Securities and Exchange Commission",
+    "sss": "Selective Service System",
+    "sba": "Small Business Administration",
+    "ssa": "Social Security Administration",
+    "scrc": "Southeast Crescent Regional Commission",
+    "sbrc": "Southwest Border Regional Commission",
+    "stb": "Surface Transportation Board",
+    "usagm": "U.S. Agency for Global Media",
+    "usich": "U.S. Interagency Council on Homelessness",
+    "dfc": "U.S. International Development Finance Corporation",
+    "csb": "United States Chemical Safety Board",
+    "cavc": "United States Court of Appeals for Veterans Claims",
+    "ustda": "United States Trade and Development Agency",
+    "vef": "Vietnam Education Foundation"
   },
 
   subAgencyAliases: {
@@ -1843,8 +1946,10 @@ const Utils = {
     'cdc': 'Centers for Disease Control and Prevention', 'nih': 'National Institutes of Health',
     'cms': 'Centers for Medicare and Medicaid Services',
     'fema': 'Federal Emergency Management Agency', 'tsa': 'Transportation Security Administration',
-    'cbp': 'U.S. Customs and Border Protection', 'ice': 'U.S. Immigration and Customs Enforcement',
-    'uscis': 'U.S. Citizenship and Immigration Services', 'usss': 'United States Secret Service',
+    'cbp': 'U.S. Customs and Border Protection', 
+    'ice': 'U.S. Immigration and Customs Enforcement',
+    'uscis': 'U.S. Citizenship and Immigration Services', 
+    'usss': 'United States Secret Service',
     'cisa': 'Cybersecurity and Infrastructure Security Agency',
     'faa': 'Federal Aviation Administration', 'fhwa': 'Federal Highway Administration',
     'noaa': 'National Oceanic and Atmospheric Administration', 'nist': 'National Institute of Standards and Technology',
@@ -1874,24 +1979,29 @@ const Utils = {
 // NEW: A memory bank for agencies found via the API
   dynamicAgencies: {}, 
 
-  resolveAgencyAlias(term) {
+resolveAgencyAlias(term) {
     const lower = term.toLowerCase().trim();
     
-    // NEW: Check the memory bank first before checking the hardcoded list
+    // 1. Check the dynamic memory bank first (for autocomplete selections)
     if (this.dynamicAgencies[lower]) return this.dynamicAgencies[lower];
 
+    // 2. Check the hardcoded acronyms for Top-Tier
     if (this.agencyAliases[lower]) return { tier: 'toptier', name: this.agencyAliases[lower] };
+    
+    // 3. Check the hardcoded acronyms for Sub-Tier
     if (this.subAgencyAliases[lower]) return { tier: 'subtier', name: this.subAgencyAliases[lower] };
     
-    const topMatch = Object.entries(this.agencyAliases).find(([key, val]) => 
-      val.toLowerCase() === lower || 'department of ' + val.toLowerCase() === lower
-    );
-    if (topMatch) return { tier: 'toptier', name: topMatch[1] };
-    
-    const subMatch = Object.entries(this.subAgencyAliases).find(([key, val]) => 
-      val.toLowerCase() === lower || 'department of ' + val.toLowerCase() === lower
+    // 4. FUZZY MATCH: If the user typed "CBP" but the dict has "U.S. Customs..."
+    // We look through all aliases to see if the full name contains the term or vice-versa
+    const subMatch = Object.entries(this.subAgencyAliases).find(([abbr, fullName]) => 
+      fullName.toLowerCase().includes(lower) || abbr === lower
     );
     if (subMatch) return { tier: 'subtier', name: subMatch[1] };
+
+    const topMatch = Object.entries(this.agencyAliases).find(([abbr, fullName]) => 
+      fullName.toLowerCase().includes(lower) || abbr === lower
+    );
+    if (topMatch) return { tier: 'toptier', name: topMatch[1] };
     
     return null;
   },
