@@ -2102,16 +2102,14 @@ buyingOffices: {
   dynamicAgencies: {}, 
 async loadMasterDictionary() {
     try {
-      const res = await fetch('offices.json');
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-      
+      // Use a relative path to ensure it works on subdomains/folders
+      const res = await fetch('./offices.json'); 
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const masterList = await res.json();
       Object.assign(this.buyingOffices, masterList);
-      
-      // THIS IS THE KEY: If you see this in the F12 console, the web version is working.
-      console.log("✅ DICTIONARY LOADED:", Object.keys(this.buyingOffices).length, "offices.");
+      console.log("✅ Office Dictionary Active:", Object.keys(this.buyingOffices).length, "entries");
     } catch (e) {
-      console.error("❌ DICTIONARY FAILED:", e);
+      console.error("❌ Dictionary Load Failed:", e);
     }
   },
 resolveAgencyAlias(term) {
@@ -2720,34 +2718,43 @@ async searchAwards(keywords) {
     // Helper: Cleans the vendor names and sorts the data right before returning it
     const cleanAndSort = (dataArray) => {
       return dataArray.map(award => {
+        // 1. Clean Vendor Names
         if (award['Recipient Name']) {
           award['Recipient Name'] = Utils.normalizeVendorName(award['Recipient Name']);
         }
         
-        // 1. Promote military branches to Top Agency
-        const topAgency = (award['Awarding Agency'] || '').toUpperCase();
-        if (topAgency.includes('DEFENSE') && award['Awarding Sub Agency']) {
+        // 2. Extract Data
+        const awardId = String(award['Award ID'] || '').toUpperCase();
+        const agency = (award['Awarding Agency'] || '').toUpperCase();
+        const subAgency = (award['Awarding Sub Agency'] || '').toUpperCase();
+
+        // 3. Promote military branches
+        if (agency.includes('DEFENSE') && award['Awarding Sub Agency']) {
           award['Awarding Agency'] = award['Awarding Sub Agency'];
         }
+
+        // 4. THE MASTER CODE EXTRACTOR
+        // We look for codes in: The start of the ID, and inside any parentheses in the name
+        const id6 = awardId.substring(0, 6);
+        const id4 = awardId.substring(0, 4);
         
-        // 2. Extract Codes from Award ID (6-char and 4-char)
-        const awardId = String(award['Award ID'] || '').toUpperCase();
-        const code6 = awardId.substring(0, 6);
-        const code4 = awardId.substring(0, 4);
-        
-        // 3. Extract Code from Sub-Agency Parentheses
-        const subAgencyRaw = (award['Awarding Sub Agency'] || '').toUpperCase();
-        const match = subAgencyRaw.match(/\(([^)]+)\)/);
-        const subCode = match ? match[1] : null;
-        
-        // 4. MASTER RESOLVE: Priority Order: ID(6) -> ID(4) -> Sub-Agency Code
-        const commandName = Utils.buyingOffices[code6] || 
-                            Utils.buyingOffices[code4] || 
-                            (subCode ? Utils.buyingOffices[subCode] : null);
-        
-        if (commandName) {
-          award['Awarding Sub Agency'] = commandName;
-        } else if (subAgencyRaw.includes('W6QK')) {
+        let subCode = null;
+        const parenMatch = subAgency.match(/\(([^)]+)\)/);
+        if (parenMatch) subCode = parenMatch[1].toUpperCase();
+
+        // 5. RESOLUTION PRIORITY
+        // We check the 6-digit ID, then the 4-digit ID, then the code from the SubAgency string,
+        // and finally we check if the SubAgency string STARTS with a known code (like W6QK).
+        const resolvedName = Utils.buyingOffices[id6] || 
+                             Utils.buyingOffices[id4] || 
+                             (subCode ? Utils.buyingOffices[subCode] : null) ||
+                             Utils.buyingOffices[subAgency.substring(0,6)] ||
+                             Utils.buyingOffices[subAgency.substring(0,4)];
+
+        if (resolvedName) {
+          award['Awarding Sub Agency'] = resolvedName;
+        } else if (subAgency.includes('W6QK')) {
+          // Hard safety for the specific Redstone ghost code
           award['Awarding Sub Agency'] = "ACC Redstone Arsenal";
         }
 
@@ -2859,7 +2866,7 @@ async searchAwards(keywords) {
     }
     
     const rawData = (await this._post('/search/spending_by_award/', { filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })).results || [];
-    return cleanAndSort(rawData);
+    return cleanAndSort(data);
   },
   async getNaicsBreakdown(keywords) {
     const timePeriod = Utils.getTrailing12Mo();
