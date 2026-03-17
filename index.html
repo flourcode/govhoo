@@ -398,7 +398,7 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: searchf
 .logo-btn-lg .logo-name { font-size: inherit; }
 
 .mini-search { background: var(--bg-hover); border: none; color: var(--text-primary); padding: 0 1rem; border-radius: var(--radius); font-size: 1.05rem; flex: 1; min-width: 0; box-shadow: none; height: clamp(42px, 5.5vw, 48px); }
-.mini-search-wrapper { flex: 1; min-width: 0; overflow: hidden; display: flex; align-items: center; position: relative; }
+.mini-search-wrapper { flex: 1; min-width: 0; overflow: visible; display: flex; align-items: center; position: relative; }
 .header-actions { display: flex; gap: 0.5rem; flex-shrink: 0; align-items: center; }
 
 .icon-btn {
@@ -1042,6 +1042,33 @@ details > summary::-webkit-details-marker { display: none; }
 #chartContainer {
   margin-bottom: 20px;
 }
+.autocomplete-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--bg-app);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  z-index: 1000;
+  max-height: 250px;
+  overflow-y: auto;
+  margin-top: 4px;
+}
+
+.suggestion-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border);
+  transition: var(--transition-fast);
+}
+
+.suggestion-item:last-child { border-bottom: none; }
+.suggestion-item:hover { background: var(--bg-hover); }
+.suggestion-tier { font-size: 0.8em; color: var(--text-tertiary); margin-left: 8px; text-transform: uppercase; }
 </style>
 </head>
 <body>
@@ -1086,7 +1113,9 @@ details > summary::-webkit-details-marker { display: none; }
           <span class="logo-name">Govhoo.</span>
         </span>
         <div class="mini-search-wrapper">
-          <input type="search" id="miniSearch" class="mini-search" aria-label="Search keywords, companies, NAICS" placeholder="Search keywords, companies, NAICS..." enterkeyhint="search" autocorrect="off" autocapitalize="none">
+          <input type="search" id="miniSearch" class="mini-search" aria-label="Search keywords, companies, NAICS" placeholder="Search keywords, companies, NAICS..." enterkeyhint="search" autocorrect="off" autocapitalize="none" autocomplete="off">
+          <!-- NEW: The header dropdown container -->
+          <div id="miniAgencySuggestions" class="autocomplete-dropdown hidden"></div>
         </div>
       </div>
       <div class="header-actions">
@@ -1117,7 +1146,9 @@ details > summary::-webkit-details-marker { display: none; }
 
         <div class="hero-search-wrapper">
           <svg class="icon hero-search-icon" aria-hidden="true"><use href="#icon-search"></use></svg>
-          <input type="search" id="mainSearchInput" class="main-input main-search-input" aria-label="Search the federal market" placeholder="Search keywords, NAICS, companies..." enterkeyhint="search" autocorrect="off" autocapitalize="none">
+          <input type="search" id="mainSearchInput" class="main-input main-search-input" aria-label="Search the federal market" placeholder="Search keywords, NAICS, companies..." enterkeyhint="search" autocorrect="off" autocapitalize="none" autocomplete="off">
+          <!-- NEW: The dropdown container -->
+          <div id="agencySuggestions" class="autocomplete-dropdown hidden"></div>
         </div>
 
         <div id="recentSearchesContainer" class="hero-suggestions hero-suggestions-container"></div>
@@ -1839,8 +1870,15 @@ const Utils = {
     'nga': 'National Geospatial-Intelligence Agency', 'nro': 'National Reconnaissance Office', 'dia': 'Defense Intelligence Agency'
   },
 
+// NEW: A memory bank for agencies found via the API
+  dynamicAgencies: {}, 
+
   resolveAgencyAlias(term) {
     const lower = term.toLowerCase().trim();
+    
+    // NEW: Check the memory bank first before checking the hardcoded list
+    if (this.dynamicAgencies[lower]) return this.dynamicAgencies[lower];
+
     if (this.agencyAliases[lower]) return { tier: 'toptier', name: this.agencyAliases[lower] };
     if (this.subAgencyAliases[lower]) return { tier: 'subtier', name: this.subAgencyAliases[lower] };
     
@@ -1856,7 +1894,6 @@ const Utils = {
     
     return null;
   },
-
   normalizeQuery(query) {
     let collapsedQuery = query;
     const allDicts = [this.agencyAliases, this.subAgencyAliases, this.queryAliases];
@@ -1999,25 +2036,26 @@ missionGapRisk(award) {
 
   filterActiveContracts(awards) {
     const now = new Date();
+    // Decide how long you want to look at dead contracts (e.g., 90 days)
     const grace = new Date(); grace.setDate(grace.getDate() - 90);
-    const recentMod = new Date(); recentMod.setDate(recentMod.getDate() - 30);
     
     return awards.filter(a => {
       const endStr = a['End Date'];
-      if (!endStr) return true;
+      if (!endStr) return true; 
+      
       const end = new Date(endStr);
-      if (isNaN(end.getTime())) return true;
+      if (isNaN(end.getTime())) return true; 
+      
+      // 1. Is it currently active? Let it through.
       if (end > now) return true; 
-      if (end > grace) {
-        if ((parseFloat(a['Award Amount']) || 0) > 10000) return true;
-        const modStr = a['Last Modified Date'];
-        if (modStr) { const mod = new Date(modStr); if (!isNaN(mod.getTime()) && mod > recentMod) return true; }
-        return false;
-      }
+      
+      // 2. Is it expired, but it expired in the last 90 days? Let it through.
+      if (end > grace) return true; 
+      
+      // 3. Did it expire more than 90 days ago? Hide it so it doesn't clutter the pipeline.
       return false; 
     });
   },
-
   getContractTypeTag(typeDesc) {
     if (!typeDesc) return null;
     const t = typeDesc.toLowerCase();
@@ -2081,7 +2119,7 @@ missionGapRisk(award) {
         else if (pscPat.test(term)) { filters.psc_codes = filters.psc_codes || []; filters.psc_codes.push(term.toUpperCase()); }
         else if (agencyMatch) {
           filters.agencies = filters.agencies || [];
-          filters.agencies.push({ type: 'awarding', tier: agencyMatch.tier, name: agencyMatch.name });
+          filters.agencies.push({ type: 'awarding', tier: agencyMatch.tier, name: agencyMatch.name, toptier_name: agencyMatch.toptier_name });
         }
         else kws.push(term);
       });
@@ -2094,7 +2132,7 @@ missionGapRisk(award) {
     const nonAgencyKeywords = [];
     keywordTerms.forEach(term => {
       const agencyMatch = Utils.resolveAgencyAlias(term);
-      if (agencyMatch) agencyFilters.push({ type: 'awarding', tier: agencyMatch.tier, name: agencyMatch.name });
+      if (agencyMatch) agencyFilters.push({ type: 'awarding', tier: agencyMatch.tier, name: agencyMatch.name, toptier_name: agencyMatch.toptier_name });
       else nonAgencyKeywords.push(term);
     });
     
@@ -2430,6 +2468,22 @@ const API = {
     if (!res.ok) throw new Error(`API ${res.status}`);
     return res.json();
   },
+  
+  async fetchAgencySuggestions(searchText) {
+    if (searchText.length < 2) return [];
+    try {
+      const res = await fetch('https://api.usaspending.gov/api/v2/autocomplete/awarding_agency/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ search_text: searchText, limit: 10 })
+      });
+      const data = await res.json();
+      return data.results || [];
+    } catch (e) {
+      console.warn('Autocomplete failed:', e);
+      return [];
+    }
+  },
 async searchAwards(keywords) {
     // Helper: Cleans the vendor names and sorts the data right before returning it
     const cleanAndSort = (dataArray) => {
@@ -2455,7 +2509,7 @@ async searchAwards(keywords) {
         const agencyMatch = Utils.resolveAgencyAlias(term);
         if (naicsPat.test(term)) codes.push({ type: 'naics', value: term });
         else if (pscPat.test(term)) codes.push({ type: 'psc', value: term.toUpperCase() });
-        else if (agencyMatch) agencies.push({ type: 'awarding', tier: agencyMatch.tier, name: agencyMatch.name });
+        else if (agencyMatch) agencies.push({ type: 'awarding', tier: agencyMatch.tier, name: agencyMatch.name, toptier_name: agencyMatch.toptier_name });
         else kws.push(term);
       });
       
@@ -2524,7 +2578,7 @@ async searchAwards(keywords) {
     
     keywordTerms.forEach(term => {
       const agencyMatch = Utils.resolveAgencyAlias(term);
-      if (agencyMatch) agencyFilters.push({ type: 'awarding', tier: agencyMatch.tier, name: agencyMatch.name });
+      if (agencyMatch) agencyFilters.push({ type: 'awarding', tier: agencyMatch.tier, name: agencyMatch.name, toptier_name: agencyMatch.toptier_name });
       else plainKeywords.push(term);
     });
     
@@ -2568,13 +2622,13 @@ async getHistoricalTrend(query) {
         const agencyMatch = Utils.resolveAgencyAlias(term);
         if (/^\d{6}$/.test(term)) codes.push({ type: 'naics', value: term });
         else if (/^[A-Z]{1,2}\d{1,3}$|^\d{1,2}[A-Z]\d{0,2}$/i.test(term)) codes.push({ type: 'psc', value: term.toUpperCase() });
-        else if (agencyMatch) agencies.push({ type: 'awarding', tier: agencyMatch.tier, name: agencyMatch.name });
+        else if (agencyMatch) agencies.push({ type: 'awarding', tier: agencyMatch.tier, name: agencyMatch.name, toptier_name: agencyMatch.toptier_name });
         else kws.push(term);
       });
     } else {
       keywordTerms.forEach(term => {
         const agencyMatch = Utils.resolveAgencyAlias(term);
-        if (agencyMatch) agencies.push({ type: 'awarding', tier: agencyMatch.tier, name: agencyMatch.name });
+        if (agencyMatch) agencies.push({ type: 'awarding', tier: agencyMatch.tier, name: agencyMatch.name, toptier_name: agencyMatch.toptier_name });
         else kws.push(term);
       });
       pscCodes.forEach(c => codes.push({ type: 'psc', value: c }));
@@ -2654,13 +2708,13 @@ async getTopAgenciesForYear(query, fy) {
     if (andGroups.length > 0) {
       andGroups[0].forEach(term => {
         const agencyMatch = Utils.resolveAgencyAlias(term);
-        if (agencyMatch) agencies.push({ type: 'awarding', tier: agencyMatch.tier, name: agencyMatch.name });
+        if (agencyMatch) agencies.push({ type: 'awarding', tier: agencyMatch.tier, name: agencyMatch.name, toptier_name: agencyMatch.toptier_name });
         else if (!/^\d{6}$/.test(term) && !/^[A-Z]{1,2}\d{1,3}$|^\d{1,2}[A-Z]\d{0,2}$/i.test(term)) kws.push(term);
       });
     } else {
       keywordTerms.forEach(term => {
         const agencyMatch = Utils.resolveAgencyAlias(term);
-        if (agencyMatch) agencies.push({ type: 'awarding', tier: agencyMatch.tier, name: agencyMatch.name });
+        if (agencyMatch) agencies.push({ type: 'awarding', tier: agencyMatch.tier, name: agencyMatch.name, toptier_name: agencyMatch.toptier_name });
         else kws.push(term);
       });
     }
@@ -3149,12 +3203,14 @@ const App = {
       }
     });
   },
-
 setupInputListeners() {
     const handleEnter = (e) => {
       if (e.key === 'Enter') {
         e.target.blur(); 
         App.runSearch(e.target.value);
+        // Hide dropdown if they hit enter
+        const box = DOM.get('agencySuggestions');
+        if (box) box.classList.add('hidden');
       }
     };
     
@@ -3178,6 +3234,78 @@ setupInputListeners() {
       main.addEventListener('click', handleFocus);
     }
 
+    // --- NEW: AUTOCOMPLETE LOGIC ---
+    const setupAutocomplete = (inputId, boxId) => {
+      const inputEl = DOM.get(inputId);
+      const boxEl = DOM.get(boxId);
+      let debounceTimer;
+
+      if (inputEl && boxEl) {
+        inputEl.addEventListener('input', (e) => {
+          clearTimeout(debounceTimer);
+          const val = e.target.value.trim();
+          
+          if (val.length < 2) {
+            boxEl.classList.add('hidden');
+            return;
+          }
+
+          debounceTimer = setTimeout(async () => {
+            const suggestions = await API.fetchAgencySuggestions(val);
+            
+            if (suggestions && suggestions.length > 0) {
+              // NEW: Save BOTH the sub-tier and top-tier names to memory
+              suggestions.forEach(s => {
+                if (s.subtier_agency && s.toptier_agency) {
+                  Utils.dynamicAgencies[s.subtier_agency.name.toLowerCase()] = { 
+                    tier: 'subtier', 
+                    name: s.subtier_agency.name, 
+                    toptier_name: s.toptier_agency.name // <-- This is the missing piece!
+                  };
+                }
+                if (s.toptier_agency) {
+                  Utils.dynamicAgencies[s.toptier_agency.name.toLowerCase()] = { 
+                    tier: 'toptier', 
+                    name: s.toptier_agency.name 
+                  };
+                }
+              });
+              boxEl.innerHTML = suggestions.map(s => {
+                // Safely grab the names, falling back to empty strings if missing
+                const subName = s.subtier_agency ? s.subtier_agency.name : '';
+                const topName = s.toptier_agency ? s.toptier_agency.name : '';
+                const displayName = subName || topName;
+                
+                // Escape quotes so the HTML doesn't break
+                const safeName = displayName.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const tierHtml = (subName && topName && subName !== topName) ? `<span class="suggestion-tier">(${topName})</span>` : '';
+                
+                return `<div class="suggestion-item" onclick="document.getElementById('${inputId}').value='${safeName}'; document.getElementById('${boxId}').classList.add('hidden'); App.runSearch('${safeName}');">
+                  <strong>${displayName}</strong> ${tierHtml}
+                </div>`;
+              }).join('');
+              
+              boxEl.classList.remove('hidden');
+            } else {
+              boxEl.classList.add('hidden');
+            }
+          }, 300);
+        });
+
+        // Hide the drop heredown if the user clicks anywhere else on the screen
+        document.addEventListener('click', (e) => {
+          if (!inputEl.contains(e.target) && !boxEl.contains(e.target)) {
+            boxEl.classList.add('hidden');
+          }
+        });
+      }
+    };
+
+    // Attach the logic to BOTH search bars
+    setupAutocomplete('mainSearchInput', 'agencySuggestions');
+    setupAutocomplete('miniSearch', 'miniAgencySuggestions');
+    // --- END AUTOCOMPLETE LOGIC ---
+
     const aiChat = DOM.get('aiChatInput');
     if (aiChat) {
       aiChat.addEventListener('keypress', (e) => {
@@ -3196,8 +3324,11 @@ setupInputListeners() {
         if (mini && mini.offsetParent !== null) { mini.focus(); mini.select(); }
         else if (main) { main.focus(); main.select(); }
       }
-      if (e.key === 'Escape' && document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
-        document.activeElement.blur();
+      if (e.key === 'Escape') {
+        if (suggestionsBox) suggestionsBox.classList.add('hidden');
+        if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
+          document.activeElement.blur();
+        }
       }
     });
 
@@ -3207,7 +3338,6 @@ setupInputListeners() {
       window.addEventListener('resize', setPlaceholder);
     }
   },
-
 showHero() {
     if (this.drillState && this.drillState.level > 0) {
       Utils.vibrate(10);
