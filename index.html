@@ -1055,6 +1055,13 @@ details > summary::-webkit-details-marker { display: none; }
   max-height: 250px;
   overflow-y: auto;
   margin-top: 4px;
+  pointer-events: auto; /* Ensure items are clickable */
+}
+
+/* Add this to force it to stay gone when hidden */
+.autocomplete-dropdown.hidden {
+  display: none !important;
+  pointer-events: none;
 }
 
 .suggestion-item {
@@ -3414,19 +3421,17 @@ setupInputListeners() {
                 }
               });
               boxEl.innerHTML = suggestions.map(s => {
-                // Safely grab the names, falling back to empty strings if missing
-                const subName = s.subtier_agency ? s.subtier_agency.name : '';
-                const topName = s.toptier_agency ? s.toptier_agency.name : '';
-                const displayName = subName || topName;
-                
-                // Escape quotes so the HTML doesn't break
-                const safeName = displayName.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                const tierHtml = (subName && topName && subName !== topName) ? `<span class="suggestion-tier">(${topName})</span>` : '';
-                
-                return `<div class="suggestion-item" onclick="document.getElementById('${inputId}').value='${safeName}'; document.getElementById('${boxId}').innerHTML=''; document.getElementById('${boxId}').classList.add('hidden'); document.getElementById('${inputId}').blur(); App.runSearch('${safeName}', true);">
-                  <strong>${displayName}</strong> ${tierHtml}
-                </div>`;
-              }).join('');
+  const subName = s.subtier_agency ? s.subtier_agency.name : '';
+  const topName = s.toptier_agency ? s.toptier_agency.name : '';
+  const displayName = subName || topName;
+  const safeName = displayName.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  const tierHtml = (subName && topName && subName !== topName) ? `<span class="suggestion-tier">(${topName})</span>` : '';
+  
+  // FIXED ONCLICK: Calls the new App function instead of writing raw JS strings
+  return `<div class="suggestion-item" onclick="App.selectAgencySuggestion('${safeName}', '${inputId}', '${boxId}')">
+  <strong>${displayName}</strong> ${tierHtml}
+</div>`;
+}).join('');
               
               boxEl.classList.remove('hidden');
             } else {
@@ -6271,7 +6276,24 @@ requestAnimationFrame(() => {
     const url = new URL(window.location);
     Utils.copyAndAnimate(url.toString(), btn, '');
   },
-
+selectAgencySuggestion(name, inputId, boxId) {
+    const inputEl = DOM.get(inputId);
+    const boxEl = DOM.get(boxId);
+    
+    if (inputEl) {
+      inputEl.value = name;
+      // This is the "Magic Line" for mobile. It kills the blinking cursor 
+      // and forces the keyboard/dropdown to close.
+      inputEl.blur(); 
+    }
+    
+    if (boxEl) {
+      boxEl.innerHTML = '';
+      boxEl.classList.add('hidden'); // This hits your .hidden CSS rule
+    }
+    
+    this.runSearch(name, true);
+  },
   shareBrief(btn) {
     if (!App._currentBriefText) {
       App.toast('No data available to share.', 'warning');
