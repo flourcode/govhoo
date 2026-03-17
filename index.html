@@ -1235,7 +1235,7 @@ details > summary::-webkit-details-marker { display: none; }
 
             <div id="marketAttributionFooter" style="grid-column: 1 / -1;">
               <div id="marketAttributionText">
-                Total obligated value shows the lifetime dollars on contracts active in the past 12 months. The trend chart shows new obligations by fiscal year. Source: USASpending.gov. © Govhoo
+                Market totals and analytics are calculated using the top 100 largest active contracts in your search results that have received funding in the last 12 months. Source: USASpending.gov API. © Govhoo
               </div>
             </div>
 
@@ -1501,39 +1501,40 @@ details > summary::-webkit-details-marker { display: none; }
             </ol>
           </section>
 
-          <section class="footer-section">
+	<section class="footer-section">
             <div class="footer-label">Understanding the numbers</div>
             <div class="use-cases">
+              
               <div class="use-case">
                 <div class="use-case-title">Why totals look high</div>
-               <div class="use-case-desc">
-                The dollar figures reflect the <em class="explainer-highlight">full lifetime obligated value of multi-year contracts</em>, not a single year's spend.
-                A 5-year, $50M contract that received a $1M modification last month still appears as $50M. This helps you see the <em class="explainer-highlight">true footprint of the market</em> so you can use historical buying patterns to decide where to focus next.
+                <div class="use-case-desc">
+                  The dollar figures reflect the <em class="explainer-highlight">full lifetime obligated value of multi-year contracts</em>, not a single year's spend. Because Govhoo analyzes the <em class="explainer-highlight">top 100 largest contracts</em> in your search, these numbers represent the heaviest hitters in your territory rather than the entire database.
+                </div>
               </div>
-
-              </div>
+              
               <div class="use-case">
                 <div class="use-case-title">What’s included</div>
                 <div class="use-case-desc">
-                  Govhoo shows contracts that have <em class="explainer-highlight">recorded funding actions in the past 12 months</em>, meaning money moved recently.
-                  Award amounts are the sum of federal action obligations as reported to <em class="explainer-highlight">USASpending.gov</em>.
+                  Govhoo strictly shows <em class="explainer-highlight">active contracts (end dates in the future)</em> that have recorded funding actions in the past 12 months. This ensures your pipeline is built on active requirements and free of old, dead close-out contracts.
                 </div>
               </div>
-			  <div class="use-case">
-			<div class="use-case-title">Where the data comes from</div>
-			<div class="use-case-desc">
-  Every search queries the <em class="explainer-highlight">USASpending.gov API v2 in real time</em>. There is no cache and no stale snapshots. Data is shown exactly as reported by federal agencies and is <em class="explainer-highlight">never modified or adjusted</em>. We do not store your searches.
-</div>
-			</div>
+
+              <div class="use-case">
+                <div class="use-case-title">Where the data comes from</div>
+                <div class="use-case-desc">
+                  Every search queries the <em class="explainer-highlight">USASpending.gov API v2 in real time</em>. There is no cache and no stale snapshots. Data is shown exactly as reported by federal agencies and is <em class="explainer-highlight">never modified or adjusted</em>. We do not store your searches.
+                </div>
+              </div>
+
               <div class="use-case">
                 <div class="use-case-title">What this isn’t</div>
                 <div class="use-case-desc">
                   Govhoo is not an opportunity tracker or an RFP database. It is <em class="explainer-highlight">market intelligence</em> that helps you quickly see how a federal market is structured so your team can decide where to focus.
                 </div>
               </div>
+
             </div>
           </section>
-
           <section class="footer-section">
             <div class="footer-label">Built by a seller</div>
             <p class="footer-text">
@@ -2034,26 +2035,17 @@ missionGapRisk(award) {
     return { level: 'low', daysUntil, reasons: supportHits.slice(0, 2) };
   },
 
-  filterActiveContracts(awards) {
+filterActiveContracts(awards) {
     const now = new Date();
-    // Decide how long you want to look at dead contracts (e.g., 90 days)
-    const grace = new Date(); grace.setDate(grace.getDate() - 90);
     
     return awards.filter(a => {
       const endStr = a['End Date'];
       if (!endStr) return true; 
       
       const end = new Date(endStr);
-      if (isNaN(end.getTime())) return true; 
-      
-      // 1. Is it currently active? Let it through.
-      if (end > now) return true; 
-      
-      // 2. Is it expired, but it expired in the last 90 days? Let it through.
-      if (end > grace) return true; 
-      
-      // 3. Did it expire more than 90 days ago? Hide it so it doesn't clutter the pipeline.
-      return false; 
+      if (isNaN(end.getTime())) return true;
+
+      return end > now; 
     });
   },
   getContractTypeTag(typeDesc) {
@@ -5321,7 +5313,8 @@ renderTargetAccounts() {
       
       const summaryStats = DOM.get('subawardSummaryStats');
       if (summaryStats) {
-        summaryStats.innerText = `${filteredSubawards.length} awards \u00b7 ${Utils.money(totalValue)} \u00b7 ${uniqueSubs} sub-vendors`;
+        // We added the word "Top" to the beginning of the string
+        summaryStats.innerText = `Top ${filteredSubawards.length} awards \u00b7 ${Utils.money(totalValue)} \u00b7 ${uniqueSubs} sub-vendors`;
       }
     }
     
