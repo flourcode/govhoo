@@ -2866,7 +2866,7 @@ async searchAwards(keywords) {
     }
     
     const rawData = (await this._post('/search/spending_by_award/', { filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })).results || [];
-    return cleanAndSort(data);
+    return cleanAndSort(rawData);
   },
   async getNaicsBreakdown(keywords) {
     const timePeriod = Utils.getTrailing12Mo();
