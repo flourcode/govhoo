@@ -2030,6 +2030,12 @@ normalizeQuery(query) {
     // 2. Translate acronyms into full names
     const translate = (str) => {
       const l = str.toLowerCase().trim();
+      // If the string is ALREADY a full agency name, don't translate it
+      const alreadyFullName = Object.values(this.agencyAliases).some(v => v.toLowerCase() === l) || 
+                              Object.values(this.subAgencyAliases).some(v => v.toLowerCase() === l);
+      
+      if (alreadyFullName) return str.trim();
+      
       if (this.queryAliases[l]) return this.queryAliases[l];
       if (this.agencyAliases[l]) return this.agencyAliases[l];
       if (this.subAgencyAliases[l]) return this.subAgencyAliases[l];
@@ -3416,7 +3422,7 @@ setupInputListeners() {
                 const safeName = displayName.replace(/'/g, "\\'").replace(/"/g, '&quot;');
                 const tierHtml = (subName && topName && subName !== topName) ? `<span class="suggestion-tier">(${topName})</span>` : '';
                 
-                return `<div class="suggestion-item" onclick="document.getElementById('${inputId}').value='${safeName}'; document.getElementById('${boxId}').innerHTML=''; document.getElementById('${boxId}').classList.add('hidden'); document.getElementById('${inputId}').blur(); App.runSearch('${safeName}');">
+                return `<div class="suggestion-item" onclick="document.getElementById('${inputId}').value='${safeName}'; document.getElementById('${boxId}').innerHTML=''; document.getElementById('${boxId}').classList.add('hidden'); document.getElementById('${inputId}').blur(); App.runSearch('${safeName}', true);">
                   <strong>${displayName}</strong> ${tierHtml}
                 </div>`;
               }).join('');
@@ -3844,12 +3850,18 @@ scrollToPanel(id) {
   },
 // --- Data Fetching ---
   _searchId: 0,
-  async runSearch(val) {
+  async runSearch(val, isDirectSelection = false) {
     let query = val || DOM.get('miniSearch').value; 
     if(!query) return;
     
     const rawQuery = query.toUpperCase();
-    query = Utils.normalizeQuery(rawQuery);
+    
+    // ONLY normalize if it's a typed keyword. 
+    // If it's a direct selection from the dropdown, skip normalization.
+    if (!isDirectSelection) {
+        query = Utils.normalizeQuery(rawQuery);
+    }
+    
     DOM.get('miniSearch').value = query;
     document.title = `Govhoo | ${query}`;
     
