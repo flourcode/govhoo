@@ -4738,7 +4738,7 @@ drillDown(name, preventRender = false) {
     }
   },
 
-  _renderSankeyInner(container) {
+_renderSankeyInner(container) {
     const data = App.searchData.active; 
     if(!data || data.length === 0) { 
       container.innerHTML = '<div style="text-align:center; padding:4rem; color:var(--text-tertiary)">No data available for this view.</div>'; 
@@ -4750,15 +4750,16 @@ drillDown(name, preventRender = false) {
 
     data.forEach(d => { 
       if(d['Award Amount'] > 0) {
-        // ALWAYS default to Sub Agency first
-        let source = d['Awarding Sub Agency'] || d['Awarding Agency'] || 'Unknown Agency';
+        // Use Agency at Level 0, Sub-Agency at Level 1
+        let source = (isLvl0 ? d['Awarding Agency'] : d['Awarding Sub Agency']) || d['Awarding Agency'] || 'Unknown Agency';
         const agencyRaw = (d['Awarding Agency'] || '').toUpperCase().split('(')[0].trim();
         const subRaw = (source || '').toUpperCase().split('(')[0].trim();
 
-        // If the Sub Agency and Agency are named identically (common in DoD), push down to the Office level
-        if (agencyRaw === subRaw && d['Awarding Office']) {
+        // If we are drilled down AND the Sub-Agency has the exact same name as the Agency, push to Office
+        if (!isLvl0 && agencyRaw === subRaw && d['Awarding Office']) {
           source = d['Awarding Office'];
         }
+        
         const target = d['Recipient Name'] || 'Unknown Vendor';
         const key = source + "|||" + target;
         flowMap[key] = (flowMap[key] || 0) + d['Award Amount']; 
@@ -4892,29 +4893,40 @@ drillDown(name, preventRender = false) {
   renderSearchTopBuyers(data) {
     const drill = App.drillState || {};
     const panel = DOM.get('agencyReachPanel');
-    
     if (panel) {
       const titleEl = panel.querySelector('.data-panel-title');
       const subtitleEl = panel.querySelector('.data-panel-subtitle');
-      if (titleEl) titleEl.textContent = 'Offices'; // <--- Always show 'Offices'
+      if (titleEl) titleEl.textContent = drill.level >= 1 ? 'Offices' : 'Agencies';
       if (subtitleEl) subtitleEl.textContent = drill.level >= 1
         ? `In ${Utils.trunc(drill.path[drill.path.length - 1].name.replace(/^Department of (the )?/i, ''), 25)}`
         : '';
     }
     
-    // Always render Sub Agencies as the primary field
-    this.renderReachList({ 
-      data, 
-      containerId: 'searchTopBuyersBody', 
-      panelId: 'agencyReachPanel',
-      primaryField: 'Awarding Sub Agency', 
-      primaryFallback: row => row['Awarding Agency'] || 'Unknown',
-      tertiaryField: 'Recipient Name', 
-      formatName: n => n.replace(/^Department of (the )?/i, '').replace(/^Office of (the )?/i, ''),
-      formatMeta: items => items.length ? `${Utils.trunc(items[0], 22)} leads` : '',
-      onClickTpl: "App.drillDown('{name}')", // Allows users to click an office and drill directly into it
-      overflowLabel: 'more offices' 
-    });
+    if (drill.level >= 1 && drill.currentAgency) {
+      this.renderReachList({ 
+        data, 
+        containerId: 'searchTopBuyersBody', 
+        panelId: 'agencyReachPanel',
+        primaryField: 'Awarding Sub Agency', 
+        primaryFallback: row => row['Awarding Agency'] || 'Unknown',
+        onClickTpl: "App.viewAgencyFootprint('{name}')", 
+        overflowLabel: 'more offices' 
+      });
+    } else {
+      this.renderReachList({ 
+        data, 
+        containerId: 'searchTopBuyersBody', 
+        panelId: 'agencyReachPanel',
+        primaryField: 'Awarding Agency', 
+        secondaryField: 'Awarding Sub Agency', 
+        tertiaryField: 'Recipient Name',
+        secondaryLabel: n => n === 1 ? 'office' : 'offices',
+        formatName: n => n.replace(/^Department of (the )?/i, '').replace(/^Office of (the )?/i, ''),
+        formatMeta: items => items.length ? `${Utils.trunc(items[0], 22)} leads` : '',
+        onClickTpl: "App.viewAgencyFootprint('{name}')", 
+        overflowLabel: 'more agencies' 
+      });
+    }
   },
 
   renderSearchTopPrimes(subawards) {
@@ -5784,7 +5796,7 @@ renderTargetAccounts() {
   getEffectiveBubbleMode() {
     if (this.bubbleMode !== 'auto') return this.bubbleMode;
     const drill = this.drillState || {};
-    if (drill.level === 0) return 'subagencies'; // <--- Changed to default to Offices
+    if (drill.level === 0) return 'agencies';
     if (drill.level === 1) return 'subagencies';
     return 'vendors';
   },
