@@ -1815,7 +1815,129 @@ const Utils = {
       fallbackCopy(text);
     }
   },
+buyingOffices: {
+    // NAVY & MARINES
+    'N00024': 'NAVSEA',
+    'N00019': 'NAVAIR',
+    'N00039': 'NAVWAR',
+    'N00014': 'Office of Naval Research (ONR)',
+    'N62645': 'Naval Medical Logistics Command',
+    'N00025': 'NAVFAC',
+    'N00030': 'Strategic Systems Programs (SSP)',
+    'M67854': 'MARCORSYSCOM',
+    'N65236': 'NAVWAR Space Field Activity',
+    'N66001': 'NAVWAR Atlantic',
+    'N68936': 'NAVWAR Pacific',
+    'N00189': 'NAVSUP',
+    'N00104': 'NAVSUP',
+    
+    // ARMY
+    'W52P1J': 'ACC Rock Island (CHESS)',
+    'W15QKN': 'ACC New Jersey (ITES)',
+    'W58RGZ': 'ACC Aviation and Missile (AMCOM)',
+    'W911QX': 'ACC Aviation and Missile',
+    'W911S0': 'Army TRADOC',
+    'W9124A': 'Fort Huachuca (Army Cyber)',
+    'W91249': 'Fort Gordon (Army Cyber)',
+    'W9128Z': 'Army Corps of Engineers (USACE)',
+    'W912DY': 'USACE Huntsville',
+    'W91CRB': 'ACC APG',
+    'W91RUS': 'ACC APG',
+    'W56KGU': 'ACC APG',
+	// --- ARMY CONTRACTING COMMAND (ACC) ---
+    'W31P4Q': 'ACC Redstone Arsenal (Aviation & Missile)',
+    'W56HZV': 'ACC Detroit Arsenal (TACOM)',
+    
+    // --- ARMY MATERIEL COMMAND & MUNITIONS ---
+    'DAAA09': 'Army Joint Munitions Command (JMC)',
+    
+    // --- U.S. ARMY CORPS OF ENGINEERS (USACE) ---
+    'W911XK': 'USACE Detroit District',
+    'W912GB': 'USACE Europe District',
+    
+    // AIR FORCE & SPACE FORCE
+    'FA8702': 'AFLCMC Hanscom (Cyber/IT)',
+    'FA8732': 'AFLCMC Maxwell (Cyber/IT)',
+    'FA8604': 'AFLCMC Wright-Patterson',
+    'FA8650': 'Air Force Research Laboratory (AFRL)',
+    'FA8802': 'Space Systems Command (SSC)',
+    'FA8806': 'Space Systems Command (SSC)',
+    'FA7014': 'AF District of Washington',
+    'FA3002': 'AF District of Washington',
+    'FA4890': 'Air Combat Command (ACC)',
+    'FA8307': 'AF Cryptologic and Cyber Systems',
+	// --- AIR FORCE LIFE CYCLE MANAGEMENT CENTER (AFLCMC) ---
+    'FA8625': 'AFLCMC Fighters & Bombers',
+    'FA8634': 'AFLCMC Mobility & Training Aircraft',
+    'FA8615': 'AFLCMC F-16 Division',
+    'FA8629': 'AFLCMC Wright-Patterson',
+    'FA8205': 'AFLCMC F-22 Division',
+    
+    // --- AIR FORCE NUCLEAR WEAPONS CENTER (AFNWC) ---
+    'FA8219': 'AFNWC Ground Based Strategic Deterrent',
+    
+    // --- SPACE SYSTEMS COMMAND (SSC) ---
+    'FA8807': 'Space Systems Command (SSC)',
+    'FA8810': 'Space Systems Command (SSC)',
+    
+    // DISA / DOD WIDE
+    'HC1028': 'DISA DITCO',
+    'HC1047': 'DISA DITCO',
+    'HC1084': 'DISA DITCO',
+    'HQ0034': 'Washington Headquarters Services (WHS)',
+    'HT0011': 'Defense Health Agency (DHA)',
+    'HT0015': 'Defense Health Agency (DHA)',
+  
+  // --- HOMELAND SECURITY (DHS) ---
+  'HSR010': 'CISA (Cybersecurity & Infrastructure Security Agency)',
+  'HSBP10': 'CBP IT Contracting Division',
+  'HSTS01': 'TSA Headquarters',
+  'HSTS02': 'TSA Headquarters',
+  'HSCEFC': 'ICE Office of Acquisition Management',
+  'HSSCCG': 'USCIS Contracting Office',
+  'HSFE10': 'FEMA Headquarters',
+  'HSFE20': 'FEMA Regional Contracting',
+  'HSSS01': 'Secret Service Enterprise',
+  // --- CUSTOMS AND BORDER PROTECTION (CBP) ---
+    '70B01C': 'CBP Facilities & Training Contracting',
+    '70B02C': 'CBP Air & Marine Contracting',
+    '70B04C': 'CBP Information Technology Contracting',
+    
+    // --- COAST GUARD (USCG) ---
+    'HSCG23': 'USCG Headquarters Contracts',
+    '70Z023': 'USCG Headquarters Contracts',
+    
+    // --- IMMIGRATION AND CUSTOMS ENFORCEMENT (ICE) ---
+    '70CDCR': 'ICE Detention Compliance & Removals',
+    
+    // --- TRANSPORTATION SECURITY ADMINISTRATION (TSA) ---
+    '70T040': 'TSA Security Technology',
+    
+    // --- CITIZENSHIP AND IMMIGRATION SERVICES (USCIS) ---
+    '70SBUR': 'USCIS Contracting Office',
+    '70SBR1': 'USCIS Contracting Office',
+    '70SBR2': 'USCIS Contracting Office',
+    '70SBR3': 'USCIS Contracting Office',
 
+  // --- VETERANS AFFAIRS (VA) ---
+  // The VA has massive centralized buying centers for IT and Services
+  '36C10B': 'VA Technology Acquisition Center (TAC)', // The epicenter of VA IT spend
+  '36C10A': 'VA Strategic Acquisition Center (SAC)',
+  '36C10G': 'VA National Acquisition Center (NAC)',
+  '36C10E': 'VA Veterans Benefits Administration (VBA)',
+  '36C10X': 'VA Office of Construction & Facilities (CFM)',
+
+  // --- HEALTH AND HUMAN SERVICES (HHS) & CMS ---
+  '75FCMC': 'CMS (Centers for Medicare & Medicaid Services)', // The massive CMS buyer
+  '75N981': 'NIH NITAAC (IT Acquisition)', // Manages the giant CIO-SP4 vehicle
+  '75D301': 'CDC Office of Financial Resources',
+  '75P001': 'FDA Office of Acquisitions',
+
+  // GENERAL SERVICES ADMINISTRATION (GSA)
+  '47QF00': 'GSA FEDSIM', // The biggest mega-project buyer in government
+  '47QTCK': 'GSA FAS (Technology)',
+  '47PB00': 'GSA Public Buildings Service (PBS)'
+  },
   agencyAliases: {
     "aahc": "400 Years of African-American History Commission",
     "usab": "Access Board",
@@ -2546,10 +2668,10 @@ const API = {
   CONTRACT_TYPES: ['A', 'B', 'C', 'D'],
   AWARD_FIELDS: [
     'Award ID', 'Recipient Name', 'Awarding Agency', 'Awarding Sub Agency',
+    'Awarding Office',
     'Award Amount', 'Description', 'generated_internal_id', 'Start Date', 'End Date',
     'NAICS', 'PSC'
   ],
-
   async _post(endpoint, body) {
     const res = await fetch(`${this.baseUrl}${endpoint}`, {
       method: 'POST',
@@ -2579,13 +2701,51 @@ async searchAwards(keywords) {
     // Helper: Cleans the vendor names and sorts the data right before returning it
     const cleanAndSort = (dataArray) => {
       return dataArray.map(award => {
+        // Clean Vendor Names
         if (award['Recipient Name']) {
           award['Recipient Name'] = Utils.normalizeVendorName(award['Recipient Name']);
         }
+        
+        // --- THE AAC / DODAAC EXTRACTOR & HIERARCHY FIX ---
+        const topAgency = (award['Awarding Agency'] || '').toUpperCase();
+        
+        // Expanded to catch the biggest Civilian spenders alongside DoD
+        const isTargetAgency = topAgency.includes('DEFENSE') || 
+                               topAgency.includes('NAVY') || 
+                               topAgency.includes('ARMY') || 
+                               topAgency.includes('AIR FORCE') ||
+                               topAgency.includes('HOMELAND SECURITY') ||
+                               topAgency.includes('VETERANS AFFAIRS') ||
+                               topAgency.includes('HEALTH AND HUMAN SERVICES') ||
+                               topAgency.includes('GENERAL SERVICES');
+        
+        if (isTargetAgency) {
+          // 1. Promote military branches to Top Agency if USASpending grouped them under DoD
+          if (topAgency.includes('DEFENSE') && award['Awarding Sub Agency']) {
+            award['Awarding Agency'] = award['Awarding Sub Agency'];
+          }
+          
+          // 2. Extract the first 6 characters (The AAC / DoDAAC)
+          const awardId = String(award['Award ID'] || '').toUpperCase();
+          const officeCode = awardId.substring(0, 6);
+          
+          // ---> THE FIX: Telling it to look at your new buyingOffices dictionary <---
+          const commandName = Utils.buyingOffices[officeCode];
+          
+          if (commandName) {
+            award['Awarding Sub Agency'] = commandName;
+          } else if (officeCode.length === 6 && /^[A-Z0-9]{6}$/.test(officeCode)) {
+            // Unmapped civilian and military offices will show their AAC code
+            award['Awarding Sub Agency'] = `Contracting Office (${officeCode})`;
+          } else {
+            award['Awarding Sub Agency'] = award['Awarding Agency'];
+          }
+        }
+        // ---------------------------------------------
+
         return award;
       }).sort((a,b) => b['Award Amount'] - a['Award Amount']);
     };
-
     const timePeriod = Utils.getTrailing12Mo();
     const period = timePeriod[0];
     const { pscCodes, naicsCodes, keywordTerms, andGroups } = Utils.parseSearchTerms(keywords);
@@ -4623,7 +4783,14 @@ copySectionLink(sectionHash, btnElement) {
 
     data.forEach(d => { 
       if(d['Award Amount'] > 0) {
-        const source = (isLvl0 ? d['Awarding Agency'] : d['Awarding Sub Agency']) || d['Awarding Agency'] || 'Unknown Agency';
+        // NEW LOGIC: Fallback to Office if Agency and Sub-Agency are identical (like in Navy/Army/Air Force)
+        let source = (isLvl0 ? d['Awarding Agency'] : d['Awarding Sub Agency']) || d['Awarding Agency'] || 'Unknown Agency';
+        const agencyRaw = (d['Awarding Agency'] || '').toUpperCase().split('(')[0].trim();
+        const subRaw = (source || '').toUpperCase().split('(')[0].trim();
+
+        if (!isLvl0 && agencyRaw === subRaw && d['Awarding Office']) {
+          source = d['Awarding Office'];
+        }
         const target = d['Recipient Name'] || 'Unknown Vendor';
         const key = source + "|||" + target;
         flowMap[key] = (flowMap[key] || 0) + d['Award Amount']; 
@@ -5020,7 +5187,14 @@ renderTargetAccounts() {
     const groupMap = {};
 
     data.forEach(c => {
-      const group = c[groupField] || 'Unknown';
+      let group = c[groupField] || 'Unknown';
+      // NEW LOGIC: If we are looking at sub-agencies and it matches the parent (Navy -> Navy), show the Office
+      const agencyRaw = (c['Awarding Agency'] || '').toUpperCase().split('(')[0].trim();
+      const groupRaw = (group || '').toUpperCase().split('(')[0].trim();
+
+      if (groupField === 'Awarding Sub Agency' && agencyRaw === groupRaw && c['Awarding Office']) {
+        group = c['Awarding Office'];
+      }
       if (!groupMap[group]) groupMap[group] = {
         name: group, spend: 0, count: 0,
         vendors: new Set(), subAgencies: new Set(),
@@ -5704,7 +5878,16 @@ renderTargetAccounts() {
     let totalSpend = 0;
     
     data.forEach(award => {
-      let key = effective === 'agencies' ? (award['Awarding Agency'] || 'Unknown') : effective === 'subagencies' ? (award['Awarding Sub Agency'] || award['Awarding Agency'] || 'Unknown') : (award['Recipient Name'] || 'Unknown');
+      // NEW LOGIC: Fallback to Office for military branch drill-downs
+      let subName = award['Awarding Sub Agency'] || award['Awarding Agency'] || 'Unknown';
+      const agencyRaw = (award['Awarding Agency'] || '').toUpperCase().split('(')[0].trim();
+      const subRaw = (subName || '').toUpperCase().split('(')[0].trim();
+
+      if (effective === 'subagencies' && agencyRaw === subRaw && award['Awarding Office']) {
+        subName = award['Awarding Office'];
+      }
+
+      let key = effective === 'agencies' ? (award['Awarding Agency'] || 'Unknown') : effective === 'subagencies' ? subName : (award['Recipient Name'] || 'Unknown');
       const amount = parseFloat(award['Award Amount']) || 0;
       
       if (!entityMap[key]) {
