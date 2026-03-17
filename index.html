@@ -2614,14 +2614,17 @@ async searchAwards(keywords) {
         const subAgencyName = (award['Awarding Sub Agency'] || '').toUpperCase();
         
         if (commandName) {
-          // Always use our hardcoded dictionary if we have a match
           award['Awarding Sub Agency'] = commandName;
-        } else if (officeCode.length === 6 && /^[A-Z0-9]{6}$/.test(officeCode)) {
-          // If the API's Sub-Agency is useless (identical to the parent Agency),
-          // force it to use the Contracting Office code so our JIT resolver will fetch the real name!
-          if (subAgencyName === agencyName) {
-            award['Awarding Sub Agency'] = `Contracting Office (${officeCode})`;
-          }
+        } 
+        
+        // If it's still a code or the "Contracting Office (XXXXXX)" placeholder,
+        // let's try to strip the junk.
+        const currentSub = award['Awarding Sub Agency'] || '';
+        if (currentSub.startsWith('Contracting Office (')) {
+           const match = currentSub.match(/\(([^)]+)\)/);
+           if (match && Utils.buyingOffices[match[1]]) {
+             award['Awarding Sub Agency'] = Utils.buyingOffices[match[1]];
+           }
         }
         // ---------------------------------------------
 
@@ -2685,7 +2688,7 @@ async searchAwards(keywords) {
           });
         }
         
-        return cleanAndSort(data);
+        return cleanAndSort(rawData);
       } else {
         filters.keywords = kws;
         const pool = (await this._post('/search/spending_by_award/', { filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })).results || [];
