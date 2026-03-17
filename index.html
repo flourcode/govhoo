@@ -2767,37 +2767,16 @@ async resolveUnknownOffices(dataArray) {
     const cleanAndSort = (dataArray) => {
       return dataArray.map(award => {
         if (award['Recipient Name']) award['Recipient Name'] = Utils.normalizeVendorName(award['Recipient Name']);
-        
         const topAgency = (award['Awarding Agency'] || '').toUpperCase();
         if (topAgency.includes('DEFENSE') && award['Awarding Sub Agency']) award['Awarding Agency'] = award['Awarding Sub Agency'];
-        
         const awardId = String(award['Award ID'] || '').toUpperCase();
-        const subNameRaw = (award['Awarding Sub Agency'] || '').toUpperCase();
-        
-        // 1. Extract potential codes from ID and Name
-        const id6 = awardId.substring(0, 6);
-        const id4 = awardId.substring(0, 4);
-        const nameMatch = subNameRaw.match(/\b([A-Z0-9]{4,6})\b/);
-        const nameCode = nameMatch ? nameMatch[1] : null;
-
-        // 2. Resolve Name via Dictionary
-        const known = Utils.buyingOffices[id6] || 
-                      Utils.buyingOffices[id4] || 
-                      (nameCode ? Utils.buyingOffices[nameCode] : null) ||
-                      Utils.buyingOffices[subNameRaw.substring(0,4)];
-
+        const code6 = awardId.substring(0, 6);
+        const code4 = awardId.substring(0, 4);
+        const known = Utils.buyingOffices[code6] || Utils.buyingOffices[code4];
         if (known) {
           award['Awarding Sub Agency'] = known;
         } else {
-          // 3. Fallback: Strip the "junk" from the name even if not in dictionary
-          // This fixes "W072 ENDIST DETROIT" -> "ENDIST DETROIT"
-          let cleanName = subNameRaw
-            .replace(/\b[A-Z0-9]{4,6}\b/g, '') // Remove codes
-            .replace(/\(|\)/g, '')              // Remove parentheses
-            .replace(/^[- ]+/, '')              // Remove leading dashes/spaces
-            .trim();
-            
-          award['Awarding Sub Agency'] = cleanName || `REVEAL(${id6})`;
+          award['Awarding Sub Agency'] = `REVEAL(${code6})`;
         }
         return award;
       }).sort((a,b) => (b['Award Amount'] || 0) - (a['Award Amount'] || 0));
