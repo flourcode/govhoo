@@ -2767,16 +2767,34 @@ async resolveUnknownOffices(dataArray) {
     const cleanAndSort = (dataArray) => {
       return dataArray.map(award => {
         if (award['Recipient Name']) award['Recipient Name'] = Utils.normalizeVendorName(award['Recipient Name']);
+        
         const topAgency = (award['Awarding Agency'] || '').toUpperCase();
         if (topAgency.includes('DEFENSE') && award['Awarding Sub Agency']) award['Awarding Agency'] = award['Awarding Sub Agency'];
+        
         const awardId = String(award['Award ID'] || '').toUpperCase();
-        const code6 = awardId.substring(0, 6);
-        const code4 = awardId.substring(0, 4);
-        const known = Utils.buyingOffices[code6] || Utils.buyingOffices[code4];
+        const subName = (award['Awarding Sub Agency'] || '').toUpperCase();
+        
+        // 1. Extract codes from ID
+        const id6 = awardId.substring(0, 6);
+        const id4 = awardId.substring(0, 4);
+        
+        // 2. Extract codes from the Sub Agency Name (e.g., "W6QK ACC-RSA" -> "W6QK")
+        const nameMatch = subName.match(/\b([A-Z0-9]{4,6})\b/);
+        const nameCode = nameMatch ? nameMatch[1] : null;
+
+        // 3. MASTER RESOLUTION
+        // We check ID-6, then ID-4, then the nameCode, then the first 4 chars of the subAgency string itself
+        const known = Utils.buyingOffices[id6] || 
+                      Utils.buyingOffices[id4] || 
+                      (nameCode ? Utils.buyingOffices[nameCode] : null) ||
+                      Utils.buyingOffices[subName.substring(0,4)];
+
         if (known) {
           award['Awarding Sub Agency'] = known;
         } else {
-          award['Awarding Sub Agency'] = `REVEAL(${code6})`;
+          // If we still don't know it, we tag the most likely code for the Parallel Resolver to look up
+          const bestCode = nameCode || id6;
+          award['Awarding Sub Agency'] = `REVEAL(${bestCode})`;
         }
         return award;
       }).sort((a,b) => (b['Award Amount'] || 0) - (a['Award Amount'] || 0));
