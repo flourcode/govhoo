@@ -2681,7 +2681,77 @@ const API = {
     if (!res.ok) throw new Error(`API ${res.status}`);
     return res.json();
   },
-  
+async resolveUnknownOffices(dataArray) {
+    // 1. Check the user's browser memory FIRST for codes we already learned
+    const storedMemory = JSON.parse(localStorage.getItem('govhoo_offices') || '{}');
+    Object.assign(Utils.buyingOffices, storedMemory);
+
+    const unknownOffices = {}; 
+    dataArray.forEach(award => {
+      const sub = award['Awarding Sub Agency'];
+      if (sub && sub.startsWith('Contracting Office (')) {
+        const match = sub.match(/\(([^)]+)\)/);
+        if (match) {
+          const code = match[1];
+          // Only queue it for the API if it's NOT in our dictionary OR our memory
+          if (!unknownOffices[code] && award['generated_internal_id']) {
+            unknownOffices[code] = award['generated_internal_id'];
+          }
+        }
+      }
+    });
+
+    const codes = Object.keys(unknownOffices);
+    if (codes.length === 0) return dataArray;
+
+    const resolved = [];
+    
+    // 2. THE THROTTLE: Fetch one-by-one with a polite delay
+    for (const code of codes) {
+      try {
+        const res = await fetch(`https://api.usaspending.gov/api/v2/awards/${encodeURIComponent(unknownOffices[code])}/`);
+        if (res.ok) {
+          const json = await res.json();
+          const officeName = json.awarding_agency?.office_agency_name;
+          if (officeName) {
+            let cleanName = officeName.toUpperCase();
+            if (cleanName.startsWith(code)) {
+              cleanName = cleanName.replace(code, '').trim();
+            }
+            cleanName = cleanName.replace(/^[-/]+/, '').trim();
+            
+            // Add it to our live dictionary and our memory queue
+            Utils.buyingOffices[code] = cleanName;
+            storedMemory[code] = cleanName; 
+            resolved.push({ code, name: cleanName });
+          }
+        }
+        
+        // Wait 100 milliseconds before asking for the next one (The Speed Limit)
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+      } catch (e) {
+        console.warn(`Failed to resolve office: ${code}`);
+      }
+    }
+
+    // 3. THE MEMORY BANK: Save the newly learned codes to the user's hard drive
+    if (resolved.length > 0) {
+      localStorage.setItem('govhoo_offices', JSON.stringify(storedMemory));
+      console.log(`Govhoo permanently learned ${resolved.length} new offices!`);
+    }
+
+    // 4. Swap out the ugly codes for the dashboard
+    resolved.forEach(({ code, name }) => {
+      dataArray.forEach(award => {
+        if (award['Awarding Sub Agency'] === `Contracting Office (${code})`) {
+          award['Awarding Sub Agency'] = name;
+        }
+      });
+    });
+
+    return dataArray;
+  },
   async fetchAgencySuggestions(searchText) {
     if (searchText.length < 2) return [];
     try {
@@ -2706,39 +2776,30 @@ async searchAwards(keywords) {
           award['Recipient Name'] = Utils.normalizeVendorName(award['Recipient Name']);
         }
         
-        // --- THE AAC / DODAAC EXTRACTOR & HIERARCHY FIX ---
+        // --- UNIVERSAL AAC EXTRACTOR & HIERARCHY FIX ---
         const topAgency = (award['Awarding Agency'] || '').toUpperCase();
         
-        // Expanded to catch the biggest Civilian spenders alongside DoD
-        const isTargetAgency = topAgency.includes('DEFENSE') || 
-                               topAgency.includes('NAVY') || 
-                               topAgency.includes('ARMY') || 
-                               topAgency.includes('AIR FORCE') ||
-                               topAgency.includes('HOMELAND SECURITY') ||
-                               topAgency.includes('VETERANS AFFAIRS') ||
-                               topAgency.includes('HEALTH AND HUMAN SERVICES') ||
-                               topAgency.includes('GENERAL SERVICES');
+        // 1. Promote military branches to Top Agency if grouped under DoD
+        if (topAgency.includes('DEFENSE') && award['Awarding Sub Agency']) {
+          award['Awarding Agency'] = award['Awarding Sub Agency'];
+        }
         
-        if (isTargetAgency) {
-          // 1. Promote military branches to Top Agency if USASpending grouped them under DoD
-          if (topAgency.includes('DEFENSE') && award['Awarding Sub Agency']) {
-            award['Awarding Agency'] = award['Awarding Sub Agency'];
-          }
-          
-          // 2. Extract the first 6 characters (The AAC / DoDAAC)
-          const awardId = String(award['Award ID'] || '').toUpperCase();
-          const officeCode = awardId.substring(0, 6);
-          
-          // ---> THE FIX: Telling it to look at your new buyingOffices dictionary <---
-          const commandName = Utils.buyingOffices[officeCode];
-          
-          if (commandName) {
-            award['Awarding Sub Agency'] = commandName;
-          } else if (officeCode.length === 6 && /^[A-Z0-9]{6}$/.test(officeCode)) {
-            // Unmapped civilian and military offices will show their AAC code
+        // 2. Extract the first 6 characters (The AAC / DoDAAC)
+        const awardId = String(award['Award ID'] || '').toUpperCase();
+        const officeCode = awardId.substring(0, 6);
+        const commandName = Utils.buyingOffices[officeCode];
+        
+        const agencyName = (award['Awarding Agency'] || '').toUpperCase();
+        const subAgencyName = (award['Awarding Sub Agency'] || '').toUpperCase();
+        
+        if (commandName) {
+          // Always use our hardcoded dictionary if we have a match
+          award['Awarding Sub Agency'] = commandName;
+        } else if (officeCode.length === 6 && /^[A-Z0-9]{6}$/.test(officeCode)) {
+          // If the API's Sub-Agency is useless (identical to the parent Agency),
+          // force it to use the Contracting Office code so our JIT resolver will fetch the real name!
+          if (subAgencyName === agencyName) {
             award['Awarding Sub Agency'] = `Contracting Office (${officeCode})`;
-          } else {
-            award['Awarding Sub Agency'] = award['Awarding Agency'];
           }
         }
         // ---------------------------------------------
@@ -2803,7 +2864,7 @@ async searchAwards(keywords) {
           });
         }
         
-        return cleanAndSort(data); // <-- Applying the cleaner here
+        return await this.resolveUnknownOffices(cleanAndSort(data));
       } else {
         filters.keywords = kws;
         const pool = (await this._post('/search/spending_by_award/', { filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })).results || [];
@@ -2816,9 +2877,9 @@ async searchAwards(keywords) {
             ].filter(Boolean).join(' ').toLowerCase();
             return kws.every(term => haystack.includes(term.toLowerCase()));
           });
-          return cleanAndSort(filtered); // <-- Applying the cleaner here
+          return await this.resolveUnknownOffices(cleanAndSort(filtered));
         }
-        return cleanAndSort(pool); // <-- Applying the cleaner here
+        return await this.resolveUnknownOffices(cleanAndSort(pool));
       }
     }
     
@@ -2851,7 +2912,7 @@ async searchAwards(keywords) {
     }
     
     const rawData = (await this._post('/search/spending_by_award/', { filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })).results || [];
-    return cleanAndSort(rawData); // <-- Applying the cleaner here for standard searches
+    return await this.resolveUnknownOffices(cleanAndSort(rawData));
   },
   async getNaicsBreakdown(keywords) {
     const timePeriod = Utils.getTrailing12Mo();
@@ -3531,7 +3592,7 @@ setupInputListeners() {
                 const safeName = displayName.replace(/'/g, "\\'").replace(/"/g, '&quot;');
                 const tierHtml = (subName && topName && subName !== topName) ? `<span class="suggestion-tier">(${topName})</span>` : '';
                 
-                return `<div class="suggestion-item" onclick="document.getElementById('${inputId}').value='${safeName}'; document.getElementById('${boxId}').classList.add('hidden'); App.runSearch('${safeName}');">
+                return `<div class="suggestion-item" onclick="document.getElementById('${inputId}').value='${safeName}'; document.getElementById('${boxId}').innerHTML=''; document.getElementById('${boxId}').classList.add('hidden'); document.getElementById('${inputId}').blur(); App.runSearch('${safeName}');">
                   <strong>${displayName}</strong> ${tierHtml}
                 </div>`;
               }).join('');
