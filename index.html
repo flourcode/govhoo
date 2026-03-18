@@ -2252,9 +2252,11 @@ missionGapRisk(award) {
     const amt = parseFloat(award['Award Amount']) || 0;
     
     const desc = String(award['Description'] || '').toLowerCase();
-    const pscDesc = String(award['PSC Description'] || '').toLowerCase();
-    const naicsDesc = String(award['NAICS Description'] || '').toLowerCase();
+    // Handle PSC/NAICS description from both object and string field formats
     const pscData = award['PSC'];
+    const naicsData = award['NAICS'];
+    const pscDesc = String((pscData && typeof pscData === 'object' ? pscData.description : null) || award['PSC Description'] || '').toLowerCase();
+    const naicsDesc = String((naicsData && typeof naicsData === 'object' ? naicsData.description : null) || award['NAICS Description'] || '').toLowerCase();
     const psc = ((pscData && typeof pscData === 'object') ? (pscData.code || '') : String(pscData || award['PSC Code'] || '')).toUpperCase();
 
     const supportTerms = [
@@ -2441,9 +2443,14 @@ const ChartUtils = {
         scrollDismissHandler = null;
       };
 
+      // Clean up any previous outside-tap listener from a prior render
+      if (container._outsideTapHandler) {
+        document.removeEventListener('touchstart', container._outsideTapHandler);
+      }
       const outsideTapHandler = (e) => {
         if (!container.contains(e.target)) { dismissTooltip(); clearTimeout(autoFadeTimer); }
       };
+      container._outsideTapHandler = outsideTapHandler;
       document.addEventListener('touchstart', outsideTapHandler, { passive: true });
 
       selection.on('click', function(event, d) {
@@ -2692,9 +2699,9 @@ const API = {
   AWARD_FIELDS: [
     'Award ID', 'Recipient Name', 'Awarding Agency', 'Awarding Sub Agency',
     'Awarding Office', 'Award Amount', 'Description', 'generated_internal_id', 
-    'Start Date', 'End Date', 'NAICS', 'PSC', 'Contract Award Type', 
-    'Type of Set Aside', 'number_of_offers_received', 'parent_award_id', 
-    'NAICS Description', 'PSC Description', 'PSC Code', 'NAICS Code'
+    'Start Date', 'End Date', 'NAICS', 'PSC',
+    'Contract Award Type', 'Type of Set Aside', 'number_of_offers_received',
+    'parent_award_id', 'NAICS Description', 'PSC Description'
   ],
 
   // 1. Add the controllers
@@ -2743,7 +2750,8 @@ const API = {
   },
 
 async resolveUnknownOffices(dataArray) {
-    const memory = JSON.parse(localStorage.getItem('govhoo_learned_offices') || '{}');
+    let memory = {};
+    try { memory = JSON.parse(localStorage.getItem('govhoo_learned_offices') || '{}'); } catch(e) {}
     Object.assign(Utils.buyingOffices, memory);
 
     const targets = dataArray.filter(a => a['Awarding Sub Agency'] && a['Awarding Sub Agency'].startsWith('REVEAL('));
@@ -2789,7 +2797,7 @@ async resolveUnknownOffices(dataArray) {
         // await new Promise(resolve => setTimeout(resolve, 100));
       }
       
-      localStorage.setItem('govhoo_learned_offices', JSON.stringify(memory));
+      try { localStorage.setItem('govhoo_learned_offices', JSON.stringify(memory)); } catch(e) {}
     }
 
     // Final Swap
@@ -3266,6 +3274,7 @@ const App = {
     const params = new URLSearchParams(window.location.search);
     const q = params.get('q');
     const drillParam = params.get('drill');
+    const vehicleParam = params.get('vehicle');
 
     if (q) {
       DOM.get('miniSearch').value = q;
@@ -3277,6 +3286,23 @@ const App = {
               const isLast = idx === drillParts.length - 1;
               App.drillDown(name, !isLast); 
             });
+            // Restore vehicle filter after drill is complete
+            if (vehicleParam && App.searchData.raw.length > 0) {
+              const match = App.searchData.raw.find(c => c['parent_award_id'] === vehicleParam);
+              if (match) {
+                const label = (typeof VehicleDetector !== 'undefined' ? VehicleDetector.detect(vehicleParam)?.short : null) || vehicleParam;
+                App.filterByVehicle(vehicleParam, label);
+              }
+            }
+          }, 100);
+        } else if (vehicleParam && App.searchData.raw.length > 0) {
+          // Restore vehicle filter even without drill
+          setTimeout(() => {
+            const match = App.searchData.raw.find(c => c['parent_award_id'] === vehicleParam);
+            if (match) {
+              const label = (typeof VehicleDetector !== 'undefined' ? VehicleDetector.detect(vehicleParam)?.short : null) || vehicleParam;
+              App.filterByVehicle(vehicleParam, label);
+            }
           }, 100);
         }
       });
@@ -3291,7 +3317,8 @@ const App = {
     const container = DOM.get('recentSearchesContainer');
     if (!container) return;
     
-    const history = JSON.parse(localStorage.getItem('govhoo-recent') || '[]');
+    let history = [];
+    try { history = JSON.parse(localStorage.getItem('govhoo-recent') || '[]'); } catch(e) {}
     let html = '';
 
     if (App.searchData && App.searchData.loaded && App.currentQuery) {
@@ -3397,10 +3424,8 @@ setupInputListeners() {
     const handleEnter = (e) => {
       if (e.key === 'Enter') {
         e.target.blur(); 
+        if (App._killAutocomplete) App._killAutocomplete();
         App.runSearch(e.target.value);
-        // Hide dropdown if they hit enter
-        const box = DOM.get('agencySuggestions');
-        if (box) box.classList.add('hidden');
       }
     };
     
@@ -3425,12 +3450,19 @@ setupInputListeners() {
     }
 
     // --- NEW: AUTOCOMPLETE LOGIC ---
+    const _autocompleteCancellers = [];
     const setupAutocomplete = (inputId, boxId) => {
       const inputEl = DOM.get(inputId);
       const boxEl = DOM.get(boxId);
       let debounceTimer;
 
       if (inputEl && boxEl) {
+        // Register a kill function so Enter/runSearch can cancel pending results
+        _autocompleteCancellers.push(() => {
+          clearTimeout(debounceTimer);
+          boxEl.classList.add('hidden');
+        });
+
         inputEl.addEventListener('input', (e) => {
           clearTimeout(debounceTimer);
           const val = e.target.value.trim();
@@ -3443,6 +3475,9 @@ setupInputListeners() {
           debounceTimer = setTimeout(async () => {
             const suggestions = await API.fetchAgencySuggestions(val);
             
+            // Don't show results if the input has been cleared or a search already ran
+            if (inputEl !== document.activeElement && !boxEl.matches(':hover')) return;
+
             if (suggestions && suggestions.length > 0) {
               // NEW: Save BOTH the sub-tier and top-tier names to memory
               suggestions.forEach(s => {
@@ -3450,7 +3485,7 @@ setupInputListeners() {
                   Utils.dynamicAgencies[s.subtier_agency.name.toLowerCase()] = { 
                     tier: 'subtier', 
                     name: s.subtier_agency.name, 
-                    toptier_name: s.toptier_agency.name // <-- This is the missing piece!
+                    toptier_name: s.toptier_agency.name
                   };
                 }
                 if (s.toptier_agency) {
@@ -3480,7 +3515,7 @@ setupInputListeners() {
           }, 300);
         });
 
-        // Hide the drop heredown if the user clicks anywhere else on the screen
+        // Hide the dropdown if the user clicks anywhere else on the screen
         document.addEventListener('click', (e) => {
           if (!inputEl.contains(e.target) && !boxEl.contains(e.target)) {
             boxEl.classList.add('hidden');
@@ -3492,6 +3527,13 @@ setupInputListeners() {
     // Attach the logic to BOTH search bars
     setupAutocomplete('mainSearchInput', 'agencySuggestions');
     setupAutocomplete('miniSearch', 'miniAgencySuggestions');
+    
+    // Expose a global kill function for use by Enter handler and runSearch
+    App._killAutocomplete = () => {
+      _autocompleteCancellers.forEach(fn => fn());
+      API._autocompleteController.abort();
+      API._autocompleteController = new AbortController();
+    };
     // --- END AUTOCOMPLETE LOGIC ---
 
     const aiChat = DOM.get('aiChatInput');
@@ -3513,11 +3555,10 @@ setupInputListeners() {
         else if (main) { main.focus(); main.select(); }
       }
       if (e.key === 'Escape') {
-        const mainBox = DOM.get('agencySuggestions');
+        const agBox = DOM.get('agencySuggestions');
         const miniBox = DOM.get('miniAgencySuggestions');
-        if (mainBox) mainBox.classList.add('hidden');
+        if (agBox) agBox.classList.add('hidden');
         if (miniBox) miniBox.classList.add('hidden');
-        if (suggestionsBox) suggestionsBox.classList.add('hidden');
         if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
           document.activeElement.blur();
         }
@@ -3903,6 +3944,9 @@ scrollToPanel(id) {
   async runSearch(val, isDirectSelection = false) {
     let query = val || DOM.get('miniSearch').value; 
     if(!query) return;
+
+    // Kill any pending autocomplete debounce timers, in-flight requests, and hide dropdowns
+    if (App._killAutocomplete) App._killAutocomplete();
     
     const rawQuery = query.toUpperCase();
     
@@ -3915,10 +3959,12 @@ scrollToPanel(id) {
     DOM.get('miniSearch').value = query;
     document.title = `Govhoo | ${query}`;
     
-    let history = JSON.parse(localStorage.getItem('govhoo-recent') || '[]');
-    history = history.filter(q => q !== query);
-    history.unshift(query);
-    localStorage.setItem('govhoo-recent', JSON.stringify(history.slice(0, 5)));
+    try {
+      let history = JSON.parse(localStorage.getItem('govhoo-recent') || '[]');
+      history = history.filter(q => q !== query);
+      history.unshift(query);
+      localStorage.setItem('govhoo-recent', JSON.stringify(history.slice(0, 5)));
+    } catch(e) {}
     App.renderRecentSearches();
 
     if(query !== App.currentQuery) { 
@@ -4029,8 +4075,8 @@ scrollToPanel(id) {
   },
 async loadBackgroundData(query) {
     this.loadForecastInBackground(query);
-    try { this.loadNaicsBreakdown(query); } catch(e) { console.warn('NAICS load failed:', e); }
-    try { setTimeout(() => this.loadSubcontractingData(query), 0); } catch(e) { console.warn('Background data failure:', e); }
+    this.loadNaicsBreakdown(query).catch(e => console.warn('NAICS load failed:', e));
+    setTimeout(() => this.loadSubcontractingData(query), 0);
   },
 
   async loadNaicsBreakdown(query) {
@@ -4053,17 +4099,18 @@ async loadBackgroundData(query) {
   },
 
   async loadSubcontractingData(query) {
-  const thisSearchId = App._searchId;
     if (App.forecastData.subawards && App.currentQuery === query) return;
     const body = DOM.get('subcontractingBody');
     if (!body) return;
+    const capturedSearchId = App._searchId;
     
     body.innerHTML = `<div style="text-align:center; padding:2rem; color:var(--text-secondary);"> Loading subaward flow...</div>`;
     const timeout = setTimeout(() => {
+      if (App.currentQuery !== query) return; // Don't show retry for stale query
       if (body.innerHTML.includes('Loading subaward')) {
         body.innerHTML = `<div style="text-align:center; padding:1rem; color:var(--text-secondary); font-size:var(--text-base);">
            Subaward data is taking too long to load.
-          <br><a href="#" onclick="App.loadSubcontractingData('${query.replace(/'/g, "\\'")}'); return false;" style="color:var(--accent); text-decoration:underline; font-size:var(--text-sm);">Retry</a>
+          <br><button onclick="App.loadSubcontractingData(App.currentQuery)" style="color:var(--accent); text-decoration:underline; font-size:var(--text-sm); background:none; border:none; cursor:pointer;">Retry</button>
         </div>`;
       }
     }, 15000);
@@ -4071,8 +4118,9 @@ async loadBackgroundData(query) {
     try {
       API.getSubawards(query)
         .then(subawards => {
-		if (thisSearchId !== App._searchId) return;
           clearTimeout(timeout);
+          // Guard: Don't render results from a stale search
+          if (capturedSearchId !== App._searchId || App.currentQuery !== query) return;
           App.forecastData.subawards = subawards;
           this.renderSubawardSankey(subawards);
           this.renderSearchTopPrimes(subawards);
@@ -4080,12 +4128,12 @@ async loadBackgroundData(query) {
           this.renderSubawardFeed();
           App.renderSubBubbleChart();
         })
-        .catch(e => { clearTimeout(timeout); console.error(e); });
+        .catch(e => { clearTimeout(timeout); if (e.name !== 'AbortError') console.error(e); });
     } catch (e) {
       clearTimeout(timeout);
       body.innerHTML = `<div style="text-align:center; padding:1rem; color:var(--text-secondary); font-size:var(--text-base);">
          Unable to load subaward data.
-        <br><a href="#" onclick="App.loadSubcontractingData('${query.replace(/'/g, "\\'")}'); return false;" style="color:var(--accent); text-decoration:underline; font-size:var(--text-sm);">Retry</a>
+        <br><button onclick="App.loadSubcontractingData(App.currentQuery)" style="color:var(--accent); text-decoration:underline; font-size:var(--text-sm); background:none; border:none; cursor:pointer;">Retry</button>
       </div>`;
     }
   },
@@ -4188,8 +4236,8 @@ const recentNewVendors = new Set();
     const sa = c['Awarding Sub Agency'];
     const v = c['Recipient Name'];
     const amt = parseFloat(c['Award Amount']) || 0;
-    const start = new Date(c['Start Date']);
-    const end = new Date(c['End Date']);
+    const start = c['Start Date'] ? new Date(c['Start Date']) : null;
+    const end = c['End Date'] ? new Date(c['End Date']) : null;
 
     if (a) agencySpend[a] = (agencySpend[a] || 0) + amt;
     if (sa && sa !== 'Unknown' && sa !== a) {
@@ -4198,14 +4246,14 @@ const recentNewVendors = new Set();
     }
     if (v) vendorSpend[v] = (vendorSpend[v] || 0) + amt;
 
-    if (!isNaN(start) && start >= d90Ago) {
+    if (start && !isNaN(start) && start >= d90Ago) {
   recentNewCount++;
   recentNewValue += amt;
 
   if (v) recentNewVendors.add(v);
 }
 
-    if (!isNaN(end) && end > now) {
+    if (end && !isNaN(end) && end > now) {
       if (end <= d90Future) {
         pipe90Count++;
         pipe90Value += amt;
@@ -4651,8 +4699,9 @@ copySectionLink(sectionHash, btnElement) {
   drillToLevel(lvl, preventRender = false) { 
     App.searchData.active = App.searchData.raw;
     if (lvl === 0) App.resetDrill(); 
-    else if (lvl === 1) App.drillToAgency(App.drillState.path[0].name, preventRender); 
-    else if (lvl === 2) App.drillToSubAgency(App.drillState.path[1].name, preventRender);
+    else if (lvl === 1 && App.drillState.path[0]) App.drillToAgency(App.drillState.path[0].name, preventRender); 
+    else if (lvl === 2 && App.drillState.path[1]) App.drillToSubAgency(App.drillState.path[1].name, preventRender);
+    else App.resetDrill(); // Fallback: if path doesn't have the expected entries, reset
   },
 
 drillDown(name, preventRender = false) {
@@ -4667,20 +4716,16 @@ drillDown(name, preventRender = false) {
     App.searchData.active = data;
 
     if (vendorMatch) {
-      // Reconstruct the full agency context from the vendor's data
-      const parentAgency = vendorMatch['Awarding Agency'] || 'Unknown Agency';
-      const parentSub = vendorMatch['Awarding Sub Agency'] || parentAgency;
+      // Remove any existing vendor from the path
+      if (App.drillState.path.length > 0 && App.drillState.path[App.drillState.path.length - 1].type === 'vendor') {
+        App.drillState.path.pop();
+      }
       
-      App.drillState.currentAgency = parentAgency;
-      App.drillState.currentSubAgency = parentSub;
-      App.drillState.level = 3; 
-      
-      App.drillState.path = [
-        { type: 'agency', name: parentAgency },
-        { type: 'sub', name: parentSub },
-        { type: 'vendor', name: name }
-      ];
-      
+      // Build correct level: existing path length + 1 for the vendor
+      const basePath = App.drillState.path.slice(); // preserve agency/sub-agency context
+      basePath.push({ type: 'vendor', name: name });
+      App.drillState.path = basePath;
+      App.drillState.level = basePath.length; // 1 if no agency context, 2 if agency, 3 if agency+sub
       App.searchData.filter = `Vendor: ${name}`;
       App.activeFeedSource = 'prime'; 
       App.searchData.active = data.filter(d => d['Recipient Name'] === name);
@@ -4690,7 +4735,7 @@ drillDown(name, preventRender = false) {
         App.updateSearchDashboard(); 
       }
     } else if (officeMatch) {
-      // Handles clicks on 'Awarding Office' Sankey nodes
+      // NEW: Handles clicks on 'Awarding Office' Sankey nodes
       App.drillState.currentAgency = officeMatch['Awarding Agency'];
       App.drillToSubAgency(name, preventRender);
     } else if (subAgencyMatch && (!agencyMatch || App.drillState.level === 1)) {
@@ -4916,9 +4961,9 @@ _renderSankeyInner(container) {
     if (panel) {
       const titleEl = panel.querySelector('.data-panel-title');
       const subtitleEl = panel.querySelector('.data-panel-subtitle');
-      if (titleEl) titleEl.textContent = drill.level >= 1 ? 'Offices' : 'Agencies';
-      if (subtitleEl) subtitleEl.textContent = drill.level >= 1
-        ? `In ${Utils.trunc(drill.path[drill.path.length - 1].name.replace(/^Department of (the )?/i, ''), 25)}`
+      if (titleEl) titleEl.textContent = drill.level >= 1 && drill.currentAgency ? 'Offices' : 'Agencies';
+      if (subtitleEl) subtitleEl.textContent = drill.level >= 1 && drill.path && drill.path.length > 0
+        ? `In ${Utils.trunc((drill.path[drill.path.length - 1].name || '').replace(/^Department of (the )?/i, ''), 25)}`
         : '';
     }
     
@@ -4977,8 +5022,8 @@ _renderSankeyInner(container) {
     const subtitleEl = panel.querySelector('.data-panel-subtitle');
     const drill = App.drillState || {};
     if (titleEl) titleEl.textContent = drill.level >= 1 ? 'Primes' : 'Primes';
-    if (subtitleEl) subtitleEl.textContent = drill.level >= 1 
-      ? `In ${Utils.trunc(drill.path[drill.path.length - 1].name.replace(/^Department of (the )?/i, ''), 25)}` : '';
+    if (subtitleEl) subtitleEl.textContent = drill.level >= 1 && drill.path && drill.path.length > 0
+      ? `In ${Utils.trunc((drill.path[drill.path.length - 1].name || '').replace(/^Department of (the )?/i, ''), 25)}` : '';
 
     const vendorMap = {};
     data.forEach(c => {
@@ -5095,6 +5140,7 @@ async renderHistoricalTimeline(query) {
       }, 500);
 
     } catch (e) {
+      if (e.name === 'AbortError') return; // Silently exit on intentional abort
       console.error(e);
       chart.innerHTML = `<div style="width:100%; text-align:center; color:var(--text-tertiary); margin-top: 60px;">Failed to load data.</div>`;
     }
@@ -5149,7 +5195,7 @@ renderTargetAccounts() {
     if (data.length === 0) { panel.classList.add('hidden'); return; }
 
     const isDrilled = drill.level >= 1;
-    const isVendorDrill = drill.level === 3 && drill.path.some(p => p.type === 'vendor');
+    const isVendorDrill = drill.path && drill.path.some(p => p.type === 'vendor');
     const groupField = isVendorDrill ? 'Awarding Agency' : (isDrilled && drill.currentAgency ? 'Awarding Sub Agency' : 'Awarding Agency');
     const clickAction = isVendorDrill ? 'drillToAgency' : (isDrilled && drill.currentAgency ? 'drillToSubAgency' : 'drillToAgency');
 
@@ -5929,6 +5975,7 @@ renderTargetAccounts() {
     }
     
     const tooltip = DOM.get('bubbleTooltip');
+    if (tooltip) tooltip.classList.remove('visible'); // Dismiss stale tooltip from prior render
     container.querySelectorAll('svg').forEach(s => s.remove());
     
     const rect = container.getBoundingClientRect();
@@ -6104,6 +6151,7 @@ renderTargetAccounts() {
     DOM.text('sub-bubble-stat-records', filtered.length);
     
     const tooltip = DOM.get('subBubbleTooltip');
+    if (tooltip) tooltip.classList.remove('visible');
     container.querySelectorAll('svg').forEach(s => s.remove());
     
     const rect = container.getBoundingClientRect();
@@ -6344,8 +6392,9 @@ requestAnimationFrame(() => {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a"); link.setAttribute("href", url); 
-    link.setAttribute("download", `govhoo_${this.currentQuery.replace(/[^a-zA-Z0-9]/g, '_')}.csv`);
+    link.setAttribute("download", `govhoo_${(this.currentQuery || 'export').replace(/[^a-zA-Z0-9]/g, '_')}.csv`);
     document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 
     if (btn) {
       const orig = btn.innerHTML;
@@ -6417,7 +6466,7 @@ selectAgencySuggestion(name, inputId, boxId) {
         const btn = DOM.get('presToggleBtn');
         if (btn) {
           btn.classList.add('active');
-          btn.innerHTML = '<svg class="icon" aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+          btn.innerHTML = '<svg class="icon" aria-hidden="true" viewBox="0 0 640 640"><path fill="currentColor" d="M320 160C178.6 160 64 274.6 64 416L64 480C64 497.7 49.7 512 32 512C14.3 512 0 497.7 0 480L0 416C0 239.3 143.3 96 320 96C496.7 96 640 239.3 640 416L640 480C640 497.7 625.7 512 608 512C590.3 512 576 497.7 576 480L576 416C576 274.6 461.4 160 320 160zM320 272C240.5 272 176 336.5 176 416L176 480C176 497.7 161.7 512 144 512C126.3 512 112 497.7 112 480L112 416C112 301.1 205.1 208 320 208C434.9 208 528 301.1 528 416L528 480C528 497.7 513.7 512 496 512C478.3 512 464 497.7 464 480L464 416C464 336.5 399.5 272 320 272zM288 416L288 480C288 497.7 273.7 512 256 512C238.3 512 224 497.7 224 480L224 416C224 363 267 320 320 320C373 320 416 363 416 416L416 480C416 497.7 401.7 512 384 512C366.3 512 352 497.7 352 480L352 416C352 398.3 337.7 384 320 384C302.3 384 288 398.3 288 416z"/></svg>';
         }
       });
     }
