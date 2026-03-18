@@ -2647,14 +2647,14 @@ buyingOffices: {
   'FA7014': 'FA7014  AFDW PK',
   'N00164': 'NSWC CRANE',
   'N62473': 'NAVFACSYSCOM SOUTHWEST',
-  'W9124P': 'REDSTONE ARSENAL',
+  'W9124P': 'W6QK ACC-RSA',
   '15B118': 'USP BIG SANDY',
   'FA0021': 'FA0021  AFICA 765 SCONF',
   'FA3002': 'FA3002  338 ESS CC',
   'FA8220': 'FA8220 AFLCMC WNDT',
   'H92403': 'HQ USSOCOM',
   'HT9408': 'DEFENSE HEALTH AGENCY',
-  'W31P4Q': 'REDSTONE ARSENAL',
+  'W31P4Q': 'W6QK ACC-RSA',
   'N91732': 'NAVAL SAFETY AND ENVIRONMENTAL',
   '191S40': 'U.S. EMBASSY JERUSALEM',
   'FA3300': 'FA3300  42 CONS CC',
@@ -2931,7 +2931,7 @@ buyingOffices: {
   '19ML20': 'U.S. EMBASSY BAMAKO',
   'W912PL': 'W075 ENDIST LOS ANGELES',
   'W912D0': '0413 AQ HQ     RCO-AK WAINWRIG',
-  'W9113M': 'REDSTONE ARSENAL',
+  'W9113M': 'W6QK ACC-RSA',
   '15JC1V': 'CIVIL DIVISION',
   '6923G5': '6923G5 GREAT LAKES ST LAWRENCE SWY DEV. CORP.',
   '15DDL6': 'SOUTH CENTRAL LABORATORY',
@@ -3148,7 +3148,7 @@ buyingOffices: {
   'H92415': 'HQ USSOCOM',
   '140FC3': 'FWS, CONSTRUCTION A/E TEAM 3',
   'N63082': 'COMMANDING OFFICER',
-  'W58RGZ': 'REDSTONE ARSENAL',
+  'W58RGZ': 'W6QK ACC-RSA',
   'W911S8': 'W6QM MICC-JB LEWIS-MC CHORD',
   'W912EK': 'W07V ENDIST ROCK ISLAND',
   'FA8517': 'FA8517  AFSC PZAAC',
@@ -3696,7 +3696,7 @@ buyingOffices: {
   '15JA40': 'U.S. ATTORNEYS OFFICE-MI(W) (USA40)',
   '19M055': 'U.S. EMBASSY RABAT',
   'W50S6Z': 'W7M3 USPFO ACTIVITY GAANG 116',
-  'W91260': 'REDSTONE ARSENAL COS',
+  'W91260': 'W6QK ACC-RSA COS',
   'FA6712': 'FA6712  911 AW LGC',
   'FA5808': 'FA5808  332 AEW ECONS CONS',
   'W912JM': 'W7M3 USPFO ACTIVITY GA ARNG',
@@ -6181,7 +6181,18 @@ scrollToPanel(id) {
         top_vendors: topVendors,
         expiring_total: { count: recompetes.length, value: recompetes.reduce((s, r) => s + (parseFloat(r['Award Amount']) || 0), 0) },
         frontend_opportunity_signals: App._tacticalSignals || [],
-        sample_contracts: data.sort((a, b) => (parseFloat(b['Award Amount']) || 0) - (parseFloat(a['Award Amount']) || 0)).slice(0, 30)
+        sample_contracts: data.sort((a, b) => (parseFloat(b['Award Amount']) || 0) - (parseFloat(a['Award Amount']) || 0)).map(c => ({
+          'Award ID': c['Award ID'],
+          'Recipient Name': c['Recipient Name'],
+          'Awarding Agency': c['Awarding Agency'],
+          'Awarding Sub Agency': c['Awarding Sub Agency'],
+          'Award Amount': c['Award Amount'],
+          'Description': c['Description'],
+          'Start Date': c['Start Date'],
+          'End Date': c['End Date'],
+          'NAICS': c['NAICS'],
+          'PSC': c['PSC']
+        }))
       };
     })();
 
@@ -6282,7 +6293,18 @@ scrollToPanel(id) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           request_type: 'govhoo_chat', 
-          market_data: App.searchData.active, // FIX: Send full array, let Lambda slice it
+          market_data: App.searchData.active.map(c => ({
+            'Award ID': c['Award ID'],
+            'Recipient Name': c['Recipient Name'],
+            'Awarding Agency': c['Awarding Agency'],
+            'Awarding Sub Agency': c['Awarding Sub Agency'],
+            'Award Amount': c['Award Amount'],
+            'Description': c['Description'],
+            'Start Date': c['Start Date'],
+            'End Date': c['End Date'],
+            'NAICS': c['NAICS'],
+            'PSC': c['PSC']
+          })),
           history: App.aiState.history,
           conference_context: conferenceContext
         })
