@@ -873,7 +873,7 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: searchf
   .breadcrumb-item { min-height: 48px; padding: 10px 14px; display: inline-flex; align-items: center; }
   .action-btn { min-height: 48px; padding: 10px 14px; }
   .bubble-bc-item { min-height: 44px; padding: 10px 12px; }
-  .bubble-toggle-btn { min-height: 40px; padding: 8px 14px; }
+  .bubble-toggle-btn { min-height: 40px; padding: 8px 12px; }
   .deal-footer .action-btn { min-height: 48px; }
   .deal-card { padding: 0.75rem 0; }
   .deal-header { margin-bottom: 0.2rem; }
@@ -904,7 +904,9 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: searchf
   .icon-btn-slack { display: none; }
   .icon-btn-pres { display: flex; }
   #bubbleChartContainer { min-height: 320px; }
-  .toggle-sep { display: inline-block; }
+  .toggle-sep { display: inline-block; margin: 0 0.1rem; height: 1rem; }
+  .bubble-toggle-row { gap: 0.2rem; }
+  .bubble-toggle-btn { min-height: 36px; padding: 6px 10px; font-size: var(--text-micro); }
   .ai-banner { padding: 0.625rem 0; gap: var(--space-sm); align-items: center; flex-direction: row; }
   .ai-avatar-float { width: 48px; height: 48px; margin-right: 10px; margin-bottom: 0; float: none; flex-shrink: 0; padding: 4px; }
   .ai-banner-wrapper { display: flex; align-items: center; gap: 0; flex: 1; min-width: 0; }
@@ -1208,7 +1210,7 @@ details > summary::-webkit-details-marker { display: none; }
                 <div class="bubble-toggle-row toggle-row-flush" id="bubbleToggleRow">
                   <button class="bubble-toggle-btn" data-action="setBubbleMode" data-value="vendors" id="bubbleToggleVendors">Vendor</button>
                   <button class="bubble-toggle-btn active" data-action="setBubbleMode" data-value="agencies" id="bubbleToggleAgencies">Agency</button>
-                  <button class="bubble-toggle-btn hidden" data-action="setBubbleMode" data-value="subagencies" id="bubbleToggleSubAgencies">Office</button>
+                  <button class="bubble-toggle-btn" data-action="setBubbleMode" data-value="subagencies" id="bubbleToggleSubAgencies">Office</button>
                   <span class="toggle-sep"></span>
                   <button class="bubble-toggle-btn" data-action="setBubbleChartType" data-value="bubbles" id="chartTypeBubbles">Bubble</button>
                   <button class="bubble-toggle-btn active" data-action="setBubbleChartType" data-value="treemap" id="chartTypeTreemap">Tree</button>
@@ -1508,41 +1510,41 @@ details > summary::-webkit-details-marker { display: none; }
             </ol>
           </section>
 
-<section class="footer-section">
-  <div class="footer-label">Understanding the numbers</div>
-  <div class="use-cases">
-    
-    <div class="use-case">
-      <div class="use-case-title">Why totals look high</div>
-      <div class="use-case-desc">
-        Dollar figures reflect the <em class="explainer-highlight">full lifetime value of multi-year contracts</em>, not annual spend. Govhoo focuses on the <em class="explainer-highlight">top 100 active contracts by value</em>, so you’re seeing the biggest drivers in the market, not the full long tail.
-      </div>
-    </div>
-    
-    <div class="use-case">
-      <div class="use-case-title">What’s included</div>
-      <div class="use-case-desc">
-        Only <em class="explainer-highlight">active contracts</em> with <em class="explainer-highlight">funding in the past 12 months</em>. No expired vehicles, no closeout noise, just what’s currently in play.
-      </div>
-    </div>
+	<section class="footer-section">
+            <div class="footer-label">Understanding the numbers</div>
+            <div class="use-cases">
+              
+              <div class="use-case">
+                <div class="use-case-title">Why totals look high</div>
+                <div class="use-case-desc">
+                  The dollar figures reflect the <em class="explainer-highlight">full lifetime obligated value of multi-year contracts</em>, not a single year's spend. Because Govhoo analyzes the <em class="explainer-highlight">top 100 largest contracts</em> in your search, these numbers represent the heaviest hitters in your territory rather than the entire database.
+                </div>
+              </div>
+              
+              <div class="use-case">
+                <div class="use-case-title">What’s included</div>
+                <div class="use-case-desc">
+                  Govhoo strictly shows <em class="explainer-highlight">active contracts (end dates in the future)</em> that have recorded funding actions in the past 12 months. This ensures your pipeline is built on active requirements and free of old, dead close-out contracts.
+                </div>
+              </div>
 
-    <div class="use-case">
-      <div class="use-case-title">Where the data comes from</div>
-      <div class="use-case-desc">
-        Every search hits the <em class="explainer-highlight">USASpending.gov API in real time</em>. No cache, no stale snapshots. Data is shown exactly as reported by agencies. Govhoo <em class="explainer-highlight">cleans up vendor names and office structures</em> for readability but never alters the financial data.
-      </div>
-    </div>
+              <div class="use-case">
+                <div class="use-case-title">Where the data comes from</div>
+                <div class="use-case-desc">
+                  Every search queries the <em class="explainer-highlight">USASpending.gov API v2 in real time</em>. There is no cache and no stale snapshots. Dollar amounts and dates are shown exactly as reported by federal agencies. Govhoo <em class="explainer-highlight">normalizes vendor names and resolves agency office hierarchies</em> for readability, but never changes the underlying financial data. Your searches are not sent to Govhoo servers — recent searches are stored locally in your browser for convenience, and we use Google Analytics for basic site traffic.
+                </div>
+              </div>
 
-    <div class="use-case">
-      <div class="use-case-title">What this isn’t</div>
-      <div class="use-case-desc">
-        Not an RFP feed or opportunity tracker. This is <em class="explainer-highlight">market intelligence</em> to help you quickly size the market, see who owns the work, and decide where to focus.
-      </div>
-    </div>
+              <div class="use-case">
+                <div class="use-case-title">What this isn’t</div>
+                <div class="use-case-desc">
+                  Govhoo is not an opportunity tracker or an RFP database. It is <em class="explainer-highlight">market intelligence</em> that helps you quickly see how a federal market is structured so your team can decide where to focus.
+                </div>
+              </div>
 
-  </div>
-</section>
- <section class="footer-section">
+            </div>
+          </section>
+          <section class="footer-section">
             <div class="footer-label">Built by a seller</div>
             <p class="footer-text">
               <img src="https://govhoo.com/images/oldmark.jpg" alt="" class="tip-bio-img">
@@ -4811,18 +4813,33 @@ _renderSankeyInner(container) {
     }
     
     const isLvl0 = App.drillState.level === 0;
+    const effectiveMode = App.getEffectiveBubbleMode();
+    // At level 0, sync Sankey source with the bubble toggle:
+    // 'agencies' → Agency, 'subagencies' → Sub-Agency/Office, 'vendors' → Agency (default)
+    const useOfficeView = isLvl0 && effectiveMode === 'subagencies';
     const flowMap = {}; 
 
     data.forEach(d => { 
       if(d['Award Amount'] > 0) {
-        // Use Agency at Level 0, Sub-Agency at Level 1
-        let source = (isLvl0 ? d['Awarding Agency'] : d['Awarding Sub Agency']) || d['Awarding Agency'] || 'Unknown Agency';
-        const agencyRaw = (d['Awarding Agency'] || '').toUpperCase().split('(')[0].trim();
-        const subRaw = (source || '').toUpperCase().split('(')[0].trim();
+        let source;
+        if (useOfficeView) {
+          // Office view at level 0: use Sub-Agency, falling back to Office if sub matches parent
+          source = d['Awarding Sub Agency'] || d['Awarding Agency'] || 'Unknown Agency';
+          const agencyRaw = (d['Awarding Agency'] || '').toUpperCase().split('(')[0].trim();
+          const subRaw = (source || '').toUpperCase().split('(')[0].trim();
+          if (agencyRaw === subRaw && d['Awarding Office']) {
+            source = d['Awarding Office'];
+          }
+        } else {
+          // Default: Agency at Level 0, Sub-Agency at Level 1+
+          source = (isLvl0 ? d['Awarding Agency'] : d['Awarding Sub Agency']) || d['Awarding Agency'] || 'Unknown Agency';
+          const agencyRaw = (d['Awarding Agency'] || '').toUpperCase().split('(')[0].trim();
+          const subRaw = (source || '').toUpperCase().split('(')[0].trim();
 
-        // If we are drilled down AND the Sub-Agency has the exact same name as the Agency, push to Office
-        if (!isLvl0 && agencyRaw === subRaw && d['Awarding Office']) {
-          source = d['Awarding Office'];
+          // If we are drilled down AND the Sub-Agency has the exact same name as the Agency, push to Office
+          if (!isLvl0 && agencyRaw === subRaw && d['Awarding Office']) {
+            source = d['Awarding Office'];
+          }
         }
         
         const target = d['Recipient Name'] || 'Unknown Vendor';
@@ -4832,7 +4849,7 @@ _renderSankeyInner(container) {
     });
 
     const allFlows = Object.entries(flowMap).sort((a,b) => b[1] - a[1]); 
-    const limit = App.drillState.level > 0 ? 50 : 25;
+    const limit = (App.drillState.level > 0 || useOfficeView) ? 50 : 25;
     const topFlows = allFlows.slice(0, limit); 
     const tailFlows = allFlows.slice(limit);
     
@@ -4861,6 +4878,7 @@ _renderSankeyInner(container) {
     App.searchData.raw.forEach(d => {
       if (d['Awarding Agency']) drillableNames.add(d['Awarding Agency']);
       if (d['Awarding Sub Agency']) drillableNames.add(d['Awarding Sub Agency']);
+      if (d['Awarding Office']) drillableNames.add(d['Awarding Office']);
       if (d['Recipient Name']) drillableNames.add(d['Recipient Name']);
     });
 
@@ -5857,6 +5875,7 @@ renderTargetAccounts() {
     DOM.get('bubbleToggleAgencies').classList.toggle('active', mode === 'agencies');
     DOM.get('bubbleToggleSubAgencies').classList.toggle('active', mode === 'subagencies');
     this.renderBubbleChart();
+    this.renderSankey(); // Keep Sankey in sync with the toggle
   },
 
   getEffectiveBubbleMode() {
@@ -5873,8 +5892,11 @@ renderTargetAccounts() {
     const agenciesBtn = DOM.get('bubbleToggleAgencies');
     const subAgenciesBtn = DOM.get('bubbleToggleSubAgencies');
     
-    if (subAgenciesBtn) subAgenciesBtn.classList.toggle('hidden', drill.level < 1);
-    if (subAgenciesBtn) subAgenciesBtn.classList.toggle('show-inline-block', drill.level >= 1);
+    // Office toggle is always visible
+    if (subAgenciesBtn) {
+      subAgenciesBtn.classList.remove('hidden');
+      subAgenciesBtn.classList.add('show-inline-block');
+    }
     const effective = this.getEffectiveBubbleMode();
     vendorsBtn.classList.toggle('active', effective === 'vendors');
     agenciesBtn.classList.toggle('active', effective === 'agencies');
@@ -5882,7 +5904,7 @@ renderTargetAccounts() {
     
     const subtitle = DOM.get('bubbleChartSubtitle');
     if (subtitle) {
-      const modeLabels = { 'agencies': 'Spending concentration by agency', 'subagencies': 'Spending concentration by sub-agency', 'vendors': 'Market concentration by vendor' };
+      const modeLabels = { 'agencies': 'Spending concentration by agency', 'subagencies': 'Spending concentration by office', 'vendors': 'Market concentration by vendor' };
       subtitle.textContent = (modeLabels[effective] || 'Market concentration') + ' · Funded value';
     }
   },
@@ -5970,7 +5992,7 @@ renderTargetAccounts() {
     const subtitleEl = DOM.get('bubbleChartSubtitle');
     if (subtitleEl) {
       const query = this.currentQuery ? '"' + this.currentQuery + '" · ' : '';
-      const modeLabel = { agencies: 'Agencies', subagencies: 'Sub-Agencies', vendors: 'Vendors' };
+      const modeLabel = { agencies: 'Agencies', subagencies: 'Offices', vendors: 'Vendors' };
       subtitleEl.textContent = query + 'Concentration by ' + (modeLabel[effective] || 'vendor').toLowerCase() + ' · Funded value';
     }
     
@@ -5998,7 +6020,21 @@ renderTargetAccounts() {
         function(entity) {
           App._pendingDrillScroll = 'bubbleChartPanel';
           if (effective === 'agencies') { App.bubbleMode = 'auto'; App.drillToAgency(entity.name); }
-          else if (effective === 'subagencies') { App.bubbleMode = 'auto'; App.drillToSubAgency(entity.name); }
+          else if (effective === 'subagencies') {
+            // If we're at level 0 viewing offices globally, we need to find the parent agency first
+            if (drill.level === 0) {
+              const sample = data.find(a => (a['Awarding Sub Agency'] === entity.name) || (a['Awarding Office'] === entity.name));
+              if (sample && sample['Awarding Agency']) {
+                App.bubbleMode = 'auto';
+                App.drillToAgency(sample['Awarding Agency'], true); // drill to agency without rendering
+                App.drillToSubAgency(entity.name); // then drill to office (renders)
+              } else {
+                App.bubbleMode = 'auto'; App.drillToSubAgency(entity.name);
+              }
+            } else {
+              App.bubbleMode = 'auto'; App.drillToSubAgency(entity.name);
+            }
+          }
           else { App.drillDown(entity.name); }
         },
         { touchStateGet: () => touchSelectedEntity, touchStateSet: v => { touchSelectedEntity = v; } }
