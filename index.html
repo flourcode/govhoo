@@ -2692,7 +2692,9 @@ const API = {
   AWARD_FIELDS: [
     'Award ID', 'Recipient Name', 'Awarding Agency', 'Awarding Sub Agency',
     'Awarding Office', 'Award Amount', 'Description', 'generated_internal_id', 
-    'Start Date', 'End Date', 'NAICS', 'PSC'
+    'Start Date', 'End Date', 'NAICS', 'PSC', 'Contract Award Type', 
+    'Type of Set Aside', 'number_of_offers_received', 'parent_award_id', 
+    'NAICS Description', 'PSC Description', 'PSC Code', 'NAICS Code'
   ],
 
   // 1. Add the controllers
@@ -3511,6 +3513,10 @@ setupInputListeners() {
         else if (main) { main.focus(); main.select(); }
       }
       if (e.key === 'Escape') {
+        const mainBox = DOM.get('agencySuggestions');
+        const miniBox = DOM.get('miniAgencySuggestions');
+        if (mainBox) mainBox.classList.add('hidden');
+        if (miniBox) miniBox.classList.add('hidden');
         if (suggestionsBox) suggestionsBox.classList.add('hidden');
         if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
           document.activeElement.blur();
@@ -4047,6 +4053,7 @@ async loadBackgroundData(query) {
   },
 
   async loadSubcontractingData(query) {
+  const thisSearchId = App._searchId;
     if (App.forecastData.subawards && App.currentQuery === query) return;
     const body = DOM.get('subcontractingBody');
     if (!body) return;
@@ -4064,6 +4071,7 @@ async loadBackgroundData(query) {
     try {
       API.getSubawards(query)
         .then(subawards => {
+		if (thisSearchId !== App._searchId) return;
           clearTimeout(timeout);
           App.forecastData.subawards = subawards;
           this.renderSubawardSankey(subawards);
@@ -4659,9 +4667,20 @@ drillDown(name, preventRender = false) {
     App.searchData.active = data;
 
     if (vendorMatch) {
-      if (App.drillState.level === 3) App.drillState.path.pop();
+      // Reconstruct the full agency context from the vendor's data
+      const parentAgency = vendorMatch['Awarding Agency'] || 'Unknown Agency';
+      const parentSub = vendorMatch['Awarding Sub Agency'] || parentAgency;
+      
+      App.drillState.currentAgency = parentAgency;
+      App.drillState.currentSubAgency = parentSub;
       App.drillState.level = 3; 
-      App.drillState.path.push({ type: 'vendor', name: name });
+      
+      App.drillState.path = [
+        { type: 'agency', name: parentAgency },
+        { type: 'sub', name: parentSub },
+        { type: 'vendor', name: name }
+      ];
+      
       App.searchData.filter = `Vendor: ${name}`;
       App.activeFeedSource = 'prime'; 
       App.searchData.active = data.filter(d => d['Recipient Name'] === name);
@@ -4671,7 +4690,7 @@ drillDown(name, preventRender = false) {
         App.updateSearchDashboard(); 
       }
     } else if (officeMatch) {
-      // NEW: Handles clicks on 'Awarding Office' Sankey nodes
+      // Handles clicks on 'Awarding Office' Sankey nodes
       App.drillState.currentAgency = officeMatch['Awarding Agency'];
       App.drillToSubAgency(name, preventRender);
     } else if (subAgencyMatch && (!agencyMatch || App.drillState.level === 1)) {
@@ -5407,7 +5426,7 @@ renderTargetAccounts() {
           <div style="display:flex;gap:0.5rem;align-items:center;">
             <a href="${linkedInPeopleUrl}" target="_blank" class="job-link">People</a>
             <a href="${linkedInUrl}" target="_blank" class="job-link">Jobs</a>
-            <a href="https://www.usaspending.gov/award/${internalId}" target="_blank" class="action-btn">Details</a>
+            ${detailsBtn}
           </div>
         </div></div>`;
     }).join('');
