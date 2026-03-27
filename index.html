@@ -1102,8 +1102,8 @@ details[open] > summary svg { transform: rotate(180deg); }
    =========================================== */
 /* VENDOR ENRICHMENT — logos + stock */
 .vendor-logo {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   object-fit: contain;
   border-radius: 3px;
   flex-shrink: 0;
@@ -10436,10 +10436,10 @@ const VendorEnrich = {
     return getAgencyEnrichment(rawName);
   },
 
-  // Return a Clearbit logo URL for a domain, or null.
+  // Return a logo URL for a domain using Google's favicon service (free, no key, works for .gov/.mil/.com).
   logo(domain) {
     if (!domain) return null;
-    return `https://logo.clearbit.com/${domain}`;
+    return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
   },
 
   // Render an <img> logo tag that hides itself on 404.
