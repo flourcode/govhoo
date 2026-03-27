@@ -10436,10 +10436,15 @@ const VendorEnrich = {
     return getAgencyEnrichment(rawName);
   },
 
-  // Return a logo URL for a domain using Google's favicon service (free, no key, works for .gov/.mil/.com).
+  // Return a logo URL for a domain.
+  // .gov/.mil: fetch the favicon directly — Google/DDG don't index these.
+  // commercial: use DuckDuckGo favicon service (reliable, no key, no rate limit).
   logo(domain) {
     if (!domain) return null;
-    return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+    if (domain.endsWith('.gov') || domain.endsWith('.mil') || domain.endsWith('.edu')) {
+      return `https://${domain}/favicon.ico`;
+    }
+    return `https://icons.duckduckgo.com/ip3/${domain}.ico`;
   },
 
   // Render an <img> logo tag that hides itself on 404.
@@ -10464,7 +10469,7 @@ const VendorEnrich = {
     const cached = this._cache[ticker];
     if (cached && (Date.now() - cached.ts) < CACHE_MS) return cached;
     try {
-      const res = await fetch(App.AI_ENDPOINT, {
+      const res = await fetch(App.PROXY_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ request_type: 'stock_lookup', ticker })
