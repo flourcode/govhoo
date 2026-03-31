@@ -8282,139 +8282,294 @@ drillDown(name, preventRender = false) {
     const nodes = Object.values(nodeMap);
     nodes.forEach(n => { n.degree = linkArr.filter(l => l.source === n.id || l.target === n.id).length; });
 
-    // Dimensions ──────────────────────────────────────────────────────────────
+    // Find the dominant node (highest spend) for gravity-well treatment
+    const dominantNode = nodes.reduce((a, b) => b.spend > a.spend ? b : a, nodes[0]);
+
+    // ── Dimensions ───────────────────────────────────────────────────────────
     const W = container.offsetWidth || 600;
-    const H = Math.max(420, Math.min(nodes.length * 22, 680));
+    const H = Math.max(460, Math.min(nodes.length * 26, 720));
 
     d3.select(container).selectAll('svg').remove();
     const svg = d3.select(container).append('svg')
       .attr('width', W).attr('height', H)
       .style('background', 'transparent');
 
-    // Zoom + pan
+    // ── Zoom + pan ───────────────────────────────────────────────────────────
     const g = svg.append('g');
-    svg.call(d3.zoom()
-      .scaleExtent([0.3, 3])
-      .on('zoom', e => g.attr('transform', e.transform))
-    );
+    svg.call(d3.zoom().scaleExtent([0.25, 4]).on('zoom', e => g.attr('transform', e.transform)));
 
-    // Colors ──────────────────────────────────────────────────────────────────
+    // ── Palette ──────────────────────────────────────────────────────────────
     const isDark = App.darkMode;
-    const groupColor = {
-      agency: '#7CA8C4',
-      office: '#E8A468',
-      vendor: '#638E6E'
-    };
-    const textColor = isDark ? 'rgba(240,239,236,0.85)' : 'rgba(44,43,40,0.85)';
-    const linkColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
-    const linkHover = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.22)';
+    const groupColor  = { agency: '#7CA8C4', office: '#E8A468', vendor: '#638E6E' };
+    const groupGlow   = { agency: 'rgba(124,168,196,0.35)', office: 'rgba(232,164,104,0.35)', vendor: 'rgba(99,142,110,0.35)' };
+    const textColor   = isDark ? 'rgba(240,239,236,0.9)'  : 'rgba(44,43,40,0.9)';
+    const textMuted   = isDark ? 'rgba(240,239,236,0.45)' : 'rgba(44,43,40,0.38)';
+    const linkBase    = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)';
 
-    // Radius scaled by spend
+    // ── Scales ───────────────────────────────────────────────────────────────
     const maxSpend = Math.max(...nodes.map(n => n.spend));
-    const rScale = d3.scaleSqrt().domain([0, maxSpend]).range([5, 28]);
+    const rScale   = d3.scaleSqrt().domain([0, maxSpend]).range([6, 32]);
+    const maxLink  = Math.max(...linkArr.map(l => l.value));
+    const wScale   = d3.scaleLinear().domain([0, maxLink]).range([1.5, 9]);
 
-    // Link width scaled by value
-    const maxLink = Math.max(...linkArr.map(l => l.value));
-    const wScale = d3.scaleLinear().domain([0, maxLink]).range([1, 8]);
+    // ── Defs: arrowhead markers + glow filter ─────────────────────────────────
+    const defs = svg.append('defs');
 
-    // Force simulation ────────────────────────────────────────────────────────
-    // Separate x-positions by group: agencies left, offices centre, vendors right
-    const xTarget = { agency: W * 0.18, office: W * 0.5, vendor: W * 0.82 };
+    // One arrowhead per group colour
+    Object.entries(groupColor).forEach(([grp, col]) => {
+      defs.append('marker')
+        .attr('id', `arrow-${grp}`)
+        .attr('viewBox', '0 -4 8 8')
+        .attr('refX', 8).attr('refY', 0)
+        .attr('markerWidth', 6).attr('markerHeight', 6)
+        .attr('orient', 'auto')
+        .append('path')
+          .attr('d', 'M0,-4L8,0L0,4')
+          .attr('fill', col)
+          .attr('fill-opacity', 0.8);
+    });
+
+    // Glow filter for dominant node pulse ring
+    const filt = defs.append('filter').attr('id', 'glow').attr('x', '-50%').attr('y', '-50%').attr('width', '200%').attr('height', '200%');
+    filt.append('feGaussianBlur').attr('stdDeviation', '4').attr('result', 'blur');
+    const feMerge = filt.append('feMerge');
+    feMerge.append('feMergeNode').attr('in', 'blur');
+    feMerge.append('feMergeNode').attr('in', 'SourceGraphic');
+
+    // ── Force simulation ──────────────────────────────────────────────────────
+    const xTarget = { agency: W * 0.17, office: W * 0.5, vendor: W * 0.83 };
 
     const sim = d3.forceSimulation(nodes)
-      .force('link', d3.forceLink(linkArr).id(d => d.id).distance(d => {
-        // Longer links between agency↔office, shorter between office↔vendor
-        return 80 + wScale(d.value) * 4;
-      }).strength(0.4))
-      .force('charge', d3.forceManyBody().strength(-220))
-      .force('collide', d3.forceCollide(d => rScale(d.spend) + 6))
-      .force('y', d3.forceY(H / 2).strength(0.04))
-      .force('xGroup', d3.forceX(d => xTarget[d.group] || W / 2).strength(0.25))
-      .alphaDecay(0.025);
+      .force('link', d3.forceLink(linkArr).id(d => d.id)
+        .distance(d => 70 + wScale(d.value) * 5)
+        .strength(0.5))
+      .force('charge', d3.forceManyBody().strength(d => -180 - rScale(d.spend) * 6))
+      .force('collide', d3.forceCollide(d => rScale(d.spend) + 10))
+      .force('y', d3.forceY(H / 2).strength(0.035))
+      .force('xGroup', d3.forceX(d => xTarget[d.group] || W / 2).strength(0.28))
+      .alphaDecay(0.022);
 
-    // Draw links ──────────────────────────────────────────────────────────────
-    const link = g.append('g').selectAll('line').data(linkArr).join('line')
-      .attr('stroke', linkColor)
+    // Nodes start at centre — spring outward for the entrance animation
+    nodes.forEach(n => { n.x = W / 2; n.y = H / 2; });
+
+    // ── Draw curved links with arrowheads ─────────────────────────────────────
+    // Links are paths (quadratic bezier) so arrows sit on a curve, not a straight line
+    const linkG = g.append('g').attr('class', 'fg-links');
+    const link  = linkG.selectAll('path').data(linkArr).join('path')
+      .attr('fill', 'none')
+      .attr('stroke', linkBase)
       .attr('stroke-width', d => wScale(d.value))
-      .attr('stroke-linecap', 'round');
+      .attr('stroke-linecap', 'round')
+      .attr('opacity', 0);  // hidden until sim settles a little
 
-    // Draw nodes ──────────────────────────────────────────────────────────────
-    const node = g.append('g').selectAll('g').data(nodes).join('g')
+    // Edge spend labels — hidden by default, shown on hover
+    const edgeLabelG = g.append('g').attr('class', 'fg-edge-labels').attr('pointer-events', 'none');
+    const edgeLabel  = edgeLabelG.selectAll('text').data(linkArr).join('text')
+      .style('font-size', '9px')
+      .style('font-weight', '700')
+      .style('fill', textColor)
+      .attr('text-anchor', 'middle')
+      .attr('opacity', 0)
+      .text(d => Utils.money(d.value));
+
+    // ── Draw nodes ────────────────────────────────────────────────────────────
+    const nodeG = g.append('g').attr('class', 'fg-nodes');
+    const node  = nodeG.selectAll('g').data(nodes).join('g')
       .style('cursor', 'pointer')
       .call(d3.drag()
         .on('start', (e, d) => { if (!e.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
-        .on('drag', (e, d) => { d.fx = e.x; d.fy = e.y; })
-        .on('end', (e, d) => { if (!e.active) sim.alphaTarget(0); d.fx = null; d.fy = null; })
+        .on('drag',  (e, d) => { d.fx = e.x; d.fy = e.y; })
+        .on('end',   (e, d) => { if (!e.active) sim.alphaTarget(0); d.fx = null; d.fy = null; })
       );
 
-    node.append('circle')
-      .attr('r', d => rScale(d.spend))
-      .attr('fill', d => groupColor[d.group])
-      .attr('fill-opacity', 0.82)
+    // Dominant node pulse ring (rendered before the shape so it sits behind)
+    node.filter(d => d.id === dominantNode.id)
+      .append('circle')
+      .attr('class', 'pulse-ring')
+      .attr('r', d => rScale(d.spend) + 10)
+      .attr('fill', 'none')
       .attr('stroke', d => groupColor[d.group])
       .attr('stroke-width', 1.5)
-      .attr('stroke-opacity', 0.4);
+      .attr('stroke-opacity', 0.4)
+      .attr('filter', 'url(#glow)');
 
+    // Node shapes: rounded rect for agencies, diamond for offices, circle for vendors
+    node.each(function(d) {
+      const r = rScale(d.spend);
+      const sel = d3.select(this);
+      if (d.group === 'agency') {
+        // Rounded square
+        const s = r * 1.55;
+        sel.append('rect')
+          .attr('x', -s / 2).attr('y', -s / 2)
+          .attr('width', s).attr('height', s)
+          .attr('rx', s * 0.22).attr('ry', s * 0.22)
+          .attr('fill', groupColor[d.group])
+          .attr('fill-opacity', 0.85)
+          .attr('stroke', groupColor[d.group])
+          .attr('stroke-width', 2)
+          .attr('stroke-opacity', 0.5);
+      } else if (d.group === 'office') {
+        // Diamond (rotated square)
+        const s = r * 1.4;
+        sel.append('polygon')
+          .attr('points', `0,${-s} ${s},0 0,${s} ${-s},0`)
+          .attr('fill', groupColor[d.group])
+          .attr('fill-opacity', 0.85)
+          .attr('stroke', groupColor[d.group])
+          .attr('stroke-width', 2)
+          .attr('stroke-opacity', 0.5);
+      } else {
+        // Circle for vendors
+        sel.append('circle')
+          .attr('r', r)
+          .attr('fill', groupColor[d.group])
+          .attr('fill-opacity', 0.85)
+          .attr('stroke', groupColor[d.group])
+          .attr('stroke-width', 2)
+          .attr('stroke-opacity', 0.5);
+      }
+    });
+
+    // Labels below each node
     node.append('text')
       .attr('text-anchor', 'middle')
-      .attr('dy', d => rScale(d.spend) + 11)
+      .attr('dy', d => rScale(d.spend) + 13)
       .style('font-size', '10px')
       .style('font-weight', '600')
       .style('fill', textColor)
       .style('pointer-events', 'none')
-      .text(d => Utils.trunc(d.id.replace(/^Department of (the )?/i, '').replace(/^Office of (the )?/i, ''), 22));
+      .text(d => Utils.trunc(
+        d.id.replace(/^Department of (the )?/i, '').replace(/^Office of (the )?/i, ''),
+        d.group === 'agency' ? 20 : 18
+      ));
 
-    // Tooltip + highlight ─────────────────────────────────────────────────────
-    node.on('mousemove', function(event, d) {
-      if (!tooltip) return;
-      const tag = d.group === 'agency' ? 'Agency' : d.group === 'office' ? 'Office' : 'Vendor';
-      tooltip.innerHTML = `<div style="font-weight:700;margin-bottom:3px;">${d.id}</div><div style="color:var(--text-tertiary);font-size:10px;text-transform:uppercase;letter-spacing:0.04em;">${tag}</div><div style="margin-top:4px;font-weight:600;">${Utils.money(d.spend)}</div>`;
-      tooltip.style.opacity = '1';
-      tooltip.style.left = (event.clientX + 14) + 'px';
-      tooltip.style.top = (event.clientY - 10) + 'px';
-      // Highlight connected links
-      link.attr('stroke', l => (l.source.id === d.id || l.target.id === d.id) ? groupColor[d.group] : linkColor)
-          .attr('stroke-opacity', l => (l.source.id === d.id || l.target.id === d.id) ? 0.7 : 0.4);
-      d3.select(this).select('circle').attr('fill-opacity', 1).attr('stroke-opacity', 1);
-    })
-    .on('mouseleave', function() {
-      if (tooltip) tooltip.style.opacity = '0';
-      link.attr('stroke', linkColor).attr('stroke-opacity', 1);
-      d3.select(this).select('circle').attr('fill-opacity', 0.82).attr('stroke-opacity', 0.4);
-    })
-    .on('click', (e, d) => {
-      e.stopPropagation();
-      if (d.group === 'vendor') {
-        App.drillDown(d.id);
-        App.setSankeyView('sankey');
-      } else if (d.group === 'agency') {
-        App.drillDown(d.id);
-        App.setSankeyView('sankey');
-      } else if (d.group === 'office') {
-        App.drillDown(d.id);
-        App.setSankeyView('sankey');
-      }
-    });
+    // ── Hover interactions ────────────────────────────────────────────────────
+    const connectedTo = d => new Set(
+      linkArr.filter(l => l.source.id === d.id || l.target.id === d.id)
+             .flatMap(l => [l.source.id, l.target.id])
+    );
 
-    // Legend ──────────────────────────────────────────────────────────────────
-    const legend = [['agency','Agency'], ['office','Office'], ['vendor','Vendor']];
+    node
+      .on('mousemove', function(event, d) {
+        const connected = connectedTo(d);
+
+        // Fade unconnected nodes
+        node.attr('opacity', n => connected.has(n.id) ? 1 : 0.15);
+
+        // Highlight connected links + show arrowheads + edge labels
+        link
+          .attr('stroke', l => (l.source.id === d.id || l.target.id === d.id) ? groupColor[d.group] : linkBase)
+          .attr('stroke-opacity', l => (l.source.id === d.id || l.target.id === d.id) ? 0.85 : 0.3)
+          .attr('marker-end', l => (l.source.id === d.id || l.target.id === d.id) ? `url(#arrow-${d.group})` : null);
+
+        edgeLabel.attr('opacity', l => (l.source.id === d.id || l.target.id === d.id) ? 1 : 0);
+
+        // Tooltip
+        if (tooltip) {
+          const tag = { agency: 'Agency', office: 'Office', vendor: 'Vendor' }[d.group];
+          const connections = linkArr.filter(l => l.source.id === d.id || l.target.id === d.id);
+          const partners = [...new Set(connections.map(l => l.source.id === d.id ? l.target.id : l.source.id))];
+          tooltip.innerHTML = `
+            <div style="font-weight:800;font-size:var(--text-sm);margin-bottom:4px;letter-spacing:-0.01em;">${Html.escapeHtml(d.id)}</div>
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-tertiary);margin-bottom:6px;">${tag}</div>
+            <div style="font-weight:700;font-size:var(--text-base);color:${groupColor[d.group]};margin-bottom:4px;">${Utils.money(d.spend)}</div>
+            <div style="font-size:9px;color:var(--text-tertiary);">${partners.length} connection${partners.length !== 1 ? 's' : ''}</div>`;
+          tooltip.style.opacity = '1';
+          tooltip.style.left = (event.clientX + 16) + 'px';
+          tooltip.style.top  = (event.clientY - 12) + 'px';
+        }
+      })
+      .on('mouseleave', function() {
+        node.attr('opacity', 1);
+        link
+          .attr('stroke', linkBase)
+          .attr('stroke-opacity', 1)
+          .attr('marker-end', null);
+        edgeLabel.attr('opacity', 0);
+        if (tooltip) tooltip.style.opacity = '0';
+      })
+      .on('click', (e, d) => {
+        e.stopPropagation();
+        App.drillDown(d.id);
+        App.setSankeyView('sankey');
+      });
+
+    // ── Legend ────────────────────────────────────────────────────────────────
+    const legendData = [
+      { key: 'agency', label: 'Agency',  shape: 'rect'    },
+      { key: 'office', label: 'Office',  shape: 'diamond' },
+      { key: 'vendor', label: 'Vendor',  shape: 'circle'  },
+    ];
     const lg = svg.append('g').attr('transform', 'translate(12,12)');
-    legend.forEach(([key, label], i) => {
-      const row = lg.append('g').attr('transform', `translate(0,${i * 18})`);
-      row.append('circle').attr('r', 5).attr('cx', 5).attr('cy', 5)
-        .attr('fill', groupColor[key]).attr('fill-opacity', 0.85);
-      row.append('text').attr('x', 14).attr('y', 9)
+    legendData.forEach(({ key, label, shape }, i) => {
+      const row = lg.append('g').attr('transform', `translate(0,${i * 20})`);
+      const col = groupColor[key];
+      if (shape === 'rect') {
+        row.append('rect').attr('x', 0).attr('y', 0).attr('width', 10).attr('height', 10)
+          .attr('rx', 2).attr('fill', col).attr('fill-opacity', 0.85);
+      } else if (shape === 'diamond') {
+        row.append('polygon').attr('points', '5,0 10,5 5,10 0,5')
+          .attr('fill', col).attr('fill-opacity', 0.85);
+      } else {
+        row.append('circle').attr('cx', 5).attr('cy', 5).attr('r', 5)
+          .attr('fill', col).attr('fill-opacity', 0.85);
+      }
+      row.append('text').attr('x', 14).attr('y', 8.5)
         .style('font-size', '10px').style('fill', textColor).style('font-weight', '500')
         .text(label);
     });
 
-    // Tick ────────────────────────────────────────────────────────────────────
+    // ── Pulse animation on dominant node ─────────────────────────────────────
+    const pulseRing = svg.selectAll('.pulse-ring');
+    const pulsate = () => {
+      pulseRing
+        .attr('stroke-opacity', 0.5)
+        .attr('r', function() { return +d3.select(this.parentNode).datum().r_base + 10; })
+        .transition().duration(1400).ease(d3.easeSinOut)
+        .attr('stroke-opacity', 0)
+        .attr('r', function() { return +d3.select(this.parentNode).datum().r_base + 24; })
+        .on('end', pulsate);
+    };
+
+    // ── Tick ──────────────────────────────────────────────────────────────────
+    // Bezier control point: offset perpendicular to the link midpoint for slight arc
+    const bezierPath = d => {
+      const dx = d.target.x - d.source.x;
+      const dy = d.target.y - d.source.y;
+      const len = Math.sqrt(dx * dx + dy * dy) || 1;
+      // Offset the control point slightly perpendicular so links between same pair are distinct
+      const curve = Math.min(len * 0.18, 40);
+      const mx = (d.source.x + d.target.x) / 2 - (dy / len) * curve;
+      const my = (d.source.y + d.target.y) / 2 + (dx / len) * curve;
+      // Shorten the endpoint so the arrowhead sits just outside the node shape
+      const tr = rScale(d.target.spend) + 10;
+      const ratio = Math.max(0, (len - tr) / len);
+      const tx = d.source.x + dx * ratio;
+      const ty = d.source.y + dy * ratio;
+      return `M${d.source.x},${d.source.y} Q${mx},${my} ${tx},${ty}`;
+    };
+
+    let tickCount = 0;
     sim.on('tick', () => {
-      link
-        .attr('x1', d => d.source.x).attr('y1', d => d.source.y)
-        .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
+      tickCount++;
+      // Fade links in after first 20 ticks (entrance animation — nodes settle first)
+      if (tickCount === 20) {
+        link.transition().duration(400).attr('opacity', 1);
+      }
+      link.attr('d', bezierPath);
+      edgeLabel
+        .attr('x', d => (d.source.x + d.target.x) / 2)
+        .attr('y', d => (d.source.y + d.target.y) / 2 - 6);
       node.attr('transform', d => `translate(${d.x},${d.y})`);
     });
+
+    // Store r_base on dominant node datum for pulse animation
+    if (dominantNode) {
+      dominantNode.r_base = rScale(dominantNode.spend);
+      // Start pulse after simulation has mostly settled
+      setTimeout(pulsate, 1200);
+    }
   },
 
   renderSankey() {
