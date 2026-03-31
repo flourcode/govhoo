@@ -7389,7 +7389,10 @@ async loadBackgroundData(query) {
       App.renderBubbleChart();
       App.renderStrategyTools();
       App.renderMarketSparkline();
-      if (App._sankeyView === 'graph') App.renderForceGraph();
+      if (App._sankeyView === 'graph') {
+        App.renderForceGraph();
+        return;  // skip Sankey render when graph view is active
+      }
     });
 
     App.generateEditorialHeadlines(data, totalObligations);
@@ -8383,7 +8386,12 @@ drillDown(name, preventRender = false) {
                                : C.vendor)
       .attr('stroke-width', 1.5)
       .attr('stroke-opacity', 0.35)
-      .style('cursor', n => n.group !== 'vendor' ? 'pointer' : 'default');
+      .style('cursor', n => {
+        if (n.group === 'vendor') return 'default';
+        if (n.group === 'root' && isDrill) return 'pointer';  // back affordance
+        if (n.group === 'office') return 'pointer';
+        return 'default';
+      });
 
     // ── Labels — vendor labels only, shown at rest for offices, hidden for vendors ──
     const labelLayer = svg.append('g').attr('pointer-events', 'none');
@@ -8467,10 +8475,17 @@ drillDown(name, preventRender = false) {
         if (tooltip) tooltip.style.opacity = '0';
       })
       .on('click', (e, d) => {
-        if (d.group === 'root' || d.group === 'vendor') return;
+        if (d.group === 'vendor') return;
         e.stopPropagation();
-        App.drillDown(d.id);
-        App.setSankeyView('sankey');
+        if (d.group === 'root') {
+          // Click root at drill level — reset back up
+          App.resetDrill();
+          App.renderForceGraph();
+        } else {
+          // Click office — drill in, stay in graph view and re-render tree
+          App.drillDown(d.id, true);  // preventRender=true, we handle it
+          App.renderForceGraph();
+        }
       });
 
     // ── Root label ────────────────────────────────────────────────────────────
@@ -8482,6 +8497,16 @@ drillDown(name, preventRender = false) {
       .text(Utils.trunc(
         rootId.replace(/^Department of (the )?/i,'').replace(/^Office of (the )?/i,''), 24
       ));
+
+    // When drilled in, show a subtle back hint under the root node
+    if (isDrill) {
+      svg.append('text')
+        .attr('x', cx).attr('y', cy + nodeR(nodeList[0]) + 27)
+        .attr('text-anchor', 'middle')
+        .style('font-size', '9px').style('font-weight', '500')
+        .style('fill', C.root).style('opacity', 0.4)
+        .text('tap to go back');
+    }
 
     // ── Entrance fade-in ──────────────────────────────────────────────────────
     edgeSel.attr('opacity', 0).transition().duration(500).delay(80).attr('opacity', 1);
