@@ -5598,7 +5598,7 @@ AWARD_FIELDS: [
     'Awarding Office', 'Award Amount', 'Description', 'generated_internal_id',
     'Start Date', 'End Date', 'NAICS', 'PSC',
     'Contract Award Type', 'Type of Set Aside',
-    'parent_award_id', 'pop_city_name', 'pop_state_code'
+    'parent_award_id', 'pop_city_name', 'pop_state_code', 'recipient_id'
   ],
 
   // 1. Add the controllers
@@ -5804,36 +5804,34 @@ const startYear = currentYear - 4;
     return (await this._post('/search/spending_by_category/awarding_subagency', { category: 'awarding_subagency', filters, limit: 3 })).results || [];
   },
 
-  // Look up a vendor's total federal footprint via the recipient endpoint.
-  // Two-step: search by name to get recipient_id, then fetch the profile.
+  // Look up a vendor's total federal footprint.
+  // recipient_id is now fetched with every search via AWARD_FIELDS —
+  // it contains the full UUID-level ID (e.g. b97d19b0-...-P) that maps
+  // directly to the USASpending recipient profile URL.
+  // Single API call — no intermediate awards lookup needed.
   async getVendorFootprint(vendorName) {
     try {
-      // Step 1: find recipient_id by name
-      const searchRes = await this._post('/recipient/', {
-        keyword: vendorName,
-        limit: 5
-      });
-      const results = searchRes.results || [];
-      // Prefer parent-level (P) match, fall back to child (C)
-      const match = results.find(r => r.recipient_level === 'P' && r.name && r.name.toUpperCase().includes(vendorName.toUpperCase().split(' ')[0]))
-        || results.find(r => r.name && r.name.toUpperCase().includes(vendorName.toUpperCase().split(' ')[0]))
-        || results[0];
-      if (!match) return null;
+      // Find a contract for this vendor that has a recipient_id
+      const contracts = App.searchData.raw || [];
+      const sample = contracts.find(c => c['Recipient Name'] === vendorName && c['recipient_id']);
+      if (!sample) return null;
 
-      // Step 2: fetch full profile with latest 12-month spend
-      const profile = await fetch(App.PROXY_ENDPOINT, {
+      const recipientId = sample['recipient_id'];
+
+      // Fetch recipient profile with year=latest for trailing 12mo spend
+      const profileRes = await fetch(App.PROXY_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           request_type: 'usaspending_proxy',
-          endpoint: `/recipient/${match.id}/`,
+          endpoint: `/recipient/${recipientId}/?year=latest`,
           method: 'GET'
         }),
         signal: this._searchController.signal
       });
-      if (!profile.ok) return { name: match.name, amount: match.amount };
-      const data = await profile.json();
-      return { ...data, amount_12mo: match.amount, recipient_id: match.id };
+      if (!profileRes.ok) return null;
+      const profileData = await profileRes.json();
+      return { ...profileData, recipient_id: recipientId };
     } catch(e) {
       console.warn('[VendorFootprint]', e.message);
       return null;
@@ -7092,10 +7090,12 @@ scrollToPanel(id) {
           .filter(Boolean).join(', ')
       : '';
 
-    const totalSpendLine = profile?.amount_12mo
+    // /recipient/<id>/?year=latest returns total_transaction_amount for trailing 12mo
+    const spend12mo = profile?.total_transaction_amount ?? profile?.amount_12mo ?? null;
+    const totalSpendLine = spend12mo
       ? `<div style="margin-bottom:1.25rem;">
            <div style="font-size:var(--text-xs);color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px;">Total Federal Spend (Trailing 12mo)</div>
-           <div style="font-size:var(--text-xl);font-weight:800;color:var(--text-primary);letter-spacing:-0.02em;">${Utils.money(profile.amount_12mo)}</div>
+           <div style="font-size:var(--text-xl);font-weight:800;color:var(--text-primary);letter-spacing:-0.02em;">${Utils.money(spend12mo)}</div>
            ${locationLine ? `<div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:3px;">${Html.escapeHtml(locationLine)}</div>` : ''}
          </div>`
       : '';
@@ -7119,7 +7119,7 @@ scrollToPanel(id) {
 
     const usaspendingUrl = profile?.recipient_id
       ? `https://www.usaspending.gov/recipient/${profile.recipient_id}/latest`
-      : `https://www.usaspending.gov/search/?hash=&filters=${encodeURIComponent(JSON.stringify({keywords:[vendorName]}))}`;
+      : `https://www.usaspending.gov/search/?hash=&filters=${encodeURIComponent(JSON.stringify({recipient_search_text:[vendorName]}))}`;
 
     body.innerHTML = `
       <div style="padding-bottom: 1rem;">
