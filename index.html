@@ -1829,17 +1829,6 @@ details[open] > summary svg { transform: rotate(180deg); }
     </main> 
   </div> 
 <!-- ARTI MICRO-PROMPT MODAL -->
-  <!-- VENDOR FOOTPRINT MODAL -->
-  <div id="vendorModalOverlay" class="govhoo-modal-overlay" onclick="App.closeVendorModal()">
-    <div class="govhoo-modal" onclick="event.stopPropagation()">
-      <div class="govhoo-modal-header">
-        <div class="govhoo-modal-title" id="vendorModalTitle">Vendor Footprint</div>
-        <button class="govhoo-modal-close" onclick="App.closeVendorModal()">&times;</button>
-      </div>
-      <div id="vendorModalBody" class="govhoo-modal-body"></div>
-    </div>
-  </div>
-
   <div id="artiModalOverlay" class="govhoo-modal-overlay" onclick="App.closeArtiModal()">
     <div class="govhoo-modal" onclick="event.stopPropagation()">
      <div class="govhoo-modal-header">
@@ -5809,35 +5798,6 @@ const startYear = currentYear - 4;
   // it contains the full UUID-level ID (e.g. b97d19b0-...-P) that maps
   // directly to the USASpending recipient profile URL.
   // Single API call — no intermediate awards lookup needed.
-  async getVendorFootprint(vendorName) {
-    try {
-      // Find a contract for this vendor that has a recipient_id
-      const contracts = App.searchData.raw || [];
-      const sample = contracts.find(c => c['Recipient Name'] === vendorName && c['recipient_id']);
-      if (!sample) return null;
-
-      const recipientId = sample['recipient_id'];
-
-      // Fetch recipient profile with year=latest for trailing 12mo spend
-      const profileRes = await fetch(App.PROXY_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          request_type: 'usaspending_proxy',
-          endpoint: `/recipient/${recipientId}/?year=latest`,
-          method: 'GET'
-        }),
-        signal: this._searchController.signal
-      });
-      if (!profileRes.ok) return null;
-      const profileData = await profileRes.json();
-      return { ...profileData, recipient_id: recipientId };
-    } catch(e) {
-      console.warn('[VendorFootprint]', e.message);
-      return null;
-    }
-  },
-
   async getSubawards(keywords) {
     const timePeriod = Utils.getTrailing12Mo();
     const filters = Utils.buildFilters(keywords, timePeriod);
@@ -7025,115 +6985,7 @@ scrollToPanel(id) {
     if (overlay) overlay.classList.remove('active');
   },
 
-  closeVendorModal() {
-    const overlay = DOM.get('vendorModalOverlay');
-    if (overlay) overlay.classList.remove('active');
-  },
 
-  async showVendorFootprint(vendorName) {
-    const overlay = DOM.get('vendorModalOverlay');
-    const body = DOM.get('vendorModalBody');
-    const title = DOM.get('vendorModalTitle');
-    if (!overlay || !body) return;
-
-    title.textContent = vendorName;
-    body.innerHTML = `
-      <div style="padding: 2rem 0; text-align: center;">
-        <div class="spinner" style="margin: 0 auto 1rem;"></div>
-        <div style="font-size: var(--text-sm); color: var(--text-secondary);">Pulling federal footprint...</div>
-      </div>`;
-    overlay.classList.add('active');
-
-    // Build local context from current search data while remote fetch runs
-    const localContracts = (App.searchData.raw || []).filter(c => c['Recipient Name'] === vendorName);
-    const localSpend = localContracts.reduce((s, c) => s + (parseFloat(c['Award Amount']) || 0), 0);
-    const localAgencies = {};
-    localContracts.forEach(c => {
-      const a = c['Awarding Agency'] || 'Unknown';
-      localAgencies[a] = (localAgencies[a] || 0) + (parseFloat(c['Award Amount']) || 0);
-    });
-    const topLocalAgencies = Object.entries(localAgencies)
-      .sort((a, b) => b[1] - a[1]).slice(0, 5);
-
-    // Fetch remote footprint
-    const profile = await API.getVendorFootprint(vendorName);
-
-    // Business type labels
-    const BIZ_TYPE_LABELS = {
-      'small_business': 'Small Business',
-      'sba_certified_8a_program': '8(a)',
-      'hubzone_firm': 'HUBZone',
-      'service_disabled_veteran_owned_business': 'SDVOSB',
-      'woman_owned_small_business': 'WOSB',
-      'veteran_owned_business': 'VOSB',
-      'minority_owned_business': 'Minority-Owned',
-      'historically_black_college': 'HBCU',
-      'for_profit_organization': 'For-Profit',
-      'limited_liability_corporation': 'LLC',
-      'corporate_entity_tax_exempt': 'Tax-Exempt Corp',
-      'partnership_or_limited_liability_partnership': 'Partnership',
-    };
-
-    const certBadges = profile && Array.isArray(profile.business_types)
-      ? profile.business_types
-          .filter(t => BIZ_TYPE_LABELS[t])
-          .map(t => `<span style="display:inline-block;padding:2px 8px;border-radius:var(--radius-pill);background:var(--bg-hover);font-size:var(--text-xs);color:var(--text-secondary);margin:2px;">${BIZ_TYPE_LABELS[t]}</span>`)
-          .join('')
-      : '';
-
-    const parentLine = profile?.parents?.length && profile.parents[0]?.parent_name && profile.parents[0].parent_name !== vendorName
-      ? `<div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-bottom:0.75rem;">Parent: <span style="color:var(--text-secondary);font-weight:500;">${Html.escapeHtml(profile.parents[0].parent_name)}</span></div>`
-      : '';
-
-    const locationLine = profile?.location
-      ? [profile.location.city_name, profile.location.state_code, profile.location.country_name]
-          .filter(Boolean).join(', ')
-      : '';
-
-    // /recipient/<id>/?year=latest returns total_transaction_amount for trailing 12mo
-    const spend12mo = profile?.total_transaction_amount ?? profile?.amount_12mo ?? null;
-    const totalSpendLine = spend12mo
-      ? `<div style="margin-bottom:1.25rem;">
-           <div style="font-size:var(--text-xs);color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px;">Total Federal Spend (Trailing 12mo)</div>
-           <div style="font-size:var(--text-xl);font-weight:800;color:var(--text-primary);letter-spacing:-0.02em;">${Utils.money(spend12mo)}</div>
-           ${locationLine ? `<div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:3px;">${Html.escapeHtml(locationLine)}</div>` : ''}
-         </div>`
-      : '';
-
-    const agencyRows = topLocalAgencies.map(([name, spend]) => {
-      const pct = localSpend > 0 ? ((spend / localSpend) * 100).toFixed(0) : 0;
-      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border-opaque);">
-        <span style="font-size:var(--text-sm);color:var(--text-primary);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px;">${Html.escapeHtml(Utils.cleanAgency(name))}</span>
-        <span style="font-size:var(--text-sm);font-weight:600;color:var(--text-primary);flex-shrink:0;">${Utils.money(spend)}</span>
-        <span style="font-size:var(--text-xs);color:var(--text-tertiary);width:32px;text-align:right;flex-shrink:0;">${pct}%</span>
-      </div>`;
-    }).join('');
-
-    const localContextSection = topLocalAgencies.length > 0
-      ? `<div style="margin-top:1.25rem;">
-           <div style="font-size:var(--text-xs);color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px;">Agency Breakdown — This Search</div>
-           <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-bottom:8px;">${Utils.money(localSpend)} across ${localContracts.length} contracts</div>
-           ${agencyRows}
-         </div>`
-      : '';
-
-    const usaspendingUrl = profile?.recipient_id
-      ? `https://www.usaspending.gov/recipient/${profile.recipient_id}/latest`
-      : `https://www.usaspending.gov/search/?hash=&filters=${encodeURIComponent(JSON.stringify({recipient_search_text:[vendorName]}))}`;
-
-    body.innerHTML = `
-      <div style="padding-bottom: 1rem;">
-        ${parentLine}
-        ${totalSpendLine || `<div style="font-size:var(--text-sm);color:var(--text-tertiary);margin-bottom:1rem;">Spend data unavailable — showing local search context only.</div>`}
-        ${certBadges ? `<div style="margin-bottom:1.25rem;">${certBadges}</div>` : ''}
-        ${localContextSection}
-        <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;">
-          <a href="${usaspendingUrl}" target="_blank" class="btn-ghost" style="font-size:var(--text-xs);">
-            Full profile on USASpending ↗
-          </a>
-        </div>
-      </div>`;
-  },
 async runOpportunityStrategy(awardId) {
     const target = App._pipelineTargets.find(t => t.awardId === awardId);
     if (!target || !target.sourceAwards || target.sourceAwards.length === 0) {
@@ -8282,8 +8134,6 @@ drillDown(name, preventRender = false) {
       App.activeFeedSource = 'prime'; 
       App.searchData.active = data.filter(d => d['Recipient Name'] === name);
 
-      // Show vendor footprint modal alongside the drill
-      App.showVendorFootprint(name);
       
       if (!preventRender) { 
         Utils.syncUrlState(); 
