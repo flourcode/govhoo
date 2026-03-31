@@ -275,11 +275,6 @@ em, i:not(.icon) { font-style: normal; font-weight: 600; }
 @keyframes toastOut { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(6px) scale(0.98); } }
 @keyframes loaderSlide { 0% { left: -40%; } 100% { left: 100%; } }
 @keyframes sankeyFadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes donutFadeIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
-#donutPanel svg { animation: donutFadeIn 0.4s ease; }
-#donutPanel .donut-slice { cursor: pointer; transition: opacity 0.15s ease; }
-#donutPanel .donut-slice:hover { opacity: 0.82; }
-#donutPanel .donut-slice.active { stroke: var(--text-primary); stroke-width: 2px; }
 @keyframes typingDot { 0%, 20%, 80%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1490,22 +1485,6 @@ details[open] > summary svg { transform: rotate(180deg); }
               <div id="marketAttribution" class="hidden"></div>
             </div>
 
-            <!-- DUAL DONUT — vendor outer ring, agency inner ring -->
-            <div id="donutPanel" class="hidden" style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
-              <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem;">
-                <span class="section-title" style="font-size:var(--text-sm);">Market Share</span>
-                <div style="display:flex; gap:1rem; font-size:var(--text-xs); color:var(--text-tertiary);">
-                  <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--text-secondary);opacity:0.5;margin-right:4px;vertical-align:middle;"></span>Outer — Vendors</span>
-                  <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--text-secondary);opacity:0.25;margin-right:4px;vertical-align:middle;"></span>Inner — Agencies</span>
-                </div>
-              </div>
-              <div id="donutChartContainer" style="width:100%; display:flex; justify-content:center; position:relative;"></div>
-              <div id="donutTooltip" style="position:absolute;pointer-events:none;background:var(--bg-app);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;font-size:var(--text-xs);color:var(--text-primary);box-shadow:var(--shadow-md);opacity:0;transition:opacity 0.15s ease;z-index:10;max-width:200px;"></div>
-              <div id="donutFilterBadge" class="hidden" style="margin-top:0.75rem; display:flex; align-items:center; gap:0.5rem; font-size:var(--text-xs); color:var(--text-secondary);">
-                <span id="donutFilterLabel"></span>
-                <button onclick="App.clearDonutFilter()" style="background:none;border:none;cursor:pointer;color:var(--text-tertiary);font-size:1.1em;line-height:1;padding:0 2px;" title="Clear filter">×</button>
-              </div>
-            </div>
 
             <div id="marketAttributionFooter" style="grid-column: 1 / -1;">
               <div id="marketAttributionText">
@@ -7289,7 +7268,7 @@ async runOpportunityStrategy(awardId) {
     App.showLoader('Scanning ' + query);
 
     try {
-      const allPanels = ['vehicleFilterBar', 'sankeyPanel', 'aiIntelligenceBanner', 'aiActionPanel', 'teamingPanel', 'agencyReachPanel', 'recentAwardsHeader', 'bubbleChartPanel', 'targetAccountsPanel', 'recompetesList', 'feedGrid', 'subawardWrapper', 'donutPanel'];
+      const allPanels = ['vehicleFilterBar', 'sankeyPanel', 'aiIntelligenceBanner', 'aiActionPanel', 'teamingPanel', 'agencyReachPanel', 'recentAwardsHeader', 'bubbleChartPanel', 'targetAccountsPanel', 'recompetesList', 'feedGrid', 'subawardWrapper'];
       allPanels.forEach(id => DOM.show(id));
       DOM.hide('emptySearchState');
 
@@ -7546,7 +7525,6 @@ async loadBackgroundData(query) {
     requestAnimationFrame(() => {
       App.renderSankey();
       App.renderBubbleChart();
-      App.renderDonutChart();
       App.renderStrategyTools();
       App.renderMarketSparkline();
     });
@@ -9787,170 +9765,6 @@ if (this.bubbleChartType === 'treemap') {
     DOM.get('subBubbleToggleSubs').classList.toggle('active', mode === 'subs');
     this.renderSubBubbleChart();
   },
-  // ── DUAL DONUT ──────────────────────────────────────────────────────────────
-  // Outer ring: top 8 vendors by spend
-  // Inner ring: top 8 agencies by spend
-  // Independent palettes, rounded arc ends, hover tooltip, click-to-filter
-  _donutFilter: null,
-
-  renderDonutChart() {
-    const container = DOM.get('donutChartContainer');
-    const panel = DOM.get('donutPanel');
-    if (!container || !panel) return;
-
-    const data = App.searchData.active;
-    if (!data || data.length === 0) { panel.classList.add('hidden'); return; }
-
-    // Aggregate
-    const vendorSpend = {}, agencySpend = {};
-    data.forEach(c => {
-      const amt = parseFloat(c['Award Amount']) || 0;
-      if (amt <= 0) return;
-      const v = c['Recipient Name'] || 'Unknown';
-      const a = c['Awarding Agency'] || 'Unknown';
-      vendorSpend[v] = (vendorSpend[v] || 0) + amt;
-      agencySpend[a] = (agencySpend[a] || 0) + amt;
-    });
-
-    const top8 = (obj) => {
-      const sorted = Object.entries(obj).sort((a, b) => b[1] - a[1]).slice(0, 8);
-      const topTotal = sorted.reduce((s, [, v]) => s + v, 0);
-      const allTotal = Object.values(obj).reduce((s, v) => s + v, 0);
-      const other = allTotal - topTotal;
-      if (other > 0) sorted.push(['Other', other]);
-      return sorted;
-    };
-
-    const vendors = top8(vendorSpend);
-    const agencies = top8(agencySpend);
-    if (vendors.length === 0) { panel.classList.add('hidden'); return; }
-
-    panel.classList.remove('hidden');
-
-    // Independent palettes — muted, distinct from each other
-    const vendorPalette = ['#7CA8C4', '#638E6E', '#E8A468', '#9878A0', '#C75268', '#80C0B0', '#A07860', '#8888B8', '#B8A0A0'];
-    const agencyPalette = ['#D4A0B0', '#B8C8A0', '#F0C080', '#A8B8D0', '#D0A888', '#98C0B8', '#C8A8C0', '#B0C0A0', '#C0B0A0'];
-
-    const rect = container.getBoundingClientRect();
-    const size = Math.min(Math.max(rect.width || 300, 240), 420);
-    const cx = size / 2, cy = size / 2;
-    const outerR = size * 0.42, innerR = size * 0.24, gap = size * 0.04;
-    const midR = outerR - (outerR - innerR - gap) / 2 - gap / 2;
-    const vendorInner = midR + gap / 2, vendorOuter = outerR;
-    const agencyInner = innerR, agencyOuter = midR - gap / 2;
-    const cornerRadius = size * 0.012;
-
-    // Clear previous
-    d3.select(container).selectAll('svg').remove();
-    const svg = d3.select(container).append('svg')
-      .attr('width', size).attr('height', size)
-      .attr('viewBox', `0 0 ${size} ${size}`)
-      .style('overflow', 'visible');
-
-    const tooltip = DOM.get('donutTooltip');
-    const totalSpend = vendors.reduce((s, [, v]) => s + v, 0);
-
-    const showTip = (event, name, spend, pct) => {
-      if (!tooltip) return;
-      tooltip.innerHTML = `<div style="font-weight:600;margin-bottom:2px;">${name}</div><div>${Utils.money(spend)}</div><div style="color:var(--text-tertiary)">${pct}% of market</div>`;
-      tooltip.style.opacity = '1';
-      const cr = container.getBoundingClientRect();
-      let tx = event.clientX - cr.left + 12;
-      let ty = event.clientY - cr.top - 10;
-      if (tx + 210 > size) tx -= 220;
-      tooltip.style.left = tx + 'px';
-      tooltip.style.top = ty + 'px';
-    };
-    const hideTip = () => { if (tooltip) tooltip.style.opacity = '0'; };
-
-    const drawRing = (slices, innerRadius, outerRadius, palette, filterField) => {
-      const pie = d3.pie().value(d => d[1]).sort(null).padAngle(0.025);
-      const arc = d3.arc().innerRadius(innerRadius).outerRadius(outerRadius).cornerRadius(cornerRadius);
-      const arcs = pie(slices);
-
-      svg.append('g').attr('transform', `translate(${cx},${cy})`)
-        .selectAll('path').data(arcs).join('path')
-        .attr('class', d => {
-          const name = d.data[0];
-          const isActive = App._donutFilter && App._donutFilter.field === filterField && App._donutFilter.name === name;
-          return 'donut-slice' + (isActive ? ' active' : '');
-        })
-        .attr('d', arc)
-        .attr('fill', (d, i) => d.data[0] === 'Other' ? '#C8C4BE' : palette[i % palette.length])
-        .attr('opacity', d => {
-          if (!App._donutFilter) return 0.88;
-          const isActive = App._donutFilter.field === filterField && App._donutFilter.name === d.data[0];
-          return isActive ? 1 : 0.35;
-        })
-        .on('mousemove', function(event, d) {
-          const pct = ((d.data[1] / totalSpend) * 100).toFixed(1);
-          showTip(event, d.data[0], d.data[1], pct);
-          if (!App._donutFilter) d3.select(this).attr('opacity', 1);
-        })
-        .on('mouseleave', function(event, d) {
-          hideTip();
-          if (!App._donutFilter) d3.select(this).attr('opacity', 0.88);
-        })
-        .on('click', function(event, d) {
-          const name = d.data[0];
-          if (name === 'Other') return;
-          if (App._donutFilter && App._donutFilter.field === filterField && App._donutFilter.name === name) {
-            App.clearDonutFilter();
-          } else {
-            App._donutFilter = { field: filterField, name };
-            App.searchData.active = App.searchData.raw.filter(c => {
-              const val = filterField === 'Recipient Name'
-                ? Utils.normalizeVendorName(c[filterField] || '')
-                : (c[filterField] || '');
-              return val === name;
-            });
-            App.searchData.filter = name;
-            App.activeFeedSource = 'prime';
-            const badge = DOM.get('donutFilterBadge');
-            const label = DOM.get('donutFilterLabel');
-            if (badge) badge.classList.remove('hidden');
-            if (label) label.textContent = `Filtered: ${name}`;
-            App.updateSearchDashboard();
-            App.renderDonutChart();
-          }
-          hideTip();
-        });
-    };
-
-    // Draw outer ring (vendors) then inner ring (agencies)
-    drawRing(vendors, vendorInner, vendorOuter, vendorPalette, 'Recipient Name');
-    drawRing(agencies, agencyInner, agencyOuter, agencyPalette, 'Awarding Agency');
-
-    // Centre label — total spend
-    svg.append('text')
-      .attr('x', cx).attr('y', cy - 6)
-      .attr('text-anchor', 'middle')
-      .attr('dominant-baseline', 'middle')
-      .style('font-size', size * 0.058 + 'px')
-      .style('font-weight', '700')
-      .style('fill', App.darkMode ? '#F0EFEC' : '#2C2B28')
-      .style('letter-spacing', '-0.02em')
-      .text(Utils.money(totalSpend));
-
-    svg.append('text')
-      .attr('x', cx).attr('y', cy + size * 0.065)
-      .attr('text-anchor', 'middle')
-      .style('font-size', size * 0.032 + 'px')
-      .style('fill', App.darkMode ? 'rgba(240,239,236,0.5)' : 'rgba(44,43,40,0.45)')
-      .text('total spend');
-  },
-
-  clearDonutFilter() {
-    App._donutFilter = null;
-    App.searchData.active = App.searchData.raw;
-    App.searchData.filter = null;
-    App.activeFeedSource = 'prime';
-    const badge = DOM.get('donutFilterBadge');
-    if (badge) badge.classList.add('hidden');
-    App.updateSearchDashboard();
-    App.renderDonutChart();
-  },
-
   renderSubBubbleBreadcrumb() {
     const bc = DOM.get('subBubbleBreadcrumb');
     const inner = DOM.get('subBubbleBreadcrumbInner');
@@ -10431,7 +10245,6 @@ requestAnimationFrame(() => {
 
   if (this.searchData?.raw?.length > 0) this.renderSankey();
   this.renderBubbleChart();
-  this.renderDonutChart();
   if (this.forecastData?.subawards) this.renderSubBubbleChart();
   
   // Double-rAF ensures layout is fully settled before measuring widths
