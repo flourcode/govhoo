@@ -8235,55 +8235,81 @@ drillDown(name, preventRender = false) {
 
     const isDrill = drill.level >= 1;
 
-    // ── Build hierarchy ───────────────────────────────────────────────────────
-    // Market view:  agency (root) → offices (ring 1) → vendors (ring 2)
-    // Drill view:   office (root) → vendors (ring 1)
-    //
-    // A vendor appearing under multiple offices shows up as multiple leaf nodes
-    // on different branches — that multiplicity IS the interconnectedness signal.
+    // ── Palette ───────────────────────────────────────────────────────────────
+    const isDark  = App.darkMode;
+    const C       = { agency: '#7CA8C4', office: '#E8A468', vendor: '#638E6E' };
+    const lineCol = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(44,43,40,0.1)';
+    const textCol = isDark ? 'rgba(240,239,236,0.82)' : 'rgba(44,43,40,0.82)';
 
-    const rootId = isDrill
-      ? (drill.currentAgency || 'Agency')
-      : (data[0]?.['Awarding Agency'] || 'Market');
+    // Office hues — consistent across renders
+    const officeHues = ['#E8A468','#D4A0B0','#9878A0','#80C0B0','#A07860',
+                        '#8888B8','#C75268','#638E6E','#7CA8C4','#D8CFC2','#B8A878','#98B8C8'];
 
-    // branch: { id, children: [{ id, children: [vendor ids] }] }
-    const officeMap = {};   // officeId → { spend, vendors: { vendorId → spend } }
+    // ── Build per-agency trees ────────────────────────────────────────────────
+    // DRILL: single root (the drilled agency) → offices → vendors
+    // MARKET: each agency is its own root → offices → vendors
+    //         Multiple independent trees — a forest.
 
-    data.forEach(d => {
-      const amt    = parseFloat(d['Award Amount']) || 0;
-      if (amt <= 0) return;
-      const vendor = d['Recipient Name']      || 'Unknown';
-      const agency = d['Awarding Agency']     || 'Unknown';
-      let   sub    = d['Awarding Sub Agency'] || agency;
-      const agRaw  = agency.toUpperCase().split('(')[0].trim();
-      const subRaw = sub.toUpperCase().split('(')[0].trim();
-      if (agRaw === subRaw && d['Awarding Office']) sub = d['Awarding Office'];
-      const officeKey = (sub === agency) ? sub + ' (HQ)' : sub;
+    const buildTree = (agencyData, agencyName) => {
+      const officeMap = {};
+      agencyData.forEach(d => {
+        const amt    = parseFloat(d['Award Amount']) || 0;
+        if (amt <= 0) return;
+        const vendor = d['Recipient Name']      || 'Unknown';
+        let   sub    = d['Awarding Sub Agency'] || agencyName;
+        const agRaw  = agencyName.toUpperCase().split('(')[0].trim();
+        const subRaw = sub.toUpperCase().split('(')[0].trim();
+        if (agRaw === subRaw && d['Awarding Office']) sub = d['Awarding Office'];
+        const key = (sub === agencyName) ? sub + ' (HQ)' : sub;
+        if (!officeMap[key]) officeMap[key] = { spend: 0, vendors: {} };
+        officeMap[key].spend += amt;
+        officeMap[key].vendors[vendor] = (officeMap[key].vendors[vendor] || 0) + amt;
+      });
 
-      if (!officeMap[officeKey]) officeMap[officeKey] = { spend: 0, vendors: {} };
-      officeMap[officeKey].spend += amt;
-      officeMap[officeKey].vendors[vendor] = (officeMap[officeKey].vendors[vendor] || 0) + amt;
-    });
+      const totalSpend = agencyData.reduce((s, d) => s + (parseFloat(d['Award Amount']) || 0), 0);
+      const offices = Object.entries(officeMap)
+        .sort((a, b) => b[1].spend - a[1].spend)
+        .slice(0, 10)
+        .map(([id, od]) => ({
+          id,
+          spend: od.spend,
+          vendors: Object.entries(od.vendors)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 7)
+            .map(([vid, vs]) => ({ id: vid, spend: vs }))
+        }));
 
-    // Sort offices by spend desc, cap at 12 offices
-    const offices = Object.entries(officeMap)
-      .sort((a, b) => b[1].spend - a[1].spend)
-      .slice(0, 12)
-      .map(([id, data]) => ({
-        id,
-        spend: data.spend,
-        // top vendors per office, cap at 8
-        vendors: Object.entries(data.vendors)
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 8)
-          .map(([vid, vspend]) => ({ id: vid, spend: vspend }))
-      }));
+      return { id: agencyName, spend: totalSpend, offices };
+    };
 
-    if (!offices.length) return;
+    let trees;
+    if (isDrill) {
+      const agencyName = drill.currentAgency;
+      const agencyData = data.filter(d => d['Awarding Agency'] === agencyName);
+      trees = [buildTree(agencyData, agencyName)];
+    } else {
+      // Group data by agency
+      const byAgency = {};
+      data.forEach(d => {
+        const a = d['Awarding Agency'] || 'Unknown';
+        if (!byAgency[a]) byAgency[a] = [];
+        byAgency[a].push(d);
+      });
+      trees = Object.entries(byAgency)
+        .sort((a, b) => {
+          const sa = a[1].reduce((s, d) => s + (parseFloat(d['Award Amount']) || 0), 0);
+          const sb = b[1].reduce((s, d) => s + (parseFloat(d['Award Amount']) || 0), 0);
+          return sb - sa;
+        })
+        .slice(0, 8)  // max 8 agency trees
+        .map(([name, agencyData]) => buildTree(agencyData, name));
+    }
+
+    if (!trees.length) return;
 
     // ── Canvas ────────────────────────────────────────────────────────────────
-    const W   = container.offsetWidth || 600;
-    const H   = Math.max(420, Math.min(W * 0.85, 640));
+    const W = container.offsetWidth || 600;
+    const H = Math.max(460, Math.min(W * 0.9, 680));
     container.style.height = H + 'px';
 
     d3.select(container).selectAll('svg').remove();
@@ -8292,226 +8318,234 @@ drillDown(name, preventRender = false) {
       .style('display', 'block')
       .style('background', 'transparent');
 
-    const cx = W / 2, cy = H / 2;
+    // ── Scales ────────────────────────────────────────────────────────────────
+    const maxAgencySpend = Math.max(...trees.map(t => t.spend));
+    const maxOfficeSpend = Math.max(...trees.flatMap(t => t.offices.map(o => o.spend)));
+    const maxVendorSpend = Math.max(...trees.flatMap(t => t.offices.flatMap(o => o.vendors.map(v => v.spend))), 1);
+    const maxEdge = Math.max(...trees.flatMap(t => t.offices.flatMap(o => [o.spend, ...o.vendors.map(v => v.spend)])), 1);
 
-    // ── Palette ───────────────────────────────────────────────────────────────
-    const isDark  = App.darkMode;
-    const C       = { root: '#7CA8C4', office: '#E8A468', vendor: '#638E6E' };
-    const lineCol = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(44,43,40,0.1)';
-    const textCol = isDark ? 'rgba(240,239,236,0.82)' : 'rgba(44,43,40,0.82)';
-    const dimText = isDark ? 'rgba(240,239,236,0.3)'  : 'rgba(44,43,40,0.28)';
+    const rRoot   = t  => 9  + Math.sqrt(t.spend  / maxAgencySpend) * 14;
+    const rOffice = o  => 5  + Math.sqrt(o.spend  / maxOfficeSpend) * 9;
+    const rVendor = v  => 2.5 + Math.sqrt(v.spend / maxVendorSpend) * 5;
+    const lw      = v  => 0.5 + (v / maxEdge) * 4.5;
 
-    // ── Radii — scale to canvas ───────────────────────────────────────────────
-    const R1 = Math.min(W, H) * (isDrill ? 0.36 : 0.28);   // office ring
-    const R2 = Math.min(W, H) * 0.46;                       // vendor ring
+    // ── Layout: place tree roots ──────────────────────────────────────────────
+    // Single tree (drill) → centered
+    // Multiple trees → arranged in a circle so each has its own territory
+    const PAD = 36;
+    let rootPositions;
+    if (trees.length === 1) {
+      rootPositions = [{ x: W / 2, y: H / 2 }];
+    } else {
+      // Arrange roots on an inner ellipse — wider than tall to use landscape space
+      const rx = W * 0.30, ry = H * 0.26;
+      rootPositions = trees.map((_, i) => ({
+        x: W / 2 + Math.cos((i / trees.length) * Math.PI * 2 - Math.PI / 2) * rx,
+        y: H / 2 + Math.sin((i / trees.length) * Math.PI * 2 - Math.PI / 2) * ry
+      }));
+    }
 
-    // ── Compute node positions ────────────────────────────────────────────────
-    // Offices are evenly spaced around the full circle.
-    // Vendors are clustered around their parent office angle,
-    // spaced within a wedge whose width is proportional to vendor count.
+    // Per-tree radii — shrink when many trees share the canvas
+    const treeR1 = trees.length === 1 ? Math.min(W, H) * 0.26
+                 : trees.length <= 3  ? Math.min(W, H) * 0.18
+                 :                       Math.min(W, H) * 0.14;
+    const treeR2 = treeR1 * 1.72;
 
-    const totalVendors = offices.reduce((s, o) => s + o.vendors.length, 0);
+    // ── Draw all trees ────────────────────────────────────────────────────────
+    // Assign a global color index per tree so colors are stable across re-renders
+    const treeColorBase = trees.map((_, i) => officeHues[i % officeHues.length]);
 
-    const nodeList = [];   // { id, group, x, y, spend, officeIdx }
-    const edgeList = [];   // { x1,y1, x2,y2, spend, officeIdx }
+    // Collect all drawn nodes and edges for interaction
+    const allNodes  = [];   // { id, group, x, y, spend, treeIdx, officeIdx, el }
+    const allEdges  = [];   // { x1,y1,x2,y2, value, treeIdx, officeIdx, el }
 
-    // Root node
-    nodeList.push({ id: rootId, group: 'root', x: cx, y: cy, spend: offices.reduce((s,o)=>s+o.spend,0), officeIdx: -1 });
+    const g = svg.append('g');
 
-    offices.forEach((office, oi) => {
-      const officeAngle = (oi / offices.length) * Math.PI * 2 - Math.PI / 2;
-      const ox = cx + Math.cos(officeAngle) * R1;
-      const oy = cy + Math.sin(officeAngle) * R1;
+    trees.forEach((tree, ti) => {
+      const { x: rx, y: ry } = rootPositions[ti];
+      const rootColor = treeColorBase[ti];
 
-      nodeList.push({ id: office.id, group: 'office', x: ox, y: oy, spend: office.spend, officeIdx: oi });
+      // Determine angular range for this tree's branches
+      // When multiple trees exist, each tree gets a sector to point outward from root
+      let angleCenter, angleSweep;
+      if (trees.length === 1) {
+        angleCenter = 0;
+        angleSweep  = Math.PI * 2;
+      } else {
+        // Point away from canvas center
+        angleCenter = Math.atan2(ry - H / 2, rx - W / 2);
+        angleSweep  = (Math.PI * 2 / trees.length) * 1.1;  // slight overlap is fine
+      }
 
-      // Edge: root → office
-      edgeList.push({ x1: cx, y1: cy, x2: ox, y2: oy, spend: office.spend, officeIdx: oi, type: 'root-office' });
+      // Root node
+      allNodes.push({ id: tree.id, group: 'root', x: rx, y: ry, spend: tree.spend, treeIdx: ti, officeIdx: -1 });
 
-      if (office.vendors.length === 0) return;
+      tree.offices.forEach((office, oi) => {
+        // Office angle within this tree's sector
+        const offAngle = tree.offices.length === 1
+          ? angleCenter
+          : angleCenter - angleSweep / 2 + (oi / (tree.offices.length - 1)) * angleSweep;
 
-      // Wedge for this office's vendors
-      const wedge     = (1 / offices.length) * Math.PI * 2 * 0.82;  // 82% of slice, leave gaps
-      const wedgeStart = officeAngle - wedge / 2;
+        const ox = rx + Math.cos(offAngle) * treeR1;
+        const oy = ry + Math.sin(offAngle) * treeR1;
 
-      office.vendors.forEach((vendor, vi) => {
-        const t      = office.vendors.length === 1 ? 0.5 : vi / (office.vendors.length - 1);
-        const vAngle = wedgeStart + t * wedge;
-        const vx     = cx + Math.cos(vAngle) * R2;
-        const vy     = cy + Math.sin(vAngle) * R2;
+        // Clamp to canvas
+        const cox = Math.max(PAD, Math.min(W - PAD, ox));
+        const coy = Math.max(PAD, Math.min(H - PAD, oy));
 
-        nodeList.push({ id: vendor.id, group: 'vendor', x: vx, y: vy, spend: vendor.spend, officeIdx: oi });
+        allNodes.push({ id: office.id, group: 'office', x: cox, y: coy, spend: office.spend, treeIdx: ti, officeIdx: oi });
+        allEdges.push({ x1: rx, y1: ry, x2: cox, y2: coy, value: office.spend, treeIdx: ti, officeIdx: oi, type: 'root-office' });
 
-        // Edge: office → vendor
-        edgeList.push({ x1: ox, y1: oy, x2: vx, y2: vy, spend: vendor.spend, officeIdx: oi, type: 'office-vendor' });
+        const vendorWedge = (angleSweep / Math.max(tree.offices.length, 1)) * 0.78;
+        office.vendors.forEach((vendor, vi) => {
+          const t      = office.vendors.length === 1 ? 0.5 : vi / (office.vendors.length - 1);
+          const vAngle = offAngle - vendorWedge / 2 + t * vendorWedge;
+          const vx     = rx + Math.cos(vAngle) * treeR2;
+          const vy     = ry + Math.sin(vAngle) * treeR2;
+          const cvx    = Math.max(PAD, Math.min(W - PAD, vx));
+          const cvy    = Math.max(PAD, Math.min(H - PAD, vy));
+
+          allNodes.push({ id: vendor.id, group: 'vendor', x: cvx, y: cvy, spend: vendor.spend, treeIdx: ti, officeIdx: oi });
+          allEdges.push({ x1: cox, y1: coy, x2: cvx, y2: cvy, value: vendor.spend, treeIdx: ti, officeIdx: oi, type: 'office-vendor' });
+        });
       });
     });
 
-    // ── Scales ────────────────────────────────────────────────────────────────
-    const maxSpend    = Math.max(...nodeList.map(n => n.spend));
-    const maxEdge     = Math.max(...edgeList.map(e => e.spend));
-    const nodeR = n => {
-      if (n.group === 'root')   return 10 + Math.sqrt(n.spend / maxSpend) * 10;
-      if (n.group === 'office') return  6 + Math.sqrt(n.spend / maxSpend) * 8;
-      return                             3 + Math.sqrt(n.spend / maxSpend) * 5;
-    };
-    const edgeW = e => 0.6 + (e.spend / maxEdge) * 4.5;
-
-    // Office colours — each office gets its own tint for branch identity
-    const officeHues = ['#E8A468','#D4A0B0','#9878A0','#80C0B0','#A07860',
-                        '#8888B8','#C75268','#638E6E','#7CA8C4','#D8CFC2','#B8A878','#98B8C8'];
-
-    // ── Draw edges ────────────────────────────────────────────────────────────
-    const edgeLayer = svg.append('g').attr('class', 'rd-edges');
-    const edgeSel   = edgeLayer.selectAll('line').data(edgeList).join('line')
+    // ── Render edges ──────────────────────────────────────────────────────────
+    const edgeLayer = g.append('g');
+    const edgeSel   = edgeLayer.selectAll('line').data(allEdges).join('line')
       .attr('x1', e => e.x1).attr('y1', e => e.y1)
       .attr('x2', e => e.x2).attr('y2', e => e.y2)
-      .attr('stroke', e => e.officeIdx >= 0 ? officeHues[e.officeIdx % officeHues.length] : lineCol)
-      .attr('stroke-width', e => edgeW(e))
-      .attr('stroke-opacity', 0.22)
+      .attr('stroke', e => treeColorBase[e.treeIdx])
+      .attr('stroke-width', e => lw(e.value))
+      .attr('stroke-opacity', 0.2)
       .attr('stroke-linecap', 'round');
 
-    // ── Draw nodes ────────────────────────────────────────────────────────────
-    const nodeLayer = svg.append('g').attr('class', 'rd-nodes');
-    const nodeSel   = nodeLayer.selectAll('circle').data(nodeList).join('circle')
-      .attr('cx',           n => n.x)
-      .attr('cy',           n => n.y)
-      .attr('r',            n => nodeR(n))
-      .attr('fill',         n => n.group === 'root'   ? C.root
-                               : n.group === 'office' ? officeHues[n.officeIdx % officeHues.length]
-                               : C.vendor)
+    // ── Render nodes ──────────────────────────────────────────────────────────
+    const nodeLayer = g.append('g');
+    const nodeSel   = nodeLayer.selectAll('circle').data(allNodes).join('circle')
+      .attr('cx', n => n.x).attr('cy', n => n.y)
+      .attr('r',  n => {
+        if (n.group === 'root')   return rRoot(trees[n.treeIdx]);
+        if (n.group === 'office') return rOffice(trees[n.treeIdx].offices[n.officeIdx]);
+        return rVendor(n);
+      })
+      .attr('fill', n => {
+        if (n.group === 'root')   return treeColorBase[n.treeIdx];
+        if (n.group === 'office') return officeHues[(n.treeIdx * 3 + n.officeIdx) % officeHues.length];
+        return C.vendor;
+      })
       .attr('fill-opacity', 0.85)
-      .attr('stroke',       n => n.group === 'root'   ? C.root
-                               : n.group === 'office' ? officeHues[n.officeIdx % officeHues.length]
-                               : C.vendor)
+      .attr('stroke', n => {
+        if (n.group === 'root')   return treeColorBase[n.treeIdx];
+        if (n.group === 'office') return officeHues[(n.treeIdx * 3 + n.officeIdx) % officeHues.length];
+        return C.vendor;
+      })
       .attr('stroke-width', 1.5)
       .attr('stroke-opacity', 0.35)
-      .style('cursor', n => {
-        if (n.group === 'vendor') return 'default';
-        if (n.group === 'root' && isDrill) return 'pointer';  // back affordance
-        if (n.group === 'office') return 'pointer';
-        return 'default';
-      });
+      .style('cursor', n => (n.group === 'root' && isDrill) || n.group === 'office' ? 'pointer' : 'default');
 
-    // ── Labels — vendor labels only, shown at rest for offices, hidden for vendors ──
-    const labelLayer = svg.append('g').attr('pointer-events', 'none');
-
-    // Office labels always visible
-    offices.forEach((office, oi) => {
-      const n   = nodeList.find(nd => nd.id === office.id && nd.group === 'office');
-      if (!n) return;
-      const ang = Math.atan2(n.y - cy, n.x - cx);
-      const off = nodeR(n) + 6;
-      const lx  = n.x + Math.cos(ang) * off;
-      const ly  = n.y + Math.sin(ang) * off;
-      const anchor = Math.cos(ang) > 0.1 ? 'start' : Math.cos(ang) < -0.1 ? 'end' : 'middle';
+    // ── Labels — office names only, small, anchored outward ───────────────────
+    const labelLayer = g.append('g').attr('pointer-events', 'none');
+    allNodes.filter(n => n.group === 'office').forEach(n => {
+      const tree = trees[n.treeIdx];
+      const { x: rx, y: ry } = rootPositions[n.treeIdx];
+      const ang    = Math.atan2(n.y - ry, n.x - rx);
+      const r      = rOffice(tree.offices[n.officeIdx]);
+      const lx     = n.x + Math.cos(ang) * (r + 5);
+      const ly     = n.y + Math.sin(ang) * (r + 5);
+      const anchor = Math.cos(ang) > 0.15 ? 'start' : Math.cos(ang) < -0.15 ? 'end' : 'middle';
 
       labelLayer.append('text')
         .attr('x', lx).attr('y', ly)
         .attr('text-anchor', anchor)
         .attr('dominant-baseline', 'middle')
-        .style('font-size', '9.5px')
-        .style('font-weight', '600')
-        .style('fill', officeHues[oi % officeHues.length])
-        .style('opacity', 0.7)
+        .style('font-size', '9px').style('font-weight', '600')
+        .style('fill', officeHues[(n.treeIdx * 3 + n.officeIdx) % officeHues.length])
+        .style('opacity', 0.65)
         .text(Utils.trunc(
-          office.id.replace(/^Department of (the )?/i,'').replace(/^Office of (the )?/i,''), 22
+          n.id.replace(/^Department of (the )?/i,'').replace(/^Office of (the )?/i,''), 20
         ));
+    });
+
+    // Root labels
+    allNodes.filter(n => n.group === 'root').forEach(n => {
+      const r = rRoot(trees[n.treeIdx]);
+      svg.append('text')
+        .attr('x', n.x).attr('y', n.y + r + 13)
+        .attr('text-anchor', 'middle')
+        .style('font-size', '10px').style('font-weight', '700')
+        .style('fill', treeColorBase[n.treeIdx]).style('opacity', 0.8)
+        .text(Utils.trunc(
+          n.id.replace(/^Department of (the )?/i,'').replace(/^Office of (the )?/i,''), 22
+        ));
+      if (isDrill) {
+        svg.append('text')
+          .attr('x', n.x).attr('y', n.y + r + 25)
+          .attr('text-anchor', 'middle')
+          .style('font-size', '9px')
+          .style('fill', treeColorBase[n.treeIdx]).style('opacity', 0.35)
+          .text('tap to go back');
+      }
     });
 
     // ── Hover ─────────────────────────────────────────────────────────────────
     nodeSel
       .on('mousemove', function(event, d) {
-        const activeOffice = d.officeIdx;
+        const sameBranch = n =>
+          n.treeIdx === d.treeIdx && (n.officeIdx === d.officeIdx || n.group === 'root' || d.group === 'root');
 
-        // Dim everything not in this branch
         nodeSel
-          .attr('fill-opacity',   n => (n.officeIdx === activeOffice || n.group === 'root') ? 0.95 : 0.08)
-          .attr('stroke-opacity', n => (n.officeIdx === activeOffice || n.group === 'root') ? 0.6  : 0.04);
+          .attr('fill-opacity',   n => sameBranch(n) ? 0.95 : 0.07)
+          .attr('stroke-opacity', n => sameBranch(n) ? 0.6  : 0.04);
         edgeSel
-          .attr('stroke-opacity', e => e.officeIdx === activeOffice ? 0.75 : 0.03)
-          .attr('stroke-width',   e => e.officeIdx === activeOffice ? edgeW(e) * 1.5 : edgeW(e));
+          .attr('stroke-opacity', e => e.treeIdx === d.treeIdx && (e.officeIdx === d.officeIdx || d.group === 'root') ? 0.75 : 0.03)
+          .attr('stroke-width',   e => e.treeIdx === d.treeIdx && (e.officeIdx === d.officeIdx || d.group === 'root') ? lw(e.value) * 1.6 : lw(e.value));
         labelLayer.selectAll('text')
-          .attr('opacity', function() {
-            const txt = d3.select(this).text();
-            const matchOffice = offices.find((o, oi) => oi === activeOffice);
-            if (!matchOffice) return 0.15;
-            const short = Utils.trunc(matchOffice.id.replace(/^Department of (the )?/i,'').replace(/^Office of (the )?/i,''), 22);
-            return txt === short ? 1 : 0.12;
+          .attr('opacity', function(_, i) {
+            const labelNode = allNodes.filter(n => n.group === 'office')[i];
+            if (!labelNode) return 0.1;
+            return sameBranch(labelNode) ? 0.9 : 0.07;
           });
 
-        // Vendor label on hover
-        if (d.group === 'vendor') {
-          if (tooltip) {
-            tooltip.innerHTML = `
-              <div style="font-weight:700;font-size:var(--text-sm);margin-bottom:2px;">${Html.escapeHtml(
-                d.id.replace(/^Department of (the )?/i,'').replace(/^Office of (the )?/i,'')
-              )}</div>
-              <div style="font-size:var(--text-sm);font-weight:600;color:${C.vendor};">${Utils.money(d.spend)}</div>`;
-            tooltip.style.opacity = '1';
-            tooltip.style.left = (event.clientX + 14) + 'px';
-            tooltip.style.top  = (event.clientY - 10) + 'px';
-          }
-        } else if (d.group === 'office') {
-          if (tooltip) {
-            const oi    = d.officeIdx;
-            const oData = offices[oi];
-            tooltip.innerHTML = `
-              <div style="font-weight:700;font-size:var(--text-sm);margin-bottom:2px;">${Html.escapeHtml(
-                d.id.replace(/^Department of (the )?/i,'').replace(/^Office of (the )?/i,'')
-              )}</div>
-              <div style="font-size:var(--text-sm);font-weight:600;color:${officeHues[oi % officeHues.length]};">${Utils.money(d.spend)}</div>
-              <div style="font-size:9px;color:var(--text-tertiary);margin-top:2px;">${oData ? oData.vendors.length : 0} vendors</div>`;
-            tooltip.style.opacity = '1';
-            tooltip.style.left = (event.clientX + 14) + 'px';
-            tooltip.style.top  = (event.clientY - 10) + 'px';
-          }
+        if (tooltip) {
+          const col = d.group === 'root' ? treeColorBase[d.treeIdx]
+                    : d.group === 'office' ? officeHues[(d.treeIdx * 3 + d.officeIdx) % officeHues.length]
+                    : C.vendor;
+          const tag = { root: isDrill ? 'Office' : 'Agency', office: 'Office', vendor: 'Vendor' }[d.group];
+          tooltip.innerHTML = `
+            <div style="font-weight:700;font-size:var(--text-sm);margin-bottom:2px;">${Html.escapeHtml(
+              d.id.replace(/^Department of (the )?/i,'').replace(/^Office of (the )?/i,'')
+            )}</div>
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-tertiary);margin-bottom:4px;">${tag}</div>
+            <div style="font-size:var(--text-sm);font-weight:600;color:${col};">${Utils.money(d.spend)}</div>`;
+          tooltip.style.opacity = '1';
+          tooltip.style.left = (event.clientX + 14) + 'px';
+          tooltip.style.top  = (event.clientY - 10) + 'px';
         }
       })
       .on('mouseleave', () => {
         nodeSel.attr('fill-opacity', 0.85).attr('stroke-opacity', 0.35);
-        edgeSel.attr('stroke-opacity', 0.22).attr('stroke-width', e => edgeW(e));
-        labelLayer.selectAll('text').attr('opacity', 0.7);
+        edgeSel.attr('stroke-opacity', 0.2).attr('stroke-width', e => lw(e.value));
+        labelLayer.selectAll('text').attr('opacity', 0.65);
         if (tooltip) tooltip.style.opacity = '0';
       })
       .on('click', (e, d) => {
-        if (d.group === 'vendor') return;
         e.stopPropagation();
-        if (d.group === 'root') {
-          // Click root at drill level — reset back up
+        if (d.group === 'vendor') return;
+        if (d.group === 'root' && isDrill) {
           App.resetDrill();
           App.renderForceGraph();
-        } else {
-          // Click office — drill in, stay in graph view and re-render tree
-          App.drillDown(d.id, true);  // preventRender=true, we handle it
+        } else if (d.group === 'office') {
+          App.drillDown(d.id, true);
           App.renderForceGraph();
         }
       });
 
-    // ── Root label ────────────────────────────────────────────────────────────
-    svg.append('text')
-      .attr('x', cx).attr('y', cy + nodeR(nodeList[0]) + 14)
-      .attr('text-anchor', 'middle')
-      .style('font-size', '10px').style('font-weight', '700')
-      .style('fill', C.root).style('opacity', 0.75)
-      .text(Utils.trunc(
-        rootId.replace(/^Department of (the )?/i,'').replace(/^Office of (the )?/i,''), 24
-      ));
-
-    // When drilled in, show a subtle back hint under the root node
-    if (isDrill) {
-      svg.append('text')
-        .attr('x', cx).attr('y', cy + nodeR(nodeList[0]) + 27)
-        .attr('text-anchor', 'middle')
-        .style('font-size', '9px').style('font-weight', '500')
-        .style('fill', C.root).style('opacity', 0.4)
-        .text('tap to go back');
-    }
-
-    // ── Entrance fade-in ──────────────────────────────────────────────────────
-    edgeSel.attr('opacity', 0).transition().duration(500).delay(80).attr('opacity', 1);
-    nodeSel.attr('opacity', 0).transition().duration(400).delay((_, i) => i * 12).attr('opacity', 1);
-    labelLayer.attr('opacity', 0).transition().duration(600).delay(300).attr('opacity', 1);
+    // ── Entrance animation ────────────────────────────────────────────────────
+    edgeSel.attr('opacity', 0).transition().duration(500).delay(60).attr('opacity', 1);
+    nodeSel.attr('opacity', 0).transition().duration(380).delay((_, i) => i * 10).attr('opacity', 1);
+    labelLayer.attr('opacity', 0).transition().duration(500).delay(280).attr('opacity', 1);
   },
 
   renderSankey() {
@@ -9920,7 +9954,7 @@ if (this.bubbleChartType === 'treemap') {
       nodes.selectAll('text').attr('opacity', 0).transition().duration(400).delay((d, i) => 300 + i * 15).attr('opacity', 1);
     }
 
-    if (this._pendingDrillScroll) {
+    if (this._pendingDrillScroll && App._sankeyView !== 'graph') {
       const targetPanel = typeof this._pendingDrillScroll === 'string' ? this._pendingDrillScroll : 'bubbleChartPanel';
       this._pendingDrillScroll = false;
       requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -9928,6 +9962,8 @@ if (this.bubbleChartType === 'treemap') {
           App.scrollToPanel(targetPanel);
         }, 450);
       }));
+    } else {
+      this._pendingDrillScroll = false;
     }
   },
 
