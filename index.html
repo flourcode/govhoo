@@ -8396,9 +8396,9 @@ drillDown(name, preventRender = false) {
       const tree = allTrees.find(t => t.id === agencyName) || allTrees[0];
       const ti   = allTrees.indexOf(tree);
 
-      const colA  = W * 0.12;   // agency column x
-      const colO  = W * 0.42;   // office column x
-      const colV  = W * 0.78;   // vendor column x
+      const colA  = W * 0.10;   // agency column x
+      const colO  = W * 0.36;   // office column x
+      const colV  = W * 0.60;   // vendor column x — leave 40% for labels
       const midY  = H / 2;
 
       // Agency root — left side, vertically centered
@@ -8485,16 +8485,46 @@ drillDown(name, preventRender = false) {
         .text(Utils.trunc(n.id.replace(/^Department of (the )?/i,'').replace(/^Office of (the )?/i,''), 20));
     });
 
-    // Vendor labels in drill view
-    if (viewState === 'drill') {
+    // Vendor labels in drill + focused views
+    if (viewState === 'drill' || viewState === 'focused') {
       allNodes.filter(n => n.group === 'vendor').forEach(n => {
-        const tree = allTrees[n.treeIdx];
+        const tree   = allTrees[n.treeIdx];
+        const col    = officeHues[(n.treeIdx * 3 + n.officeIdx) % officeHues.length];
+        const isDrillView = viewState === 'drill';
+
+        // In drill: label goes right of dot. In focused: label radiates outward from center.
+        let lx, ly, anchor;
+        if (isDrillView) {
+          lx     = n.x + rV(n) + 5;
+          ly     = n.y;
+          anchor = 'start';
+        } else {
+          const root = allNodes.find(nd => nd.group === 'root' && nd.treeIdx === n.treeIdx);
+          const ang  = root ? Math.atan2(n.y - root.y, n.x - root.x) : 0;
+          lx     = n.x + Math.cos(ang) * (rV(n) + 5);
+          ly     = n.y + Math.sin(ang) * (rV(n) + 5);
+          anchor = Math.cos(ang) > 0.15 ? 'start' : Math.cos(ang) < -0.15 ? 'end' : 'middle';
+        }
+
+        // Name line
         labelLayer.append('text')
-          .attr('x', n.x + rV(n) + 5).attr('y', n.y)
+          .attr('x', lx).attr('y', isDrillView ? ly - 4 : ly)
+          .attr('text-anchor', anchor)
           .attr('dominant-baseline', 'middle')
-          .style('font-size', '9px').style('font-weight', '500')
-          .style('fill', textCol).style('opacity', 0.65)
-          .text(Utils.trunc(n.id, 22));
+          .style('font-size', '9px').style('font-weight', '600')
+          .style('fill', textCol).style('opacity', 0.72)
+          .text(Utils.trunc(n.id, isDrillView ? 26 : 18));
+
+        // Spend line (drill only — too cluttered in focused)
+        if (isDrillView) {
+          labelLayer.append('text')
+            .attr('x', lx).attr('y', ly + 6)
+            .attr('text-anchor', anchor)
+            .attr('dominant-baseline', 'middle')
+            .style('font-size', '8px').style('font-weight', '500')
+            .style('fill', col).style('opacity', 0.55)
+            .text(Utils.money(n.spend));
+        }
       });
     }
 
