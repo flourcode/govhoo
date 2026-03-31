@@ -8220,273 +8220,252 @@ drillDown(name, preventRender = false) {
 
   _renderForceGraphInner() {
     const container = DOM.get('forceGraphContainer');
-    const tooltip = DOM.get('forceGraphTooltip');
+    const tooltip   = DOM.get('forceGraphTooltip');
     if (!container) return;
 
-    const data = App.searchData.active;
+    const data  = App.searchData.active;
+    const drill = App.drillState || {};
     if (!data || data.length === 0) {
       container.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-tertiary);">No data.</div>';
       return;
     }
 
-    // Build nodes and links from same logic as Sankey ─────────────────────────
-    const pathMap = {};
-    data.forEach(d => {
-      if (d['Award Amount'] <= 0) return;
-      const amt = d['Award Amount'];
-      const vendor = d['Recipient Name'] || 'Unknown Vendor';
-      const agency = d['Awarding Agency'] || 'Unknown Agency';
-      let sub = d['Awarding Sub Agency'] || agency;
-      const agencyRaw = agency.toUpperCase().split('(')[0].trim();
-      const subRaw = sub.toUpperCase().split('(')[0].trim();
-      if (agencyRaw === subRaw && d['Awarding Office']) sub = d['Awarding Office'];
-      const safeSub = sub === agency ? sub + ' (HQ)' : sub;
-      const key = `${agency}|||${safeSub}|||${vendor}`;
-      pathMap[key] = (pathMap[key] || 0) + amt;
-    });
-
-    const allPaths = Object.entries(pathMap).sort((a, b) => b[1] - a[1]);
-    const totalSpend = allPaths.reduce((s, [, v]) => s + v, 0);
-    let cum = 0, limit = 8;
-    for (let i = 0; i < Math.min(allPaths.length, 50); i++) {
-      cum += allPaths[i][1]; limit = i + 1;
-      if (cum / totalSpend >= 0.90 && limit >= 8) break;
-    }
-    const topPaths = allPaths.slice(0, limit);
-
-    const nodeMap = {};   // name → { id, group, spend, degree }
-    const linkArr = [];
-    const ensureNode = (name, group) => {
-      if (!nodeMap[name]) nodeMap[name] = { id: name, group, spend: 0, degree: 0 };
-    };
+    // ── Build nodes + links ───────────────────────────────────────────────────
+    // Level 0  → agencies  + vendors  (market overview)
+    // Level ≥1 → offices   + vendors  (drilled into an agency)
+    const isDrill = drill.level >= 1;
+    const nodeMap   = {};
     const linkIndex = {};
-    topPaths.forEach(([k, v]) => {
-      const [agency, office, vendor] = k.split('|||');
-      ensureNode(agency, 'agency');
-      ensureNode(office, 'office');
-      ensureNode(vendor, 'vendor');
-      nodeMap[agency].spend += v;
-      nodeMap[office].spend += v;
-      nodeMap[vendor].spend += v;
+    const linkArr   = [];
 
-      // Agency → Office
-      const k1 = agency + '::' + office;
-      if (!linkIndex[k1]) { linkIndex[k1] = { source: agency, target: office, value: 0 }; linkArr.push(linkIndex[k1]); }
-      linkIndex[k1].value += v;
-      // Office → Vendor
-      const k2 = office + '::' + vendor;
-      if (!linkIndex[k2]) { linkIndex[k2] = { source: office, target: vendor, value: 0 }; linkArr.push(linkIndex[k2]); }
-      linkIndex[k2].value += v;
+    const ensure = (name, group) => {
+      if (!nodeMap[name]) nodeMap[name] = { id: name, group, spend: 0 };
+    };
+    const addLink = (src, tgt, val) => {
+      const k = src + '::' + tgt;
+      if (!linkIndex[k]) { linkIndex[k] = { source: src, target: tgt, value: 0 }; linkArr.push(linkIndex[k]); }
+      linkIndex[k].value += val;
+    };
+
+    data.forEach(d => {
+      const amt    = parseFloat(d['Award Amount']) || 0;
+      if (amt <= 0) return;
+      const vendor = d['Recipient Name']     || 'Unknown';
+      const agency = d['Awarding Agency']    || 'Unknown';
+      let   sub    = d['Awarding Sub Agency'] || agency;
+      const agRaw  = agency.toUpperCase().split('(')[0].trim();
+      const subRaw = sub.toUpperCase().split('(')[0].trim();
+      if (agRaw === subRaw && d['Awarding Office']) sub = d['Awarding Office'];
+      const safeSub = (sub === agency) ? sub + ' (HQ)' : sub;
+
+      if (isDrill) {
+        // Offices → Vendors
+        ensure(safeSub, 'office');
+        ensure(vendor,  'vendor');
+        nodeMap[safeSub].spend += amt;
+        nodeMap[vendor].spend  += amt;
+        addLink(safeSub, vendor, amt);
+      } else {
+        // Agencies → Vendors
+        ensure(agency, 'agency');
+        ensure(vendor, 'vendor');
+        nodeMap[agency].spend += amt;
+        nodeMap[vendor].spend += amt;
+        addLink(agency, vendor, amt);
+      }
     });
 
-    const nodes = Object.values(nodeMap);
-    nodes.forEach(n => { n.degree = linkArr.filter(l => l.source === n.id || l.target === n.id).length; });
+    // Trim to top nodes by spend to keep the graph readable
+    // Keep vendors that account for 90% of spend, all agencies/offices
+    const vendors = Object.values(nodeMap)
+      .filter(n => n.group === 'vendor')
+      .sort((a, b) => b.spend - a.spend);
+    const totalVendorSpend = vendors.reduce((s, n) => s + n.spend, 0);
+    let   cum = 0;
+    const keepVendors = new Set();
+    for (const v of vendors) {
+      keepVendors.add(v.id);
+      cum += v.spend;
+      if (cum / totalVendorSpend >= 0.90 && keepVendors.size >= 6) break;
+    }
+    const keepAll = new Set([
+      ...Object.values(nodeMap).filter(n => n.group !== 'vendor').map(n => n.id),
+      ...keepVendors
+    ]);
+    const nodes   = Object.values(nodeMap).filter(n => keepAll.has(n.id));
+    const links   = linkArr.filter(l => keepAll.has(l.source) && keepAll.has(l.target));
+    if (nodes.length === 0) return;
 
-    // Find the dominant node (highest spend) for gravity-well treatment
     const dominantNode = nodes.reduce((a, b) => b.spend > a.spend ? b : a, nodes[0]);
 
-    // ── Dimensions ───────────────────────────────────────────────────────────
+    // ── Canvas ────────────────────────────────────────────────────────────────
     const W = container.offsetWidth || 600;
-    const H = Math.max(460, Math.min(nodes.length * 26, 720));
+    const H = Math.max(460, Math.min(nodes.length * 28, 700));
 
     d3.select(container).selectAll('svg').remove();
     const svg = d3.select(container).append('svg')
       .attr('width', W).attr('height', H)
       .style('background', 'transparent');
 
-    // ── Zoom + pan ───────────────────────────────────────────────────────────
     const g = svg.append('g');
-    svg.call(d3.zoom().scaleExtent([0.25, 4]).on('zoom', e => g.attr('transform', e.transform)));
+    svg.call(d3.zoom().scaleExtent([0.2, 4]).on('zoom', e => g.attr('transform', e.transform)));
 
-    // ── Palette ──────────────────────────────────────────────────────────────
-    const isDark = App.darkMode;
-    const groupColor  = { agency: '#7CA8C4', office: '#E8A468', vendor: '#638E6E' };
-    const groupGlow   = { agency: 'rgba(124,168,196,0.35)', office: 'rgba(232,164,104,0.35)', vendor: 'rgba(99,142,110,0.35)' };
-    const textColor   = isDark ? 'rgba(240,239,236,0.9)'  : 'rgba(44,43,40,0.9)';
-    const textMuted   = isDark ? 'rgba(240,239,236,0.45)' : 'rgba(44,43,40,0.38)';
-    const linkBase    = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)';
+    // ── Palette ───────────────────────────────────────────────────────────────
+    const isDark     = App.darkMode;
+    const groupColor = { agency: '#7CA8C4', office: '#E8A468', vendor: '#638E6E' };
+    const textColor  = isDark ? 'rgba(240,239,236,0.88)' : 'rgba(44,43,40,0.88)';
+    const linkBase   = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
 
-    // ── Scales ───────────────────────────────────────────────────────────────
+    // ── Scales ────────────────────────────────────────────────────────────────
     const maxSpend = Math.max(...nodes.map(n => n.spend));
-    const rScale   = d3.scaleSqrt().domain([0, maxSpend]).range([6, 32]);
-    const maxLink  = Math.max(...linkArr.map(l => l.value));
-    const wScale   = d3.scaleLinear().domain([0, maxLink]).range([1.5, 9]);
+    const rScale   = d3.scaleSqrt().domain([0, maxSpend]).range([7, 36]);
+    const maxLink  = Math.max(...links.map(l => l.value));
+    const wScale   = d3.scaleLinear().domain([0, maxLink]).range([1, 7]);
 
-    // ── Defs: arrowhead markers + glow filter ─────────────────────────────────
+    // ── Defs: arrowhead + glow ────────────────────────────────────────────────
     const defs = svg.append('defs');
-
-    // One arrowhead per group colour
-    Object.entries(groupColor).forEach(([grp, col]) => {
+    ['agency','office','vendor'].forEach(grp => {
       defs.append('marker')
-        .attr('id', `arrow-${grp}`)
-        .attr('viewBox', '0 -4 8 8')
-        .attr('refX', 8).attr('refY', 0)
-        .attr('markerWidth', 6).attr('markerHeight', 6)
-        .attr('orient', 'auto')
-        .append('path')
-          .attr('d', 'M0,-4L8,0L0,4')
-          .attr('fill', col)
-          .attr('fill-opacity', 0.8);
+        .attr('id', `fg-arrow-${grp}`)
+        .attr('viewBox', '0 -4 8 8').attr('refX', 8).attr('refY', 0)
+        .attr('markerWidth', 5).attr('markerHeight', 5).attr('orient', 'auto')
+        .append('path').attr('d', 'M0,-4L8,0L0,4')
+        .attr('fill', groupColor[grp]).attr('fill-opacity', 0.7);
     });
+    const filt = defs.append('filter').attr('id', 'fg-glow')
+      .attr('x','-60%').attr('y','-60%').attr('width','220%').attr('height','220%');
+    filt.append('feGaussianBlur').attr('stdDeviation', '5').attr('result', 'blur');
+    const fm = filt.append('feMerge');
+    fm.append('feMergeNode').attr('in', 'blur');
+    fm.append('feMergeNode').attr('in', 'SourceGraphic');
 
-    // Glow filter for dominant node pulse ring
-    const filt = defs.append('filter').attr('id', 'glow').attr('x', '-50%').attr('y', '-50%').attr('width', '200%').attr('height', '200%');
-    filt.append('feGaussianBlur').attr('stdDeviation', '4').attr('result', 'blur');
-    const feMerge = filt.append('feMerge');
-    feMerge.append('feMergeNode').attr('in', 'blur');
-    feMerge.append('feMergeNode').attr('in', 'SourceGraphic');
-
-    // ── Force simulation ──────────────────────────────────────────────────────
-    const xTarget = { agency: W * 0.17, office: W * 0.5, vendor: W * 0.83 };
-
+    // ── Simulation — pure free physics, no column forcing ─────────────────────
+    // Agency/office nodes get extra repulsion so they space cleanly
+    // Charge strength scales with node size so big nodes push harder
     const sim = d3.forceSimulation(nodes)
-      .force('link', d3.forceLink(linkArr).id(d => d.id)
-        .distance(d => 70 + wScale(d.value) * 5)
-        .strength(0.5))
-      .force('charge', d3.forceManyBody().strength(d => -180 - rScale(d.spend) * 6))
-      .force('collide', d3.forceCollide(d => rScale(d.spend) + 10))
-      .force('y', d3.forceY(H / 2).strength(0.035))
-      .force('xGroup', d3.forceX(d => xTarget[d.group] || W / 2).strength(0.28))
-      .alphaDecay(0.022);
+      .force('link', d3.forceLink(links).id(d => d.id)
+        .distance(d => 60 + rScale(d.target.spend || 0) * 2.2 + wScale(d.value) * 4)
+        .strength(0.6))
+      .force('charge', d3.forceManyBody()
+        .strength(d => d.group === 'vendor' ? -120 - rScale(d.spend) * 4 : -260 - rScale(d.spend) * 7))
+      .force('center', d3.forceCenter(W / 2, H / 2).strength(0.06))
+      .force('collide', d3.forceCollide(d => rScale(d.spend) + 12))
+      .alphaDecay(0.018)
+      .velocityDecay(0.38);
 
-    // Nodes start at centre — spring outward for the entrance animation
-    nodes.forEach(n => { n.x = W / 2; n.y = H / 2; });
+    // Entrance: nodes spring from centre
+    nodes.forEach(n => { n.x = W / 2 + (Math.random() - 0.5) * 40; n.y = H / 2 + (Math.random() - 0.5) * 40; });
 
-    // ── Draw curved links with arrowheads ─────────────────────────────────────
-    // Links are paths (quadratic bezier) so arrows sit on a curve, not a straight line
-    const linkG = g.append('g').attr('class', 'fg-links');
-    const link  = linkG.selectAll('path').data(linkArr).join('path')
+    // ── Links ─────────────────────────────────────────────────────────────────
+    const linkLayer = g.append('g');
+    const linkSel   = linkLayer.selectAll('path').data(links).join('path')
       .attr('fill', 'none')
       .attr('stroke', linkBase)
       .attr('stroke-width', d => wScale(d.value))
       .attr('stroke-linecap', 'round')
-      .attr('opacity', 0);  // hidden until sim settles a little
+      .attr('opacity', 0);
 
-    // Edge spend labels — hidden by default, shown on hover
-    const edgeLabelG = g.append('g').attr('class', 'fg-edge-labels').attr('pointer-events', 'none');
-    const edgeLabel  = edgeLabelG.selectAll('text').data(linkArr).join('text')
-      .style('font-size', '9px')
-      .style('font-weight', '700')
-      .style('fill', textColor)
-      .attr('text-anchor', 'middle')
-      .attr('opacity', 0)
+    // Edge labels (spend on hover)
+    const edgeLabelSel = g.append('g').attr('pointer-events','none')
+      .selectAll('text').data(links).join('text')
+      .style('font-size', '9px').style('font-weight', '700')
+      .style('fill', textColor).attr('text-anchor', 'middle').attr('opacity', 0)
       .text(d => Utils.money(d.value));
 
-    // ── Draw nodes ────────────────────────────────────────────────────────────
-    const nodeG = g.append('g').attr('class', 'fg-nodes');
-    const node  = nodeG.selectAll('g').data(nodes).join('g')
+    // ── Nodes ─────────────────────────────────────────────────────────────────
+    const nodeLayer = g.append('g');
+    const nodeSel   = nodeLayer.selectAll('g').data(nodes).join('g')
       .style('cursor', 'pointer')
       .call(d3.drag()
-        .on('start', (e, d) => { if (!e.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+        .on('start', (e, d) => { if (!e.active) sim.alphaTarget(0.25).restart(); d.fx = d.x; d.fy = d.y; })
         .on('drag',  (e, d) => { d.fx = e.x; d.fy = e.y; })
         .on('end',   (e, d) => { if (!e.active) sim.alphaTarget(0); d.fx = null; d.fy = null; })
       );
 
-    // Dominant node pulse ring (rendered before the shape so it sits behind)
-    node.filter(d => d.id === dominantNode.id)
-      .append('circle')
-      .attr('class', 'pulse-ring')
-      .attr('r', d => rScale(d.spend) + 10)
+    // Pulse ring on dominant node
+    nodeSel.filter(d => d.id === dominantNode.id)
+      .append('circle').attr('class','fg-pulse')
+      .attr('r', d => rScale(d.spend) + 12)
       .attr('fill', 'none')
       .attr('stroke', d => groupColor[d.group])
       .attr('stroke-width', 1.5)
-      .attr('stroke-opacity', 0.4)
-      .attr('filter', 'url(#glow)');
+      .attr('stroke-opacity', 0)
+      .attr('filter', 'url(#fg-glow)');
 
-    // Node shapes: rounded rect for agencies, diamond for offices, circle for vendors
-    node.each(function(d) {
-      const r = rScale(d.spend);
+    // Node shapes
+    nodeSel.each(function(d) {
+      const r   = rScale(d.spend);
       const sel = d3.select(this);
+      const col = groupColor[d.group];
       if (d.group === 'agency') {
-        // Rounded square
-        const s = r * 1.55;
+        const s = r * 1.6;
         sel.append('rect')
-          .attr('x', -s / 2).attr('y', -s / 2)
-          .attr('width', s).attr('height', s)
-          .attr('rx', s * 0.22).attr('ry', s * 0.22)
-          .attr('fill', groupColor[d.group])
-          .attr('fill-opacity', 0.85)
-          .attr('stroke', groupColor[d.group])
-          .attr('stroke-width', 2)
-          .attr('stroke-opacity', 0.5);
+          .attr('x', -s/2).attr('y', -s/2).attr('width', s).attr('height', s)
+          .attr('rx', s * 0.2)
+          .attr('fill', col).attr('fill-opacity', 0.82)
+          .attr('stroke', col).attr('stroke-width', 2).attr('stroke-opacity', 0.45);
       } else if (d.group === 'office') {
-        // Diamond (rotated square)
-        const s = r * 1.4;
+        const s = r * 1.45;
         sel.append('polygon')
           .attr('points', `0,${-s} ${s},0 0,${s} ${-s},0`)
-          .attr('fill', groupColor[d.group])
-          .attr('fill-opacity', 0.85)
-          .attr('stroke', groupColor[d.group])
-          .attr('stroke-width', 2)
-          .attr('stroke-opacity', 0.5);
+          .attr('fill', col).attr('fill-opacity', 0.82)
+          .attr('stroke', col).attr('stroke-width', 2).attr('stroke-opacity', 0.45);
       } else {
-        // Circle for vendors
         sel.append('circle')
           .attr('r', r)
-          .attr('fill', groupColor[d.group])
-          .attr('fill-opacity', 0.85)
-          .attr('stroke', groupColor[d.group])
-          .attr('stroke-width', 2)
-          .attr('stroke-opacity', 0.5);
+          .attr('fill', col).attr('fill-opacity', 0.82)
+          .attr('stroke', col).attr('stroke-width', 2).attr('stroke-opacity', 0.45);
       }
     });
 
-    // Labels below each node
-    node.append('text')
+    // Node labels
+    nodeSel.append('text')
       .attr('text-anchor', 'middle')
       .attr('dy', d => rScale(d.spend) + 13)
-      .style('font-size', '10px')
-      .style('font-weight', '600')
-      .style('fill', textColor)
-      .style('pointer-events', 'none')
+      .style('font-size', '10px').style('font-weight', '600')
+      .style('fill', textColor).style('pointer-events', 'none')
       .text(d => Utils.trunc(
-        d.id.replace(/^Department of (the )?/i, '').replace(/^Office of (the )?/i, ''),
-        d.group === 'agency' ? 20 : 18
+        d.id.replace(/^Department of (the )?/i,'').replace(/^Office of (the )?/i,''), 20
       ));
 
-    // ── Hover interactions ────────────────────────────────────────────────────
-    const connectedTo = d => new Set(
-      linkArr.filter(l => l.source.id === d.id || l.target.id === d.id)
-             .flatMap(l => [l.source.id, l.target.id])
+    // ── Hover ─────────────────────────────────────────────────────────────────
+    const neighbors = d => new Set(
+      links.filter(l => l.source.id === d.id || l.target.id === d.id)
+           .flatMap(l => [l.source.id, l.target.id])
     );
 
-    node
+    nodeSel
       .on('mousemove', function(event, d) {
-        const connected = connectedTo(d);
+        const nb  = neighbors(d);
+        const col = groupColor[d.group];
 
-        // Fade unconnected nodes
-        node.attr('opacity', n => connected.has(n.id) ? 1 : 0.15);
+        nodeSel.attr('opacity', n => nb.has(n.id) ? 1 : 0.12);
 
-        // Highlight connected links + show arrowheads + edge labels
-        link
-          .attr('stroke', l => (l.source.id === d.id || l.target.id === d.id) ? groupColor[d.group] : linkBase)
-          .attr('stroke-opacity', l => (l.source.id === d.id || l.target.id === d.id) ? 0.85 : 0.3)
-          .attr('marker-end', l => (l.source.id === d.id || l.target.id === d.id) ? `url(#arrow-${d.group})` : null);
+        linkSel
+          .attr('stroke',       l => (l.source.id===d.id||l.target.id===d.id) ? col : linkBase)
+          .attr('stroke-opacity', l => (l.source.id===d.id||l.target.id===d.id) ? 0.9 : 0.25)
+          .attr('marker-end', l => (l.source.id===d.id||l.target.id===d.id) ? `url(#fg-arrow-${d.group})` : null);
 
-        edgeLabel.attr('opacity', l => (l.source.id === d.id || l.target.id === d.id) ? 1 : 0);
+        edgeLabelSel.attr('opacity', l => (l.source.id===d.id||l.target.id===d.id) ? 1 : 0);
 
-        // Tooltip
         if (tooltip) {
-          const tag = { agency: 'Agency', office: 'Office', vendor: 'Vendor' }[d.group];
-          const connections = linkArr.filter(l => l.source.id === d.id || l.target.id === d.id);
-          const partners = [...new Set(connections.map(l => l.source.id === d.id ? l.target.id : l.source.id))];
+          const tag   = { agency:'Agency', office:'Office', vendor:'Vendor' }[d.group];
+          const conns = links.filter(l => l.source.id===d.id||l.target.id===d.id);
+          const peers = [...new Set(conns.map(l => l.source.id===d.id ? l.target.id : l.source.id))];
           tooltip.innerHTML = `
-            <div style="font-weight:800;font-size:var(--text-sm);margin-bottom:4px;letter-spacing:-0.01em;">${Html.escapeHtml(d.id)}</div>
-            <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-tertiary);margin-bottom:6px;">${tag}</div>
-            <div style="font-weight:700;font-size:var(--text-base);color:${groupColor[d.group]};margin-bottom:4px;">${Utils.money(d.spend)}</div>
-            <div style="font-size:9px;color:var(--text-tertiary);">${partners.length} connection${partners.length !== 1 ? 's' : ''}</div>`;
+            <div style="font-weight:800;font-size:var(--text-sm);margin-bottom:3px;">${Html.escapeHtml(d.id)}</div>
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-tertiary);margin-bottom:5px;">${tag}</div>
+            <div style="font-size:var(--text-base);font-weight:700;color:${col};margin-bottom:3px;">${Utils.money(d.spend)}</div>
+            <div style="font-size:9px;color:var(--text-tertiary);">${peers.length} connection${peers.length!==1?'s':''}</div>`;
           tooltip.style.opacity = '1';
           tooltip.style.left = (event.clientX + 16) + 'px';
           tooltip.style.top  = (event.clientY - 12) + 'px';
         }
       })
       .on('mouseleave', function() {
-        node.attr('opacity', 1);
-        link
-          .attr('stroke', linkBase)
-          .attr('stroke-opacity', 1)
-          .attr('marker-end', null);
-        edgeLabel.attr('opacity', 0);
+        nodeSel.attr('opacity', 1);
+        linkSel.attr('stroke', linkBase).attr('stroke-opacity', 1).attr('marker-end', null);
+        edgeLabelSel.attr('opacity', 0);
         if (tooltip) tooltip.style.opacity = '0';
       })
       .on('click', (e, d) => {
@@ -8496,80 +8475,71 @@ drillDown(name, preventRender = false) {
       });
 
     // ── Legend ────────────────────────────────────────────────────────────────
-    const legendData = [
-      { key: 'agency', label: 'Agency',  shape: 'rect'    },
-      { key: 'office', label: 'Office',  shape: 'diamond' },
-      { key: 'vendor', label: 'Vendor',  shape: 'circle'  },
-    ];
+    const legendItems = isDrill
+      ? [['office','Office','diamond'],['vendor','Vendor','circle']]
+      : [['agency','Agency','rect'],  ['vendor','Vendor','circle']];
+
     const lg = svg.append('g').attr('transform', 'translate(12,12)');
-    legendData.forEach(({ key, label, shape }, i) => {
-      const row = lg.append('g').attr('transform', `translate(0,${i * 20})`);
+    legendItems.forEach(([key, label, shape], i) => {
+      const row = lg.append('g').attr('transform', `translate(0,${i*20})`);
       const col = groupColor[key];
       if (shape === 'rect') {
-        row.append('rect').attr('x', 0).attr('y', 0).attr('width', 10).attr('height', 10)
-          .attr('rx', 2).attr('fill', col).attr('fill-opacity', 0.85);
+        row.append('rect').attr('x',0).attr('y',0).attr('width',10).attr('height',10)
+          .attr('rx',2).attr('fill',col).attr('fill-opacity',0.85);
       } else if (shape === 'diamond') {
-        row.append('polygon').attr('points', '5,0 10,5 5,10 0,5')
-          .attr('fill', col).attr('fill-opacity', 0.85);
+        row.append('polygon').attr('points','5,0 10,5 5,10 0,5')
+          .attr('fill',col).attr('fill-opacity',0.85);
       } else {
-        row.append('circle').attr('cx', 5).attr('cy', 5).attr('r', 5)
-          .attr('fill', col).attr('fill-opacity', 0.85);
+        row.append('circle').attr('cx',5).attr('cy',5).attr('r',5)
+          .attr('fill',col).attr('fill-opacity',0.85);
       }
-      row.append('text').attr('x', 14).attr('y', 8.5)
-        .style('font-size', '10px').style('fill', textColor).style('font-weight', '500')
+      row.append('text').attr('x',14).attr('y',8.5)
+        .style('font-size','10px').style('fill',textColor).style('font-weight','500')
         .text(label);
     });
 
-    // ── Pulse animation on dominant node ─────────────────────────────────────
-    const pulseRing = svg.selectAll('.pulse-ring');
-    const pulsate = () => {
-      pulseRing
-        .attr('stroke-opacity', 0.5)
-        .attr('r', function() { return +d3.select(this.parentNode).datum().r_base + 10; })
-        .transition().duration(1400).ease(d3.easeSinOut)
+    // ── Pulse ─────────────────────────────────────────────────────────────────
+    dominantNode._r = rScale(dominantNode.spend);
+    const pulse = () => {
+      svg.selectAll('.fg-pulse')
+        .transition().duration(1600).ease(d3.easeSinInOut)
+        .attr('stroke-opacity', 0.45)
+        .attr('r', dominantNode._r + 14)
+        .transition().duration(1600).ease(d3.easeSinInOut)
         .attr('stroke-opacity', 0)
-        .attr('r', function() { return +d3.select(this.parentNode).datum().r_base + 24; })
-        .on('end', pulsate);
+        .attr('r', dominantNode._r + 28)
+        .on('end', pulse);
     };
 
     // ── Tick ──────────────────────────────────────────────────────────────────
-    // Bezier control point: offset perpendicular to the link midpoint for slight arc
-    const bezierPath = d => {
-      const dx = d.target.x - d.source.x;
-      const dy = d.target.y - d.source.y;
-      const len = Math.sqrt(dx * dx + dy * dy) || 1;
-      // Offset the control point slightly perpendicular so links between same pair are distinct
-      const curve = Math.min(len * 0.18, 40);
-      const mx = (d.source.x + d.target.x) / 2 - (dy / len) * curve;
-      const my = (d.source.y + d.target.y) / 2 + (dx / len) * curve;
-      // Shorten the endpoint so the arrowhead sits just outside the node shape
-      const tr = rScale(d.target.spend) + 10;
+    const arcPath = d => {
+      const sx = d.source.x, sy = d.source.y;
+      const tx = d.target.x, ty = d.target.y;
+      const dx = tx - sx, dy = ty - sy;
+      const len = Math.sqrt(dx*dx + dy*dy) || 1;
+      // Gentle arc
+      const bend  = Math.min(len * 0.15, 35);
+      const mx    = (sx+tx)/2 - (dy/len)*bend;
+      const my    = (sy+ty)/2 + (dx/len)*bend;
+      // Pull endpoint back so arrow sits outside node shape
+      const tr    = rScale(d.target.spend) + 8;
       const ratio = Math.max(0, (len - tr) / len);
-      const tx = d.source.x + dx * ratio;
-      const ty = d.source.y + dy * ratio;
-      return `M${d.source.x},${d.source.y} Q${mx},${my} ${tx},${ty}`;
+      return `M${sx},${sy} Q${mx},${my} ${sx+dx*ratio},${sy+dy*ratio}`;
     };
 
-    let tickCount = 0;
+    let ticks = 0;
     sim.on('tick', () => {
-      tickCount++;
-      // Fade links in after first 20 ticks (entrance animation — nodes settle first)
-      if (tickCount === 20) {
-        link.transition().duration(400).attr('opacity', 1);
+      ticks++;
+      if (ticks === 25) {
+        linkSel.transition().duration(500).attr('opacity', 1);
+        setTimeout(pulse, 800);
       }
-      link.attr('d', bezierPath);
-      edgeLabel
+      linkSel.attr('d', arcPath);
+      edgeLabelSel
         .attr('x', d => (d.source.x + d.target.x) / 2)
-        .attr('y', d => (d.source.y + d.target.y) / 2 - 6);
-      node.attr('transform', d => `translate(${d.x},${d.y})`);
+        .attr('y', d => (d.source.y + d.target.y) / 2 - 7);
+      nodeSel.attr('transform', d => `translate(${d.x},${d.y})`);
     });
-
-    // Store r_base on dominant node datum for pulse animation
-    if (dominantNode) {
-      dominantNode.r_base = rScale(dominantNode.spend);
-      // Start pulse after simulation has mostly settled
-      setTimeout(pulsate, 1200);
-    }
   },
 
   renderSankey() {
