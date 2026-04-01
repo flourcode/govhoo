@@ -194,8 +194,9 @@ body {
 /* Custom Text Selection */
 ::selection { background: rgba(44, 43, 40, 0.15); color: inherit; }
 ::-moz-selection { background: rgba(44, 43, 40, 0.15); color: inherit; }
-.dark-mode ::selection { background: rgba(255, 255, 255, 0.25); color: inherit; }
-.dark-mode ::-moz-selection { background: rgba(255, 255, 255, 0.25); color: inherit; }
+/* Dark mode selection — needs solid contrast against near-black input background */
+.dark-mode ::selection { background: rgba(124, 168, 196, 0.55); color: #F0EFEC; }
+.dark-mode ::-moz-selection { background: rgba(124, 168, 196, 0.55); color: #F0EFEC; }
 
 /* Emphasis = bold, not italic */
 em, i:not(.icon) { font-style: normal; font-weight: 600; }
@@ -527,7 +528,6 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: searchf
   border-top: none;
 }
 
-/* #marketAttribution is hidden via the .hidden class in HTML */
 #marketAttributionText {
   margin-top: 4px;
   padding-top: 4px;
@@ -848,8 +848,10 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: searchf
   border: none;
 }
 
-.dark-mode .main-input:focus, .dark-mode .mini-search:focus { background: rgba(255,255,255,0.04); }
+.dark-mode .main-input:focus, .dark-mode .mini-search:focus { background: rgba(255,255,255,0.04); caret-color: rgba(124,168,196,0.9); }
 .dark-mode .main-input::placeholder, .dark-mode .mini-search::placeholder { color: rgba(255,255,255, 0.3); }
+.dark-mode .main-input::selection, .dark-mode .mini-search::selection { background: rgba(124,168,196,0.65); color: #F0EFEC; }
+.dark-mode .main-input::-moz-selection, .dark-mode .mini-search::-moz-selection { background: rgba(124,168,196,0.65); color: #F0EFEC; }
 .dark-mode .btn-primary, .dark-mode #searchBtn { background: var(--text-primary); color: var(--bg-app); border: none; }
 .dark-mode .icon-btn { color: var(--text-secondary); border: none; background: rgba(255,255,255,0.06); }
 .dark-mode .logo-btn { background: rgba(255,255,255,0.06); color: var(--text-primary); }
@@ -1431,6 +1433,7 @@ details[open] > summary svg { transform: rotate(180deg); }
                     <div class="stat-item"><span id="bubble-stat-agencies" class="stat-value">-</span><span class="stat-label">Agencies</span></div>
                     <div class="stat-item"><span id="bubble-stat-count" class="stat-value">-</span><span class="stat-label">Contracts</span></div>
                     <div class="stat-item"><span id="bubble-stat-vendors" class="stat-value">-</span><span class="stat-label">Primes</span></div>
+
                   </div>
                 </div>
 
@@ -1482,8 +1485,8 @@ details[open] > summary svg { transform: rotate(180deg); }
                 <div class="data-panel-body" id="targetAccountsBody"></div>
               </div>
 
-              <div id="marketAttribution" class="hidden"></div>
             </div>
+
 
             <div id="marketAttributionFooter" style="grid-column: 1 / -1;">
               <div id="marketAttributionText">
@@ -1555,7 +1558,13 @@ details[open] > summary svg { transform: rotate(180deg); }
 
         <div id="sankeyPanel">
           <div id="sankeyHeader">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
             <div id="sankeyBrandLine">Prime Money Flow</div>
+            <div class="bubble-toggle-row toggle-row-flush" style="margin:0;">
+              <button class="bubble-toggle-btn active" id="sankeyViewFlow" onclick="App.setSankeyView('sankey')" title="Flow diagram">Flow</button>
+              <button class="bubble-toggle-btn" id="sankeyViewGraph" onclick="App.setSankeyView('graph')" title="Network graph">Network</button>
+            </div>
+          </div>
           </div>
 
           <div>
@@ -1574,8 +1583,13 @@ details[open] > summary svg { transform: rotate(180deg); }
             <div id="sankeyBreadcrumb" class="breadcrumb-row"></div>
           </div>
 
-          <div class="chart-wrapper">
+          <div class="chart-wrapper" id="sankeyFlowWrapper">
             <div id="chartContainer" class="chart-container"></div>
+          </div>
+          <div id="forceGraphWrapper" class="hidden" style="width:100%;position:relative;">
+            <div id="forceGraphContainer" style="width:100%;overflow:hidden;background:transparent;"></div>
+            <div id="forceGraphTooltip" style="position:fixed;pointer-events:none;background:var(--bg-app);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;font-size:var(--text-xs);color:var(--text-primary);box-shadow:var(--shadow-md);opacity:0;transition:opacity 0.12s ease;z-index:999;max-width:220px;"></div>
+            <div style="font-size:var(--text-xs);color:var(--text-quaternary);text-align:center;padding:6px 0 2px;">Click an agency to explore · Click an office to drill in</div>
           </div>
         </div>
 
@@ -4981,6 +4995,68 @@ normalizeVendorName(vendorName) {
        }
     }
 
+    // 5. Prefix consolidation — collapses name variants that share the same root.
+    // USASpending files the same company under many suffix variants:
+    //   "BOOZ ALLEN HAMILTON INC" vs "BOOZ ALLEN HAMILTON HOLDING CORP" etc.
+    // Suffix stripping in step 3 doesn't catch everything, so we do a starts-with
+    // check against known canonical prefixes and snap them to the clean name.
+    // Order matters: longer prefixes must come before shorter ones.
+    const prefixMap = [
+      // Systems integrators — highest frequency of variant filings
+      ['BOOZ ALLEN HAMILTON', 'BOOZ ALLEN HAMILTON'],
+      ['SCIENCE APPLICATIONS INTERNATIONAL', 'SAIC'],
+      ['LEIDOS', 'LEIDOS'],
+      ['GENERAL DYNAMICS INFORMATION TECHNOLOGY', 'GENERAL DYNAMICS IT'],
+      ['GENERAL DYNAMICS', 'GENERAL DYNAMICS'],
+      ['NORTHROP GRUMMAN', 'NORTHROP GRUMMAN'],
+      ['LOCKHEED MARTIN', 'LOCKHEED MARTIN'],
+      ['RAYTHEON', 'RAYTHEON'],
+      ['BAE SYSTEMS', 'BAE SYSTEMS'],
+      ['ACCENTURE FEDERAL SERVICES', 'ACCENTURE FEDERAL SERVICES'],
+      ['ACCENTURE', 'ACCENTURE'],
+      ['DELOITTE CONSULTING', 'DELOITTE CONSULTING'],
+      ['DELOITTE', 'DELOITTE'],
+      ['PERATON', 'PERATON'],
+      ['PERSPECTA', 'PERSPECTA'],
+      ['CACI', 'CACI'],
+      ['SAIC', 'SAIC'],
+      ['MANTECH', 'MANTECH'],
+      ['UNISON', 'UNISON'],
+      ['AMENTUM', 'AMENTUM'],
+      ['VECTRUS', 'VECTRUS'],
+      ['PARSONS', 'PARSONS'],
+      ['JACOBS', 'JACOBS'],
+      ['ICF', 'ICF'],
+      ['MITRE', 'MITRE'],
+      ['NOBLIS', 'NOBLIS'],
+      ['ENGILITY', 'ENGILITY'],
+      ['SERCO', 'SERCO'],
+      ['TETRA TECH', 'TETRA TECH'],
+      ['CARAHSOFT', 'CARAHSOFT'],
+      ['GOVPLACE', 'GOVPLACE'],
+      ['WORLD WIDE TECHNOLOGY', 'WORLD WIDE TECHNOLOGY'],
+      ['INTERNATIONAL BUSINESS MACHINES', 'IBM'],
+      ['IBM', 'IBM'],
+      ['MICROSOFT', 'MICROSOFT'],
+      ['AMAZON WEB SERVICES', 'AMAZON WEB SERVICES'],
+      ['AMAZON', 'AMAZON'],
+      ['GOOGLE', 'GOOGLE'],
+      ['ORACLE', 'ORACLE'],
+      ['SAP', 'SAP'],
+      ['SPLUNK', 'SPLUNK'],
+      ['PALO ALTO NETWORKS', 'PALO ALTO NETWORKS'],
+      ['CROWDSTRIKE', 'CROWDSTRIKE'],
+      // PALANTIR intentionally excluded — Palantir USG and Palantir Technologies
+      // are separate legal entities with separate contract vehicles. Keep them distinct.
+    ];
+
+    for (const [prefix, canonical] of prefixMap) {
+      if (name === prefix || name.startsWith(prefix + ' ') || name.startsWith(prefix + ',')) {
+        name = canonical;
+        break;
+      }
+    }
+
     return name;
   },
 missionGapRisk(award) {
@@ -5524,7 +5600,7 @@ AWARD_FIELDS: [
     'Awarding Office', 'Award Amount', 'Description', 'generated_internal_id',
     'Start Date', 'End Date', 'NAICS', 'PSC',
     'Contract Award Type', 'Type of Set Aside',
-    'parent_award_id', 'pop_city_name', 'pop_state_code'
+    'parent_award_id', 'pop_city_name', 'pop_state_code', 'recipient_id'
   ],
 
   // 1. Add the controllers
@@ -5730,6 +5806,10 @@ const startYear = currentYear - 4;
     return (await this._post('/search/spending_by_category/awarding_subagency', { category: 'awarding_subagency', filters, limit: 3 })).results || [];
   },
 
+  // Look up a vendor's total federal footprint.
+  // recipient_id is now fetched with every search via AWARD_FIELDS —
+  // it contains the full UUID-level ID (e.g. b97d19b0-...-P) that maps
+  // directly to the USASpending recipient profile URL.
   async getSubawards(keywords) {
     const timePeriod = Utils.getTrailing12Mo();
     const filters = Utils.buildFilters(keywords, timePeriod);
@@ -5742,7 +5822,14 @@ const startYear = currentYear - 4;
         sort: 'Sub-Award Amount',
         order: 'desc'
       });
-      return res.results || [];
+      const results = res.results || [];
+      // Normalize vendor names so subaward Sankey consolidates variants
+      // the same way the prime Sankey does
+      results.forEach(s => {
+        if (s['Prime Recipient Name']) s['Prime Recipient Name'] = Utils.normalizeVendorName(s['Prime Recipient Name']);
+        if (s['Sub-Awardee Name']) s['Sub-Awardee Name'] = Utils.normalizeVendorName(s['Sub-Awardee Name']);
+      });
+      return results;
     } catch (e) {
       console.warn("Subaward search failed:", e);
       return [];
@@ -6559,9 +6646,8 @@ scrollToPanel(id) {
     }
   },
   // --- Endpoints ---
-  // PROXY_ENDPOINT: existing API Gateway — handles all USASpending data calls.
-  // AI_ENDPOINT: Lambda Function URL — handles all Arti AI calls with streaming.
-  //              Paste your Function URL here after creating it in the Lambda console.
+  // Both AI and USASpending proxy calls go through the Function URL.
+  // The single Lambda handler routes them based on request_type.
   PROXY_ENDPOINT: 'https://76unm1rlj0.execute-api.us-east-1.amazonaws.com/default/grumpy2',
   AI_ENDPOINT: 'https://x6cdyrfcy43r5rpw6i6aiwsegi0effvy.lambda-url.us-east-1.on.aws/',
 
@@ -6685,7 +6771,7 @@ scrollToPanel(id) {
       const res = await fetch(App.AI_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ request_type: 'govhoo_action_plan', market_data: summaryPayload, objective: userContext || 'Federal Sales', conference_context: conferenceContext })
+        body: JSON.stringify({ request_type: 'govhoo_action_plan', market_data: summaryPayload, objective: userContext || 'a federal salesperson', conference_context: conferenceContext })
       });
 
       if (!res.ok) {
@@ -6910,6 +6996,8 @@ scrollToPanel(id) {
     const overlay = DOM.get('artiModalOverlay');
     if (overlay) overlay.classList.remove('active');
   },
+
+
 async runOpportunityStrategy(awardId) {
     const target = App._pipelineTargets.find(t => t.awardId === awardId);
     if (!target || !target.sourceAwards || target.sourceAwards.length === 0) {
@@ -7025,6 +7113,8 @@ async runOpportunityStrategy(awardId) {
       // Null subawards explicitly so the previous search's array is released
       // before the new one arrives. loadSubcontractingData repopulates it.
       App.forecastData = { loaded: false, subawards: null };
+      App._graphFocusedAgency = null;
+      App.setSankeyView('sankey');
       App._pipelineTargets = null;
       DOM.hide('pipelineTargetsSection');
       const kb = DOM.get('kanbanBoardContainer');
@@ -7303,6 +7393,10 @@ async loadBackgroundData(query) {
       App.renderBubbleChart();
       App.renderStrategyTools();
       App.renderMarketSparkline();
+      if (App._sankeyView === 'graph') {
+        App.renderForceGraph();
+        return;  // skip Sankey render when graph view is active
+      }
     });
 
     App.generateEditorialHeadlines(data, totalObligations);
@@ -7912,6 +8006,7 @@ copySectionLink(sectionHash, btnElement) {
     App.activeFeedSource = 'prime';
     App.activeVehicleFilter = null;
     App.bubbleMode = 'auto';
+    App._graphFocusedAgency = null;
     if (typeof App._pendingDrillScroll !== 'string') App._pendingDrillScroll = 'bubbleChartPanel';
     Utils.syncUrlState();
     App.updateSearchDashboard(); 
@@ -7996,7 +8091,7 @@ copySectionLink(sectionHash, btnElement) {
     App.searchData.filter = name;
     App.activeFeedSource = 'prime';
     if (App.bubbleMode !== 'vendors' && App.bubbleMode !== 'agencies') App.bubbleMode = 'auto';
-    
+
     if (!preventRender) {
       Utils.syncUrlState();
       App.updateSearchDashboard();
@@ -8057,6 +8152,7 @@ drillDown(name, preventRender = false) {
       App.searchData.filter = `Prime: ${name}`;
       App.activeFeedSource = 'prime'; 
       App.searchData.active = data.filter(d => d['Recipient Name'] === name);
+
       
       if (!preventRender) { 
         Utils.syncUrlState(); 
@@ -8104,6 +8200,276 @@ drillDown(name, preventRender = false) {
   },
 
   // --- Sankey ---
+  _sankeyView: 'sankey',
+
+  setSankeyView(view) {
+    App._sankeyView = view;
+    const flowBtn = DOM.get('sankeyViewFlow');
+    const graphBtn = DOM.get('sankeyViewGraph');
+    const flowWrap = DOM.get('sankeyFlowWrapper');
+    const graphWrap = DOM.get('forceGraphWrapper');
+    if (view === 'graph') {
+      if (flowBtn) flowBtn.classList.remove('active');
+      if (graphBtn) graphBtn.classList.add('active');
+      if (flowWrap) flowWrap.classList.add('hidden');
+      if (graphWrap) graphWrap.classList.remove('hidden');
+      App.renderForceGraph();
+    } else {
+      if (flowBtn) flowBtn.classList.add('active');
+      if (graphBtn) graphBtn.classList.remove('active');
+      if (flowWrap) flowWrap.classList.remove('hidden');
+      if (graphWrap) graphWrap.classList.add('hidden');
+    }
+  },
+
+  renderForceGraph() {
+    LibLoader.loadD3().then(() => App._renderForceGraphInner());
+  },
+
+  _renderForceGraphInner() {
+    const container = DOM.get('forceGraphContainer');
+    const tooltip   = DOM.get('forceGraphTooltip');
+    if (!container) return;
+
+    const data = App.searchData.active;
+    if (!data || data.length === 0) {
+      container.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-tertiary);">No data.</div>';
+      return;
+    }
+
+    // ── Palette ───────────────────────────────────────────────────────────────
+    const isDark     = App.darkMode;
+    const agencyHues = ['#7CA8C4','#E8A468','#D4A0B0','#80C0B0','#9878A0',
+                        '#C75268','#A07860','#8888B8','#B8A878','#98B8C8','#D8CFC2','#638E6E'];
+    const vendorCol  = isDark ? 'rgba(99,142,110,0.85)' : 'rgba(56,100,65,0.85)';
+    const textCol    = isDark ? 'rgba(240,239,236,0.85)' : 'rgba(30,30,28,0.85)';
+    const lineRest   = isDark ? 'rgba(255,255,255,0.13)' : 'rgba(0,0,0,0.11)';
+
+    // ── Build nodes + links ───────────────────────────────────────────────────
+    const agencyMap = {}, vendorMap = {}, linkMap = {};
+    const agencyList = [], vendorList = [];
+
+    data.forEach(d => {
+      const amt    = parseFloat(d['Award Amount']) || 0;
+      if (amt <= 0) return;
+      const agency = d['Awarding Agency'] || 'Unknown';
+      const vendor = d['Recipient Name']  || 'Unknown';
+      if (!agencyMap[agency]) {
+        agencyMap[agency] = { id: agency, group: 'agency', spend: 0, colorIdx: agencyList.length };
+        agencyList.push(agencyMap[agency]);
+      }
+      agencyMap[agency].spend += amt;
+      if (!vendorMap[vendor]) {
+        vendorMap[vendor] = { id: vendor, group: 'vendor', spend: 0 };
+        vendorList.push(vendorMap[vendor]);
+      }
+      vendorMap[vendor].spend += amt;
+      const k = agency + '|||' + vendor;
+      if (!linkMap[k]) linkMap[k] = { source: agency, target: vendor, value: 0 };
+      linkMap[k].value += amt;
+    });
+
+    // Top vendors by spend covering 90%, min 6, max 35
+    const sortedV = vendorList.sort((a, b) => b.spend - a.spend);
+    const totalV  = sortedV.reduce((s, v) => s + v.spend, 0);
+    let cum = 0;
+    const keepV = new Set();
+    for (const v of sortedV) {
+      keepV.add(v.id);
+      cum += v.spend;
+      if (cum / totalV >= 0.90 && keepV.size >= 6) break;
+      if (keepV.size >= 35) break;
+    }
+    const keepA  = new Set(agencyList.slice(0, 10).map(a => a.id));
+    const nodes  = [
+      ...agencyList.filter(a => keepA.has(a.id)),
+      ...vendorList.filter(v => keepV.has(v.id))
+    ];
+    const links  = Object.values(linkMap).filter(l => keepA.has(l.source) && keepV.has(l.target));
+    if (!nodes.length) return;
+
+    // ── Canvas — use actual rendered dimensions ────────────────────────────────
+    // Read offsetWidth AFTER the container is visible in the DOM.
+    // Fall back to window.innerWidth on mobile where offsetWidth may be 0.
+    const W = Math.max(container.offsetWidth || window.innerWidth, 300);
+    const H = Math.max(Math.round(W * 0.72), 420);
+    container.style.height = H + 'px';
+
+    d3.select(container).selectAll('svg').remove();
+    const svg = d3.select(container).append('svg')
+      .attr('width', '100%').attr('height', H)
+      .attr('viewBox', `0 0 ${W} ${H}`)
+      .style('display', 'block').style('background', 'transparent');
+
+    const g = svg.append('g');
+    svg.call(d3.zoom().scaleExtent([0.3, 4]).on('zoom', e => g.attr('transform', e.transform)));
+
+    // ── Scales ────────────────────────────────────────────────────────────────
+    const maxA  = Math.max(...agencyList.map(a => a.spend), 1);
+    const maxV  = Math.max(...vendorList.map(v => v.spend), 1);
+    const maxL  = Math.max(...links.map(l => l.value), 1);
+    const rA    = a => 14 + Math.sqrt(a.spend / maxA) * 22;
+    const rV    = v => 5  + Math.sqrt(v.spend / maxV) * 10;
+    const nodeR = n => n.group === 'agency' ? rA(n) : rV(n);
+    const lw    = v => 0.8 + (v / maxL) * 5;
+    const nodeColor = n => n.group === 'agency'
+      ? agencyHues[n.colorIdx % agencyHues.length]
+      : vendorCol;
+
+    // ── Simulation — all nodes start at canvas center ─────────────────────────
+    // Starting at center guarantees nodes expand inward, never scatter off-screen.
+    const PAD = 44;
+    nodes.forEach(n => {
+      n.x = W / 2 + (Math.random() - 0.5) * 20;
+      n.y = H / 2 + (Math.random() - 0.5) * 20;
+    });
+
+    const sim = d3.forceSimulation(nodes)
+      .force('link', d3.forceLink(links).id(d => d.id)
+        .distance(d => {
+          const tn = typeof d.target === 'object' ? d.target : nodes.find(n => n.id === d.target);
+          return (tn ? nodeR(tn) : 8) * 2.8 + lw(d.value) * 1.5;
+        })
+        .strength(0.55))
+      .force('charge', d3.forceManyBody()
+        .strength(d => d.group === 'agency' ? -500 - nodeR(d) * 7 : -90 - nodeR(d) * 3))
+      .force('center', d3.forceCenter(W / 2, H / 2).strength(0.06))
+      .force('collide', d3.forceCollide(d => nodeR(d) + 12).strength(0.85))
+      .force('bound', () => {
+        nodes.forEach(n => {
+          const r = nodeR(n);
+          if (n.x < PAD + r)       { n.x = PAD + r;       n.vx =  Math.abs(n.vx || 0) * 0.4; }
+          if (n.x > W - PAD - r)   { n.x = W - PAD - r;   n.vx = -Math.abs(n.vx || 0) * 0.4; }
+          if (n.y < PAD + r)       { n.y = PAD + r;        n.vy =  Math.abs(n.vy || 0) * 0.4; }
+          if (n.y > H - PAD - r)   { n.y = H - PAD - r;   n.vy = -Math.abs(n.vy || 0) * 0.4; }
+        });
+      })
+      .alphaDecay(0.022)
+      .velocityDecay(0.38)
+      .stop();   // stop before pre-ticks so D3 doesn't fight us
+
+    // 300 synchronous ticks — fully settled before any rendering
+    for (let i = 0; i < 300; i++) sim.tick();
+
+    // ── Draw links ────────────────────────────────────────────────────────────
+    const linkLayer = g.append('g');
+    const linkSel   = linkLayer.selectAll('line').data(links).join('line')
+      .attr('x1', d => d.source.x).attr('y1', d => d.source.y)
+      .attr('x2', d => d.target.x).attr('y2', d => d.target.y)
+      .attr('stroke', lineRest)
+      .attr('stroke-width', d => lw(d.value))
+      .attr('stroke-opacity', 0.9)
+      .attr('stroke-linecap', 'round');
+
+    // ── Draw nodes ────────────────────────────────────────────────────────────
+    const nodeLayer = g.append('g');
+    const nodeSel   = nodeLayer.selectAll('circle').data(nodes).join('circle')
+      .attr('cx', d => d.x).attr('cy', d => d.y)
+      .attr('r',  d => nodeR(d))
+      .attr('fill',         d => nodeColor(d))
+      .attr('fill-opacity', d => d.group === 'agency' ? 0.90 : 0.75)
+      .attr('stroke',       d => nodeColor(d))
+      .attr('stroke-width', d => d.group === 'agency' ? 2.5 : 1.5)
+      .attr('stroke-opacity', 0.45)
+      .style('cursor', 'pointer')
+      .call(d3.drag()
+        .on('start', (e, d) => { if (!e.active) sim.alphaTarget(0.15).restart(); d.fx = d.x; d.fy = d.y; })
+        .on('drag',  (e, d) => { d.fx = e.x; d.fy = e.y; })
+        .on('end',   (e, d) => { if (!e.active) sim.alphaTarget(0); d.fx = null; d.fy = null; }));
+
+    // ── Labels ────────────────────────────────────────────────────────────────
+    const labelLayer = g.append('g').attr('pointer-events', 'none');
+    const labelSel   = labelLayer.selectAll('text').data(nodes).join('text')
+      .attr('x', d => d.x)
+      .attr('y', d => d.y + nodeR(d) + 12)
+      .attr('text-anchor', 'middle')
+      .style('font-size', d => d.group === 'agency' ? '11px' : '9px')
+      .style('font-weight', d => d.group === 'agency' ? '700' : '500')
+      .style('fill', d => d.group === 'agency'
+        ? agencyHues[d.colorIdx % agencyHues.length]
+        : (isDark ? 'rgba(200,230,201,0.78)' : 'rgba(30,80,40,0.78)'))
+      .style('opacity', d => d.group === 'agency' ? 0.90 : 0.68)
+      .text(d => Utils.trunc(d.id.replace(/^Department of (the )?/i,''), d.group === 'agency' ? 18 : 15));
+
+    // Spend sublabel for agencies
+    const spendSel = labelLayer.selectAll('text.spend').data(nodes.filter(n => n.group === 'agency'))
+      .join('text').attr('class', 'spend')
+      .attr('x', d => d.x)
+      .attr('y', d => d.y + nodeR(d) + 23)
+      .attr('text-anchor', 'middle')
+      .style('font-size', '9px').style('font-weight', '500')
+      .style('fill', d => agencyHues[d.colorIdx % agencyHues.length])
+      .style('opacity', 0.50)
+      .text(d => Utils.money(d.spend));
+
+    // ── Tooltip + hover ───────────────────────────────────────────────────────
+    let _tipTimer = null;
+    const hideTip = () => {
+      clearTimeout(_tipTimer);
+      _tipTimer = setTimeout(() => { if (tooltip) tooltip.style.opacity = '0'; }, 180);
+    };
+    const neighbors = d => new Set(
+      links.filter(l => l.source.id === d.id || l.target.id === d.id)
+           .flatMap(l => [l.source.id, l.target.id])
+    );
+
+    nodeSel
+      .on('mousemove', function(event, d) {
+        clearTimeout(_tipTimer);
+        const nb  = neighbors(d);
+        const col = nodeColor(d);
+
+        nodeSel
+          .attr('fill-opacity',   n => nb.has(n.id) ? (n.group==='agency'?0.95:0.88) : 0.08)
+          .attr('stroke-opacity', n => nb.has(n.id) ? 0.65 : 0.04);
+        linkSel
+          .attr('stroke', l => (l.source.id===d.id||l.target.id===d.id) ? col : lineRest)
+          .attr('stroke-opacity', l => (l.source.id===d.id||l.target.id===d.id) ? 0.9 : 0.04);
+        labelSel.attr('opacity', n => nb.has(n.id) ? (n.group==='agency'?0.95:0.78) : 0.06);
+        spendSel.attr('opacity', n => nb.has(n.id) ? 0.6 : 0.04);
+
+        if (tooltip) {
+          const conns    = links.filter(l => l.source.id===d.id||l.target.id===d.id);
+          const partners = [...new Set(conns.map(l => l.source.id===d.id?l.target.id:l.source.id))];
+          tooltip.innerHTML = `
+            <div style="font-weight:800;font-size:var(--text-sm);margin-bottom:3px;">${Html.escapeHtml(d.id.replace(/^Department of (the )?/i,''))}</div>
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-tertiary);margin-bottom:5px;">${d.group==='agency'?'Agency':'Vendor'}</div>
+            <div style="font-weight:700;color:${col};margin-bottom:3px;">${Utils.money(d.spend)}</div>
+            <div style="font-size:9px;color:var(--text-tertiary);">${partners.length} connection${partners.length!==1?'s':''}</div>`;
+          tooltip.style.opacity = '1';
+          tooltip.style.left = (event.clientX+14)+'px';
+          tooltip.style.top  = (event.clientY-10)+'px';
+        }
+      })
+      .on('mouseleave', () => {
+        nodeSel.attr('fill-opacity', d=>d.group==='agency'?0.90:0.75).attr('stroke-opacity',0.45);
+        linkSel.attr('stroke',lineRest).attr('stroke-opacity',0.9).attr('stroke-width',d=>lw(d.value));
+        labelSel.attr('opacity', d=>d.group==='agency'?0.90:0.68);
+        spendSel.attr('opacity', 0.50);
+        hideTip();
+      })
+      .on('click', (e, d) => {
+        e.stopPropagation();
+        App.drillDown(d.id, true);
+        App.setSankeyView('sankey');
+      });
+
+    // ── Tick — live updates during drag ──────────────────────────────────────
+    sim.on('tick', () => {
+      linkSel.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y)
+             .attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
+      nodeSel.attr('cx',d=>d.x).attr('cy',d=>d.y);
+      labelSel.attr('x',d=>d.x).attr('y',d=>d.y+nodeR(d)+12);
+      spendSel.attr('x',d=>d.x).attr('y',d=>d.y+nodeR(d)+23);
+    });
+
+    // Restart simulation gently for drag interactivity
+    sim.alphaTarget(0).alpha(0.05).restart();
+
+    // Fade in
+    g.attr('opacity',0).transition().duration(380).attr('opacity',1);
+  },
+
   renderSankey() {
     const container = DOM.get('chartContainer');
     if (!container) return;
@@ -8300,9 +8666,6 @@ _renderSankeyInner(container) {
     const map = {};
     data.forEach(row => {
       const rawPrimary = row[primaryField];
-      // Skip rows whose primary field is still an unresolved REVEAL code — they'd appear
-      // as "REVEAL(FA8222)" entries in the reach list, which is confusing and wrong.
-      if (rawPrimary && rawPrimary.startsWith('REVEAL(')) return;
       const primary = rawPrimary || (typeof primaryFallback === 'function' ? primaryFallback(row) : primaryFallback);
       const amt = parseFloat(row['Award Amount'] || row['Sub-Award Amount']) || 0;
       if (!map[primary]) map[primary] = { name: primary, spend: 0, count: 0, secSet: new Set(), tertMap: {} };
@@ -8362,15 +8725,17 @@ _renderSankeyInner(container) {
     }
     
     if (drill.level >= 1 && drill.currentAgency) {
-      this.renderReachList({ 
-        data, 
-        containerId: 'searchTopBuyersBody', 
+      // Render search-derived sub-agencies first
+      this.renderReachList({
+        data,
+        containerId: 'searchTopBuyersBody',
         panelId: 'agencyReachPanel',
-        primaryField: 'Awarding Sub Agency', 
+        primaryField: 'Awarding Sub Agency',
         primaryFallback: row => row['Awarding Agency'] || 'Unknown',
-        onClickTpl: "App.viewAgencyFootprint('{name}')", 
-        overflowLabel: 'more offices' 
+        onClickTpl: "App.viewAgencyFootprint('{name}')",
+        overflowLabel: 'more offices'
       });
+
     } else {
       this.renderReachList({ 
         data, 
@@ -8743,9 +9108,7 @@ renderTargetAccounts() {
       // --- END CITY/STATE POP BADGE ---
 
       const subAgency = c['Awarding Sub Agency'];
-      // Suppress unresolved REVEAL(...) codes — fall back to agency-only display rather than
-      // showing a raw office code like "DEPT OF DEFENSE → REVEAL(FA8222)" in a QBR.
-      const subAgencyResolved = subAgency && !subAgency.startsWith('REVEAL(') ? subAgency : null;
+      const subAgencyResolved = subAgency || null;
       const agencyDisplay = subAgencyResolved && subAgencyResolved !== c['Awarding Agency']
         ? `${Utils.trunc(c['Awarding Agency'], 20)} → ${Utils.trunc(subAgencyResolved, 20)}` : Utils.trunc(c['Awarding Agency'], 35);
       
@@ -9513,7 +9876,7 @@ if (this.bubbleChartType === 'treemap') {
       nodes.selectAll('text').attr('opacity', 0).transition().duration(400).delay((d, i) => 300 + i * 15).attr('opacity', 1);
     }
 
-    if (this._pendingDrillScroll) {
+    if (this._pendingDrillScroll && App._sankeyView !== 'graph') {
       const targetPanel = typeof this._pendingDrillScroll === 'string' ? this._pendingDrillScroll : 'bubbleChartPanel';
       this._pendingDrillScroll = false;
       requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -9521,6 +9884,8 @@ if (this.bubbleChartType === 'treemap') {
           App.scrollToPanel(targetPanel);
         }, 450);
       }));
+    } else {
+      this._pendingDrillScroll = false;
     }
   },
 
@@ -10018,6 +10383,7 @@ requestAnimationFrame(() => {
 
   if (this.searchData?.raw?.length > 0) this.renderSankey();
   this.renderBubbleChart();
+  if (this._sankeyView === 'graph') this.renderForceGraph();
   if (this.forecastData?.subawards) this.renderSubBubbleChart();
   
   // Double-rAF ensures layout is fully settled before measuring widths
@@ -10155,7 +10521,6 @@ selectAgencySuggestion(name, inputId, boxId) {
 // One-time cleanup: remove the govhoo_learned_offices cache that was used by
 // the now-removed resolveUnknownOffices feature. Safe to run on every load —
 // localStorage.removeItem is a no-op if the key doesn't exist.
-(function() { try { localStorage.removeItem('govhoo_learned_offices'); } catch(e) {} })();
 
 // Restore dark mode preference from localStorage on load
 (function() {
