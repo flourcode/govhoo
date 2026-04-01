@@ -1442,6 +1442,11 @@ details[open] > summary svg { transform: rotate(180deg); }
 
         <div id="recentSearchesContainer" class="hero-suggestions hero-suggestions-container"></div>
 
+        <div id="territorySuggestionsContainer" style="display:none;margin:8px auto 0;max-width:480px;text-align:center;">
+          <div style="font-size:10px;color:var(--text-quaternary);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:6px;">Suggested for <span id="territorySuggestionsLabel"></span></div>
+          <div id="territorySuggestionChips" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;"></div>
+        </div>
+
         <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin:8px 0 0;">
           <span style="font-size:10px;color:var(--text-quaternary);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">Territory</span>
           <button class="sector-pill active" data-sector="dod" onclick="App.setSectorFilter('dod')"><span class="sector-dot" style="background:#7CA8C4"></span>DoD</button>
@@ -6200,10 +6205,22 @@ const App = {
   if ('scrollRestoration' in history) {
       history.scrollRestoration = 'manual';
     }
+    // Restore territory selection from previous session
+    try {
+      const saved = localStorage.getItem('govhoo-territory');
+      if (saved) {
+        const keys = JSON.parse(saved);
+        if (Array.isArray(keys) && keys.length > 0 && keys.every(k => App.SECTORS[k])) {
+          App._activeSectors = new Set(keys);
+          App._updateSectorPillUI();
+        }
+      }
+    } catch(e) {}
     this.loadStarredPipeline();
     this.setupEventDelegation();
     this.setupInputListeners();
     this.renderRecentSearches();
+    this._updateTerritorySuggestions();
 
     window.addEventListener('popstate', (e) => {
       if (!e.state || e.state.view !== 'app') {
@@ -8260,7 +8277,15 @@ drillDown(name, preventRender = false) {
         'Defense Advanced Research Projects Agency','United States Special Operations Command',
         'Defense Contract Management Agency','Defense Threat Reduction Agency',
         'Missile Defense Agency','National Geospatial-Intelligence Agency',
-        'National Security Agency','Defense Intelligence Agency'
+        'National Security Agency','Defense Intelligence Agency',
+        'United States Cyber Command','United States Central Command',
+        'United States European Command','United States Indo-Pacific Command',
+        'United States Northern Command','United States Southern Command',
+        'United States Transportation Command','United States Africa Command',
+        'United States Space Command','United States Space Force',
+        'Defense Counterintelligence and Security Agency',
+        'Defense Finance and Accounting Service','Washington Headquarters Services',
+        'Defense Technical Information Center'
       ]
     },
     fedciv: {
@@ -8300,7 +8325,16 @@ drillDown(name, preventRender = false) {
         'Export-Import Bank of the United States',
         'Commodity Futures Trading Commission',
         'Federal Housing Finance Agency','Consumer Financial Protection Bureau',
-        'Government Accountability Office'
+        'Government Accountability Office',
+        'Office of the Comptroller of the Currency',
+        'Financial Crimes Enforcement Network',
+        'Bureau of the Fiscal Service','United States Mint',
+        'Bureau of Engraving and Printing',
+        'Office of Financial Research',
+        'Federal Trade Commission',
+        'National Credit Union Administration',
+        'Farm Credit Administration',
+        'Pension Benefit Guaranty Corporation'
       ]
     }
   },
@@ -8328,7 +8362,16 @@ drillDown(name, preventRender = false) {
         App._activeSectors = null; // all active = same as no filter
       }
     }
+    // Persist territory selection across sessions
+    try {
+      if (App._activeSectors) {
+        localStorage.setItem('govhoo-territory', JSON.stringify([...App._activeSectors]));
+      } else {
+        localStorage.removeItem('govhoo-territory');
+      }
+    } catch(e) {}
     App._updateSectorPillUI();
+    App._updateTerritorySuggestions();
     // Re-run the full search so the API returns only the filtered universe
     if (App.currentQuery) {
       App.searchData = { raw: [], active: [], filter: null, loaded: false };
@@ -8342,6 +8385,41 @@ drillDown(name, preventRender = false) {
       const active = !App._activeSectors || App._activeSectors.has(key);
       pill.classList.toggle('active', active);
     });
+  },
+
+  // ── Territory-suggested searches ──────────────────────────────────────────
+  TERRITORY_SUGGESTIONS: {
+    dod: ['Zero Trust', 'JADC2', 'cloud', 'CMMC', 'ABMS', 'cyber', 'AI/ML', 'DevSecOps'],
+    fedciv: ['FedRAMP', 'cloud migration', 'IT modernization', 'identity management', 'data analytics', 'CX', 'FITARA', 'shared services'],
+    fedhealth: ['SBOM', 'EHR', 'FHIR', 'interoperability', 'CMS Innovation', 'telehealth', 'claims processing', 'HL7'],
+    fedfin: ['fraud detection', 'AML', 'RegTech', 'BSA', 'tax modernization', 'digital payments', 'cloud', 'cybersecurity']
+  },
+
+  _updateTerritorySuggestions() {
+    const container = DOM.get('territorySuggestionsContainer');
+    const label = DOM.get('territorySuggestionsLabel');
+    const chips = DOM.get('territorySuggestionChips');
+    if (!container || !label || !chips) return;
+
+    // Show only when exactly one territory is selected
+    if (!App._activeSectors || App._activeSectors.size !== 1) {
+      container.style.display = 'none';
+      return;
+    }
+
+    const key = [...App._activeSectors][0];
+    const sector = App.SECTORS[key];
+    const suggestions = App.TERRITORY_SUGGESTIONS[key];
+    if (!sector || !suggestions) { container.style.display = 'none'; return; }
+
+    label.textContent = sector.label;
+    label.style.color = sector.color;
+    chips.innerHTML = suggestions.map(s =>
+      `<a href="?q=${encodeURIComponent(s)}" class="hero-suggestion-chip" data-action="runSuggestion" data-query="${Html.escapeHtml(s)}" style="border-color:${sector.color}33;">
+        ${Html.escapeHtml(s)}
+      </a>`
+    ).join('');
+    container.style.display = 'block';
   },
 
   // Returns agency filter array for USASpending API, or null if no sector filter
@@ -8468,6 +8546,22 @@ drillDown(name, preventRender = false) {
         }));
     });
 
+    // ── Shared vendor detection ───────────────────────────────────────────────
+    // Track which vendors appear across multiple agencies (key interconnection story)
+    const vendorAgencyMap = {};  // vendorName → Set of agencyIds
+    agencies.forEach(a => {
+      a.officeList.forEach(o => {
+        o.vendorList.forEach(v => {
+          if (!vendorAgencyMap[v.id]) vendorAgencyMap[v.id] = new Set();
+          vendorAgencyMap[v.id].add(a.id);
+        });
+      });
+    });
+    const sharedVendors = new Set();  // vendor names serving 2+ agencies
+    for (const [name, agSet] of Object.entries(vendorAgencyMap)) {
+      if (agSet.size >= 2) sharedVendors.add(name);
+    }
+
     // ── Canvas ────────────────────────────────────────────────────────────────
     const W = Math.max(container.offsetWidth || window.innerWidth, 300);
     const H = Math.max(Math.round(W * 0.82), 460);
@@ -8531,10 +8625,14 @@ drillDown(name, preventRender = false) {
             const vx = Math.max(rVendor+4, Math.min(W-rVendor-4, cx+Math.cos(vAng)*R3));
             const vy = Math.max(rVendor+4, Math.min(H-rVendor-4, cy+Math.sin(vAng)*R3));
             const vid = agency.id+'::'+office.id+'::'+v.id;
+            const isShared = sharedVendors.has(v.id);
             if (!allNodes.find(n=>n.id===vid)) {
               allNodes.push({ id:vid, type:'vendor', x:vx, y:vy,
-                r:rVendor, spend:v.spend, color:accent, label:v.id,
-                agencyId:agency.id, officeId:agency.id+'::'+office.id });
+                r: isShared ? rVendor * 1.35 : rVendor,
+                spend:v.spend, color:accent, label:v.id,
+                agencyId:agency.id, officeId:agency.id+'::'+office.id,
+                shared: isShared, vendorName: v.id,
+                sharedCount: isShared ? vendorAgencyMap[v.id].size : 0 });
               allArcs.push({ x1:ox, y1:oy, x2:vx, y2:vy,
                 value:v.spend, color:agency.color, type:'o-v' });
             }
@@ -8564,14 +8662,17 @@ drillDown(name, preventRender = false) {
         office.vendorList.forEach((v, vi) => {
           const vAng = oAng - sweep/2 + (office.vendorList.length>1
             ? (vi/(office.vendorList.length-1))*sweep : sweep/2);
-          const vr = rVendor * 1.6;
+          const isShared = sharedVendors.has(v.id);
+          const vr = rVendor * (isShared ? 2.0 : 1.6);
           const vx = Math.max(vr+4, Math.min(W-vr-4, cx+Math.cos(vAng)*R2a));
           const vy = Math.max(vr+4, Math.min(H-vr-4, cy+Math.sin(vAng)*R2a));
           const vid = agency.id+'::'+office.id+'::'+v.id;
           if (!allNodes.find(n=>n.id===vid)) {
             allNodes.push({ id:vid, type:'vendor', x:vx, y:vy,
               r:vr, spend:v.spend, color:accent, label:v.id,
-              agencyId:agency.id, officeId:agency.id+'::'+office.id });
+              agencyId:agency.id, officeId:agency.id+'::'+office.id,
+              shared: isShared, vendorName: v.id,
+              sharedCount: isShared ? vendorAgencyMap[v.id].size : 0 });
             allArcs.push({ x1:ox, y1:oy, x2:vx, y2:vy,
               value:v.spend, color:agency.color, type:'o-v' });
           }
@@ -8628,6 +8729,41 @@ drillDown(name, preventRender = false) {
       .attr('stroke-opacity', 0.45)
       .style('cursor', d=>d.type==='vendor'?'default':'pointer')
       .style('transition','fill-opacity 0.18s ease');
+
+    // ── Shared vendor pulsing rings ─────────────────────────────────────────
+    const sharedNodes = allNodes.filter(n => n.shared);
+    if (sharedNodes.length > 0) {
+      // Add CSS keyframes for pulse if not already present
+      if (!document.getElementById('govhoo-pulse-style')) {
+        const style = document.createElement('style');
+        style.id = 'govhoo-pulse-style';
+        style.textContent = `@keyframes govhoo-pulse{0%,100%{r:var(--pr);opacity:0.55}50%{r:var(--pr-expand);opacity:0.18}}`;
+        document.head.appendChild(style);
+      }
+      const pulseLayer = g.append('g').attr('pointer-events','none');
+      sharedNodes.forEach(n => {
+        const outerR = n.r + 4;
+        const expandR = n.r + 9;
+        pulseLayer.append('circle')
+          .attr('cx', n.x).attr('cy', n.y)
+          .attr('r', outerR)
+          .attr('fill','none')
+          .attr('stroke', accent)
+          .attr('stroke-width', 1.2)
+          .attr('stroke-opacity', 0.55)
+          .style('--pr', outerR + 'px')
+          .style('--pr-expand', expandR + 'px')
+          .style('animation', 'govhoo-pulse 2.8s ease-in-out infinite');
+        // Inner bright ring (static)
+        pulseLayer.append('circle')
+          .attr('cx', n.x).attr('cy', n.y)
+          .attr('r', n.r + 1.5)
+          .attr('fill','none')
+          .attr('stroke', isDark ? '#F0EFEC' : '#2C2B28')
+          .attr('stroke-width', 0.8)
+          .attr('stroke-opacity', 0.35);
+      });
+    }
 
     // ── Labels ────────────────────────────────────────────────────────────────
     const labelLayer = svg.append('g').attr('pointer-events','none');
@@ -8706,7 +8842,23 @@ drillDown(name, preventRender = false) {
 
     nodeSel
       .on('mousemove', function(event, d) {
-        const nb  = connectedIds(d);
+        // For shared vendors, highlight ALL nodes for this vendor across agencies
+        let nb;
+        if (d.shared && d.vendorName) {
+          nb = new Set();
+          allNodes.forEach(n => {
+            if (n.vendorName === d.vendorName) {
+              nb.add(n.id);
+              if (n.agencyId) nb.add(n.agencyId);
+              if (n.officeId) nb.add(n.officeId);
+            }
+          });
+          // Also include center
+          const centerNode = allNodes.find(n => n.type==='center' || n.type==='center-agency');
+          if (centerNode) nb.add(centerNode.id);
+        } else {
+          nb = connectedIds(d);
+        }
         nodeSel
           .attr('fill-opacity', n => nb.has(n.id) ?
             (n.type==='center'||n.type==='center-agency'?1:n.type==='agency'?0.95:n.type==='office'?0.85:0.80) : 0.07)
@@ -8719,7 +8871,8 @@ drillDown(name, preventRender = false) {
         });
         const label = d.label.replace(/^Department of (the )?/i,'').replace(/^Office of (the )?/i,'');
         const spend = d.spend ? ' · '+Utils.money(d.spend) : '';
-        showGhost(d.x, d.y, Utils.trunc(label,24)+spend, d.color||textPri);
+        const sharedTag = d.shared ? ' · '+d.sharedCount+' agencies' : '';
+        showGhost(d.x, d.y, Utils.trunc(label,24)+spend+sharedTag, d.color||textPri);
       })
       .on('mouseleave', () => {
         nodeSel.attr('fill-opacity', d=>
@@ -8744,6 +8897,14 @@ drillDown(name, preventRender = false) {
       svg.append('text').attr('x',8).attr('y',H-8)
         .style('font-size','9px').style('fill',textTer).style('opacity',0.55)
         .text(active);
+    }
+
+    // Shared vendor count overlay
+    if (sharedVendors.size > 0 && !centerId) {
+      svg.append('text').attr('x',W-8).attr('y',H-8)
+        .attr('text-anchor','end')
+        .style('font-size','9px').style('fill',accent).style('opacity',0.6)
+        .text(sharedVendors.size + ' shared vendor' + (sharedVendors.size>1?'s':''));
     }
 
     // ── Entrance ──────────────────────────────────────────────────────────────
