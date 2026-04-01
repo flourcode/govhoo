@@ -8237,13 +8237,27 @@ drillDown(name, preventRender = false) {
       return;
     }
 
-    // ── Palette ───────────────────────────────────────────────────────────────
-    const isDark     = App.darkMode;
+    // ── Palette — read live CSS variables so light/dark mode is automatic ───────
+    const isDark  = App.darkMode;
+    const cs      = getComputedStyle(document.documentElement);
+    const cssVar  = v => cs.getPropertyValue(v).trim();
+
+    // Agency hues — same set used by the Sankey and bubble chart
     const agencyHues = ['#7CA8C4','#E8A468','#D4A0B0','#80C0B0','#9878A0',
                         '#C75268','#A07860','#8888B8','#B8A878','#98B8C8'];
-    const vendorFill = isDark ? 'rgba(99,142,110,0.82)' : 'rgba(56,100,65,0.82)';
-    const textDim    = isDark ? 'rgba(240,239,236,0.45)' : 'rgba(30,30,28,0.45)';
-    const lineBase   = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.09)';
+
+    // Vendor = app accent color (#638E6E both modes)
+    const vendorFill  = cssVar('--accent');                     // #638E6E
+    const vendorText  = isDark ? 'rgba(99,142,110,0.82)' : 'rgba(56,100,65,0.82)';
+
+    // Text tones from design system
+    const textPrimary = cssVar('--text-primary');               // high contrast labels
+    const textTertiary= cssVar('--text-tertiary');              // column headers, dim text
+    const textWarn    = cssVar('--warning');                    // expiring contracts
+
+    // Borders from design system
+    const lineBase    = cssVar('--border');                     // resting edge color
+    const lineHover   = cssVar('--border-hover');
 
     // ── Build data ────────────────────────────────────────────────────────────
     // Three columns: agencies | offices | vendors
@@ -8362,14 +8376,46 @@ drillDown(name, preventRender = false) {
       l.target = nodeById[l.target] || l.target;
     });
 
+    // ── Active ring — shown on clicked node ──────────────────────────────────
+    // A separate circle layer drawn on top of nodes so it composites cleanly
+    const ringLayer = g.append('g').attr('pointer-events', 'none');
+    const updateRing = (activeNode) => {
+      ringLayer.selectAll('circle').remove();
+      if (!activeNode) return;
+      const r   = nodeR(activeNode);
+      const col = activeNode.col === 2 ? vendorFill
+                : agencyHues[(activeNode.colorIdx ?? 0) % agencyHues.length];
+      ringLayer.append('circle')
+        .attr('cx', activeNode.x).attr('cy', activeNode.y)
+        .attr('r', r + 5)
+        .attr('fill', 'none')
+        .attr('stroke', col)
+        .attr('stroke-width', 1.5)
+        .attr('stroke-opacity', 0.8)
+        .attr('stroke-dasharray', '3 3');
+      // Pulse animation
+      ringLayer.append('circle')
+        .attr('cx', activeNode.x).attr('cy', activeNode.y)
+        .attr('r', r + 5)
+        .attr('fill', 'none')
+        .attr('stroke', col)
+        .attr('stroke-width', 2)
+        .attr('stroke-opacity', 0.5)
+        .transition().duration(900).ease(d3.easeSinOut)
+        .attr('r', r + 14)
+        .attr('stroke-opacity', 0)
+        .attr('stroke-width', 0.5);
+    };
+
     // ── Column header labels ──────────────────────────────────────────────────
     const colNames = ['Agencies', 'Offices', 'Vendors'];
     [0, 1, 2].forEach(ci => {
       svg.append('text')
-        .attr('x', colX[ci]).attr('y', 16)
+        .attr('x', colX[ci]).attr('y', 18)
         .attr('text-anchor', 'middle')
-        .style('font-size', '9px').style('font-weight', '700')
-        .style('fill', textDim).style('letter-spacing', '0.08em')
+        .style('font-size', '10px').style('font-weight', '700')
+        .style('fill', textTertiary).style('opacity', '0.7')
+        .style('letter-spacing', '0.07em')
         .style('text-transform', 'uppercase')
         .text(colNames[ci]);
     });
@@ -8391,26 +8437,22 @@ drillDown(name, preventRender = false) {
       .attr('d', edgePath)
       .attr('stroke', lineBase)
       .attr('stroke-width', l => edgeW(l.value))
-      .attr('stroke-opacity', 1)
-      .attr('stroke-linecap', 'round');
+      .attr('stroke-opacity', 0.9)
+      .attr('stroke-linecap', 'round')
+      .style('transition', 'stroke 0.18s ease, stroke-opacity 0.18s ease');
 
     // ── Draw nodes ────────────────────────────────────────────────────────────
     const nodeLayer = g.append('g');
     const nodeSel   = nodeLayer.selectAll('circle').data(allNodes).join('circle')
       .attr('cx', d => d.x).attr('cy', d => d.y)
       .attr('r',  d => nodeR(d))
-      .attr('fill', d => {
-        if (d.col === 2) return vendorFill;
-        return agencyHues[(d.colorIdx ?? 0) % agencyHues.length];
-      })
-      .attr('fill-opacity', d => d.col === 0 ? 0.90 : d.col === 1 ? 0.78 : 0.72)
-      .attr('stroke', d => {
-        if (d.col === 2) return vendorFill;
-        return agencyHues[(d.colorIdx ?? 0) % agencyHues.length];
-      })
-      .attr('stroke-width', d => d.col === 0 ? 2 : 1.5)
+      .attr('fill', d => d.col === 2 ? vendorFill : agencyHues[(d.colorIdx ?? 0) % agencyHues.length])
+      .attr('fill-opacity', d => d.col === 0 ? 0.90 : d.col === 1 ? 0.78 : 0.75)
+      .attr('stroke', d => d.col === 2 ? vendorFill : agencyHues[(d.colorIdx ?? 0) % agencyHues.length])
+      .attr('stroke-width', d => d.col === 0 ? 2.5 : 1.5)
       .attr('stroke-opacity', 0.4)
-      .style('cursor', 'pointer');
+      .style('cursor', 'pointer')
+      .style('transition', 'fill-opacity 0.18s ease, stroke-opacity 0.18s ease');
 
     // ── Node labels ───────────────────────────────────────────────────────────
     const labelLayer = g.append('g').attr('pointer-events', 'none');
@@ -8419,8 +8461,7 @@ drillDown(name, preventRender = false) {
       const r     = nodeR(n);
       const isA   = n.col === 0;
       const isV   = n.col === 2;
-      const col   = isV ? (isDark?'rgba(200,230,201,0.78)':'rgba(30,80,40,0.78)')
-                        : agencyHues[(n.colorIdx??0) % agencyHues.length];
+      const col   = isV ? vendorText : agencyHues[(n.colorIdx??0) % agencyHues.length];
       const chars = W < 500 ? 12 : 16;
       const label = Utils.trunc(n.id.replace(/^Department of (the )?/i,'').replace(/^Office of (the )?/i,''), chars);
 
@@ -8464,7 +8505,7 @@ drillDown(name, preventRender = false) {
       svg.append('text')
         .attr('x', colX[ci]).attr('y', H - 8)
         .attr('text-anchor', 'middle')
-        .style('font-size', '9px').style('fill', textDim)
+        .style('font-size', '9px').style('fill', textTertiary).style('opacity', '0.55')
         .text(`+${overflowCounts[ci]} more`);
     });
 
@@ -8500,10 +8541,11 @@ drillDown(name, preventRender = false) {
     };
 
     const applyFocus = (n) => {
+      updateRing(n);
       if (!n) {
         // Reset
-        nodeSel.attr('fill-opacity', d=>d.col===0?0.90:d.col===1?0.78:0.72).attr('stroke-opacity',0.4);
-        linkSel.attr('stroke',lineBase).attr('stroke-opacity',1);
+        nodeSel.attr('fill-opacity', d=>d.col===0?0.90:d.col===1?0.78:0.75).attr('stroke-opacity',0.4);
+        linkSel.attr('stroke',lineBase).attr('stroke-opacity',0.9);
         labelLayer.selectAll('text').attr('opacity', function(d) {
           if (!d) return 0.5;
           return d.col===0?0.88:0.70;
@@ -8564,7 +8606,7 @@ drillDown(name, preventRender = false) {
           <div style="font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-tertiary);margin-bottom:5px;">${tag}</div>
           <div style="font-weight:700;font-size:var(--text-base);color:${col};margin-bottom:2px;">${Utils.money(totalSpend)}</div>
           <div style="font-size:9px;color:var(--text-tertiary);">${contracts.length} contract${contracts.length!==1?'s':''}</div>
-          ${expiring>0?`<div style="font-size:9px;color:var(--warning);margin-top:3px;">⚠ ${Utils.money(expiring)} expiring &lt;6mo</div>`:''}`;
+          ${expiring>0?`<div style="font-size:9px;color:${textWarn};margin-top:3px;">⚠ ${Utils.money(expiring)} expiring &lt;6mo</div>`:''}`;
         tooltip.style.opacity = '1';
         tooltip.style.left = (event.clientX+14)+'px';
         tooltip.style.top  = (event.clientY-10)+'px';
