@@ -6685,7 +6685,7 @@ scrollToPanel(id) {
       const res = await fetch(App.AI_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ request_type: 'govhoo_action_plan', market_data: summaryPayload, objective: userContext || 'Account Intelligence', conference_context: conferenceContext })
+        body: JSON.stringify({ request_type: 'govhoo_action_plan', market_data: summaryPayload, objective: userContext || 'Federal Sales', conference_context: conferenceContext })
       });
 
       if (!res.ok) {
