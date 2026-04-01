@@ -856,6 +856,8 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: searchf
 /* Sector filter pills */
 #sectorFilterBar { display:none; align-items:center; gap:6px; flex-wrap:wrap; padding:8px 0 4px; }
 #sectorFilterBar.visible { display:flex; }
+#globalSectorBar { border-top: 1px solid var(--border); margin-top: 2px; }
+@media (max-width: 480px) { #globalSectorBar { gap: 4px; } #globalSectorBar .sector-pill { padding: 2px 7px 2px 5px; font-size: 10px; } }
 .sector-pill {
   display:inline-flex; align-items:center; gap:5px;
   padding:3px 10px 3px 7px; border-radius:99px;
@@ -1395,6 +1397,24 @@ details[open] > summary svg { transform: rotate(180deg); }
           </button>
         </div>
       </div>
+      <!-- Sector filter — always visible in header, constrains all searches -->
+      <div id="globalSectorBar" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 0 2px;">
+        <span style="font-size:10px;color:var(--text-quaternary);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;margin-right:2px;">Territory</span>
+        <button class="sector-pill active" data-sector="dod" onclick="App.setSectorFilter('dod')">
+          <span class="sector-dot" style="background:#7CA8C4"></span>DoD
+        </button>
+        <button class="sector-pill active" data-sector="fedciv" onclick="App.setSectorFilter('fedciv')">
+          <span class="sector-dot" style="background:#80C0B0"></span>FedCiv
+        </button>
+        <button class="sector-pill active" data-sector="fedhealth" onclick="App.setSectorFilter('fedhealth')">
+          <span class="sector-dot" style="background:#D4A0B0"></span>FedHealth
+        </button>
+        <button class="sector-pill active" data-sector="fedfin" onclick="App.setSectorFilter('fedfin')">
+          <span class="sector-dot" style="background:#E8A468"></span>FedFin
+        </button>
+        <span class="sector-pill-all" onclick="App.setSectorFilter(null)" title="Reset to all sectors">All</span>
+      </div>
+
       <div class="quick-jump-menu hidden" id="quickJumpMenu">
         <button class="active" data-target="bubbleChartPanel" onclick="App.scrollToPanel('bubbleChartPanel')">Market</button>
         <button data-target="pipelineTargetsSection" onclick="App.scrollToPanel('pipelineTargetsSection')">Pipeline</button>
@@ -1421,6 +1441,15 @@ details[open] > summary svg { transform: rotate(180deg); }
         </div>
 
         <div id="recentSearchesContainer" class="hero-suggestions hero-suggestions-container"></div>
+
+        <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin:8px 0 0;">
+          <span style="font-size:10px;color:var(--text-quaternary);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">Territory</span>
+          <button class="sector-pill active" data-sector="dod" onclick="App.setSectorFilter('dod')"><span class="sector-dot" style="background:#7CA8C4"></span>DoD</button>
+          <button class="sector-pill active" data-sector="fedciv" onclick="App.setSectorFilter('fedciv')"><span class="sector-dot" style="background:#80C0B0"></span>FedCiv</button>
+          <button class="sector-pill active" data-sector="fedhealth" onclick="App.setSectorFilter('fedhealth')"><span class="sector-dot" style="background:#D4A0B0"></span>FedHealth</button>
+          <button class="sector-pill active" data-sector="fedfin" onclick="App.setSectorFilter('fedfin')"><span class="sector-dot" style="background:#E8A468"></span>FedFin</button>
+          <span class="sector-pill-all" onclick="App.setSectorFilter(null)">All</span>
+        </div>
 
         <div class="callout-box">
           <h2 class="callout-title">
@@ -1606,22 +1635,7 @@ details[open] > summary svg { transform: rotate(180deg); }
             <div id="chartContainer" class="chart-container"></div>
           </div>
           <div id="forceGraphWrapper" class="hidden" style="width:100%;position:relative;">
-            <div id="sectorFilterBar">
-              <span style="font-size:var(--text-xs);color:var(--text-quaternary);font-weight:500;margin-right:2px;">Sector</span>
-              <button class="sector-pill active" data-sector="dod" onclick="App.setSectorFilter('dod')">
-                <span class="sector-dot" style="background:#7CA8C4"></span>DoD
-              </button>
-              <button class="sector-pill active" data-sector="fedciv" onclick="App.setSectorFilter('fedciv')">
-                <span class="sector-dot" style="background:#80C0B0"></span>FedCiv
-              </button>
-              <button class="sector-pill active" data-sector="fedhealth" onclick="App.setSectorFilter('fedhealth')">
-                <span class="sector-dot" style="background:#D4A0B0"></span>FedHealth
-              </button>
-              <button class="sector-pill active" data-sector="fedfin" onclick="App.setSectorFilter('fedfin')">
-                <span class="sector-dot" style="background:#E8A468"></span>FedFin
-              </button>
-              <span class="sector-pill-all" onclick="App.setSectorFilter(null)" title="Show all sectors">All</span>
-            </div>
+
             <div id="forceGraphContainer" style="width:100%;overflow:hidden;background:transparent;"></div>
             <div id="forceGraphTooltip" style="position:fixed;pointer-events:none;background:var(--bg-app);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;font-size:var(--text-xs);color:var(--text-primary);box-shadow:var(--shadow-md);opacity:0;transition:opacity 0.12s ease;z-index:999;max-width:220px;"></div>
           </div>
@@ -7147,8 +7161,6 @@ async runOpportunityStrategy(awardId) {
       // before the new one arrives. loadSubcontractingData repopulates it.
       App.forecastData = { loaded: false, subawards: null };
       App._graphFocusedAgency = null;
-      App._activeSectors = null;   // reset sector filter on new search
-      App._updateSectorPillUI();
       App.setSankeyView('sankey');
       App._pipelineTargets = null;
       DOM.hide('pipelineTargetsSection');
@@ -8325,8 +8337,7 @@ drillDown(name, preventRender = false) {
   },
 
   _updateSectorPillUI() {
-    const pills = document.querySelectorAll('.sector-pill');
-    pills.forEach(pill => {
+    document.querySelectorAll('.sector-pill').forEach(pill => {
       const key = pill.dataset.sector;
       const active = !App._activeSectors || App._activeSectors.has(key);
       pill.classList.toggle('active', active);
@@ -8375,21 +8386,17 @@ drillDown(name, preventRender = false) {
     const graphBtn  = DOM.get('sankeyViewGraph');
     const flowWrap  = DOM.get('sankeyFlowWrapper');
     const graphWrap = DOM.get('forceGraphWrapper');
-    const sectorBar = DOM.get('sectorFilterBar');
     if (view === 'graph') {
       if (flowBtn) flowBtn.classList.remove('active');
       if (graphBtn) graphBtn.classList.add('active');
       if (flowWrap) flowWrap.classList.add('hidden');
       if (graphWrap) graphWrap.classList.remove('hidden');
-      if (sectorBar) sectorBar.classList.add('visible');
-      App._updateSectorPillUI();
       App.renderForceGraph();
     } else {
       if (flowBtn) flowBtn.classList.add('active');
       if (graphBtn) graphBtn.classList.remove('active');
       if (flowWrap) flowWrap.classList.remove('hidden');
       if (graphWrap) graphWrap.classList.add('hidden');
-      if (sectorBar) sectorBar.classList.remove('visible');
     }
   },
 
@@ -8643,15 +8650,14 @@ drillDown(name, preventRender = false) {
         baseline= Math.sin(ang)>0.15?'hanging':'auto';
       }
 
-      const maxC  = isCenter?18:isAgency?15:isOffice?(centerId?16:11):18;
+      // Char limits: vendors shorter in market view to avoid clutter
+      const maxC  = isCenter?18 : isAgency?15 : isOffice?(centerId?16:11)
+                  : isVendor?(centerId?20:12) : 12;
       const lbl   = Utils.trunc(
         n.label.replace(/^Department of (the )?/i,'').replace(/^Office of (the )?/i,''), maxC);
-      const fsize = isCenter?'13px':isAgency?'11px':isOffice?'9.5px':'9px';
+      const fsize = isCenter?'13px':isAgency?'11px':isOffice?'9.5px':'8.5px';
       const fwt   = isCenter?'800':isAgency?'700':isOffice?'600':'500';
-      const op    = isCenter?1:isAgency?0.90:isOffice?0.75:0.72;
-
-      // Always show agency + office labels; vendor labels only in agency view
-      if (isVendor && !centerId) return;
+      const op    = isCenter?1:isAgency?0.90:isOffice?0.75:isVendor?(centerId?0.72:0.58):0.72;
 
       labelLayer.append('text')
         .attr('x',lx).attr('y',ly)
