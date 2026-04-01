@@ -8136,7 +8136,7 @@ drillDown(name, preventRender = false) {
     const accent   = cv('--accent');
     const bgApp    = cv('--bg-app');
 
-    // Sector color lookup — agency → sector color
+    // Sector color lookup
     const sectorColorOf = (agencyName) => {
       for (const [key, sec] of Object.entries(App.SECTORS)) {
         if (sec.agencies.some(a => agencyName.toLowerCase().includes(a.toLowerCase()) ||
@@ -8144,7 +8144,7 @@ drillDown(name, preventRender = false) {
           return sec.color;
         }
       }
-      return '#9878A0'; // fallback
+      return '#9878A0';
     };
 
     // ── Build hierarchy ───────────────────────────────────────────────────────
@@ -8168,9 +8168,8 @@ drillDown(name, preventRender = false) {
         (agencyMap[agency].offices[office].vendors[vendor] || 0) + amt;
     });
 
-    // Limits: 8 agencies, 5 offices, 6 vendors
     const agencies = Object.values(agencyMap).sort((a,b)=>b.spend-a.spend).slice(0, 8);
-    agencies.forEach((a, i) => {
+    agencies.forEach(a => {
       a.color = sectorColorOf(a.id);
       a.officeList = Object.values(a.offices).sort((x,y)=>y.spend-x.spend).slice(0, 5)
         .map(o => ({
@@ -8183,7 +8182,7 @@ drillDown(name, preventRender = false) {
 
     // ── Canvas ────────────────────────────────────────────────────────────────
     const W = Math.max(container.offsetWidth || window.innerWidth, 300);
-    const H = Math.max(Math.round(W * 0.62), 400);
+    const H = Math.max(Math.round(W * 0.58), 380);
     container.style.height = H + 'px';
     d3.select(container).selectAll('*').remove();
 
@@ -8191,186 +8190,183 @@ drillDown(name, preventRender = false) {
       .attr('width','100%').attr('height', H)
       .attr('viewBox',`0 0 ${W} ${H}`)
       .style('display','block').style('background','transparent');
-    const g = svg.append('g');
 
-    const cx = W / 2, cy = H * 0.42;
+    const cx = W / 2, cy = H / 2;
     const minDim = Math.min(W, H);
 
-    // ── Scales ────────────────────────────────────────────────────────────────
+    // ── Node sizing ───────────────────────────────────────────────────────────
     const maxSpend = Math.max(...agencies.map(a=>a.spend), 1);
-    const rCenter  = minDim * 0.065;
-    const rAgency  = a => minDim * 0.03 + Math.sqrt(a.spend / maxSpend) * minDim * 0.045;
-    const rOffice  = o => minDim * 0.014 + Math.sqrt(o.spend / maxSpend) * minDim * 0.018;
-    const rVendor  = minDim * 0.007;
+    const rCenter  = minDim * 0.055;
+    const rAgency  = a => minDim * 0.032 + Math.sqrt(a.spend / maxSpend) * minDim * 0.048;
+    const rOffice  = o => minDim * 0.012 + Math.sqrt(o.spend / maxSpend) * minDim * 0.018;
+    const rVendor  = minDim * 0.006;
 
-    // ── Radii for rings ───────────────────────────────────────────────────────
-    const R1 = minDim * 0.22;   // agency ring
-    const R2 = minDim * 0.34;   // office ring
-    const R3 = minDim * 0.42;   // vendor ring
+    // ── Build simulation nodes and links ──────────────────────────────────────
+    const nodes = [];
+    const links = [];
 
-    // ── Build all node positions ──────────────────────────────────────────────
-    const allNodes = [], allArcs = [];
+    // Center node
+    nodes.push({ id:'__center__', type:'center', r:rCenter, label: App.currentQuery || 'Market',
+      fx: cx, fy: cy, spend: 0, color: bgApp, cluster: '__center__' });
 
     if (!centerId) {
-      // MARKET VIEW — all agencies on R1, offices R2, vendors R3
-      allNodes.push({ id:'__center__', type:'center', x:cx, y:cy,
-        r:rCenter, label: App.currentQuery || 'Market' });
-
+      // MARKET VIEW — force-directed clusters
       agencies.forEach((agency, ai) => {
-        const aAng = (ai / agencies.length) * Math.PI * 2 - Math.PI / 2;
-        const ax   = cx + Math.cos(aAng) * R1;
-        const ay   = cy + Math.sin(aAng) * R1;
-        allNodes.push({ id:agency.id, type:'agency', x:ax, y:ay,
-          r:rAgency(agency), spend:agency.spend, color:agency.color, label:agency.id });
-        allArcs.push({ x1:cx, y1:cy, x2:ax, y2:ay,
-          value:agency.spend, color:agency.color, type:'c-a' });
+        const ar = rAgency(agency);
+        // Initial positions spread in a circle to seed the simulation
+        const seedAng = (ai / agencies.length) * Math.PI * 2 - Math.PI / 2;
+        const seedR = minDim * 0.18;
+        const aNode = { id: agency.id, type:'agency', r: ar, label: agency.id,
+          x: cx + Math.cos(seedAng)*seedR, y: cy + Math.sin(seedAng)*seedR,
+          spend: agency.spend, color: agency.color, cluster: agency.id };
+        nodes.push(aNode);
+        links.push({ source: '__center__', target: agency.id, value: agency.spend, color: agency.color, type:'c-a' });
 
-        agency.officeList.forEach((office, oi) => {
-          const sweep  = (Math.PI * 2 / agencies.length) * 0.72;
-          const oAng   = aAng - sweep/2 + (office.vendorList.length>0&&agency.officeList.length>1
-            ? (oi/(agency.officeList.length-1))*sweep : sweep/2);
-          const ox = Math.max(rOffice(office)+4, Math.min(W-rOffice(office)-4, cx+Math.cos(oAng)*R2));
-          const oy = Math.max(rOffice(office)+4, Math.min(H-rOffice(office)-4, cy+Math.sin(oAng)*R2));
-          allNodes.push({ id:agency.id+'::'+office.id, type:'office', x:ox, y:oy,
-            r:rOffice(office), spend:office.spend, color:agency.color, label:office.id,
-            agencyId:agency.id });
-          allArcs.push({ x1:ax, y1:ay, x2:ox, y2:oy,
-            value:office.spend, color:agency.color, type:'a-o' });
+        agency.officeList.forEach(office => {
+          const or = rOffice(office);
+          const oId = agency.id+'::'+office.id;
+          nodes.push({ id: oId, type:'office', r: or, label: office.id,
+            x: aNode.x + (Math.random()-0.5)*40, y: aNode.y + (Math.random()-0.5)*40,
+            spend: office.spend, color: agency.color, cluster: agency.id, agencyId: agency.id });
+          links.push({ source: agency.id, target: oId, value: office.spend, color: agency.color, type:'a-o' });
 
-          office.vendorList.forEach((v, vi) => {
-            const vSweep = sweep * 0.45;
-            const vAng   = oAng - vSweep/2 + (office.vendorList.length>1
-              ? (vi/(office.vendorList.length-1))*vSweep : vSweep/2);
-            const vx = Math.max(rVendor+4, Math.min(W-rVendor-4, cx+Math.cos(vAng)*R3));
-            const vy = Math.max(rVendor+4, Math.min(H-rVendor-4, cy+Math.sin(vAng)*R3));
+          office.vendorList.forEach(v => {
             const vid = agency.id+'::'+office.id+'::'+v.id;
-            if (!allNodes.find(n=>n.id===vid)) {
-              allNodes.push({ id:vid, type:'vendor', x:vx, y:vy,
-                r:rVendor, spend:v.spend, color:accent, label:v.id,
-                agencyId:agency.id, officeId:agency.id+'::'+office.id });
-              allArcs.push({ x1:ox, y1:oy, x2:vx, y2:vy,
-                value:v.spend, color:agency.color, type:'o-v' });
+            if (!nodes.find(n=>n.id===vid)) {
+              nodes.push({ id: vid, type:'vendor', r: rVendor, label: v.id,
+                x: aNode.x + (Math.random()-0.5)*60, y: aNode.y + (Math.random()-0.5)*60,
+                spend: v.spend, color: accent, cluster: agency.id, agencyId: agency.id, officeId: oId });
+              links.push({ source: oId, target: vid, value: v.spend, color: agency.color, type:'o-v' });
             }
           });
         });
       });
-
     } else {
-      // AGENCY VIEW — focused agency fills canvas
+      // AGENCY VIEW — focused on one agency
       const agency = agencies.find(a=>a.id===centerId) || agencies[0];
-      const R1a = minDim * 0.24, R2a = minDim * 0.38;
-
-      allNodes.push({ id:agency.id, type:'center-agency', x:cx, y:cy,
-        r:rCenter*1.3, spend:agency.spend, color:agency.color, label:agency.id });
+      nodes[0] = { ...nodes[0], id: agency.id, type:'center-agency', label: agency.id,
+        spend: agency.spend, color: agency.color, cluster: agency.id };
 
       agency.officeList.forEach((office, oi) => {
-        const oAng = (oi/Math.max(agency.officeList.length-1,1))*Math.PI*2 - Math.PI/2;
-        const ox = Math.max(rOffice(office)+4, Math.min(W-rOffice(office)-4, cx+Math.cos(oAng)*R1a));
-        const oy = Math.max(rOffice(office)+4, Math.min(H-rOffice(office)-4, cy+Math.sin(oAng)*R1a));
-        allNodes.push({ id:agency.id+'::'+office.id, type:'office', x:ox, y:oy,
-          r:rOffice(office)*1.4, spend:office.spend, color:agency.color, label:office.id,
-          agencyId:agency.id });
-        allArcs.push({ x1:cx, y1:cy, x2:ox, y2:oy,
-          value:office.spend, color:agency.color, type:'a-o' });
+        const or = rOffice(office) * 1.4;
+        const oId = agency.id+'::'+office.id;
+        const seedAng = (oi / Math.max(agency.officeList.length, 1)) * Math.PI * 2 - Math.PI/2;
+        const oNode = { id: oId, type:'office', r: or, label: office.id,
+          x: cx + Math.cos(seedAng)*minDim*0.16, y: cy + Math.sin(seedAng)*minDim*0.16,
+          spend: office.spend, color: agency.color, cluster: oId, agencyId: agency.id };
+        nodes.push(oNode);
+        links.push({ source: agency.id, target: oId, value: office.spend, color: agency.color, type:'a-o' });
 
-        const sweep = (Math.PI*2/Math.max(agency.officeList.length,1))*0.78;
-        office.vendorList.forEach((v, vi) => {
-          const vAng = oAng - sweep/2 + (office.vendorList.length>1
-            ? (vi/(office.vendorList.length-1))*sweep : sweep/2);
-          const vr = rVendor * 1.6;
-          const vx = Math.max(vr+4, Math.min(W-vr-4, cx+Math.cos(vAng)*R2a));
-          const vy = Math.max(vr+4, Math.min(H-vr-4, cy+Math.sin(vAng)*R2a));
+        office.vendorList.forEach(v => {
           const vid = agency.id+'::'+office.id+'::'+v.id;
-          if (!allNodes.find(n=>n.id===vid)) {
-            allNodes.push({ id:vid, type:'vendor', x:vx, y:vy,
-              r:vr, spend:v.spend, color:accent, label:v.id,
-              agencyId:agency.id, officeId:agency.id+'::'+office.id });
-            allArcs.push({ x1:ox, y1:oy, x2:vx, y2:vy,
-              value:v.spend, color:agency.color, type:'o-v' });
+          if (!nodes.find(n=>n.id===vid)) {
+            nodes.push({ id: vid, type:'vendor', r: rVendor*1.6, label: v.id,
+              x: oNode.x + (Math.random()-0.5)*30, y: oNode.y + (Math.random()-0.5)*30,
+              spend: v.spend, color: accent, cluster: oId, agencyId: agency.id, officeId: oId });
+            links.push({ source: oId, target: vid, value: v.spend, color: agency.color, type:'o-v' });
           }
         });
       });
     }
 
-    // ── Arc path — gentle curve ───────────────────────────────────────────────
-    const maxArcVal = Math.max(...allArcs.map(a=>a.value), 1);
+    // ── Force simulation ──────────────────────────────────────────────────────
+    const linkIndex = new Map();
+    links.forEach(l => { linkIndex.set(l.source + '→' + l.target, l); });
+
+    const sim = d3.forceSimulation(nodes)
+      .force('link', d3.forceLink(links).id(d=>d.id)
+        .distance(l => l.type==='c-a' ? minDim*0.18 : l.type==='a-o' ? minDim*0.10 : minDim*0.06)
+        .strength(l => l.type==='c-a' ? 0.3 : l.type==='a-o' ? 0.5 : 0.4))
+      .force('charge', d3.forceManyBody()
+        .strength(d => d.type==='center'||d.type==='center-agency' ? -minDim*0.8 :
+          d.type==='agency' ? -minDim*0.4 : d.type==='office' ? -minDim*0.12 : -minDim*0.04))
+      .force('collide', d3.forceCollide().radius(d => d.r + 3).strength(0.8))
+      .force('x', d3.forceX(cx).strength(0.04))
+      .force('y', d3.forceY(cy).strength(0.04))
+      .alphaDecay(0.028)
+      .velocityDecay(0.4);
+
+    // Run simulation synchronously for instant render
+    for (let i = 0; i < 200; i++) sim.tick();
+    sim.stop();
+
+    // Clamp nodes to canvas bounds
+    nodes.forEach(n => {
+      if (n.fx != null) return;
+      n.x = Math.max(n.r + 4, Math.min(W - n.r - 4, n.x));
+      n.y = Math.max(n.r + 4, Math.min(H - n.r - 4, n.y));
+    });
+
+    // ── Draw layers ───────────────────────────────────────────────────────────
+    const g = svg.append('g');
+
+    // Links — gentle curves
+    const maxArcVal = Math.max(...links.map(l => l.value), 1);
     const arcW = (v, type) => {
-      const base = type==='c-a' ? 1.5 : type==='a-o' ? 1.0 : 0.6;
-      return base + (v/maxArcVal)*3.5;
-    };
-    const arcPath = a => {
-      const dx=a.x2-a.x1, dy=a.y2-a.y1, len=Math.sqrt(dx*dx+dy*dy)||1;
-      const bend=len*0.15;
-      const mx=(a.x1+a.x2)/2-(dy/len)*bend, my=(a.y1+a.y2)/2+(dx/len)*bend;
-      return `M${a.x1},${a.y1} Q${mx},${my} ${a.x2},${a.y2}`;
+      const base = type==='c-a' ? 1.5 : type==='a-o' ? 1.0 : 0.5;
+      return base + (v / maxArcVal) * 2.5;
     };
 
-    // ── Draw subtle orbit rings ───────────────────────────────────────────────
-    if (!centerId) {
-      [R1, R2, R3].forEach(r => {
-        g.append('circle').attr('cx',cx).attr('cy',cy).attr('r',r)
-          .attr('fill','none')
-          .attr('stroke', isDark?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.04)')
-          .attr('stroke-width',1);
-      });
-    }
-
-    // ── Draw arcs ─────────────────────────────────────────────────────────────
-    const arcLayer = g.append('g');
-    const arcSel   = arcLayer.selectAll('path').data(allArcs).join('path')
+    const linkSel = g.append('g').selectAll('path').data(links).join('path')
       .attr('fill','none')
-      .attr('d', arcPath)
-      .attr('stroke', a=>a.color)
-      .attr('stroke-width', a=>arcW(a.value, a.type))
-      .attr('stroke-opacity', a=>a.type==='c-a'?0.45:a.type==='a-o'?0.32:0.20)
-      .attr('stroke-linecap','round')
-      .style('transition','stroke-opacity 0.18s ease');
+      .attr('d', l => {
+        const s = typeof l.source === 'object' ? l.source : nodes.find(n=>n.id===l.source);
+        const t = typeof l.target === 'object' ? l.target : nodes.find(n=>n.id===l.target);
+        if (!s || !t) return '';
+        const dx=t.x-s.x, dy=t.y-s.y, len=Math.sqrt(dx*dx+dy*dy)||1;
+        const bend=len*0.12;
+        const mx=(s.x+t.x)/2-(dy/len)*bend, my=(s.y+t.y)/2+(dx/len)*bend;
+        return `M${s.x},${s.y} Q${mx},${my} ${t.x},${t.y}`;
+      })
+      .attr('stroke', l => l.color)
+      .attr('stroke-width', l => arcW(l.value, l.type))
+      .attr('stroke-opacity', l => l.type==='c-a'?0.35:l.type==='a-o'?0.22:0.12)
+      .attr('stroke-linecap','round');
 
-    // ── Draw nodes ────────────────────────────────────────────────────────────
-    const nodeLayer = g.append('g');
-    const nodeSel   = nodeLayer.selectAll('circle').data(allNodes).join('circle')
+    // Nodes
+    const nodeSel = g.append('g').selectAll('circle').data(nodes).join('circle')
       .attr('cx', d=>d.x).attr('cy', d=>d.y)
       .attr('r',  d=>d.r)
       .attr('fill', d=>d.type==='center' ? bgApp : d.color)
       .attr('fill-opacity', d=>
-        d.type==='center'?1 : d.type==='agency'||d.type==='center-agency'?0.88 :
-        d.type==='office'?0.72 : 0.68)
+        d.type==='center'?1 : d.type==='agency'||d.type==='center-agency'?0.85 :
+        d.type==='office'?0.65 : 0.55)
       .attr('stroke', d=>d.type==='center'?textTer:d.color)
       .attr('stroke-width', d=>d.type==='center'||d.type==='center-agency'?2:
-        d.type==='agency'?2:1.2)
-      .attr('stroke-opacity', 0.45)
-      .style('cursor', d=>d.type==='vendor'?'default':'pointer')
-      .style('transition','fill-opacity 0.18s ease');
+        d.type==='agency'?1.5:0.8)
+      .attr('stroke-opacity', 0.35)
+      .style('cursor', d=>d.type==='vendor'?'default':'pointer');
 
     // ── Labels ────────────────────────────────────────────────────────────────
     const labelLayer = svg.append('g').attr('pointer-events','none');
 
-    allNodes.forEach(n => {
+    nodes.forEach(n => {
       const isCenter  = n.type==='center'||n.type==='center-agency';
       const isAgency  = n.type==='agency';
       const isOffice  = n.type==='office';
       const isVendor  = n.type==='vendor';
+
+      // Only label center, agencies, and offices (vendors on hover only)
+      if (isVendor) return;
 
       const col = isCenter ? textPri : n.color;
       let lx=n.x, ly=n.y, anchor='middle', baseline='middle';
 
       if (!isCenter) {
         const ang = Math.atan2(n.y-cy, n.x-cx);
-        const off = n.r + (isVendor ? 6 : 8);
+        const off = n.r + (isOffice ? 5 : 7);
         lx = n.x + Math.cos(ang)*off;
         ly = n.y + Math.sin(ang)*off;
         anchor  = Math.cos(ang)>0.2?'start':Math.cos(ang)<-0.2?'end':'middle';
         baseline= Math.sin(ang)>0.15?'hanging':'auto';
       }
 
-      // Char limits: vendors shorter in market view to avoid clutter
-      const maxC  = isCenter?18 : isAgency?15 : isOffice?(centerId?16:11)
-                  : isVendor?(centerId?20:12) : 12;
+      const maxC  = isCenter?18 : isAgency?16 : isOffice?(centerId?16:12) : 12;
       const lbl   = Utils.trunc(
         n.label.replace(/^Department of (the )?/i,'').replace(/^Office of (the )?/i,''), maxC);
-      const fsize = isCenter?'13px':isAgency?'11px':isOffice?'9.5px':'8.5px';
-      const fwt   = isCenter?'800':isAgency?'700':isOffice?'600':'500';
-      const op    = isCenter?1:isAgency?0.90:isOffice?0.75:isVendor?(centerId?0.72:0.58):0.72;
+      const fsize = isCenter?'13px':isAgency?'11px':'9px';
+      const fwt   = isCenter?'800':isAgency?'700':'500';
+      const op    = isCenter?1:isAgency?0.88:0.65;
 
       labelLayer.append('text')
         .attr('x',lx).attr('y',ly)
@@ -8384,15 +8380,15 @@ drillDown(name, preventRender = false) {
         const money = Utils.money(n.spend);
         labelLayer.append('text')
           .attr('x',lx)
-          .attr('y', isCenter ? ly+16 : ly+(Math.sin(Math.atan2(n.y-cy,n.x-cx))>0.1?13:-1))
+          .attr('y', isCenter ? ly+15 : ly+(Math.sin(Math.atan2(n.y-cy,n.x-cx))>0.1?12:-1))
           .attr('text-anchor',anchor)
           .style('font-size','9px').style('font-weight','400')
-          .style('fill',col).style('opacity',isCenter?0.5:0.44)
+          .style('fill',col).style('opacity',isCenter?0.5:0.40)
           .text(money);
       }
     });
 
-    // ── Ghost hover label (no card) ───────────────────────────────────────────
+    // ── Hover tooltip ─────────────────────────────────────────────────────────
     const ghost = svg.append('text').attr('pointer-events','none')
       .style('font-size','11px').style('font-weight','600')
       .style('fill',textPri).style('opacity',0)
@@ -8408,11 +8404,11 @@ drillDown(name, preventRender = false) {
       const ids = new Set([n.id]);
       if (n.agencyId) ids.add(n.agencyId);
       if (n.officeId) ids.add(n.officeId);
-      allArcs.forEach(a => {
-        const srcNode = allNodes.find(nd=>nd.x===a.x1&&nd.y===a.y1);
-        const tgtNode = allNodes.find(nd=>nd.x===a.x2&&nd.y===a.y2);
-        if (srcNode && ids.has(srcNode.id) && tgtNode) ids.add(tgtNode.id);
-        if (tgtNode && ids.has(tgtNode.id) && srcNode) ids.add(srcNode.id);
+      links.forEach(l => {
+        const sid = typeof l.source==='object'?l.source.id:l.source;
+        const tid = typeof l.target==='object'?l.target.id:l.target;
+        if (ids.has(sid)) ids.add(tid);
+        if (ids.has(tid)) ids.add(sid);
       });
       return ids;
     };
@@ -8422,13 +8418,13 @@ drillDown(name, preventRender = false) {
         const nb  = connectedIds(d);
         nodeSel
           .attr('fill-opacity', n => nb.has(n.id) ?
-            (n.type==='center'||n.type==='center-agency'?1:n.type==='agency'?0.95:n.type==='office'?0.85:0.80) : 0.07)
-          .attr('stroke-opacity', n => nb.has(n.id)?0.65:0.04);
-        arcSel.attr('stroke-opacity', a => {
-          const s=allNodes.find(n=>n.x===a.x1&&n.y===a.y1);
-          const t=allNodes.find(n=>n.x===a.x2&&n.y===a.y2);
-          return (s&&nb.has(s.id))||(t&&nb.has(t.id)) ?
-            (a.type==='c-a'?0.75:a.type==='a-o'?0.55:0.38) : 0.03;
+            (n.type==='center'||n.type==='center-agency'?1:n.type==='agency'?0.92:n.type==='office'?0.80:0.75) : 0.06)
+          .attr('stroke-opacity', n => nb.has(n.id)?0.6:0.03);
+        linkSel.attr('stroke-opacity', l => {
+          const sid = typeof l.source==='object'?l.source.id:l.source;
+          const tid = typeof l.target==='object'?l.target.id:l.target;
+          return nb.has(sid)||nb.has(tid) ?
+            (l.type==='c-a'?0.65:l.type==='a-o'?0.45:0.30) : 0.02;
         });
         const label = d.label.replace(/^Department of (the )?/i,'').replace(/^Office of (the )?/i,'');
         const spend = d.spend ? ' · '+Utils.money(d.spend) : '';
@@ -8436,9 +8432,9 @@ drillDown(name, preventRender = false) {
       })
       .on('mouseleave', () => {
         nodeSel.attr('fill-opacity', d=>
-          d.type==='center'||d.type==='center-agency'?1:d.type==='agency'?0.88:d.type==='office'?0.72:0.68)
-          .attr('stroke-opacity',0.45);
-        arcSel.attr('stroke-opacity', a=>a.type==='c-a'?0.45:a.type==='a-o'?0.32:0.20);
+          d.type==='center'||d.type==='center-agency'?1:d.type==='agency'?0.85:d.type==='office'?0.65:0.55)
+          .attr('stroke-opacity',0.35);
+        linkSel.attr('stroke-opacity', l=>l.type==='c-a'?0.35:l.type==='a-o'?0.22:0.12);
         hideGhost();
       })
       .on('click', (e, d) => {
@@ -8451,7 +8447,7 @@ drillDown(name, preventRender = false) {
 
     svg.on('click', () => { if(centerId){App._graphFocusedAgency=null;App.renderForceGraph();} });
 
-    // Sector label overlay — shows active filter
+    // Sector label overlay
     if (App._activeSectors) {
       const active = [...App._activeSectors].map(k=>App.SECTORS[k].label).join(' · ');
       svg.append('text').attr('x',8).attr('y',H-8)
