@@ -8364,6 +8364,69 @@ drillDown(name, preventRender = false) {
     for (let i = 0; i < 300; i++) sim.tick();
     sim.alphaDecay(0.022).velocityDecay(0.38).restart();
 
+    // ── Organic blob helper — catmull-rom spline around a set of points ─────────
+    // Inflates a convex-ish hull with padding, then draws a smooth closed path.
+    const blobPath = (pts, pad) => {
+      if (pts.length === 0) return '';
+      if (pts.length === 1) {
+        const p = pts[0]; const r = pad;
+        return `M${p[0]-r},${p[1]} a${r},${r} 0 1,0 ${r*2},0 a${r},${r} 0 1,0 ${-r*2},0`;
+      }
+      // Compute centroid
+      const cx = pts.reduce((s, p) => s + p[0], 0) / pts.length;
+      const cy = pts.reduce((s, p) => s + p[1], 0) / pts.length;
+      // Sort by angle from centroid
+      const sorted = [...pts].sort((a, b) =>
+        Math.atan2(a[1]-cy, a[0]-cx) - Math.atan2(b[1]-cy, b[0]-cx)
+      );
+      // Inflate outward from centroid by pad
+      const inflated = sorted.map(p => {
+        const dx = p[0]-cx, dy = p[1]-cy;
+        const len = Math.sqrt(dx*dx+dy*dy) || 1;
+        return [cx + (dx/len)*(len+pad), cy + (dy/len)*(len+pad)];
+      });
+      // Catmull-rom → bezier closed path
+      const n = inflated.length;
+      const pts2 = [...inflated, inflated[0], inflated[1]];
+      let d = `M${inflated[0][0].toFixed(1)},${inflated[0][1].toFixed(1)}`;
+      for (let i = 0; i < n; i++) {
+        const p0 = pts2[i], p1 = pts2[(i+1)%n], p2 = pts2[(i+2)%n];
+        const cp1x = p1[0] + (p2[0]-p0[0])/6;
+        const cp1y = p1[1] + (p2[1]-p0[1])/6;
+        const p0b  = pts2[(i+n-1)%n];
+        const cp0x = p1[0] - (p2[0]-p0b[0])/6;
+        const cp0y = p1[1] - (p2[1]-p0b[1])/6;
+        d += ` C${cp0x.toFixed(1)},${cp0y.toFixed(1)} ${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+      }
+      return d + 'Z';
+    };
+
+    // Build agency→member nodes map for blob drawing
+    const agencyNodes = nodes.filter(n => n.group === 'agency');
+    const blobMembers = (agencyNode) => {
+      // Members = the agency itself + all vendors linked to it
+      const vendorIds = new Set(
+        links.filter(l => l.source.id === agencyNode.id || l.target.id === agencyNode.id)
+             .map(l => l.source.id === agencyNode.id ? l.target.id : l.source.id)
+      );
+      return [agencyNode, ...nodes.filter(n => vendorIds.has(n.id))];
+    };
+
+    // ── Blob layer (drawn first, behind everything) ───────────────────────────
+    const blobLayer = g.insert('g', ':first-child');
+    const blobData  = agencyNodes.map(a => ({ agency: a, members: blobMembers(a) }));
+
+    const blobSel = blobLayer.selectAll('path.blob').data(blobData).join('path')
+      .attr('class', 'blob')
+      .attr('d', d => blobPath(d.members.map(n => [n.x, n.y]), 32 + nodeR(d.agency) * 0.6))
+      .attr('fill', d => agencyColor(d.agency))
+      .attr('fill-opacity', isDark ? 0.07 : 0.05)
+      .attr('stroke', d => agencyColor(d.agency))
+      .attr('stroke-width', 1.5)
+      .attr('stroke-opacity', isDark ? 0.22 : 0.18)
+      .attr('stroke-dasharray', '4 3')
+      .style('pointer-events', 'none');
+
     // ── Draw links ────────────────────────────────────────────────────────────
     const linkLayer = g.append('g');
     const linkSel   = linkLayer.selectAll('line').data(links).join('line')
@@ -8371,7 +8434,7 @@ drillDown(name, preventRender = false) {
       .attr('x2', d => d.target.x).attr('y2', d => d.target.y)
       .attr('stroke', lineRest)
       .attr('stroke-width', d => lw(d.value))
-      .attr('stroke-opacity', 1)
+      .attr('stroke-opacity', 0.9)
       .attr('stroke-linecap', 'round');
 
     // ── Draw nodes ────────────────────────────────────────────────────────────
@@ -8383,7 +8446,7 @@ drillDown(name, preventRender = false) {
       .attr('fill-opacity', d => d.group === 'agency' ? 0.90 : 0.75)
       .attr('stroke',       d => agencyColor(d))
       .attr('stroke-width', d => d.group === 'agency' ? 2.5 : 1.5)
-      .attr('stroke-opacity', 0.4)
+      .attr('stroke-opacity', 0.45)
       .style('cursor', 'pointer');
 
     // ── Labels — always visible ───────────────────────────────────────────────
@@ -8391,24 +8454,27 @@ drillDown(name, preventRender = false) {
     nodes.forEach(n => {
       const r      = nodeR(n);
       const isA    = n.group === 'agency';
-      const col    = isA ? agencyColor(n) : (isDark ? 'rgba(200,230,201,0.8)' : 'rgba(30,80,40,0.8)');
-      const label  = Utils.trunc(n.id.replace(/^Department of (the )?/i,''), isA ? 18 : 16);
+      const col    = isA ? agencyColor(n) : (isDark ? 'rgba(200,230,201,0.82)' : 'rgba(30,80,40,0.82)');
 
       labelLayer.append('text')
+        .attr('class', 'node-label')
+        .attr('data-id', n.id)
         .attr('x', n.x).attr('y', n.y + r + 12)
         .attr('text-anchor', 'middle')
         .style('font-size', isA ? '11px' : '9px')
         .style('font-weight', isA ? '700' : '500')
         .style('fill', col)
-        .style('opacity', isA ? 0.9 : 0.72)
-        .text(label);
+        .style('opacity', isA ? 0.9 : 0.68)
+        .text(Utils.trunc(n.id.replace(/^Department of (the )?/i,''), isA ? 18 : 15));
 
       if (isA) {
         labelLayer.append('text')
+          .attr('class', 'node-label')
+          .attr('data-id', n.id)
           .attr('x', n.x).attr('y', n.y + r + 23)
           .attr('text-anchor', 'middle')
           .style('font-size', '9px').style('font-weight', '500')
-          .style('fill', col).style('opacity', 0.5)
+          .style('fill', col).style('opacity', 0.48)
           .text(Utils.money(n.spend));
       }
     });
@@ -8419,8 +8485,6 @@ drillDown(name, preventRender = false) {
       clearTimeout(_tipTimer);
       _tipTimer = setTimeout(() => { if (tooltip) tooltip.style.opacity = '0'; }, 180);
     };
-
-    // Connected node ids for a given node
     const neighbors = d => new Set(
       links.filter(l => l.source.id === d.id || l.target.id === d.id)
            .flatMap(l => [l.source.id, l.target.id])
@@ -8432,71 +8496,68 @@ drillDown(name, preventRender = false) {
         const nb  = neighbors(d);
         const col = agencyColor(d);
 
-        // Dim everything not connected
         nodeSel
-          .attr('fill-opacity',   n => nb.has(n.id) ? (n.group === 'agency' ? 0.95 : 0.88) : 0.08)
+          .attr('fill-opacity',   n => nb.has(n.id) ? (n.group==='agency'?0.95:0.88) : 0.08)
           .attr('stroke-opacity', n => nb.has(n.id) ? 0.6 : 0.04);
-
-        // Highlight connected links in the agency colour
         linkSel
-          .attr('stroke', l => (l.source.id === d.id || l.target.id === d.id) ? col : lineRest)
-          .attr('stroke-opacity', l => (l.source.id === d.id || l.target.id === d.id) ? 0.85 : 0.04)
-          .attr('stroke-width', l => lw(l.value));
-
-        labelLayer.selectAll('text').attr('opacity', function() {
-          const t = d3.select(this);
-          // Find which node this label belongs to by position proximity
-          return 0.08;
-        });
+          .attr('stroke', l => (l.source.id===d.id||l.target.id===d.id) ? col : lineRest)
+          .attr('stroke-opacity', l => (l.source.id===d.id||l.target.id===d.id) ? 0.9 : 0.04);
+        blobSel
+          .attr('fill-opacity',   b => b.agency.id === d.id || nb.has(b.agency.id) ? (isDark?0.14:0.10) : 0.02)
+          .attr('stroke-opacity', b => b.agency.id === d.id || nb.has(b.agency.id) ? 0.5 : 0.05);
+        labelLayer.selectAll('text').attr('opacity', 0.08);
 
         if (tooltip) {
-          const connections = links.filter(l => l.source.id === d.id || l.target.id === d.id);
-          const partners    = [...new Set(connections.map(l =>
-            l.source.id === d.id ? l.target.id : l.source.id))];
+          const conns   = links.filter(l => l.source.id===d.id||l.target.id===d.id);
+          const partners = [...new Set(conns.map(l => l.source.id===d.id?l.target.id:l.source.id))];
           tooltip.innerHTML = `
             <div style="font-weight:800;font-size:var(--text-sm);margin-bottom:3px;">${Html.escapeHtml(d.id.replace(/^Department of (the )?/i,''))}</div>
-            <div style="font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-tertiary);margin-bottom:5px;">${d.group === 'agency' ? 'Agency' : 'Vendor'}</div>
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-tertiary);margin-bottom:5px;">${d.group==='agency'?'Agency':'Vendor'}</div>
             <div style="font-weight:700;color:${col};margin-bottom:3px;">${Utils.money(d.spend)}</div>
-            <div style="font-size:9px;color:var(--text-tertiary);">${partners.length} connection${partners.length !== 1 ? 's' : ''}</div>`;
+            <div style="font-size:9px;color:var(--text-tertiary);">${partners.length} connection${partners.length!==1?'s':''}</div>`;
           tooltip.style.opacity = '1';
-          tooltip.style.left = (event.clientX + 14) + 'px';
-          tooltip.style.top  = (event.clientY - 10) + 'px';
+          tooltip.style.left = (event.clientX+14)+'px';
+          tooltip.style.top  = (event.clientY-10)+'px';
         }
       })
       .on('mouseleave', () => {
-        nodeSel.attr('fill-opacity', d => d.group === 'agency' ? 0.90 : 0.75)
-               .attr('stroke-opacity', 0.4);
-        linkSel.attr('stroke', lineRest).attr('stroke-opacity', 1)
-               .attr('stroke-width', d => lw(d.value));
-        labelLayer.selectAll('text').attr('opacity', d => 1);
+        nodeSel.attr('fill-opacity', d=>d.group==='agency'?0.90:0.75).attr('stroke-opacity',0.45);
+        linkSel.attr('stroke',lineRest).attr('stroke-opacity',0.9).attr('stroke-width',d=>lw(d.value));
+        blobSel.attr('fill-opacity',isDark?0.07:0.05).attr('stroke-opacity',isDark?0.22:0.18);
+        labelLayer.selectAll('text').attr('opacity', function() {
+          const id = d3.select(this).attr('data-id');
+          const n  = nodes.find(nd => nd.id === id);
+          return n ? (n.group==='agency' ? 0.9 : 0.68) : 0.68;
+        });
         hideTip();
       })
       .on('click', (e, d) => {
         e.stopPropagation();
-        if (d.group === 'agency') {
-          App._graphFocusedAgency = d.id;
-          App.drillDown(d.id, true);
-          App.setSankeyView('sankey');
-        } else {
-          App.drillDown(d.id, true);
-          App.setSankeyView('sankey');
-        }
+        App.drillDown(d.id, true);
+        App.setSankeyView('sankey');
       });
 
     // ── Tick ─────────────────────────────────────────────────────────────────
     sim.on('tick', () => {
-      linkSel.attr('x1', d => d.source.x).attr('y1', d => d.source.y)
-             .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
-      nodeSel.attr('cx', d => d.x).attr('cy', d => d.y);
-      labelLayer.selectAll('text').each(function(d, i) {
-        if (!d) return;
-        const r = nodeR(d);
-        d3.select(this).attr('x', d.x).attr('y', d.y + r + (d.group === 'agency' ? 12 : 12));
+      linkSel.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y)
+             .attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
+      nodeSel.attr('cx',d=>d.x).attr('cy',d=>d.y);
+      // Update blobs as physics settles
+      blobSel.attr('d', d => blobPath(d.members.map(n=>[n.x,n.y]), 32 + nodeR(d.agency)*0.6));
+      // Update labels
+      labelLayer.selectAll('text[data-id]').each(function() {
+        const id = d3.select(this).attr('data-id');
+        const n  = nodes.find(nd=>nd.id===id);
+        if (!n) return;
+        const r  = nodeR(n);
+        const el = d3.select(this);
+        const dy = +el.attr('y') - (n.y + r);  // preserve name vs spend offset
+        el.attr('x', n.x).attr('y', n.y + r + (dy < 18 ? 12 : 23));
       });
     });
 
     // Fade in
-    g.attr('opacity', 0).transition().duration(400).attr('opacity', 1);
+    g.attr('opacity',0).transition().duration(400).attr('opacity',1);
   },
 
   renderSankey() {
