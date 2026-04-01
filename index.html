@@ -5715,9 +5715,6 @@ async searchAwards(keywords) {
     const period = timePeriod[0];
     const { pscCodes, naicsCodes, keywordTerms, andGroups } = Utils.parseSearchTerms(keywords);
 
-    // ── Sector agency filter — injected when user has active sector selection ──
-    const sectorAgencies = App._getSectorAgencyFilter();
-    
     if (andGroups.length > 0) {
       const group = andGroups[0];
       const pscPat = /^[A-Z]{1,2}\d{1,3}$|^\d{1,2}[A-Z]\d{0,2}$/i;
@@ -5737,22 +5734,16 @@ async searchAwards(keywords) {
       });
       if (agencies.length > 0) filters.agencies = agencies;
       if (kws.length > 0) filters.keywords = kws;
+      App._applySectorFilter(filters);  // ← sector constraint applied here
       if (codes.length > 0 || agencies.length > 0) {
         let data;
         try { data = (await this._post('/search/spending_by_award/', { filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })).results || []; } catch(e) { data = []; }
         if (data.length === 0 && kws.length > 0) {
-          const fallbackFilters = { time_period: [period], award_type_codes: this.CONTRACT_TYPES, keywords: kws };
+          const fallbackFilters = App._applySectorFilter({ time_period: [period], award_type_codes: this.CONTRACT_TYPES, keywords: kws });
           let pool;
           try { pool = (await this._post('/search/spending_by_award/', { filters: fallbackFilters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })).results || []; } catch(e) { pool = []; }
           data = pool.filter(award => {
             let keep = true;
-            if (agencies.length > 0) {
-              const match = agencies.some(a => {
-                const t = a.name.toLowerCase();
-                return (award['Awarding Agency']?.toLowerCase() === t) || (award['Awarding Sub Agency']?.toLowerCase() === t);
-              });
-              if (!match) keep = false;
-            }
             if (codes.length > 0) {
               const match = codes.some(c => (c.type === 'naics' && award['NAICS'] === c.value) || (c.type === 'psc' && award['PSC'] === c.value));
               if (!match) keep = false;
@@ -5785,6 +5776,7 @@ async searchAwards(keywords) {
     if (hasNaics) filters.naics_codes = { require: naicsCodes };
     if (plainKeywords.length > 0) filters.keywords = plainKeywords;
     if (agencyFilters.length > 0) filters.agencies = agencyFilters;
+    App._applySectorFilter(filters);  // ← sector constraint applied here
     const rawData = (await this._post('/search/spending_by_award/', { filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })).results || [];
     return cleanAndSort(rawData);
   },
@@ -5792,16 +5784,8 @@ async searchAwards(keywords) {
   async getNaicsBreakdown(keywords) {
     const timePeriod = Utils.getTrailing12Mo();
     const filters = Utils.buildFilters(keywords, timePeriod);
-    // Merge sector agency filter — append to any existing agency filters
-    if (sectorAgencies) {
-      if (filters.agencies) {
-        // Only override if no explicit agency search — sector is a constraint not a target
-        if (!filters.keywords) filters.agencies = [...(filters.agencies || []), ...sectorAgencies];
-      } else {
-        filters.agencies = sectorAgencies;
-      }
-    }
     filters.award_type_codes = this.CONTRACT_TYPES;
+    App._applySectorFilter(filters);
     return (await this._post('/search/spending_by_category/naics', { category: 'naics', filters, limit: 10 })).results || [];
   },
 
@@ -5836,6 +5820,7 @@ const startYear = currentYear - 4;
     });
     if (agencies.length > 0) filters.agencies = agencies;
     if (kws.length > 0) filters.keywords = kws;
+    App._applySectorFilter(filters);
     const trendResult = await this._post('/search/spending_over_time/', { group: 'fiscal_year', filters });
     let results = trendResult.results || [];
     const finalResults = [];
@@ -5849,6 +5834,7 @@ const startYear = currentYear - 4;
 
   async getTopAgenciesForYear(keywords, fy) {
     const filters = Utils.buildFilters(keywords, [{ start_date: `${parseInt(fy)-1}-10-01`, end_date: `${fy}-09-30` }]);
+    App._applySectorFilter(filters);
     return (await this._post('/search/spending_by_category/awarding_subagency', { category: 'awarding_subagency', filters, limit: 3 })).results || [];
   },
 
@@ -5859,6 +5845,7 @@ const startYear = currentYear - 4;
   async getSubawards(keywords) {
     const timePeriod = Utils.getTrailing12Mo();
     const filters = Utils.buildFilters(keywords, timePeriod);
+    App._applySectorFilter(filters);
     try {
       const res = await this._post('/search/spending_by_award/', {
         subawards: true,
@@ -7160,6 +7147,8 @@ async runOpportunityStrategy(awardId) {
       // before the new one arrives. loadSubcontractingData repopulates it.
       App.forecastData = { loaded: false, subawards: null };
       App._graphFocusedAgency = null;
+      App._activeSectors = null;   // reset sector filter on new search
+      App._updateSectorPillUI();
       App.setSankeyView('sankey');
       App._pipelineTargets = null;
       DOM.hide('pipelineTargetsSection');
@@ -8309,20 +8298,30 @@ drillDown(name, preventRender = false) {
 
   setSectorFilter(key) {
     if (!key) {
+      // "All" clicked — reset to no filter
       App._activeSectors = null;
-    } else {
-      if (!App._activeSectors) App._activeSectors = new Set(Object.keys(App.SECTORS));
-      if (App._activeSectors.has(key) && App._activeSectors.size > 1) {
-        App._activeSectors.delete(key);
+    } else if (!App._activeSectors) {
+      // Currently unfiltered — clicking one sector isolates it
+      App._activeSectors = new Set([key]);
+    } else if (App._activeSectors.has(key)) {
+      if (App._activeSectors.size === 1) {
+        // Last active sector — clicking it resets to all
+        App._activeSectors = null;
       } else {
-        App._activeSectors.add(key);
-        if (App._activeSectors.size === Object.keys(App.SECTORS).length) {
-          App._activeSectors = null; // all active = same as no filter
-        }
+        App._activeSectors.delete(key);
+      }
+    } else {
+      App._activeSectors.add(key);
+      if (App._activeSectors.size === Object.keys(App.SECTORS).length) {
+        App._activeSectors = null; // all active = same as no filter
       }
     }
     App._updateSectorPillUI();
-    if (App.currentQuery) App.runSearch(App.currentQuery);
+    // Re-run the full search so the API returns only the filtered universe
+    if (App.currentQuery) {
+      App.searchData = { raw: [], active: [], filter: null, loaded: false };
+      App.runSearch(App.currentQuery);
+    }
   },
 
   _updateSectorPillUI() {
@@ -8344,6 +8343,30 @@ drillDown(name, preventRender = false) {
       });
     });
     return agencies.length > 0 ? agencies : null;
+  },
+
+  // Merges active sector filter into a USASpending filters object in-place.
+  // Called before EVERY API search call so sector is enforced at the API level.
+  // If the query already contains explicit agency terms, sector filter is combined
+  // (intersection logic) — USASpending ANDs multiple agency filters.
+  _applySectorFilter(filters) {
+    const sectorAgencies = App._getSectorAgencyFilter();
+    if (!sectorAgencies) return filters;  // no active sector = no-op
+    // If no existing agency filter, set it to the sector list
+    if (!filters.agencies || filters.agencies.length === 0) {
+      filters.agencies = sectorAgencies;
+    } else {
+      // Keep only agencies that appear in BOTH the explicit list AND the sector list
+      // This allows "VA + FedHealth" to work (VA is in FedHealth, so it stays)
+      const sectorNames = new Set(sectorAgencies.map(a => a.name.toLowerCase()));
+      const intersection = filters.agencies.filter(a =>
+        sectorNames.has((a.name || a.toptier_name || '').toLowerCase())
+      );
+      // If intersection is empty (user searched a different-sector agency), fall back
+      // to the sector filter so we don't return empty results
+      filters.agencies = intersection.length > 0 ? intersection : sectorAgencies;
+    }
+    return filters;
   },
 
   setSankeyView(view) {
