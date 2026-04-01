@@ -358,7 +358,7 @@ em, i:not(.icon) { font-style: normal; font-weight: 600; }
 .input-clear:hover { color: var(--text-primary); opacity: 1; transform: translateY(-50%) scale(1.1); transition: var(--transition-base); }
 .input-clear.visible { display: flex; }
 
-input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: searchfield-cancel-button; cursor: pointer; }
+input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; display: none; }
 
 /* 7. HERO VIEW & LOGO
    =========================================== */
@@ -393,12 +393,12 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: searchf
 .app-header {
   position: sticky; top: 0; z-index: 100; background: var(--bg-app);
   padding: max(12px, var(--safe-top)) 16px 0 16px;
-  display: flex; flex-direction: column; gap: 0;
+  display: flex; flex-direction: column;
   box-shadow: none; border-bottom: none;
 }
 .app-header-row {
   display: flex; align-items: center; gap: 8px;
-  padding-bottom: 10px;
+  padding-bottom: 8px;
 }
 .header-left { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
 .logo-btn { display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; padding: 0 0.75em; background: var(--bg-hover); border: none; border-radius: var(--radius); color: var(--text-primary); transition: var(--transition-fast); height: 40px; font-size: 1.05rem; }
@@ -413,7 +413,7 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: searchf
 .logo-btn-lg .logo-arrow { display: none; }
 .logo-btn-lg .logo-name { font-size: inherit; }
 
-.mini-search { background: var(--bg-hover); border: none; color: var(--text-primary); padding: 0 1rem; border-radius: var(--radius); font-size: 1rem; flex: 1; min-width: 0; box-shadow: none; height: 40px; }
+.mini-search { background: var(--bg-hover); border: none; color: var(--text-primary); padding: 0 1rem; border-radius: var(--radius); font-size: 1rem; flex: 1; min-width: 0; box-shadow: none; height: 40px; padding-right: 72px; }
 .mini-search-wrapper { flex: 1; min-width: 0; overflow: visible; display: flex; align-items: center; position: relative; }
 .header-actions { display: flex; gap: 6px; flex-shrink: 0; align-items: center; }
 
@@ -426,16 +426,39 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: searchf
 .icon-btn:hover { background: var(--bg-active); color: var(--text-primary); }
 .icon-btn:active { transform: scale(0.96); }
 
-/* Quickjump — second row, full width, flush with search bar edges */
-.quick-jump-menu {
-  width: 100%;
+/* Sector dots — inside search bar, right-aligned */
+.sector-dots {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
+  align-items: center;
   gap: 4px;
-  overflow-x: auto;
-  padding: 8px 0 10px 0;
-  background: transparent;
-  border: none;
+  pointer-events: auto;
+}
+.sector-dot-btn {
+  width: 20px; height: 20px;
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: none; cursor: pointer;
+  border-radius: 50%;
+  padding: 0;
+  transition: var(--transition-fast);
+  opacity: 0.35;
+}
+.sector-dot-btn.active { opacity: 1; }
+.sector-dot-btn:hover { opacity: 0.8; }
+.sector-dot-btn .sector-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; transition: transform 0.15s ease; }
+.sector-dot-btn.active .sector-dot { transform: scale(1); }
+.sector-dot-btn:not(.active) .sector-dot { transform: scale(0.7); }
+
+/* Quick-jump tab bar — appears after search */
+.quick-jump-menu {
+  display: flex;
+  gap: 0;
   border-top: 1px solid var(--border);
+  padding: 0;
+  overflow-x: auto;
   scrollbar-width: none; -ms-overflow-style: none;
   -webkit-overflow-scrolling: touch;
 }
@@ -443,23 +466,22 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: searchf
 .quick-jump-menu button {
   background: transparent;
   border: none;
-  color: var(--text-tertiary);
-  padding: 4px 12px;
-  min-height: 30px;
-  border-radius: var(--radius);
+  border-bottom: 2px solid transparent;
+  color: var(--text-quaternary);
+  padding: 10px 16px 8px;
   font-size: var(--text-xs);
   font-weight: 500;
   white-space: nowrap;
   flex: 1;
   cursor: pointer;
-  transition: var(--transition-fast);
+  transition: color 0.15s ease, border-color 0.15s ease;
+  text-align: center;
 }
-.quick-jump-menu button:hover { color: var(--text-secondary); background: var(--bg-hover); }
-.quick-jump-menu button.active,
-.mission-gap-toggle.active {
-  background: var(--bg-active);
+.quick-jump-menu button:hover { color: var(--text-secondary); }
+.quick-jump-menu button.active {
   color: var(--text-primary);
   font-weight: 600;
+  border-bottom-color: var(--text-primary);
 }
 /* 9. DASHBOARD & TYPOGRAPHY
    =========================================== */
@@ -851,8 +873,7 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: searchf
 /* Sector filter pills */
 #sectorFilterBar { display:none; align-items:center; gap:6px; flex-wrap:wrap; padding:8px 0 4px; }
 #sectorFilterBar.visible { display:flex; }
-#globalSectorBar { border-top: 1px solid var(--border); margin-top: 2px; }
-@media (max-width: 480px) { #globalSectorBar { gap: 4px; } #globalSectorBar .sector-pill { padding: 2px 7px 2px 5px; font-size: 10px; } }
+@media (max-width: 480px) { .sector-dots { gap: 2px; } .sector-dot-btn .sector-dot { width: 7px; height: 7px; } }
 .sector-pill {
   display:inline-flex; align-items:center; gap:5px;
   padding:3px 10px 3px 7px; border-radius:99px;
@@ -877,21 +898,19 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: searchf
 .dark-mode .bubble-toggle-btn.active, .dark-mode .mission-gap-toggle.active { background: rgba(255,255,255,0.1); color: var(--text-primary); }
 .dark-mode .breadcrumb-item { color: rgba(255,255,255, 0.5); }
 .dark-mode .breadcrumb-item.active { background: rgba(255,255,255, 0.1); color: var(--text-primary); }
-/* Dark Mode Overrides for the Menu */
+/* Dark Mode Overrides for the Header */
 .dark-mode .quick-jump-menu {
   border-top-color: rgba(255,255,255,0.06);
 }
 .dark-mode .quick-jump-menu button {
-  color: rgba(255,255,255,0.4);
+  color: rgba(255,255,255,0.3);
 }
 .dark-mode .quick-jump-menu button:hover {
   color: var(--text-secondary);
-  background: rgba(255,255,255,0.04);
 }
-.dark-mode .quick-jump-menu button.active,
-.dark-mode .mission-gap-toggle.active {
-  background: rgba(255,255,255,0.10);
+.dark-mode .quick-jump-menu button.active {
   color: var(--text-primary);
+  border-bottom-color: var(--text-primary);
 }
 
 .dark-mode .deal-card, .dark-mode .section-header, .dark-mode .reach-row, .dark-mode .data-panel-header, .dark-mode .ai-banner, .dark-mode .ai-action-panel, .dark-mode .explainer-box { border-color: rgba(255,255,255, 0.08); }
@@ -991,10 +1010,9 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: searchf
 
 @media (max-width: 600px) {
   .app-header { padding: max(8px, var(--safe-top)) 12px 0 12px; }
-  .app-header-row { gap: 6px; padding-bottom: 8px; }
+  .app-header-row { gap: 6px; padding-bottom: 6px; }
   .header-left { gap: 6px; flex: 1; min-width: 0; }
-  .quick-jump-menu { padding: 6px 0 8px 0; gap: 3px; }
-  .quick-jump-menu button { padding: 4px 8px; font-size: var(--text-micro); }
+  .quick-jump-menu button { padding: 8px 12px 6px; font-size: var(--text-micro); min-height: 32px; }
   .mini-search { padding: 0 8px; font-size: 16px; }
   .mini-search-wrapper { flex: 1; min-width: 0; }
   .header-actions { gap: 4px; flex-shrink: 0; }
@@ -1370,9 +1388,23 @@ details[open] > summary svg { transform: rotate(180deg); }
           <div class="mini-search-wrapper">
             <input type="search" id="miniSearch" class="mini-search" aria-label="Search keywords, companies, NAICS" placeholder="Search keywords, companies, NAICS..." enterkeyhint="search" autocorrect="off" autocapitalize="none" autocomplete="off">
             <div id="miniAgencySuggestions" class="autocomplete-dropdown hidden"></div>
+            <div id="globalSectorBar" class="sector-dots">
+              <button class="sector-dot-btn active" data-sector="dod" onclick="App.setSectorFilter('dod')" title="DoD">
+                <span class="sector-dot" style="background:#7CA8C4"></span>
+              </button>
+              <button class="sector-dot-btn active" data-sector="fedciv" onclick="App.setSectorFilter('fedciv')" title="FedCiv">
+                <span class="sector-dot" style="background:#80C0B0"></span>
+              </button>
+              <button class="sector-dot-btn active" data-sector="fedhealth" onclick="App.setSectorFilter('fedhealth')" title="FedHealth">
+                <span class="sector-dot" style="background:#D4A0B0"></span>
+              </button>
+              <button class="sector-dot-btn active" data-sector="fedfin" onclick="App.setSectorFilter('fedfin')" title="FedFin">
+                <span class="sector-dot" style="background:#E8A468"></span>
+              </button>
+            </div>
           </div>
         </div>
-      <div class="header-actions">
+        <div class="header-actions">
           <button class="icon-btn icon-btn-save hidden" id="saveSearchBtn" data-action="saveSearch" aria-label="Save this search">
             <svg class="icon" aria-hidden="true"><use href="#icon-bookmark"></use></svg>
           </button>
@@ -1384,30 +1416,12 @@ details[open] > summary svg { transform: rotate(180deg); }
           </button>
         </div>
       </div>
-      <!-- Sector filter — always visible in header, constrains all searches -->
-      <div id="globalSectorBar" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 0 2px;">
-        <span style="font-size:10px;color:var(--text-quaternary);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;margin-right:2px;">Territory</span>
-        <button class="sector-pill active" data-sector="dod" onclick="App.setSectorFilter('dod')">
-          <span class="sector-dot" style="background:#7CA8C4"></span>DoD
-        </button>
-        <button class="sector-pill active" data-sector="fedciv" onclick="App.setSectorFilter('fedciv')">
-          <span class="sector-dot" style="background:#80C0B0"></span>FedCiv
-        </button>
-        <button class="sector-pill active" data-sector="fedhealth" onclick="App.setSectorFilter('fedhealth')">
-          <span class="sector-dot" style="background:#D4A0B0"></span>FedHealth
-        </button>
-        <button class="sector-pill active" data-sector="fedfin" onclick="App.setSectorFilter('fedfin')">
-          <span class="sector-dot" style="background:#E8A468"></span>FedFin
-        </button>
-        <span class="sector-pill-all" onclick="App.setSectorFilter(null)" title="Reset to all sectors">All</span>
-      </div>
-
-      <div class="quick-jump-menu hidden" id="quickJumpMenu">
+      <nav class="quick-jump-menu hidden" id="quickJumpMenu">
         <button class="active" data-target="bubbleChartPanel" onclick="App.scrollToPanel('bubbleChartPanel')">Market</button>
         <button data-target="pipelineTargetsSection" onclick="App.scrollToPanel('pipelineTargetsSection')">Pipeline</button>
         <button data-target="sankeyHeader" onclick="App.scrollToPanel('sankeyHeader')">Flow</button>
         <button data-target="recentAwardsHeader" onclick="App.scrollToPanel('recentAwardsHeader')">Awards</button>
-      </div>
+      </nav>
     </header>
 
     <main id="dashboardContainer" class="dashboard-container">
@@ -8036,7 +8050,7 @@ drillDown(name, preventRender = false) {
   },
 
   _updateSectorPillUI() {
-    document.querySelectorAll('.sector-pill').forEach(pill => {
+    document.querySelectorAll('.sector-pill, .sector-dot-btn').forEach(pill => {
       const key = pill.dataset.sector;
       const active = !App._activeSectors || App._activeSectors.has(key);
       pill.classList.toggle('active', active);
