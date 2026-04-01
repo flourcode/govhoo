@@ -54,7 +54,6 @@
 "Recompete and expiring contract tracking",
 "AI-powered strategy briefs",
 "NAICS code market analysis",
-"Prime and subcontract flow analysis",
 "Target account ranking"
 ]
 }
@@ -232,7 +231,7 @@ em, i:not(.icon) { font-style: normal; font-weight: 600; }
 .show-inline-block { display: inline-block !important; }
 
 /* Grouped Flat Panel Resets */
-.stat-panel, .data-panel, .ai-action-panel, .explainer-box, .recompete-accordion, #bubbleChartPanel, #subBubblePanel, .ai-banner {
+.stat-panel, .data-panel, .ai-action-panel, .explainer-box, .recompete-accordion, #bubbleChartPanel, .ai-banner {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
@@ -246,7 +245,7 @@ em, i:not(.icon) { font-style: normal; font-weight: 600; }
 }
 
 /* Grouped Radius Resets */
-.deal-card, .data-panel, .ai-action-panel, .explainer-box, .recompete-accordion, .drill-controls-bar, .drill-breadcrumb, .drill-hint, #bubbleChartPanel, #subBubblePanel, .ai-banner, .show-more-btn {
+.deal-card, .data-panel, .ai-action-panel, .explainer-box, .recompete-accordion, .drill-controls-bar, .drill-breadcrumb, .drill-hint, #bubbleChartPanel, .ai-banner, .show-more-btn {
   border-radius: 0 !important;
 }
 
@@ -594,11 +593,11 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: searchf
 
 /* 12. BUBBLE CHART
    =========================================== */
-#bubbleChartPanel, #subBubblePanel { scroll-margin-top: 70px; padding: 0; margin-bottom: var(--section-gap); overflow: hidden; }
+#bubbleChartPanel { scroll-margin-top: 70px; padding: 0; margin-bottom: var(--section-gap); overflow: hidden; }
 #bubbleChartPanel { font-size: var(--text-sm); color: var(--text-secondary); font-weight: 400; letter-spacing: -0.01em; margin-bottom: var(--space-sm); }
-#bubbleChartContainer, #subBubbleContainer { width: 100%; position: relative; }
+#bubbleChartContainer { width: 100%; position: relative; }
 #bubbleChartContainer { min-height: 420px; }
-#bubbleChartContainer svg, #subBubbleContainer svg { width: 100%; height: auto; display: block; }
+#bubbleChartContainer svg { width: 100%; height: auto; display: block; }
 
 .bubble-node { cursor: pointer; transition: var(--transition-fast); }
 .bubble-node:hover { opacity: 0.95; }
@@ -930,11 +929,9 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: searchf
 .dark-mode .spinner { border-color: rgba(255,255,255, 0.1); border-top-color: rgba(255,255,255, 0.6); }
 .dark-mode #loaderText { color: rgba(255,255,255, 0.6); }
 
-.dark-mode #stat-vol, .dark-mode #bubble-stat-vol, .dark-mode #sub-stat-vol, .dark-mode #sub-bubble-stat-vol,
+.dark-mode #stat-vol, .dark-mode #bubble-stat-vol,
 .dark-mode #stat-agencies, .dark-mode #stat-count, .dark-mode #stat-vendors, .dark-mode #bubble-stat-agencies, 
-.dark-mode #bubble-stat-count, .dark-mode #bubble-stat-vendors, .dark-mode #bubble-stat-entities,
-.dark-mode #sub-stat-primes, .dark-mode #sub-stat-subs, .dark-mode #sub-stat-count, .dark-mode #sub-bubble-stat-primes, 
-.dark-mode #sub-bubble-stat-subs, .dark-mode #sub-bubble-stat-records {
+.dark-mode #bubble-stat-count, .dark-mode #bubble-stat-vendors, .dark-mode #bubble-stat-entities {
   color: var(--text-primary) !important;
 }
 
@@ -1062,7 +1059,7 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: searchf
 /* Scroll overlap resets — header is ~90px with quickjump row visible */
 #sankeyHeader, .ai-action-panel { scroll-margin-top: 100px !important; }
 #feedGrid { scroll-margin-top: 100px !important; }
-#bubbleChartPanel, #agencyReachPanel, #targetAccountsPanel, #teamingPanel, #subawardWrapper { scroll-margin-top: 95px !important; }
+#bubbleChartPanel, #targetAccountsPanel { scroll-margin-top: 95px !important; }
 details > summary::-webkit-details-marker { display: none; }
 details[open] > summary svg { transform: rotate(180deg); }
 
@@ -1419,9 +1416,7 @@ details[open] > summary svg { transform: rotate(180deg); }
         <button class="active" data-target="bubbleChartPanel" onclick="App.scrollToPanel('bubbleChartPanel')">Market</button>
         <button data-target="pipelineTargetsSection" onclick="App.scrollToPanel('pipelineTargetsSection')">Pipeline</button>
         <button data-target="sankeyHeader" onclick="App.scrollToPanel('sankeyHeader')">Flow</button>
-        <button data-target="agencyReachPanel" onclick="App.scrollToPanel('agencyReachPanel')">Agencies</button>
         <button data-target="recentAwardsHeader" onclick="App.scrollToPanel('recentAwardsHeader')">Awards</button>
-        <button data-target="subawardWrapper" onclick="const s=document.getElementById('subawardAccordion'); if(s) s.open=true; App.scrollToPanel('subawardWrapper')">Subs</button>
       </div>
     </header>
 
@@ -1511,7 +1506,7 @@ details[open] > summary svg { transform: rotate(180deg); }
             </div>
 
             <div id="marketSparkline" class="market-sparkline-area" style="padding: 4px 0 0; margin: 0;">
-              <div id="monthlyDotsPanel" class="hidden" style="padding: 0;"></div>
+
               <div id="historicalPanel" class="hidden" style="padding: 0; margin-top: 4px; border-top: 1px solid var(--border);">
                 <div id="historicalChart" style="width: 100%; position: relative; padding-top: 4px;"></div>
                 <div id="historicalContextBox" style="font-size: var(--text-sm); color: var(--text-tertiary); min-height: 1em; margin-top: 4px; text-align: center;">Tap a year</div>
@@ -1538,7 +1533,7 @@ details[open] > summary svg { transform: rotate(180deg); }
 
             <div id="marketAttributionFooter" style="grid-column: 1 / -1;">
               <div id="marketAttributionText">
-                Top 100 active contracts by total obligated value with funding in past 12 mos. Dots show monthly spend for trailing 12 mos. FY trend shows annual obligations and top buyers. Data from USASpending.gov © Govhoo.com
+                Top 100 active contracts by total obligated value with funding in past 12 mos. FY trend shows annual obligations and top buyers. Data from USASpending.gov © Govhoo.com
               </div>
             </div>
 
@@ -1648,25 +1643,6 @@ details[open] > summary svg { transform: rotate(180deg); }
           </div>
         </div>
 
-        <div class="bento-row">
-          <div id="searchJobPanel" style="margin: 0; padding: 0; position: relative;">
-            <div id="agencyReachPanel" class="data-panel hidden">
-              <div class="data-panel-header">
-                <span class="data-panel-title">Agencies</span>
-                <span class="data-panel-subtitle"></span>
-              </div>
-              <div class="data-panel-body" id="searchTopBuyersBody"></div>
-            </div>
-          </div>
-
-          <div id="teamingPanel" class="data-panel hidden">
-            <div class="data-panel-header">
-              <span class="data-panel-title">Primes</span>
-              <span class="data-panel-subtitle"></span>
-            </div>
-            <div class="data-panel-body" id="teamingList"></div>
-          </div>
-        </div>
 
         <div class="stat-panel" style="margin-top: 1rem;">
           <div id="recentAwardsHeader" class="section-header section-header-flush">
@@ -1681,98 +1657,6 @@ details[open] > summary svg { transform: rotate(180deg); }
           <div id="feedGrid" class="feed-grid"></div>
         </div>
 
-        <div id="subawardWrapper" class="hidden" style="margin-top: 2rem;">
-          <details id="subawardAccordion" style="margin-bottom: var(--section-gap); background: transparent; border: none; padding: 0;">
-            <summary style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; list-style: none; padding: 0.5rem 0; outline: none;">
-              <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                <span class="section-title">Subcontracting Activity</span>
-                <span class="stat-subtitle no-margin-imp" id="subawardSummaryStats">-</span>
-              </div>
-              <div style="display: flex; align-items: center; gap: 1rem;">
-                <svg class="icon" aria-hidden="true" style="color: var(--text-tertiary); width: 1.1em; height: 1.1em; transition: transform 0.2s ease;"><use href="#icon-chevron-down"></use></svg>
-              </div>
-            </summary>
-            
-            <div style="padding-top: 1rem; border-top: 1px solid var(--border); margin-top: 0.5rem;">
-              <div style="margin-top: 0.5rem;">
-
-              <div id="subBubblePanel" class="stat-panel hidden">
-                <div style="margin-bottom: 0;">
-                  <div id="subBubbleBrandLine" style="font-size: var(--text-sm); font-weight: 600; color: var(--text-tertiary); letter-spacing: 0.01em; text-transform: none; margin-bottom: 0.25rem;">Subcontract Spend</div>
-                  <div class="stat-row">
-                    <div id="sub-bubble-stat-vol" class="stat-hero">-</div>
-                    <div class="stat-group">
-                      <div class="stat-item"><span id="sub-bubble-stat-primes" class="stat-value">-</span><span class="stat-label">Primes</span></div>
-                      <div class="stat-item"><span id="sub-bubble-stat-subs" class="stat-value">-</span><span class="stat-label">Subs</span></div>
-                      <div class="stat-item"><span id="sub-bubble-stat-records" class="stat-value">-</span><span class="stat-label">Contracts</span></div>
-                    </div>
-                  </div>
-                </div>
-                <div id="subBubbleBreadcrumb" class="hidden" style="margin-bottom: 1rem; padding: 0; font-size: var(--text-sm);">
-                  <div id="subBubbleBreadcrumbInner" class="flex-row-wrap-xs"></div>
-                </div>
-                <div id="subBubbleContainer" style="width: 100%; min-height: 380px; position: relative;">
-                  <div class="bubble-tooltip" id="subBubbleTooltip"></div>
-                </div>
-                <div style="display: flex; align-items: center; justify-content: flex-end; padding-top: 0.5rem; margin-top: 0.25rem; border-top: 1px solid var(--border);">
-                  <div id="subBubbleSubtitle" class="stat-subtitle hidden" style="margin-bottom:0;"></div>
-                  <div class="bubble-toggle-row toggle-row-flush" id="subBubbleToggleRow">
-                    <button class="bubble-toggle-btn" data-action="setSubBubbleMode" data-value="primes" id="subBubbleTogglePrimes">Prime</button>
-                    <button class="bubble-toggle-btn active" data-action="setSubBubbleMode" data-value="subs" id="subBubbleToggleSubs">Sub</button>
-                    <span class="toggle-sep"></span>
-                    <button class="bubble-toggle-btn" data-action="setSubBubbleChartType" data-value="bubbles" id="subChartTypeBubbles">Bubble</button>
-                    <button class="bubble-toggle-btn active" data-action="setSubBubbleChartType" data-value="treemap" id="subChartTypeTreemap">Tree</button>
-                  </div>
-                </div>
-              </div>
-
-                <div id="subcontractingPanel" class="stat-panel" style="padding-top: 0; margin-top: var(--section-gap);">
-                  <div id="subcontractingStats" style="margin-bottom: 0;">
-                    <div id="subSankeySubtitle" class="stat-subtitle hidden"></div>
-                    <div class="stat-row">
-                      <div id="sub-stat-vol" class="stat-hero">-</div>
-                      <div class="stat-group">
-                        <div class="stat-item"><span id="sub-stat-primes" class="stat-value">-</span><span class="stat-label">Primes</span></div>
-                        <div class="stat-item"><span id="sub-stat-subs" class="stat-value">-</span><span class="stat-label">Subs</span></div>
-                        <div class="stat-item"><span id="sub-stat-count" class="stat-value">-</span><span class="stat-label">Contracts</span></div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="chart-wrapper">
-                    <div id="subcontractingBody" style="min-height: 350px;"></div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="bento-row" style="margin-top: var(--section-gap);">
-                <div id="subPrimesPanel" class="data-panel hidden">
-                  <div class="data-panel-header">
-                    <span class="data-panel-title">Primes</span>
-                    <span class="data-panel-subtitle"></span>
-                  </div>
-                  <div class="data-panel-body" id="searchTopPrimesBody"></div>
-                </div>
-
-                <div id="subSubsPanel" class="data-panel hidden">
-                  <div class="data-panel-header">
-                    <span class="data-panel-title">Subcontractors</span>
-                    <span class="data-panel-subtitle"></span>
-                  </div>
-                  <div class="data-panel-body" id="searchTopSubsBody"></div>
-                </div>
-              </div>
-
-             <div id="subFeedWrapper" class="stat-panel hidden" style="margin-top: var(--section-gap);">
-                <div class="section-header section-header-flush">
-                  <div class="section-title-group">
-                    <span class="section-title section-title-lg">Recent Subcontract Activity</span>
-                  </div>
-                </div>
-                <div id="subFeedGrid" class="feed-grid"></div>
-              </div>
-            </div> 
-          </details> 
-        </div>
 
       <footer class="hero-footer">
         <div class="footer-grid">
@@ -5437,13 +5321,6 @@ drawSankey(svgEl, { nodes, links, gradientPrefix, isDrillable, isActive, onNodeC
     return { nodes: gn, links: gl, w, h };
 }
 };
-const SUB_FIELD_MAP = { agency: ['Awarding Agency','Unknown Agency'], subagency: ['Awarding Sub Agency','Unknown Sub Agency'], prime: ['Prime Recipient Name','Unknown Prime'], sub: ['Sub-Awardee Name','Unknown Sub'] };
-function applySubDrillFilter(data, drill) {
-  if (!drill || !drill.level || !drill.path || !drill.path.length) return data;
-  let f = data;
-  drill.path.forEach(step => { const [field, fb] = SUB_FIELD_MAP[step.type] || []; if (field) f = f.filter(s => (s[field] || fb) === step.name); });
-  return f;
-}
 
 
 // ========================================
@@ -5856,32 +5733,6 @@ const startYear = currentYear - 4;
   // recipient_id is now fetched with every search via AWARD_FIELDS —
   // it contains the full UUID-level ID (e.g. b97d19b0-...-P) that maps
   // directly to the USASpending recipient profile URL.
-  async getSubawards(keywords) {
-    const timePeriod = Utils.getTrailing12Mo();
-    const filters = Utils.buildFilters(keywords, timePeriod);
-    App._applySectorFilter(filters);
-    try {
-      const res = await this._post('/search/spending_by_award/', {
-        subawards: true,
-        filters: filters,
-        fields: ['Sub-Award ID', 'Sub-Awardee Name', 'Sub-Award Amount', 'Sub-Award Date', 'Prime Award ID', 'Prime Recipient Name', 'Awarding Agency', 'Awarding Sub Agency', 'prime_award_generated_internal_id'],
-        limit: 100,
-        sort: 'Sub-Award Amount',
-        order: 'desc'
-      });
-      const results = res.results || [];
-      // Normalize vendor names so subaward Sankey consolidates variants
-      // the same way the prime Sankey does
-      results.forEach(s => {
-        if (s['Prime Recipient Name']) s['Prime Recipient Name'] = Utils.normalizeVendorName(s['Prime Recipient Name']);
-        if (s['Sub-Awardee Name']) s['Sub-Awardee Name'] = Utils.normalizeVendorName(s['Sub-Awardee Name']);
-      });
-      return results;
-    } catch (e) {
-      console.warn("Subaward search failed:", e);
-      return [];
-    }
-  }
 };
 const ForecastEngine = {
   detectRecompetes(awards) {
@@ -6187,10 +6038,10 @@ const App = {
   originalQuery: '',
   artiContext: '',
   searchData: { raw: [], active: [], filter: null, loaded: false },
-  forecastData: { analysis: null, subawards: null, loaded: false },
+  forecastData: { analysis: null, loaded: false },
   naicsData: null,
   drillState: { level: 0, path: [], currentAgency: null, currentSubAgency: null },
-  subawardDrillState: { level: 0, path: [], filter: null, filterType: null },
+
   activeFeedSource: 'prime', 
   onlyHighMissionGap: false,
   bubbleMode: 'agencies', // FIX: Forces Agency view on load
@@ -6222,10 +6073,6 @@ const App = {
         if (searchView?.classList.contains('active') && App.searchData?.active?.length > 0) {
           App.renderSankey(); 
           App.renderBubbleChart();
-          if (App.forecastData?.subawards && !DOM.get('subawardWrapper')?.classList.contains('hidden')) {
-            App.renderSubawardSankey(App.forecastData.subawards);
-            App.renderSubBubbleChart();
-          }
         }
       }, 500); 
     });
@@ -6234,7 +6081,7 @@ const App = {
     if (appView) {
       appView.addEventListener('scroll', () => {
         // FIXED: Added pipelineTargetsSection and AI panels to the tracking array
-        const trackedPanels = ['bubbleChartPanel', 'pipelineTargetsSection', 'sankeyPanel', 'agencyReachPanel', 'recentAwardsHeader', 'subawardWrapper', 'aiActionPanel', 'aiIntelligenceBanner'];
+        const trackedPanels = ['bubbleChartPanel', 'pipelineTargetsSection', 'sankeyPanel', 'recentAwardsHeader', 'aiActionPanel', 'aiIntelligenceBanner'];
         let activePanelId = '';
 
         for (const panelId of trackedPanels) {
@@ -6416,7 +6263,6 @@ const App = {
         'shareLink': () => App.shareLink(target),
         'shareBrief': () => App.shareBrief(target),
         'exportCSV': () => App.exportCSV(target),
-        'resetSubawardDrill': () => App.resetSubawardDrill(),
         'runAiPlan': () => App.runAiActionPlan(),
         'copyAiPlan': () => App.copyAiPlan(),
         'sendAiChat': () => App.sendAiChatMessage(),
@@ -6433,8 +6279,6 @@ const App = {
         'exportPipelineCSV': () => App.exportPipelineCSV(),
         'setBubbleMode': () => App.setBubbleMode(value),
         'setBubbleChartType': () => App.setBubbleChartType(value),
-        'setSubBubbleMode': () => App.setSubBubbleMode(value),
-        'setSubBubbleChartType': () => App.setSubBubbleChartType(value),
         'toggleExplainer': () => {
            const content = target.nextElementSibling;
            const icon = target.querySelector('.etm-toggle-icon');
@@ -6666,10 +6510,6 @@ transitionToApp() {
       if (App.searchData && App.searchData.active && App.searchData.active.length > 0) {
         App.renderSankey();
         App.renderBubbleChart();
-        if (App.forecastData && App.forecastData.subawards) {
-          App.renderSubawardSankey(App.forecastData.subawards);
-          App.renderSubBubbleChart();
-        }
       }
     });
   },
@@ -7157,9 +6997,7 @@ async runOpportunityStrategy(awardId) {
 
     if(query !== App.currentQuery) { 
       App.searchData = { raw: [], active: [], filter: null, loaded: false };
-      // Null subawards explicitly so the previous search's array is released
-      // before the new one arrives. loadSubcontractingData repopulates it.
-      App.forecastData = { loaded: false, subawards: null };
+      App.forecastData = { loaded: false };
       App._graphFocusedAgency = null;
       App.setSankeyView('sankey');
       App._pipelineTargets = null;
@@ -7167,7 +7005,6 @@ async runOpportunityStrategy(awardId) {
       const kb = DOM.get('kanbanBoardContainer');
       if (kb) kb.innerHTML = '';
       App.resetDrill(); 
-      App.subawardDrillState = { level: 0, path: [], filter: null, filterType: null }; 
       document.querySelectorAll('details').forEach(d => d.open = false);
     }
     App.currentQuery = query;
@@ -7181,7 +7018,7 @@ async runOpportunityStrategy(awardId) {
     App.showLoader('Scanning ' + query);
 
     try {
-      const allPanels = ['vehicleFilterBar', 'sankeyPanel', 'aiIntelligenceBanner', 'aiActionPanel', 'teamingPanel', 'agencyReachPanel', 'recentAwardsHeader', 'bubbleChartPanel', 'targetAccountsPanel', 'recompetesList', 'feedGrid', 'subawardWrapper'];
+      const allPanels = ['vehicleFilterBar', 'sankeyPanel', 'aiIntelligenceBanner', 'aiActionPanel', 'recentAwardsHeader', 'bubbleChartPanel', 'targetAccountsPanel', 'recompetesList', 'feedGrid'];
       allPanels.forEach(id => DOM.show(id));
       DOM.hide('emptySearchState');
 
@@ -7325,7 +7162,6 @@ async runOpportunityStrategy(awardId) {
       
       requestAnimationFrame(() => { 
         App.renderVehiclePills(); 
-        App.renderPrimeReach(); 
       });
       this.loadBackgroundData(query);
     } catch(e) { 
@@ -7348,7 +7184,6 @@ async runOpportunityStrategy(awardId) {
 async loadBackgroundData(query) {
     this.loadForecastInBackground(query);
     this.loadNaicsBreakdown(query).catch(e => console.warn('NAICS load failed:', e));
-    setTimeout(() => this.loadSubcontractingData(query), 0);
   },
 
   async loadNaicsBreakdown(query) {
@@ -7362,54 +7197,11 @@ async loadBackgroundData(query) {
     if (!query) return;
     const awards = App.searchData.raw || [];
     const recompetes = ForecastEngine.detectRecompetes(awards);
-    // Preserve subawards only if they belong to the same query — loadSubcontractingData
-    // sets them asynchronously and may finish after this runs on repeat searches.
     App.forecastData = {
       analysis: { recompetes },
-      subawards: (App.currentQuery === query) ? (App.forecastData?.subawards || null) : null,
       loaded: true
     };
     App.renderStrategyTools();
-  },
-
-  async loadSubcontractingData(query) {
-    if (App.forecastData.subawards && App.currentQuery === query) return;
-    const body = DOM.get('subcontractingBody');
-    if (!body) return;
-    const capturedSearchId = App._searchId;
-    
-    body.innerHTML = `<div style="text-align:center; padding:2rem; color:var(--text-secondary);"> Loading subaward flow...</div>`;
-    const timeout = setTimeout(() => {
-      if (App.currentQuery !== query) return; // Don't show retry for stale query
-      if (body.innerHTML.includes('Loading subaward')) {
-        body.innerHTML = `<div style="text-align:center; padding:1rem; color:var(--text-secondary); font-size:var(--text-base);">
-           Subaward data is taking too long to load.
-          <br><button onclick="App.loadSubcontractingData(App.currentQuery)" style="color:var(--accent); text-decoration:underline; font-size:var(--text-sm); background:none; border:none; cursor:pointer;">Retry</button>
-        </div>`;
-      }
-    }, 15000);
-    
-    try {
-      API.getSubawards(query)
-        .then(subawards => {
-          clearTimeout(timeout);
-          // Guard: Don't render results from a stale search
-          if (capturedSearchId !== App._searchId || App.currentQuery !== query) return;
-          App.forecastData.subawards = subawards;
-          this.renderSubawardSankey(subawards);
-          this.renderSearchTopPrimes(subawards);
-          this.renderSearchTopSubs(subawards);
-          this.renderSubawardFeed();
-          App.renderSubBubbleChart();
-        })
-        .catch(e => { clearTimeout(timeout); if (e.name !== 'AbortError') console.error(e); });
-    } catch (e) {
-      clearTimeout(timeout);
-      body.innerHTML = `<div style="text-align:center; padding:1rem; color:var(--text-secondary); font-size:var(--text-base);">
-         Unable to load subaward data.
-        <br><button onclick="App.loadSubcontractingData(App.currentQuery)" style="color:var(--accent); text-decoration:underline; font-size:var(--text-sm); background:none; border:none; cursor:pointer;">Retry</button>
-      </div>`;
-    }
   },
 // --- Rendering Dashboards ---
   updateSearchDashboard() {
@@ -7432,8 +7224,6 @@ async loadBackgroundData(query) {
 
     App.renderFeed();
     App.updateDrillUI();
-    App.renderSearchTopBuyers(data);
-    App.renderPrimeReach();
     
     requestAnimationFrame(() => {
       App.renderSankey();
@@ -7472,87 +7262,6 @@ async loadBackgroundData(query) {
 
 renderMarketSparkline() {
     this.renderHistoricalTimeline(App.currentQuery);
-    this.renderMonthlyDots();
-  },
-
-  renderMonthlyDots() {
-    const container = DOM.get('monthlyDotsPanel');
-    if (!container) return;
-
-    const data = App.searchData.active || [];
-    if (data.length === 0) { container.classList.add('hidden'); return; }
-
-    container.classList.remove('hidden');
-
-    const now = new Date();
-    const months = [];
-    for (let i = 11; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      months.push({
-        key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
-        label: d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase().slice(0, 3),
-        month: d.getMonth(),
-        count: 0,
-        amount: 0
-      });
-    }
-
-    data.forEach(c => {
-      if (!c['Start Date']) return;
-      const d = new Date(c['Start Date']);
-      if (isNaN(d.getTime())) return;
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      const m = months.find(m => m.key === key);
-      if (m) { m.count++; m.amount += parseFloat(c['Award Amount']) || 0; }
-    });
-
-    const activeMonthCount = months.filter(m => m.count > 0).length;
-    if (activeMonthCount === 0) { container.innerHTML = ''; container.classList.add('hidden'); return; }
-
-    const maxAmount = Math.max(...months.map(m => m.amount), 1);
-    const maxCount = Math.max(...months.map(m => m.count), 1);
-    const peak = months.reduce((best, m) => m.amount > best.amount ? m : best, months[0]);
-
-    const isDark = App.darkMode;
-    const brandColor = isDark ? '#F0EFEC' : '#2C2B28';
-    const inactiveColor = isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)';
-
-    // ALIGNMENT FIX: Matched exactly to the Historical chart below
-    const vw = 400;
-    const h = 24;
-    const padX = 18; 
-    const step = (vw - padX * 2) / 11; // 12 months = 11 intervals
-    const centerY = h / 2 - 3;
-    
-    // WEIGHT FIX: Scaled down slightly so it doesn't overpower the thin line below
-    const dotMaxR = 5; 
-    const dotMinR = 1.5;
-
-    let svg = `<svg viewBox="0 0 ${vw} ${h}" style="display:block;width:100%;height:auto;overflow:visible;" preserveAspectRatio="xMidYMid meet">`;
-
-    months.forEach((m, i) => {
-      const cx = padX + i * step; // ALIGNMENT FIX: Aligns plumb with the chart below
-      const isCurrent = i === months.length - 1;
-      const isPeak = m === peak && m.amount > 0;
-      
-      const color = (isCurrent || isPeak) ? brandColor : inactiveColor;
-      const fw = (isCurrent || isPeak) ? '700' : '500';
-
-      if (m.count === 0) {
-        svg += `<circle cx="${cx}" cy="${centerY}" r="${dotMinR}" fill="${inactiveColor}" opacity="0.5"/>`;
-      } else {
-        const r = dotMinR + (m.amount / maxAmount) * (dotMaxR - dotMinR);
-        // Peak and current month get full opacity, others get slightly muted
-        const opacity = (isCurrent || isPeak) ? 1 : 0.4 + (m.count / maxCount) * 0.4;
-        svg += `<circle cx="${cx}" cy="${centerY}" r="${r}" fill="${color}" opacity="${opacity.toFixed(2)}"/>`;
-      }
-
-      svg += `<text x="${cx}" y="${h - 1}" text-anchor="middle" font-size="6.5" font-weight="${fw}" fill="${color}" font-family="var(--font-sans)">${m.label}</text>`;
-    });
-
-    svg += '</svg>';
-    container.innerHTML = svg;
-    container.classList.remove('hidden');
   },
 
   async renderHistoricalTimeline(query) {
@@ -7577,7 +7286,7 @@ renderMarketSparkline() {
       const brandColor = isDark ? '#F0EFEC' : '#2C2B28';
       const inactiveColor = isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)';
 
-      // ALIGNMENT FIX: Coordinates perfectly match the monthly dots
+      // Chart coordinates
       const vw = 400;
       const h = 45; 
       const padX = 18; 
@@ -8949,7 +8658,7 @@ _renderSankeyInner(container) {
     data.forEach(row => {
       const rawPrimary = row[primaryField];
       const primary = rawPrimary || (typeof primaryFallback === 'function' ? primaryFallback(row) : primaryFallback);
-      const amt = parseFloat(row['Award Amount'] || row['Sub-Award Amount']) || 0;
+      const amt = parseFloat(row['Award Amount']) || 0;
       if (!map[primary]) map[primary] = { name: primary, spend: 0, count: 0, secSet: new Set(), tertMap: {} };
       map[primary].spend += amt;
       map[primary].count++;
@@ -8966,7 +8675,7 @@ _renderSankeyInner(container) {
     if (top.length === 0) { if (panel) panel.classList.add('hidden'); return; }
 
     if (panel) panel.classList.remove('hidden');
-    const totalDataSpend = data.reduce((s, row) => s + (parseFloat(row['Award Amount'] || row['Sub-Award Amount']) || 0), 0) || 1;
+    const totalDataSpend = data.reduce((s, row) => s + (parseFloat(row['Award Amount']) || 0), 0) || 1;
     const esc = s => s.replace(/'/g, "\\'").replace(/"/g, '&quot;');
     const defaultMeta = items => items.slice(0, 3).join(' \u00b7 ') + (items.length > 3 ? ` +${items.length - 3}` : '');
     const metaFn = formatMeta || defaultMeta;
@@ -8992,129 +8701,6 @@ _renderSankeyInner(container) {
         </div>
       </div>`;
     }).join('') + (sorted.length > 5 ? `<div class="reach-overflow">+${sorted.length - 5} ${overflowLabel}</div>` : '');
-  },
-
-  renderSearchTopBuyers(data) {
-    const drill = App.drillState || {};
-    const panel = DOM.get('agencyReachPanel');
-    if (panel) {
-      const titleEl = panel.querySelector('.data-panel-title');
-      const subtitleEl = panel.querySelector('.data-panel-subtitle');
-      if (titleEl) titleEl.textContent = drill.level >= 1 && drill.currentAgency ? 'Offices' : 'Agencies';
-      if (subtitleEl) subtitleEl.textContent = drill.level >= 1 && drill.path && drill.path.length > 0
-        ? `In ${Utils.trunc((drill.path[drill.path.length - 1].name || '').replace(/^Department of (the )?/i, ''), 25)}`
-        : '';
-    }
-    
-    if (drill.level >= 1 && drill.currentAgency) {
-      // Render search-derived sub-agencies first
-      this.renderReachList({
-        data,
-        containerId: 'searchTopBuyersBody',
-        panelId: 'agencyReachPanel',
-        primaryField: 'Awarding Sub Agency',
-        primaryFallback: row => row['Awarding Agency'] || 'Unknown',
-        onClickTpl: "App.viewAgencyFootprint('{name}')",
-        overflowLabel: 'more offices'
-      });
-
-    } else {
-      this.renderReachList({ 
-        data, 
-        containerId: 'searchTopBuyersBody', 
-        panelId: 'agencyReachPanel',
-        primaryField: 'Awarding Agency', 
-        secondaryField: 'Awarding Sub Agency', 
-        tertiaryField: 'Recipient Name',
-        secondaryLabel: n => n === 1 ? 'office' : 'offices',
-        formatName: n => n.replace(/^Department of (the )?/i, '').replace(/^Office of (the )?/i, ''),
-        formatMeta: items => items.length ? `${Utils.trunc(items[0], 22)} leads` : '',
-        onClickTpl: "App.viewAgencyFootprint('{name}')", 
-        overflowLabel: 'more agencies' 
-      });
-    }
-  },
-
-  renderSearchTopPrimes(subawards) {
-    const filtered = applySubDrillFilter(subawards || [], App.subawardDrillState);
-    this.renderReachList({ data: filtered, containerId: 'searchTopPrimesBody', panelId: 'subPrimesPanel',
-      primaryField: 'Prime Recipient Name', secondaryField: 'Sub-Awardee Name', tertiaryField: 'Sub-Awardee Name',
-      secondaryLabel: n => n === 1 ? 'sub' : 'subs',
-      onClickTpl: "App.viewFootprint('{name}')", rightLabel: 'subs', overflowLabel: 'more primes' });
-  },
-
-  renderSearchTopSubs(subawards) {
-    const filtered = applySubDrillFilter(subawards || [], App.subawardDrillState);
-    this.renderReachList({ data: filtered, containerId: 'searchTopSubsBody', panelId: 'subSubsPanel',
-      primaryField: 'Sub-Awardee Name', secondaryField: 'Prime Recipient Name', tertiaryField: 'Prime Recipient Name',
-      secondaryLabel: n => n === 1 ? 'prime' : 'primes',
-      onClickTpl: "App.viewFootprint('{name}')", rightLabel: 'subs', overflowLabel: 'more subs' });
-  },
-
-  renderPrimeReach() {
-    const panel = DOM.get('teamingPanel');
-    const list = DOM.get('teamingList');
-    if (!panel || !list) return;
-
-    const data = App.searchData.active || [];
-    if (data.length === 0) { panel.classList.add('hidden'); return; }
-
-    const titleEl = panel.querySelector('.data-panel-title');
-    const subtitleEl = panel.querySelector('.data-panel-subtitle');
-    const drill = App.drillState || {};
-    if (titleEl) titleEl.textContent = drill.level >= 1 ? 'Primes' : 'Primes';
-    if (subtitleEl) subtitleEl.textContent = drill.level >= 1 && drill.path && drill.path.length > 0
-      ? `In ${Utils.trunc((drill.path[drill.path.length - 1].name || '').replace(/^Department of (the )?/i, ''), 25)}` : '';
-
-    const vendorMap = {};
-    data.forEach(c => {
-      const vendor = c['Recipient Name'] || 'Unknown';
-      const agency = c['Awarding Agency'] || '';
-      const subAgency = c['Awarding Sub Agency'] || '';
-      const amt = parseFloat(c['Award Amount']) || 0;
-
-      if (!vendorMap[vendor]) vendorMap[vendor] = { name: vendor, agencies: {}, subAgencies: new Set(), totalAmt: 0, count: 0 };
-      vendorMap[vendor].totalAmt += amt;
-      vendorMap[vendor].count++;
-      if (agency) {
-        if (!vendorMap[vendor].agencies[agency]) vendorMap[vendor].agencies[agency] = 0;
-        vendorMap[vendor].agencies[agency] += amt;
-      }
-      if (subAgency) vendorMap[vendor].subAgencies.add(subAgency);
-    });
-
-    const ranked = Object.values(vendorMap)
-      .sort((a, b) => Object.keys(b.agencies).length - Object.keys(a.agencies).length || b.totalAmt - a.totalAmt)
-      .slice(0, 5);
-
-    if (ranked.length === 0) { panel.classList.add('hidden'); return; }
-
-    panel.classList.remove('hidden');
-    const esc = (s) => s.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-    const totalMarketSpend = data.reduce((s, c) => s + (parseFloat(c['Award Amount']) || 0), 0) || 1;
-
-    list.innerHTML = ranked.map(v => {
-      const agencyCount = Object.keys(v.agencies).length;
-      const subCount = v.subAgencies.size;
-      const topAgencies = Object.entries(v.agencies)
-        .sort((a, b) => b[1] - a[1])
-        .map(([name]) => name.replace(/^Department of (the )?/i, '').replace(/^Office of (the )?/i, ''));
-      const barPct = Math.round((v.totalAmt / totalMarketSpend) * 100);
-
-      return `<div class="reach-row" onclick="App.viewFootprint('${esc(v.name)}')">
-        <div style="min-width: 0; flex: 1;">
-          <span class="reach-name">${Utils.trunc(v.name, 32)}</span>
-          <div class="reach-meta">${agencyCount} ${agencyCount === 1 ? 'agency' : 'agencies'}${subCount > agencyCount ? ' · ' + subCount + ' offices' : ''} · ${v.count} awards · ${topAgencies.slice(0, 3).map(a => Utils.trunc(a, 18)).join(' · ')}${topAgencies.length > 3 ? ' +' + (topAgencies.length - 3) : ''}</div>
-          <div class="reach-meta" onclick="event.stopPropagation();"><a href="${JobLinks.getLinkedInPeopleUrl(v.name)}" target="_blank" class="job-link">People</a> <a href="${JobLinks.getLinkedInUrl(v.name)}" target="_blank" class="job-link">Jobs</a> <a href="${JobLinks.getLinkedInNewsUrl(v.name)}" target="_blank" class="job-link">News</a></div>
-        </div>
-        <div style="text-align: right; flex-shrink: 0;">
-          <div class="reach-amount">${Utils.money(v.totalAmt)}</div>
-          <div style="margin-top:0.25rem;width:64px;height:6px;background:var(--brand-dim);border-radius:9999px;overflow:hidden;margin-left:auto;">
-            <div style="height:100%;width:${barPct}%;background:var(--brand);opacity:0.5;border-radius:9999px;"></div>
-          </div>
-        </div>
-      </div>`;
-    }).join('');
   },
 
 renderTargetAccounts() {
@@ -9513,282 +9099,6 @@ renderTargetAccounts() {
     }
   },
 
-  // --- Subawards Views ---
-  renderSubawardSankey(subawards) {
-    const wrapper = DOM.get('subawardWrapper');
-    const body = DOM.get('subcontractingBody');
-    const statsEl = DOM.get('subcontractingStats');
-    if (!wrapper || !body) return;
-
-    if (!subawards || subawards.length === 0) {
-      wrapper.classList.add('hidden');
-      if (statsEl) DOM.text('sub-stat-vol', '-');
-      return;
-    }
-
-    wrapper.classList.remove('hidden');
-
-    const subSankeySubEl = DOM.get('subSankeySubtitle');
-    if (subSankeySubEl && App.currentQuery) {
-      subSankeySubEl.textContent = '"' + App.currentQuery + '" · Top subcontracts · Individual transaction value';
-    }
-    
-    const drill = App.subawardDrillState;
-    let filteredSubawards = applySubDrillFilter(subawards, drill);
-    if (drill.level > 0 && drill.path.length > 0) {
-      drill.filter = drill.path[drill.path.length - 1].name;
-      drill.filterType = drill.path[drill.path.length - 1].type;
-    }
-    
-    const flowMap = {};
-    let totalValue = 0;
-    const drillHasAgency = drill.path.some(p => p.type === 'agency');
-    const drillHasSubAgency = drill.path.some(p => p.type === 'subagency');
-    
-    filteredSubawards.forEach(sub => {
-      const agency = sub['Awarding Agency'] || 'Unknown Agency';
-      const subAgency = sub['Awarding Sub Agency'] || agency;
-      const prime = sub['Prime Recipient Name'] || 'Unknown Prime';
-      const subName = sub['Sub-Awardee Name'] || 'Unknown Sub';
-      const amount = parseFloat(sub['Sub-Award Amount']) || 0;
-      
-      if (amount > 0) {
-        let leftCol;
-        if (!drillHasAgency) leftCol = agency;
-        else if (!drillHasSubAgency) leftCol = subAgency;
-        else leftCol = prime;
-        
-        if (drillHasAgency && !drillHasSubAgency) {
-          flowMap[`${leftCol}|||${prime}`] = (flowMap[`${leftCol}|||${prime}`] || 0) + amount;
-          flowMap[`${prime}|||${subName}`] = (flowMap[`${prime}|||${subName}`] || 0) + amount;
-        } else if (drillHasSubAgency) {
-          flowMap[`${prime}|||${subName}`] = (flowMap[`${prime}|||${subName}`] || 0) + amount;
-        } else {
-          flowMap[`${agency}|||${prime}`] = (flowMap[`${agency}|||${prime}`] || 0) + amount;
-          flowMap[`${prime}|||${subName}`] = (flowMap[`${prime}|||${subName}`] || 0) + amount;
-        }
-        totalValue += amount;
-      }
-    });
-    
-    if (statsEl) {
-      const volEl = DOM.get('sub-stat-vol');
-      const uniquePrimes = new Set(filteredSubawards.map(s => s['Prime Recipient Name'] || 'Unknown')).size;
-      const uniqueSubs = new Set(filteredSubawards.map(s => s['Sub-Awardee Name'] || 'Unknown')).size;
-      
-      if (volEl) Utils.countUp(volEl, totalValue, Utils.money);
-      DOM.text('sub-stat-primes', uniquePrimes);
-      DOM.text('sub-stat-subs', uniqueSubs);
-      DOM.text('sub-stat-count', filteredSubawards.length);
-      
-      const summaryStats = DOM.get('subawardSummaryStats');
-      if (summaryStats) {
-        // We added the word "Top" to the beginning of the string
-        summaryStats.innerText = `Top ${filteredSubawards.length} awards \u00b7 ${Utils.money(totalValue)} \u00b7 ${uniqueSubs} sub-vendors`;
-      }
-    }
-    
-    const topFlows = Object.entries(flowMap).sort((a, b) => b[1] - a[1]).slice(0, 40);
-    const nodesSet = new Set();
-    const links = [];
-    
-    topFlows.forEach(([key, value]) => {
-      const [source, target] = key.split('|||');
-      nodesSet.add(source); nodesSet.add(target);
-      links.push({ source, target, value });
-    });
-    
-    if (links.length === 0) { wrapper.classList.add('hidden'); return; }
-
-    const nodes = Array.from(nodesSet).map(name => ({ name }));
-    
-    let breadcrumbHtml = '';
-    if (drill.level > 0 && drill.path.length > 0) {
-      const typeIcons = { 
-        agency: '<svg class="icon" aria-hidden="true"><use href="#node-agency"></use></svg>', 
-        subagency: '<svg class="icon" aria-hidden="true"><use href="#node-agency"></use></svg>', 
-        prime: '<svg class="icon" aria-hidden="true"><use href="#node-prime"></use></svg>', 
-        sub: '<svg class="icon" aria-hidden="true"><use href="#node-sub"></use></svg>' 
-      };
-      const typeLabels = { agency: 'Agency', subagency: 'Sub-Agency', prime: 'Prime', sub: 'Sub' };
-      
-      let crumbs = `<div class="breadcrumb-item" data-action="resetSubawardDrill" style="cursor:pointer;"><span>All Subawards</span></div>`;
-      drill.path.forEach((step, idx) => {
-        const isLast = idx === drill.path.length - 1;
-        crumbs += `<span class="breadcrumb-separator">›</span>`;
-        if (isLast) {
-          crumbs += `<div class="breadcrumb-item active">${typeIcons[step.type] || ''}<span>${Utils.trunc(step.name, 30)}</span><span style="font-size:var(--text-xs); color:var(--text-secondary); margin-left:6px;">(${typeLabels[step.type] || step.type})</span></div>`;
-        } else {
-          crumbs += `<div class="breadcrumb-item" onclick="App.drillSubawardToLevel(${idx})" style="cursor:pointer;">${typeIcons[step.type] || ''}<span>${Utils.trunc(step.name, 25)}</span></div>`;
-        }
-      });
-      breadcrumbHtml = `<div class="drill-breadcrumb" style="display: flex; margin-bottom: 0.75rem;">${crumbs}</div>`;
-    }
-    
-    body.innerHTML = `${breadcrumbHtml}<div id="subawardDrillHint" class="drill-hint${drill.level > 0 ? ' hidden' : ''}" style="margin-bottom: 0.5rem;"><span>Tap any bar to drill down · tap the active bar to drill back up</span></div><svg id="subawardSankeySvg"></svg>`;
-    
-    const primeNames = new Set(filteredSubawards.map(s => s['Prime Recipient Name'] || 'Unknown Prime'));
-    const subNames = new Set(filteredSubawards.map(s => s['Sub-Awardee Name'] || 'Unknown Sub'));
-    const agencyNames = new Set(filteredSubawards.map(s => s['Awarding Agency'] || 'Unknown Agency'));
-    const subAgencyNames = new Set(filteredSubawards.map(s => s['Awarding Sub Agency'] || s['Awarding Agency'] || 'Unknown Agency'));
-
-    const svg = d3.select('#subawardSankeySvg');
-    ChartUtils.drawSankey(svg, {
-      nodes, links,
-      gradientPrefix: 'sub-grad',
-      heightPerNode: 20,
-      isDrillable: d => !d.name.startsWith('Other') && !d.name.includes('Unknown'),
-      isActive: d => drill.path.length > 0 && drill.path[drill.path.length - 1].name === d.name,
-      onNodeClick: (d) => {
-        const isAct = drill.path.length > 0 && drill.path[drill.path.length - 1].name === d.name;
-        if (isAct) {
-          if (drill.path.length <= 1) App.resetSubawardDrill(); else App.drillSubawardToLevel(drill.path.length - 2);
-        } else {
-          let nodeType = 'sub';
-          if (drillHasAgency && !drillHasSubAgency && subAgencyNames.has(d.name) && !primeNames.has(d.name)) nodeType = 'subagency';
-          else if (!drillHasAgency && agencyNames.has(d.name) && !primeNames.has(d.name)) nodeType = 'agency';
-          else if (primeNames.has(d.name) && !subNames.has(d.name)) nodeType = 'prime';
-          else if (primeNames.has(d.name)) nodeType = 'prime';
-          App.drillSubaward(d.name, nodeType);
-        }
-      }
-    });
-  },
-
-  drillSubaward(name, nodeType) {
-    const drill = App.subawardDrillState;
-    drill.path.push({ type: nodeType, name: name });
-    drill.level = drill.path.length;
-    drill.filter = name;
-    drill.filterType = nodeType;
-    App.activeFeedSource = 'sub';
-    if (App.forecastData.subawards) {
-      const scrollY = window.scrollY;
-      App.renderSubawardSankey(App.forecastData.subawards);
-      App.renderSearchTopPrimes(App.forecastData.subawards);
-      App.renderSearchTopSubs(App.forecastData.subawards);
-      App.renderSubawardFeed();
-      App.renderSubBubbleChart();
-      requestAnimationFrame(() => window.scrollTo(0, scrollY));
-    }
-  },
-  
-  drillSubawardToLevel(idx) {
-    const drill = App.subawardDrillState;
-    if (idx < 0) { App.resetSubawardDrill(); return; }
-    drill.path = drill.path.slice(0, idx + 1);
-    drill.level = drill.path.length;
-    if (drill.path.length > 0) {
-      drill.filter = drill.path[drill.path.length - 1].name;
-      drill.filterType = drill.path[drill.path.length - 1].type;
-    } else {
-      drill.filter = null; drill.filterType = null;
-    }
-    App.activeFeedSource = 'sub';
-    if (App.forecastData.subawards) {
-      const scrollY = window.scrollY;
-      App.renderSubawardSankey(App.forecastData.subawards);
-      App.renderSearchTopPrimes(App.forecastData.subawards);
-      App.renderSearchTopSubs(App.forecastData.subawards);
-      App.renderSubawardFeed();
-      App.renderSubBubbleChart();
-      requestAnimationFrame(() => window.scrollTo(0, scrollY));
-    }
-  },
-
-  resetSubawardDrill() {
-    App.subawardDrillState = { level: 0, path: [], filter: null, filterType: null };
-    App.activeFeedSource = 'sub'; 
-    if (App.forecastData.subawards) {
-      const scrollY = window.scrollY;
-      App.renderSubawardSankey(App.forecastData.subawards);
-      App.renderSearchTopPrimes(App.forecastData.subawards);
-      App.renderSearchTopSubs(App.forecastData.subawards);
-      App.renderSubawardFeed();
-      App.renderSubBubbleChart();
-      requestAnimationFrame(() => window.scrollTo(0, scrollY));
-    }
-  },
-
-  renderSubawardFeed(targetDiv, showAll) {
-    const div = targetDiv || DOM.get('subFeedGrid');
-    const wrapper = DOM.get('subFeedWrapper');
-    if (!div) return;
-    
-    let subawards = applySubDrillFilter(App.forecastData.subawards || [], App.subawardDrillState);
-    if (subawards.length === 0) {
-      div.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-tertiary)">No subcontracts found.</div>';
-      if (wrapper) wrapper.classList.add('hidden');
-      return;
-    }
-
-    if (wrapper) wrapper.classList.remove('hidden');
-    subawards = [...subawards].sort((a, b) => new Date(b['Sub-Award Date'] || 0) - new Date(a['Sub-Award Date'] || 0));
-    
-    const INITIAL_COUNT = 5;
-    const displayData = showAll ? subawards.slice(0, 50) : subawards.slice(0, INITIAL_COUNT);
-    const hasMore = !showAll && subawards.length > INITIAL_COUNT;
-    const now = new Date();
-    
-    const cards = displayData.map(s => {
-      const prime = s['Prime Recipient Name'] || 'Unknown Prime';
-      const sub = s['Sub-Awardee Name'] || 'Unknown Sub';
-      const amount = parseFloat(s['Sub-Award Amount']) || 0;
-      const date = s['Sub-Award Date'];
-      const agency = s['Awarding Agency'] || s['Awarding Sub Agency'] || '';
-      const primeAwardInternalId = s['prime_award_generated_internal_id'] || '';
-      
-      let usaSpendingUrl = '';
-      if (primeAwardInternalId) usaSpendingUrl = `https://www.usaspending.gov/award/${primeAwardInternalId}`;
-      
-      const subDate = date ? new Date(date) : null;
-      const daysAgo = subDate ? Math.floor((now - subDate) / 86400000) : null;
-      let timeAgo = '';
-      if (daysAgo !== null) {
-        if (daysAgo <= 0) timeAgo = 'Today';
-        else if (daysAgo === 1) timeAgo = 'Yesterday';
-        else if (daysAgo <= 7) timeAgo = daysAgo + ' days ago';
-        else if (daysAgo <= 14) timeAgo = 'Last week';
-        else if (daysAgo <= 30) timeAgo = Math.ceil(daysAgo / 7) + ' weeks ago';
-        else if (daysAgo <= 60) timeAgo = 'Last month';
-        else if (daysAgo <= 365) timeAgo = Math.floor(daysAgo / 30) + ' months ago';
-        else timeAgo = Math.floor(daysAgo / 365) + 'y ago';
-      }
-      
-      const isFresh = daysAgo !== null && daysAgo <= 30;
-      const isWarm = daysAgo !== null && daysAgo <= 90;
-      
-      const primeDisplay = prime;
-	  const subDisplay = sub;
-      const linkedInPrimeUrl = JobLinks.getLinkedInPeopleUrl(prime);
-      const linkedInSubUrl = JobLinks.getLinkedInPeopleUrl(sub);
-      
-      return `<div class="deal-card">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;margin-bottom:0.3rem;">
-          <div style="display:flex;align-items:center;gap:0.4rem;">
-            <span style="font-size:var(--text-xs);padding:2px 8px;border-radius:var(--radius);background:var(--bg-subtle);color:var(--text-secondary);font-weight:600;">Sub</span>
-            <span class="deal-agency">${Html.escapeHtml(Utils.trunc(agency, 35))}</span>
-          </div>
-          <span style="font-size:var(--text-xs);color:${isFresh ? 'var(--brand)' : isWarm ? 'var(--text-secondary)' : 'var(--text-tertiary)'};font-weight:${isFresh ? '600' : '400'};white-space:nowrap;">${timeAgo}</span>
-        </div>
-        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:0.5rem;margin-bottom:0.15rem;">
-          <div style="min-width:0;flex:1;">
-            <span style="font-size:var(--text-sm);font-weight:600;color:var(--text-primary);">${Html.escapeHtml(Utils.trunc(primeDisplay, 30))}</span>
-            <span style="font-size:var(--text-xs);color:var(--text-tertiary);margin:0 0.3rem;">→</span>
-            <span style="font-size:var(--text-sm);font-weight:600;color:var(--text-primary);">${Html.escapeHtml(Utils.trunc(subDisplay, 30))}</span>
-          </div>
-          <span class="deal-amount">${Utils.money(amount)}</span>
-        </div>
-        <div class="deal-footer"><div><div class="deal-date">${date ? Utils.date(date) : 'Date N/A'}</div></div>
-          <div style="display:flex;gap:0.5rem;align-items:center;"><a href="${linkedInPrimeUrl}" target="_blank" class="job-link">Prime</a><a href="${linkedInSubUrl}" target="_blank" class="job-link">Sub</a>${usaSpendingUrl ? `<a href="${usaSpendingUrl}" target="_blank" class="action-btn">View</a>` : ''}</div>
-        </div></div>`;
-    }).join('');
-
-    const showMoreBtn = hasMore ? Utils.showMoreBtn('App.renderSubawardFeed(null, true)', `Show All ${Math.min(subawards.length, 50)} Subcontracts`) : '';
-    div.innerHTML = cards + showMoreBtn;
-    Utils.animateCards(div);
-  },
-
   // --- Bubble Charts (Prime & Sub) ---
   bubbleChartType: 'treemap',
   setBubbleChartType(type) {
@@ -10170,236 +9480,6 @@ if (this.bubbleChartType === 'treemap') {
       this._pendingDrillScroll = false;
     }
   },
-
-  subBubbleMode: 'subs',
-  subBubbleChartType: 'treemap',
-  setSubBubbleChartType(type) {
-    this.subBubbleChartType = type;
-    DOM.get('subChartTypeBubbles').classList.toggle('active', type === 'bubbles');
-    DOM.get('subChartTypeTreemap').classList.toggle('active', type === 'treemap');
-    this.renderSubBubbleChart();
-  },
-  setSubBubbleMode(mode) {
-    this.subBubbleMode = mode;
-    DOM.get('subBubbleTogglePrimes').classList.toggle('active', mode === 'primes');
-    DOM.get('subBubbleToggleSubs').classList.toggle('active', mode === 'subs');
-    this.renderSubBubbleChart();
-  },
-  renderSubBubbleBreadcrumb() {
-    const bc = DOM.get('subBubbleBreadcrumb');
-    const inner = DOM.get('subBubbleBreadcrumbInner');
-    if (!bc || !inner) return;
-    const drill = this.subawardDrillState || {};
-    if (!drill.level || drill.level === 0) { bc.classList.add('hidden'); return; }
-    bc.classList.remove('hidden');
-    
-    let html = `<div class="breadcrumb-item" data-action="resetSubawardDrill"><span>All Subawards</span></div>`;
-    if (drill.path && drill.path.length > 0) {
-      drill.path.forEach((step, i) => {
-        const isLast = i === drill.path.length - 1;
-        const clickAction = isLast ? '' : `onclick="App.drillSubawardToLevel(${i})"`;
-        html += `<span class="breadcrumb-separator">›</span>`;
-        html += `<div class="breadcrumb-item ${isLast ? 'active' : ''}" ${clickAction}><span>${Utils.trunc(step.name, 30)}</span></div>`;
-      });
-    }
-    inner.innerHTML = html;
-  },
-
-  renderSubBubbleChart() {
-    const container = DOM.get('subBubbleContainer');
-    const panel = DOM.get('subBubblePanel');
-    if (!container || !panel) return;
-    
-    const subawards = this.forecastData?.subawards;
-    if (!subawards || subawards.length === 0) { panel.classList.add('hidden'); return; }
-
-    let filtered = applySubDrillFilter(subawards, this.subawardDrillState || {});
-    if (filtered.length === 0) { panel.classList.add('hidden'); return; }
-
-    panel.classList.remove('hidden');
-    this.renderSubBubbleBreadcrumb();
-    
-    const mode = this.subBubbleMode || 'primes';
-    const entityMap = {};
-    let totalSpend = 0;
-    const allPrimes = new Set();
-    const allSubs = new Set();
-    
-    filtered.forEach(sub => {
-      const prime = sub['Prime Recipient Name'] || 'Unknown Prime';
-      const subName = sub['Sub-Awardee Name'] || 'Unknown Sub';
-      const amount = parseFloat(sub['Sub-Award Amount']) || 0;
-      const key = mode === 'primes' ? prime : subName;
-      
-      allPrimes.add(prime); allSubs.add(subName);
-      if (!entityMap[key]) entityMap[key] = { name: key, spend: 0, count: 0, partners: new Set() };
-      entityMap[key].spend += amount;
-      entityMap[key].count++;
-      entityMap[key].partners.add(mode === 'primes' ? subName : prime);
-      totalSpend += amount;
-    });
-    
-    let entities = Object.values(entityMap).filter(e => e.spend > 0).sort((a, b) => b.spend - a.spend).slice(0, 40);
-    if (entities.length === 0) { panel.classList.add('hidden'); return; }
-
-    entities.forEach(e => { e.partnerCount = e.partners ? e.partners.size : 0; delete e.partners; });
-    
-    const subtitle = DOM.get('subBubbleSubtitle');
-    if (subtitle) subtitle.textContent = (this.currentQuery ? '"' + this.currentQuery + '" · ' : '') + 'Top ' + (mode === 'primes' ? 'primes' : 'subcontractors') + ' · Individual transaction value';
-    
-    Utils.countUp(DOM.get('sub-bubble-stat-vol'), totalSpend, Utils.money);
-    DOM.text('sub-bubble-stat-primes', allPrimes.size);
-    DOM.text('sub-bubble-stat-subs', allSubs.size);
-    DOM.text('sub-bubble-stat-records', filtered.length);
-    
-    const tooltip = DOM.get('subBubbleTooltip');
-    if (tooltip) tooltip.classList.remove('visible');
-    d3.select(container).selectAll('svg').remove();
-    
-    const rect = container.getBoundingClientRect();
-    const w = Math.max(rect.width || 600, 300);
-    const h = Math.max(380, Math.min(w * 0.65, 550));
-    const bubbleColors = ['#7CA8C4', '#D4A0B0', '#638E6E', '#E8A468', '#8888B8', '#D8CFC2', '#9878A0', '#C75268', '#80C0B0', '#A07860'];
-
-    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    let subTouchSelected = null;
-
-    function attachSubInteractions(selection, svgInstance) {
-      ChartUtils.attachInteractions(selection, svgInstance, tooltip, container, w, h, isTouchDevice,
-        function(e) {
-          const share = totalSpend > 0 ? ((e.spend / totalSpend) * 100).toFixed(1) : '0';
-          const partnerLabel = mode === 'primes' ? 'subs' : 'primes';
-          return `<div class="bubble-tooltip-name">${e.name}</div><div class="bubble-tooltip-amount">${Utils.money(e.spend)}</div><div class="bubble-tooltip-meta">${e.count} subawards · ${e.partnerCount} ${partnerLabel} · ${share}%</div>`;
-        },
-        function(e) { App.drillSubaward(e.name, mode === 'primes' ? 'prime' : 'sub'); },
-        { touchStateGet: () => subTouchSelected, touchStateSet: v => { subTouchSelected = v; } }
-      );
-    }
-
-    const svg = d3.select(container).append('svg').attr('width', w).attr('height', h).attr('viewBox', `0 0 ${w} ${h}`);
-
-    if (this.subBubbleChartType === 'treemap') {
-      const hierarchy = d3.hierarchy({ children: entities }).sum(d => d.spend).sort((a, b) => b.value - a.value);
-      
-      // --- START MODERN SUB-TREEMAP (ROUNDED + SPOTLIGHT HOVER) ---
-      d3.treemap()
-        .tile(d3.treemapSquarify.ratio(1.618)) 
-        .size([w, h])
-        .paddingInner(3) 
-        .paddingOuter(0)
-        .round(true)(hierarchy);
-
-      const cells = svg.selectAll('.treemap-cell').data(hierarchy.leaves()).join('g')
-        .attr('class', 'treemap-cell')
-        .attr('transform', d => `translate(${d.x0},${d.y0})`);
-
-      const cornerRadius = 4; 
-
-      cells.append('clipPath').attr('id', (d, i) => `stm-clip-${i}`) // 'stm' for sub-treemap
-        .append('rect')
-        .attr('width', d => Math.max(0, d.x1 - d.x0))
-        .attr('height', d => Math.max(0, d.y1 - d.y0))
-        .attr('rx', cornerRadius); 
-
-      cells.append('rect')
-        .attr('class', 'treemap-bg')
-        .attr('width', d => Math.max(0, d.x1 - d.x0))
-        .attr('height', d => Math.max(0, d.y1 - d.y0))
-        .attr('rx', cornerRadius)
-        .attr('fill', (d, i) => bubbleColors[i % bubbleColors.length])
-        .attr('opacity', 0.85) // Base opacity
-        .style('transition', 'opacity 0.2s ease, fill 0.2s ease'); // Smooth fading
-
-      cells
-        .on('mouseover.modern', function(event, d) {
-            // 1. Dim ALL other cells
-            svg.selectAll('.treemap-bg').attr('opacity', 0.25);
-            
-            // 2. Pop the hovered cell
-            d3.select(this).select('.treemap-bg')
-                .attr('opacity', 1)
-                .attr('fill', (d, i) => {
-                    const baseColor = bubbleColors[i % bubbleColors.length];
-                    return d3.color(baseColor).brighter(0.4); 
-                });
-        })
-        .on('mouseout.modern', function(event, d) {
-            // 1. Restore all cells
-            svg.selectAll('.treemap-bg')
-                .attr('opacity', 0.85)
-                .attr('fill', (d, i) => bubbleColors[i % bubbleColors.length]);
-        });
-      // --- END MODERN SUB-TREEMAP ---
-
-      const textGroup = cells.append('g').attr('clip-path', (d, i) => `url(#stm-clip-${i})`);
-
-      textGroup.each(function(d, idx) {
-        const cellW = d.x1 - d.x0, cellH = d.y1 - d.y0;
-        if (cellW < 40 || cellH < 25) return;
-        const g = d3.select(this);
-        const layout = ChartUtils.fitTreemapText(d);
-        const startY = (cellH - layout.totalH) / 2 + layout.fontSize;
-
-        layout.nameLines.forEach((line, i) => { g.append('text').attr('class', 'bubble-label').attr('x', cellW / 2).attr('y', startY + i * layout.lineH).attr('font-size', layout.fontSize + 'px').attr('font-weight', '700').text(line); });
-        if (cellH > 40) {
-          g.append('text').attr('class', 'bubble-amount-label').attr('x', cellW / 2).attr('y', startY + layout.nameLines.length * layout.lineH + 4).attr('font-size', layout.amountFs + 'px').attr('font-weight', '800').attr('fill', App.darkMode ? '#F0EFEC' : '#2C2B28').text(Utils.money(d.data.spend));
-        }
-      });
-
-      attachSubInteractions(cells, svg); // Note: using attachSubInteractions here!
-      cells.selectAll('rect').attr('opacity', 0).transition().duration(500).delay((d, i) => i * 12).ease(d3.easeCubicOut).attr('opacity', 0.85);
-      cells.selectAll('text').attr('opacity', 0).transition().duration(400).delay((d, i) => 200 + i * 12).attr('opacity', 1);
-} else {
-      const hierarchy = d3.hierarchy({ children: entities }).sum(d => d.spend).sort((a, b) => b.value - a.value);
-      const pack = d3.pack().size([w, h]).padding(1.5);
-      const root = pack(hierarchy);
-
-      const nodes = svg.selectAll('.bubble-node').data(root.leaves()).join('g').attr('class', 'bubble-node').attr('transform', d => `translate(${d.x},${d.y})`);
-
-      // --- START MODERN BUBBLE (SPOTLIGHT HOVER) ---
-      nodes.append('circle')
-        .attr('class', 'bubble-bg') // Target class for dimming
-        .attr('r', d => d.r)
-        .attr('fill', (d, i) => bubbleColors[i % bubbleColors.length])
-        .attr('opacity', 0.85) // Base opacity
-        .style('transition', 'opacity 0.2s ease, fill 0.2s ease'); // Smooth fading
-
-      nodes
-        .on('mouseover.modern', function(event, d) {
-            // 1. Dim ALL other bubbles to create a "spotlight" focus
-            svg.selectAll('.bubble-bg').attr('opacity', 0.25);
-            
-            // 2. Pop the hovered bubble to 100% opacity and make it brighter
-            d3.select(this).select('.bubble-bg')
-                .attr('opacity', 1)
-                .attr('fill', (d, i) => {
-                    const baseColor = bubbleColors[i % bubbleColors.length];
-                    return d3.color(baseColor).brighter(0.4); 
-                });
-        })
-        .on('mouseout.modern', function(event, d) {
-            // 1. Restore all bubbles back to normal
-            svg.selectAll('.bubble-bg')
-                .attr('opacity', 0.85)
-                .attr('fill', (d, i) => bubbleColors[i % bubbleColors.length]);
-        });
-      // --- END MODERN BUBBLE HOVER LOGIC ---
-      
-      nodes.each(function(d, idx) {
-        if (d.r < 25) return;
-        const g = d3.select(this);
-        const layout = ChartUtils.fitCircleText(d);
-        if (!layout) return;
-        const startY = -(layout.totalH / 2) + layout.fontSize * 0.8;
-        layout.nameLines.forEach((line, i) => { g.append('text').attr('class', 'bubble-label').attr('y', startY + i * layout.lineH).attr('font-size', layout.fontSize + 'px').attr('font-weight', '700').text(line); });
-        if (d.r > 35) g.append('text').attr('class', 'bubble-amount-label').attr('y', startY + layout.nameLines.length * layout.lineH + 4).attr('font-size', layout.amountFs + 'px').attr('font-weight', '800').attr('fill', App.darkMode ? '#F0EFEC' : '#2C2B28').text(Utils.money(d.data.spend));
-      });
-
-      attachSubInteractions(nodes, svg);
-      nodes.selectAll('circle').attr('r', 0).transition().duration(600).delay((d, i) => i * 15).ease(d3.easeCubicOut).attr('r', d => d.r);
-      nodes.selectAll('text').attr('opacity', 0).transition().duration(400).delay((d, i) => 300 + i * 15).attr('opacity', 1);
-    }
-  },
 // --- PIPELINE UI FUNCTIONS (Inside the App object) ---
 
   _pipelineTargets: null,
@@ -10659,14 +9739,9 @@ requestAnimationFrame(() => {
     .selectAll('text')
     .style('fill', textColor);
 
-  d3.select('#subcontractingBody')
-    .selectAll('text')
-    .style('fill', textColor);
-
   if (this.searchData?.raw?.length > 0) this.renderSankey();
   this.renderBubbleChart();
   if (this._sankeyView === 'graph') this.renderForceGraph();
-  if (this.forecastData?.subawards) this.renderSubBubbleChart();
   
   // Double-rAF ensures layout is fully settled before measuring widths
   requestAnimationFrame(() => this.renderMarketSparkline());
