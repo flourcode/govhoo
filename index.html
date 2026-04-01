@@ -8183,7 +8183,7 @@ drillDown(name, preventRender = false) {
 
     // ── Canvas ────────────────────────────────────────────────────────────────
     const W = Math.max(container.offsetWidth || window.innerWidth, 300);
-    const H = Math.max(Math.round(W * 0.82), 460);
+    const H = Math.max(Math.round(W * 0.62), 400);
     container.style.height = H + 'px';
     d3.select(container).selectAll('*').remove();
 
@@ -8193,20 +8193,20 @@ drillDown(name, preventRender = false) {
       .style('display','block').style('background','transparent');
     const g = svg.append('g');
 
-    const cx = W / 2, cy = H / 2;
+    const cx = W / 2, cy = H * 0.42;
     const minDim = Math.min(W, H);
 
     // ── Scales ────────────────────────────────────────────────────────────────
     const maxSpend = Math.max(...agencies.map(a=>a.spend), 1);
-    const rCenter  = minDim * 0.07;
-    const rAgency  = a => minDim * 0.035 + Math.sqrt(a.spend / maxSpend) * minDim * 0.055;
-    const rOffice  = o => minDim * 0.016 + Math.sqrt(o.spend / maxSpend) * minDim * 0.022;
-    const rVendor  = minDim * 0.008;
+    const rCenter  = minDim * 0.065;
+    const rAgency  = a => minDim * 0.03 + Math.sqrt(a.spend / maxSpend) * minDim * 0.045;
+    const rOffice  = o => minDim * 0.014 + Math.sqrt(o.spend / maxSpend) * minDim * 0.018;
+    const rVendor  = minDim * 0.007;
 
     // ── Radii for rings ───────────────────────────────────────────────────────
-    const R1 = minDim * 0.26;   // agency ring
-    const R2 = minDim * 0.40;   // office ring
-    const R3 = minDim * 0.49;   // vendor ring
+    const R1 = minDim * 0.22;   // agency ring
+    const R2 = minDim * 0.34;   // office ring
+    const R3 = minDim * 0.42;   // vendor ring
 
     // ── Build all node positions ──────────────────────────────────────────────
     const allNodes = [], allArcs = [];
@@ -8258,7 +8258,7 @@ drillDown(name, preventRender = false) {
     } else {
       // AGENCY VIEW — focused agency fills canvas
       const agency = agencies.find(a=>a.id===centerId) || agencies[0];
-      const R1a = minDim * 0.29, R2a = minDim * 0.46;
+      const R1a = minDim * 0.24, R2a = minDim * 0.38;
 
       allNodes.push({ id:agency.id, type:'center-agency', x:cx, y:cy,
         r:rCenter*1.3, spend:agency.spend, color:agency.color, label:agency.id });
