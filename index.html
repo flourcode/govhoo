@@ -852,6 +852,27 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: searchf
 .dark-mode .main-input::placeholder, .dark-mode .mini-search::placeholder { color: rgba(255,255,255, 0.3); }
 .dark-mode .main-input::selection, .dark-mode .mini-search::selection { background: rgba(124,168,196,0.65); color: #F0EFEC; }
 .dark-mode .main-input::-moz-selection, .dark-mode .mini-search::-moz-selection { background: rgba(124,168,196,0.65); color: #F0EFEC; }
+
+/* Sector filter pills */
+#sectorFilterBar { display:none; align-items:center; gap:6px; flex-wrap:wrap; padding:8px 0 4px; }
+#sectorFilterBar.visible { display:flex; }
+#globalSectorBar { border-top: 1px solid var(--border); margin-top: 2px; }
+@media (max-width: 480px) { #globalSectorBar { gap: 4px; } #globalSectorBar .sector-pill { padding: 2px 7px 2px 5px; font-size: 10px; } }
+.sector-pill {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:3px 10px 3px 7px; border-radius:99px;
+  font-size:var(--text-xs); font-weight:600; cursor:pointer;
+  border:1.5px solid transparent; transition:all 0.15s ease;
+  background:var(--bg-subtle); color:var(--text-tertiary);
+}
+.sector-pill .sector-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.sector-pill.active { color:var(--text-primary); border-color:currentColor; background:transparent; }
+.sector-pill:hover { opacity:0.8; }
+.sector-pill-all {
+  font-size:var(--text-xs); font-weight:500; color:var(--text-quaternary);
+  cursor:pointer; padding:3px 6px; border-radius:4px; transition:color 0.15s;
+}
+.sector-pill-all:hover { color:var(--text-secondary); }
 .dark-mode .btn-primary, .dark-mode #searchBtn { background: var(--text-primary); color: var(--bg-app); border: none; }
 .dark-mode .icon-btn { color: var(--text-secondary); border: none; background: rgba(255,255,255,0.06); }
 .dark-mode .logo-btn { background: rgba(255,255,255,0.06); color: var(--text-primary); }
@@ -1376,6 +1397,24 @@ details[open] > summary svg { transform: rotate(180deg); }
           </button>
         </div>
       </div>
+      <!-- Sector filter — always visible in header, constrains all searches -->
+      <div id="globalSectorBar" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 0 2px;">
+        <span style="font-size:10px;color:var(--text-quaternary);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;margin-right:2px;">Territory</span>
+        <button class="sector-pill active" data-sector="dod" onclick="App.setSectorFilter('dod')">
+          <span class="sector-dot" style="background:#7CA8C4"></span>DoD
+        </button>
+        <button class="sector-pill active" data-sector="fedciv" onclick="App.setSectorFilter('fedciv')">
+          <span class="sector-dot" style="background:#80C0B0"></span>FedCiv
+        </button>
+        <button class="sector-pill active" data-sector="fedhealth" onclick="App.setSectorFilter('fedhealth')">
+          <span class="sector-dot" style="background:#D4A0B0"></span>FedHealth
+        </button>
+        <button class="sector-pill active" data-sector="fedfin" onclick="App.setSectorFilter('fedfin')">
+          <span class="sector-dot" style="background:#E8A468"></span>FedFin
+        </button>
+        <span class="sector-pill-all" onclick="App.setSectorFilter(null)" title="Reset to all sectors">All</span>
+      </div>
+
       <div class="quick-jump-menu hidden" id="quickJumpMenu">
         <button class="active" data-target="bubbleChartPanel" onclick="App.scrollToPanel('bubbleChartPanel')">Market</button>
         <button data-target="pipelineTargetsSection" onclick="App.scrollToPanel('pipelineTargetsSection')">Pipeline</button>
@@ -1402,6 +1441,15 @@ details[open] > summary svg { transform: rotate(180deg); }
         </div>
 
         <div id="recentSearchesContainer" class="hero-suggestions hero-suggestions-container"></div>
+
+        <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin:8px 0 0;">
+          <span style="font-size:10px;color:var(--text-quaternary);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">Territory</span>
+          <button class="sector-pill active" data-sector="dod" onclick="App.setSectorFilter('dod')"><span class="sector-dot" style="background:#7CA8C4"></span>DoD</button>
+          <button class="sector-pill active" data-sector="fedciv" onclick="App.setSectorFilter('fedciv')"><span class="sector-dot" style="background:#80C0B0"></span>FedCiv</button>
+          <button class="sector-pill active" data-sector="fedhealth" onclick="App.setSectorFilter('fedhealth')"><span class="sector-dot" style="background:#D4A0B0"></span>FedHealth</button>
+          <button class="sector-pill active" data-sector="fedfin" onclick="App.setSectorFilter('fedfin')"><span class="sector-dot" style="background:#E8A468"></span>FedFin</button>
+          <span class="sector-pill-all" onclick="App.setSectorFilter(null)">All</span>
+        </div>
 
         <div class="callout-box">
           <h2 class="callout-title">
@@ -1562,7 +1610,7 @@ details[open] > summary svg { transform: rotate(180deg); }
             <div id="sankeyBrandLine">Prime Money Flow</div>
             <div class="bubble-toggle-row toggle-row-flush" style="margin:0;">
               <button class="bubble-toggle-btn active" id="sankeyViewFlow" onclick="App.setSankeyView('sankey')" title="Flow diagram">Flow</button>
-              <button class="bubble-toggle-btn" id="sankeyViewGraph" onclick="App.setSankeyView('graph')" title="Network graph">Network</button>
+              <button class="bubble-toggle-btn" id="sankeyViewGraph" onclick="App.setSankeyView('graph')" title="Connections">Connections</button>
             </div>
           </div>
           </div>
@@ -1587,9 +1635,9 @@ details[open] > summary svg { transform: rotate(180deg); }
             <div id="chartContainer" class="chart-container"></div>
           </div>
           <div id="forceGraphWrapper" class="hidden" style="width:100%;position:relative;">
+
             <div id="forceGraphContainer" style="width:100%;overflow:hidden;background:transparent;"></div>
             <div id="forceGraphTooltip" style="position:fixed;pointer-events:none;background:var(--bg-app);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;font-size:var(--text-xs);color:var(--text-primary);box-shadow:var(--shadow-md);opacity:0;transition:opacity 0.12s ease;z-index:999;max-width:220px;"></div>
-            <div style="font-size:var(--text-xs);color:var(--text-quaternary);text-align:center;padding:6px 0 2px;">Click an agency to explore · Click an office to drill in</div>
           </div>
         </div>
 
@@ -5680,7 +5728,7 @@ async searchAwards(keywords) {
     const timePeriod = Utils.getTrailing12Mo();
     const period = timePeriod[0];
     const { pscCodes, naicsCodes, keywordTerms, andGroups } = Utils.parseSearchTerms(keywords);
-    
+
     if (andGroups.length > 0) {
       const group = andGroups[0];
       const pscPat = /^[A-Z]{1,2}\d{1,3}$|^\d{1,2}[A-Z]\d{0,2}$/i;
@@ -5700,22 +5748,16 @@ async searchAwards(keywords) {
       });
       if (agencies.length > 0) filters.agencies = agencies;
       if (kws.length > 0) filters.keywords = kws;
+      App._applySectorFilter(filters);  // ← sector constraint applied here
       if (codes.length > 0 || agencies.length > 0) {
         let data;
         try { data = (await this._post('/search/spending_by_award/', { filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })).results || []; } catch(e) { data = []; }
         if (data.length === 0 && kws.length > 0) {
-          const fallbackFilters = { time_period: [period], award_type_codes: this.CONTRACT_TYPES, keywords: kws };
+          const fallbackFilters = App._applySectorFilter({ time_period: [period], award_type_codes: this.CONTRACT_TYPES, keywords: kws });
           let pool;
           try { pool = (await this._post('/search/spending_by_award/', { filters: fallbackFilters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })).results || []; } catch(e) { pool = []; }
           data = pool.filter(award => {
             let keep = true;
-            if (agencies.length > 0) {
-              const match = agencies.some(a => {
-                const t = a.name.toLowerCase();
-                return (award['Awarding Agency']?.toLowerCase() === t) || (award['Awarding Sub Agency']?.toLowerCase() === t);
-              });
-              if (!match) keep = false;
-            }
             if (codes.length > 0) {
               const match = codes.some(c => (c.type === 'naics' && award['NAICS'] === c.value) || (c.type === 'psc' && award['PSC'] === c.value));
               if (!match) keep = false;
@@ -5748,6 +5790,7 @@ async searchAwards(keywords) {
     if (hasNaics) filters.naics_codes = { require: naicsCodes };
     if (plainKeywords.length > 0) filters.keywords = plainKeywords;
     if (agencyFilters.length > 0) filters.agencies = agencyFilters;
+    App._applySectorFilter(filters);  // ← sector constraint applied here
     const rawData = (await this._post('/search/spending_by_award/', { filters, fields: this.AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc' })).results || [];
     return cleanAndSort(rawData);
   },
@@ -5756,6 +5799,7 @@ async searchAwards(keywords) {
     const timePeriod = Utils.getTrailing12Mo();
     const filters = Utils.buildFilters(keywords, timePeriod);
     filters.award_type_codes = this.CONTRACT_TYPES;
+    App._applySectorFilter(filters);
     return (await this._post('/search/spending_by_category/naics', { category: 'naics', filters, limit: 10 })).results || [];
   },
 
@@ -5790,6 +5834,7 @@ const startYear = currentYear - 4;
     });
     if (agencies.length > 0) filters.agencies = agencies;
     if (kws.length > 0) filters.keywords = kws;
+    App._applySectorFilter(filters);
     const trendResult = await this._post('/search/spending_over_time/', { group: 'fiscal_year', filters });
     let results = trendResult.results || [];
     const finalResults = [];
@@ -5803,6 +5848,7 @@ const startYear = currentYear - 4;
 
   async getTopAgenciesForYear(keywords, fy) {
     const filters = Utils.buildFilters(keywords, [{ start_date: `${parseInt(fy)-1}-10-01`, end_date: `${fy}-09-30` }]);
+    App._applySectorFilter(filters);
     return (await this._post('/search/spending_by_category/awarding_subagency', { category: 'awarding_subagency', filters, limit: 3 })).results || [];
   },
 
@@ -5813,6 +5859,7 @@ const startYear = currentYear - 4;
   async getSubawards(keywords) {
     const timePeriod = Utils.getTrailing12Mo();
     const filters = Utils.buildFilters(keywords, timePeriod);
+    App._applySectorFilter(filters);
     try {
       const res = await this._post('/search/spending_by_award/', {
         subawards: true,
@@ -8202,11 +8249,142 @@ drillDown(name, preventRender = false) {
   // --- Sankey ---
   _sankeyView: 'sankey',
 
+  // ── Sector filter constants ─────────────────────────────────────────────────
+  SECTORS: {
+    dod: {
+      label: 'DoD', color: '#7CA8C4',
+      agencies: [
+        'Department of Defense','Department of the Army','Department of the Navy',
+        'Department of the Air Force','Defense Health Agency',
+        'Defense Information Systems Agency','Defense Logistics Agency',
+        'Defense Advanced Research Projects Agency','United States Special Operations Command',
+        'Defense Contract Management Agency','Defense Threat Reduction Agency',
+        'Missile Defense Agency','National Geospatial-Intelligence Agency',
+        'National Security Agency','Defense Intelligence Agency'
+      ]
+    },
+    fedciv: {
+      label: 'FedCiv', color: '#80C0B0',
+      agencies: [
+        'General Services Administration','Department of Homeland Security',
+        'Department of Justice','Department of State','Department of Commerce',
+        'Department of Transportation','Department of Energy','Department of Education',
+        'Department of Labor','Department of the Interior',
+        'Department of Housing and Urban Development','Department of Agriculture',
+        'Environmental Protection Agency','National Aeronautics and Space Administration',
+        'Social Security Administration','Office of Personnel Management',
+        'National Science Foundation','Small Business Administration',
+        'Nuclear Regulatory Commission','Department of the Treasury'
+      ]
+    },
+    fedhealth: {
+      label: 'FedHealth', color: '#D4A0B0',
+      agencies: [
+        'Department of Health and Human Services','Department of Veterans Affairs',
+        'Centers for Medicare and Medicaid Services',
+        'Centers for Disease Control and Prevention',
+        'Food and Drug Administration','National Institutes of Health',
+        'Health Resources and Services Administration',
+        'Substance Abuse and Mental Health Services Administration',
+        'Agency for Healthcare Research and Quality',
+        'Indian Health Service','Administration for Community Living'
+      ]
+    },
+    fedfin: {
+      label: 'FedFin', color: '#E8A468',
+      agencies: [
+        'Department of the Treasury','Internal Revenue Service',
+        'Securities and Exchange Commission',
+        'Federal Deposit Insurance Corporation',
+        'Federal Reserve System','Small Business Administration',
+        'Export-Import Bank of the United States',
+        'Commodity Futures Trading Commission',
+        'Federal Housing Finance Agency','Consumer Financial Protection Bureau',
+        'Government Accountability Office'
+      ]
+    }
+  },
+
+  // Active sector filters — all on by default, null means no filter applied
+  _activeSectors: null,  // null = all sectors, Set of keys = filtered
+
+  setSectorFilter(key) {
+    if (!key) {
+      // "All" clicked — reset to no filter
+      App._activeSectors = null;
+    } else if (!App._activeSectors) {
+      // Currently unfiltered — clicking one sector isolates it
+      App._activeSectors = new Set([key]);
+    } else if (App._activeSectors.has(key)) {
+      if (App._activeSectors.size === 1) {
+        // Last active sector — clicking it resets to all
+        App._activeSectors = null;
+      } else {
+        App._activeSectors.delete(key);
+      }
+    } else {
+      App._activeSectors.add(key);
+      if (App._activeSectors.size === Object.keys(App.SECTORS).length) {
+        App._activeSectors = null; // all active = same as no filter
+      }
+    }
+    App._updateSectorPillUI();
+    // Re-run the full search so the API returns only the filtered universe
+    if (App.currentQuery) {
+      App.searchData = { raw: [], active: [], filter: null, loaded: false };
+      App.runSearch(App.currentQuery);
+    }
+  },
+
+  _updateSectorPillUI() {
+    document.querySelectorAll('.sector-pill').forEach(pill => {
+      const key = pill.dataset.sector;
+      const active = !App._activeSectors || App._activeSectors.has(key);
+      pill.classList.toggle('active', active);
+    });
+  },
+
+  // Returns agency filter array for USASpending API, or null if no sector filter
+  _getSectorAgencyFilter() {
+    if (!App._activeSectors) return null;
+    const agencies = [];
+    App._activeSectors.forEach(key => {
+      (App.SECTORS[key]?.agencies || []).forEach(name => {
+        agencies.push({ type: 'awarding', tier: 'toptier', name, toptier_name: name });
+      });
+    });
+    return agencies.length > 0 ? agencies : null;
+  },
+
+  // Merges active sector filter into a USASpending filters object in-place.
+  // Called before EVERY API search call so sector is enforced at the API level.
+  // If the query already contains explicit agency terms, sector filter is combined
+  // (intersection logic) — USASpending ANDs multiple agency filters.
+  _applySectorFilter(filters) {
+    const sectorAgencies = App._getSectorAgencyFilter();
+    if (!sectorAgencies) return filters;  // no active sector = no-op
+    // If no existing agency filter, set it to the sector list
+    if (!filters.agencies || filters.agencies.length === 0) {
+      filters.agencies = sectorAgencies;
+    } else {
+      // Keep only agencies that appear in BOTH the explicit list AND the sector list
+      // This allows "VA + FedHealth" to work (VA is in FedHealth, so it stays)
+      const sectorNames = new Set(sectorAgencies.map(a => a.name.toLowerCase()));
+      const intersection = filters.agencies.filter(a =>
+        sectorNames.has((a.name || a.toptier_name || '').toLowerCase())
+      );
+      // If intersection is empty (user searched a different-sector agency), fall back
+      // to the sector filter so we don't return empty results
+      filters.agencies = intersection.length > 0 ? intersection : sectorAgencies;
+    }
+    return filters;
+  },
+
   setSankeyView(view) {
     App._sankeyView = view;
-    const flowBtn = DOM.get('sankeyViewFlow');
-    const graphBtn = DOM.get('sankeyViewGraph');
-    const flowWrap = DOM.get('sankeyFlowWrapper');
+    const flowBtn   = DOM.get('sankeyViewFlow');
+    const graphBtn  = DOM.get('sankeyViewGraph');
+    const flowWrap  = DOM.get('sankeyFlowWrapper');
     const graphWrap = DOM.get('forceGraphWrapper');
     if (view === 'graph') {
       if (flowBtn) flowBtn.classList.remove('active');
@@ -8228,7 +8406,6 @@ drillDown(name, preventRender = false) {
 
   _renderForceGraphInner() {
     const container = DOM.get('forceGraphContainer');
-    const tooltip   = DOM.get('forceGraphTooltip');
     if (!container) return;
 
     const data = App.searchData.active;
@@ -8237,237 +8414,342 @@ drillDown(name, preventRender = false) {
       return;
     }
 
-    // ── Palette ───────────────────────────────────────────────────────────────
-    const isDark     = App.darkMode;
-    const agencyHues = ['#7CA8C4','#E8A468','#D4A0B0','#80C0B0','#9878A0',
-                        '#C75268','#A07860','#8888B8','#B8A878','#98B8C8','#D8CFC2','#638E6E'];
-    const vendorCol  = isDark ? 'rgba(99,142,110,0.85)' : 'rgba(56,100,65,0.85)';
-    const textCol    = isDark ? 'rgba(240,239,236,0.85)' : 'rgba(30,30,28,0.85)';
-    const lineRest   = isDark ? 'rgba(255,255,255,0.13)' : 'rgba(0,0,0,0.11)';
+    const centerId = App._graphFocusedAgency || null;
+    const isDark   = App.darkMode;
+    const cs       = getComputedStyle(document.documentElement);
+    const cv       = v => cs.getPropertyValue(v).trim();
+    const textPri  = cv('--text-primary');
+    const textTer  = cv('--text-tertiary');
+    const accent   = cv('--accent');
+    const bgApp    = cv('--bg-app');
 
-    // ── Build nodes + links ───────────────────────────────────────────────────
-    const agencyMap = {}, vendorMap = {}, linkMap = {};
-    const agencyList = [], vendorList = [];
+    // Sector color lookup — agency → sector color
+    const sectorColorOf = (agencyName) => {
+      for (const [key, sec] of Object.entries(App.SECTORS)) {
+        if (sec.agencies.some(a => agencyName.toLowerCase().includes(a.toLowerCase()) ||
+            a.toLowerCase().includes(agencyName.toLowerCase().split('(')[0].trim()))) {
+          return sec.color;
+        }
+      }
+      return '#9878A0'; // fallback
+    };
 
+    // ── Build hierarchy ───────────────────────────────────────────────────────
+    const agencyMap = {};
     data.forEach(d => {
       const amt    = parseFloat(d['Award Amount']) || 0;
       if (amt <= 0) return;
-      const agency = d['Awarding Agency'] || 'Unknown';
-      const vendor = d['Recipient Name']  || 'Unknown';
-      if (!agencyMap[agency]) {
-        agencyMap[agency] = { id: agency, group: 'agency', spend: 0, colorIdx: agencyList.length };
-        agencyList.push(agencyMap[agency]);
-      }
+      const agency = d['Awarding Agency']     || 'Unknown';
+      const vendor = d['Recipient Name']      || 'Unknown';
+      let   sub    = d['Awarding Sub Agency'] || agency;
+      const agRaw  = agency.toUpperCase().split('(')[0].trim();
+      const subRaw = sub.toUpperCase().split('(')[0].trim();
+      if (agRaw === subRaw && d['Awarding Office']) sub = d['Awarding Office'];
+      const office = (sub === agency) ? sub + ' (HQ)' : sub;
+
+      if (!agencyMap[agency]) agencyMap[agency] = { id: agency, spend: 0, offices: {} };
       agencyMap[agency].spend += amt;
-      if (!vendorMap[vendor]) {
-        vendorMap[vendor] = { id: vendor, group: 'vendor', spend: 0 };
-        vendorList.push(vendorMap[vendor]);
-      }
-      vendorMap[vendor].spend += amt;
-      const k = agency + '|||' + vendor;
-      if (!linkMap[k]) linkMap[k] = { source: agency, target: vendor, value: 0 };
-      linkMap[k].value += amt;
+      if (!agencyMap[agency].offices[office]) agencyMap[agency].offices[office] = { id: office, spend: 0, vendors: {} };
+      agencyMap[agency].offices[office].spend += amt;
+      agencyMap[agency].offices[office].vendors[vendor] =
+        (agencyMap[agency].offices[office].vendors[vendor] || 0) + amt;
     });
 
-    // Top vendors by spend covering 90%, min 6, max 35
-    const sortedV = vendorList.sort((a, b) => b.spend - a.spend);
-    const totalV  = sortedV.reduce((s, v) => s + v.spend, 0);
-    let cum = 0;
-    const keepV = new Set();
-    for (const v of sortedV) {
-      keepV.add(v.id);
-      cum += v.spend;
-      if (cum / totalV >= 0.90 && keepV.size >= 6) break;
-      if (keepV.size >= 35) break;
-    }
-    const keepA  = new Set(agencyList.slice(0, 10).map(a => a.id));
-    const nodes  = [
-      ...agencyList.filter(a => keepA.has(a.id)),
-      ...vendorList.filter(v => keepV.has(v.id))
-    ];
-    const links  = Object.values(linkMap).filter(l => keepA.has(l.source) && keepV.has(l.target));
-    if (!nodes.length) return;
+    // Limits: 8 agencies, 5 offices, 6 vendors
+    const agencies = Object.values(agencyMap).sort((a,b)=>b.spend-a.spend).slice(0, 8);
+    agencies.forEach((a, i) => {
+      a.color = sectorColorOf(a.id);
+      a.officeList = Object.values(a.offices).sort((x,y)=>y.spend-x.spend).slice(0, 5)
+        .map(o => ({
+          ...o,
+          color: a.color,
+          vendorList: Object.entries(o.vendors).sort((x,y)=>y[1]-x[1]).slice(0, 6)
+            .map(([id, spend]) => ({ id, spend }))
+        }));
+    });
 
-    // ── Canvas — use actual rendered dimensions ────────────────────────────────
-    // Read offsetWidth AFTER the container is visible in the DOM.
-    // Fall back to window.innerWidth on mobile where offsetWidth may be 0.
+    // ── Canvas ────────────────────────────────────────────────────────────────
     const W = Math.max(container.offsetWidth || window.innerWidth, 300);
-    const H = Math.max(Math.round(W * 0.72), 420);
+    const H = Math.max(Math.round(W * 0.82), 460);
     container.style.height = H + 'px';
+    d3.select(container).selectAll('*').remove();
 
-    d3.select(container).selectAll('svg').remove();
     const svg = d3.select(container).append('svg')
-      .attr('width', '100%').attr('height', H)
-      .attr('viewBox', `0 0 ${W} ${H}`)
-      .style('display', 'block').style('background', 'transparent');
-
+      .attr('width','100%').attr('height', H)
+      .attr('viewBox',`0 0 ${W} ${H}`)
+      .style('display','block').style('background','transparent');
     const g = svg.append('g');
-    svg.call(d3.zoom().scaleExtent([0.3, 4]).on('zoom', e => g.attr('transform', e.transform)));
+
+    const cx = W / 2, cy = H / 2;
+    const minDim = Math.min(W, H);
 
     // ── Scales ────────────────────────────────────────────────────────────────
-    const maxA  = Math.max(...agencyList.map(a => a.spend), 1);
-    const maxV  = Math.max(...vendorList.map(v => v.spend), 1);
-    const maxL  = Math.max(...links.map(l => l.value), 1);
-    const rA    = a => 14 + Math.sqrt(a.spend / maxA) * 22;
-    const rV    = v => 5  + Math.sqrt(v.spend / maxV) * 10;
-    const nodeR = n => n.group === 'agency' ? rA(n) : rV(n);
-    const lw    = v => 0.8 + (v / maxL) * 5;
-    const nodeColor = n => n.group === 'agency'
-      ? agencyHues[n.colorIdx % agencyHues.length]
-      : vendorCol;
+    const maxSpend = Math.max(...agencies.map(a=>a.spend), 1);
+    const rCenter  = minDim * 0.07;
+    const rAgency  = a => minDim * 0.035 + Math.sqrt(a.spend / maxSpend) * minDim * 0.055;
+    const rOffice  = o => minDim * 0.016 + Math.sqrt(o.spend / maxSpend) * minDim * 0.022;
+    const rVendor  = minDim * 0.008;
 
-    // ── Simulation — all nodes start at canvas center ─────────────────────────
-    // Starting at center guarantees nodes expand inward, never scatter off-screen.
-    const PAD = 44;
-    nodes.forEach(n => {
-      n.x = W / 2 + (Math.random() - 0.5) * 20;
-      n.y = H / 2 + (Math.random() - 0.5) * 20;
-    });
+    // ── Radii for rings ───────────────────────────────────────────────────────
+    const R1 = minDim * 0.26;   // agency ring
+    const R2 = minDim * 0.40;   // office ring
+    const R3 = minDim * 0.49;   // vendor ring
 
-    const sim = d3.forceSimulation(nodes)
-      .force('link', d3.forceLink(links).id(d => d.id)
-        .distance(d => {
-          const tn = typeof d.target === 'object' ? d.target : nodes.find(n => n.id === d.target);
-          return (tn ? nodeR(tn) : 8) * 2.8 + lw(d.value) * 1.5;
-        })
-        .strength(0.55))
-      .force('charge', d3.forceManyBody()
-        .strength(d => d.group === 'agency' ? -500 - nodeR(d) * 7 : -90 - nodeR(d) * 3))
-      .force('center', d3.forceCenter(W / 2, H / 2).strength(0.06))
-      .force('collide', d3.forceCollide(d => nodeR(d) + 12).strength(0.85))
-      .force('bound', () => {
-        nodes.forEach(n => {
-          const r = nodeR(n);
-          if (n.x < PAD + r)       { n.x = PAD + r;       n.vx =  Math.abs(n.vx || 0) * 0.4; }
-          if (n.x > W - PAD - r)   { n.x = W - PAD - r;   n.vx = -Math.abs(n.vx || 0) * 0.4; }
-          if (n.y < PAD + r)       { n.y = PAD + r;        n.vy =  Math.abs(n.vy || 0) * 0.4; }
-          if (n.y > H - PAD - r)   { n.y = H - PAD - r;   n.vy = -Math.abs(n.vy || 0) * 0.4; }
+    // ── Build all node positions ──────────────────────────────────────────────
+    const allNodes = [], allArcs = [];
+
+    if (!centerId) {
+      // MARKET VIEW — all agencies on R1, offices R2, vendors R3
+      allNodes.push({ id:'__center__', type:'center', x:cx, y:cy,
+        r:rCenter, label: App.currentQuery || 'Market' });
+
+      agencies.forEach((agency, ai) => {
+        const aAng = (ai / agencies.length) * Math.PI * 2 - Math.PI / 2;
+        const ax   = cx + Math.cos(aAng) * R1;
+        const ay   = cy + Math.sin(aAng) * R1;
+        allNodes.push({ id:agency.id, type:'agency', x:ax, y:ay,
+          r:rAgency(agency), spend:agency.spend, color:agency.color, label:agency.id });
+        allArcs.push({ x1:cx, y1:cy, x2:ax, y2:ay,
+          value:agency.spend, color:agency.color, type:'c-a' });
+
+        agency.officeList.forEach((office, oi) => {
+          const sweep  = (Math.PI * 2 / agencies.length) * 0.72;
+          const oAng   = aAng - sweep/2 + (office.vendorList.length>0&&agency.officeList.length>1
+            ? (oi/(agency.officeList.length-1))*sweep : sweep/2);
+          const ox = Math.max(rOffice(office)+4, Math.min(W-rOffice(office)-4, cx+Math.cos(oAng)*R2));
+          const oy = Math.max(rOffice(office)+4, Math.min(H-rOffice(office)-4, cy+Math.sin(oAng)*R2));
+          allNodes.push({ id:agency.id+'::'+office.id, type:'office', x:ox, y:oy,
+            r:rOffice(office), spend:office.spend, color:agency.color, label:office.id,
+            agencyId:agency.id });
+          allArcs.push({ x1:ax, y1:ay, x2:ox, y2:oy,
+            value:office.spend, color:agency.color, type:'a-o' });
+
+          office.vendorList.forEach((v, vi) => {
+            const vSweep = sweep * 0.45;
+            const vAng   = oAng - vSweep/2 + (office.vendorList.length>1
+              ? (vi/(office.vendorList.length-1))*vSweep : vSweep/2);
+            const vx = Math.max(rVendor+4, Math.min(W-rVendor-4, cx+Math.cos(vAng)*R3));
+            const vy = Math.max(rVendor+4, Math.min(H-rVendor-4, cy+Math.sin(vAng)*R3));
+            const vid = agency.id+'::'+office.id+'::'+v.id;
+            if (!allNodes.find(n=>n.id===vid)) {
+              allNodes.push({ id:vid, type:'vendor', x:vx, y:vy,
+                r:rVendor, spend:v.spend, color:accent, label:v.id,
+                agencyId:agency.id, officeId:agency.id+'::'+office.id });
+              allArcs.push({ x1:ox, y1:oy, x2:vx, y2:vy,
+                value:v.spend, color:agency.color, type:'o-v' });
+            }
+          });
         });
-      })
-      .alphaDecay(0.022)
-      .velocityDecay(0.38)
-      .stop();   // stop before pre-ticks so D3 doesn't fight us
+      });
 
-    // 300 synchronous ticks — fully settled before any rendering
-    for (let i = 0; i < 300; i++) sim.tick();
+    } else {
+      // AGENCY VIEW — focused agency fills canvas
+      const agency = agencies.find(a=>a.id===centerId) || agencies[0];
+      const R1a = minDim * 0.29, R2a = minDim * 0.46;
 
-    // ── Draw links ────────────────────────────────────────────────────────────
-    const linkLayer = g.append('g');
-    const linkSel   = linkLayer.selectAll('line').data(links).join('line')
-      .attr('x1', d => d.source.x).attr('y1', d => d.source.y)
-      .attr('x2', d => d.target.x).attr('y2', d => d.target.y)
-      .attr('stroke', lineRest)
-      .attr('stroke-width', d => lw(d.value))
-      .attr('stroke-opacity', 0.9)
-      .attr('stroke-linecap', 'round');
+      allNodes.push({ id:agency.id, type:'center-agency', x:cx, y:cy,
+        r:rCenter*1.3, spend:agency.spend, color:agency.color, label:agency.id });
+
+      agency.officeList.forEach((office, oi) => {
+        const oAng = (oi/Math.max(agency.officeList.length-1,1))*Math.PI*2 - Math.PI/2;
+        const ox = Math.max(rOffice(office)+4, Math.min(W-rOffice(office)-4, cx+Math.cos(oAng)*R1a));
+        const oy = Math.max(rOffice(office)+4, Math.min(H-rOffice(office)-4, cy+Math.sin(oAng)*R1a));
+        allNodes.push({ id:agency.id+'::'+office.id, type:'office', x:ox, y:oy,
+          r:rOffice(office)*1.4, spend:office.spend, color:agency.color, label:office.id,
+          agencyId:agency.id });
+        allArcs.push({ x1:cx, y1:cy, x2:ox, y2:oy,
+          value:office.spend, color:agency.color, type:'a-o' });
+
+        const sweep = (Math.PI*2/Math.max(agency.officeList.length,1))*0.78;
+        office.vendorList.forEach((v, vi) => {
+          const vAng = oAng - sweep/2 + (office.vendorList.length>1
+            ? (vi/(office.vendorList.length-1))*sweep : sweep/2);
+          const vr = rVendor * 1.6;
+          const vx = Math.max(vr+4, Math.min(W-vr-4, cx+Math.cos(vAng)*R2a));
+          const vy = Math.max(vr+4, Math.min(H-vr-4, cy+Math.sin(vAng)*R2a));
+          const vid = agency.id+'::'+office.id+'::'+v.id;
+          if (!allNodes.find(n=>n.id===vid)) {
+            allNodes.push({ id:vid, type:'vendor', x:vx, y:vy,
+              r:vr, spend:v.spend, color:accent, label:v.id,
+              agencyId:agency.id, officeId:agency.id+'::'+office.id });
+            allArcs.push({ x1:ox, y1:oy, x2:vx, y2:vy,
+              value:v.spend, color:agency.color, type:'o-v' });
+          }
+        });
+      });
+    }
+
+    // ── Arc path — gentle curve ───────────────────────────────────────────────
+    const maxArcVal = Math.max(...allArcs.map(a=>a.value), 1);
+    const arcW = (v, type) => {
+      const base = type==='c-a' ? 1.5 : type==='a-o' ? 1.0 : 0.6;
+      return base + (v/maxArcVal)*3.5;
+    };
+    const arcPath = a => {
+      const dx=a.x2-a.x1, dy=a.y2-a.y1, len=Math.sqrt(dx*dx+dy*dy)||1;
+      const bend=len*0.15;
+      const mx=(a.x1+a.x2)/2-(dy/len)*bend, my=(a.y1+a.y2)/2+(dx/len)*bend;
+      return `M${a.x1},${a.y1} Q${mx},${my} ${a.x2},${a.y2}`;
+    };
+
+    // ── Draw subtle orbit rings ───────────────────────────────────────────────
+    if (!centerId) {
+      [R1, R2, R3].forEach(r => {
+        g.append('circle').attr('cx',cx).attr('cy',cy).attr('r',r)
+          .attr('fill','none')
+          .attr('stroke', isDark?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.04)')
+          .attr('stroke-width',1);
+      });
+    }
+
+    // ── Draw arcs ─────────────────────────────────────────────────────────────
+    const arcLayer = g.append('g');
+    const arcSel   = arcLayer.selectAll('path').data(allArcs).join('path')
+      .attr('fill','none')
+      .attr('d', arcPath)
+      .attr('stroke', a=>a.color)
+      .attr('stroke-width', a=>arcW(a.value, a.type))
+      .attr('stroke-opacity', a=>a.type==='c-a'?0.45:a.type==='a-o'?0.32:0.20)
+      .attr('stroke-linecap','round')
+      .style('transition','stroke-opacity 0.18s ease');
 
     // ── Draw nodes ────────────────────────────────────────────────────────────
     const nodeLayer = g.append('g');
-    const nodeSel   = nodeLayer.selectAll('circle').data(nodes).join('circle')
-      .attr('cx', d => d.x).attr('cy', d => d.y)
-      .attr('r',  d => nodeR(d))
-      .attr('fill',         d => nodeColor(d))
-      .attr('fill-opacity', d => d.group === 'agency' ? 0.90 : 0.75)
-      .attr('stroke',       d => nodeColor(d))
-      .attr('stroke-width', d => d.group === 'agency' ? 2.5 : 1.5)
+    const nodeSel   = nodeLayer.selectAll('circle').data(allNodes).join('circle')
+      .attr('cx', d=>d.x).attr('cy', d=>d.y)
+      .attr('r',  d=>d.r)
+      .attr('fill', d=>d.type==='center' ? bgApp : d.color)
+      .attr('fill-opacity', d=>
+        d.type==='center'?1 : d.type==='agency'||d.type==='center-agency'?0.88 :
+        d.type==='office'?0.72 : 0.68)
+      .attr('stroke', d=>d.type==='center'?textTer:d.color)
+      .attr('stroke-width', d=>d.type==='center'||d.type==='center-agency'?2:
+        d.type==='agency'?2:1.2)
       .attr('stroke-opacity', 0.45)
-      .style('cursor', 'pointer')
-      .call(d3.drag()
-        .on('start', (e, d) => { if (!e.active) sim.alphaTarget(0.15).restart(); d.fx = d.x; d.fy = d.y; })
-        .on('drag',  (e, d) => { d.fx = e.x; d.fy = e.y; })
-        .on('end',   (e, d) => { if (!e.active) sim.alphaTarget(0); d.fx = null; d.fy = null; }));
+      .style('cursor', d=>d.type==='vendor'?'default':'pointer')
+      .style('transition','fill-opacity 0.18s ease');
 
     // ── Labels ────────────────────────────────────────────────────────────────
-    const labelLayer = g.append('g').attr('pointer-events', 'none');
-    const labelSel   = labelLayer.selectAll('text').data(nodes).join('text')
-      .attr('x', d => d.x)
-      .attr('y', d => d.y + nodeR(d) + 12)
-      .attr('text-anchor', 'middle')
-      .style('font-size', d => d.group === 'agency' ? '11px' : '9px')
-      .style('font-weight', d => d.group === 'agency' ? '700' : '500')
-      .style('fill', d => d.group === 'agency'
-        ? agencyHues[d.colorIdx % agencyHues.length]
-        : (isDark ? 'rgba(200,230,201,0.78)' : 'rgba(30,80,40,0.78)'))
-      .style('opacity', d => d.group === 'agency' ? 0.90 : 0.68)
-      .text(d => Utils.trunc(d.id.replace(/^Department of (the )?/i,''), d.group === 'agency' ? 18 : 15));
+    const labelLayer = svg.append('g').attr('pointer-events','none');
 
-    // Spend sublabel for agencies
-    const spendSel = labelLayer.selectAll('text.spend').data(nodes.filter(n => n.group === 'agency'))
-      .join('text').attr('class', 'spend')
-      .attr('x', d => d.x)
-      .attr('y', d => d.y + nodeR(d) + 23)
-      .attr('text-anchor', 'middle')
-      .style('font-size', '9px').style('font-weight', '500')
-      .style('fill', d => agencyHues[d.colorIdx % agencyHues.length])
-      .style('opacity', 0.50)
-      .text(d => Utils.money(d.spend));
+    allNodes.forEach(n => {
+      const isCenter  = n.type==='center'||n.type==='center-agency';
+      const isAgency  = n.type==='agency';
+      const isOffice  = n.type==='office';
+      const isVendor  = n.type==='vendor';
 
-    // ── Tooltip + hover ───────────────────────────────────────────────────────
-    let _tipTimer = null;
-    const hideTip = () => {
-      clearTimeout(_tipTimer);
-      _tipTimer = setTimeout(() => { if (tooltip) tooltip.style.opacity = '0'; }, 180);
+      const col = isCenter ? textPri : n.color;
+      let lx=n.x, ly=n.y, anchor='middle', baseline='middle';
+
+      if (!isCenter) {
+        const ang = Math.atan2(n.y-cy, n.x-cx);
+        const off = n.r + (isVendor ? 6 : 8);
+        lx = n.x + Math.cos(ang)*off;
+        ly = n.y + Math.sin(ang)*off;
+        anchor  = Math.cos(ang)>0.2?'start':Math.cos(ang)<-0.2?'end':'middle';
+        baseline= Math.sin(ang)>0.15?'hanging':'auto';
+      }
+
+      // Char limits: vendors shorter in market view to avoid clutter
+      const maxC  = isCenter?18 : isAgency?15 : isOffice?(centerId?16:11)
+                  : isVendor?(centerId?20:12) : 12;
+      const lbl   = Utils.trunc(
+        n.label.replace(/^Department of (the )?/i,'').replace(/^Office of (the )?/i,''), maxC);
+      const fsize = isCenter?'13px':isAgency?'11px':isOffice?'9.5px':'8.5px';
+      const fwt   = isCenter?'800':isAgency?'700':isOffice?'600':'500';
+      const op    = isCenter?1:isAgency?0.90:isOffice?0.75:isVendor?(centerId?0.72:0.58):0.72;
+
+      labelLayer.append('text')
+        .attr('x',lx).attr('y',ly)
+        .attr('text-anchor',anchor)
+        .attr('dominant-baseline', isCenter?'middle':baseline)
+        .style('font-size',fsize).style('font-weight',fwt)
+        .style('fill',col).style('opacity',op)
+        .text(lbl);
+
+      if (isCenter || isAgency) {
+        const money = Utils.money(n.spend);
+        labelLayer.append('text')
+          .attr('x',lx)
+          .attr('y', isCenter ? ly+16 : ly+(Math.sin(Math.atan2(n.y-cy,n.x-cx))>0.1?13:-1))
+          .attr('text-anchor',anchor)
+          .style('font-size','9px').style('font-weight','400')
+          .style('fill',col).style('opacity',isCenter?0.5:0.44)
+          .text(money);
+      }
+    });
+
+    // ── Ghost hover label (no card) ───────────────────────────────────────────
+    const ghost = svg.append('text').attr('pointer-events','none')
+      .style('font-size','11px').style('font-weight','600')
+      .style('fill',textPri).style('opacity',0)
+      .style('transition','opacity 0.12s ease');
+    const showGhost = (x,y,text,col) => {
+      ghost.attr('x',Math.min(x+12, W-140)).attr('y',y-8)
+        .style('fill',col||textPri).text(text).style('opacity',1);
     };
-    const neighbors = d => new Set(
-      links.filter(l => l.source.id === d.id || l.target.id === d.id)
-           .flatMap(l => [l.source.id, l.target.id])
-    );
+    const hideGhost = () => ghost.style('opacity',0);
+
+    // ── Interaction ───────────────────────────────────────────────────────────
+    const connectedIds = (n) => {
+      const ids = new Set([n.id]);
+      if (n.agencyId) ids.add(n.agencyId);
+      if (n.officeId) ids.add(n.officeId);
+      allArcs.forEach(a => {
+        const srcNode = allNodes.find(nd=>nd.x===a.x1&&nd.y===a.y1);
+        const tgtNode = allNodes.find(nd=>nd.x===a.x2&&nd.y===a.y2);
+        if (srcNode && ids.has(srcNode.id) && tgtNode) ids.add(tgtNode.id);
+        if (tgtNode && ids.has(tgtNode.id) && srcNode) ids.add(srcNode.id);
+      });
+      return ids;
+    };
 
     nodeSel
       .on('mousemove', function(event, d) {
-        clearTimeout(_tipTimer);
-        const nb  = neighbors(d);
-        const col = nodeColor(d);
-
+        const nb  = connectedIds(d);
         nodeSel
-          .attr('fill-opacity',   n => nb.has(n.id) ? (n.group==='agency'?0.95:0.88) : 0.08)
-          .attr('stroke-opacity', n => nb.has(n.id) ? 0.65 : 0.04);
-        linkSel
-          .attr('stroke', l => (l.source.id===d.id||l.target.id===d.id) ? col : lineRest)
-          .attr('stroke-opacity', l => (l.source.id===d.id||l.target.id===d.id) ? 0.9 : 0.04);
-        labelSel.attr('opacity', n => nb.has(n.id) ? (n.group==='agency'?0.95:0.78) : 0.06);
-        spendSel.attr('opacity', n => nb.has(n.id) ? 0.6 : 0.04);
-
-        if (tooltip) {
-          const conns    = links.filter(l => l.source.id===d.id||l.target.id===d.id);
-          const partners = [...new Set(conns.map(l => l.source.id===d.id?l.target.id:l.source.id))];
-          tooltip.innerHTML = `
-            <div style="font-weight:800;font-size:var(--text-sm);margin-bottom:3px;">${Html.escapeHtml(d.id.replace(/^Department of (the )?/i,''))}</div>
-            <div style="font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-tertiary);margin-bottom:5px;">${d.group==='agency'?'Agency':'Vendor'}</div>
-            <div style="font-weight:700;color:${col};margin-bottom:3px;">${Utils.money(d.spend)}</div>
-            <div style="font-size:9px;color:var(--text-tertiary);">${partners.length} connection${partners.length!==1?'s':''}</div>`;
-          tooltip.style.opacity = '1';
-          tooltip.style.left = (event.clientX+14)+'px';
-          tooltip.style.top  = (event.clientY-10)+'px';
-        }
+          .attr('fill-opacity', n => nb.has(n.id) ?
+            (n.type==='center'||n.type==='center-agency'?1:n.type==='agency'?0.95:n.type==='office'?0.85:0.80) : 0.07)
+          .attr('stroke-opacity', n => nb.has(n.id)?0.65:0.04);
+        arcSel.attr('stroke-opacity', a => {
+          const s=allNodes.find(n=>n.x===a.x1&&n.y===a.y1);
+          const t=allNodes.find(n=>n.x===a.x2&&n.y===a.y2);
+          return (s&&nb.has(s.id))||(t&&nb.has(t.id)) ?
+            (a.type==='c-a'?0.75:a.type==='a-o'?0.55:0.38) : 0.03;
+        });
+        const label = d.label.replace(/^Department of (the )?/i,'').replace(/^Office of (the )?/i,'');
+        const spend = d.spend ? ' · '+Utils.money(d.spend) : '';
+        showGhost(d.x, d.y, Utils.trunc(label,24)+spend, d.color||textPri);
       })
       .on('mouseleave', () => {
-        nodeSel.attr('fill-opacity', d=>d.group==='agency'?0.90:0.75).attr('stroke-opacity',0.45);
-        linkSel.attr('stroke',lineRest).attr('stroke-opacity',0.9).attr('stroke-width',d=>lw(d.value));
-        labelSel.attr('opacity', d=>d.group==='agency'?0.90:0.68);
-        spendSel.attr('opacity', 0.50);
-        hideTip();
+        nodeSel.attr('fill-opacity', d=>
+          d.type==='center'||d.type==='center-agency'?1:d.type==='agency'?0.88:d.type==='office'?0.72:0.68)
+          .attr('stroke-opacity',0.45);
+        arcSel.attr('stroke-opacity', a=>a.type==='c-a'?0.45:a.type==='a-o'?0.32:0.20);
+        hideGhost();
       })
       .on('click', (e, d) => {
         e.stopPropagation();
-        App.drillDown(d.id, true);
-        App.setSankeyView('sankey');
+        if (d.type==='center') { App._graphFocusedAgency=null; App.renderForceGraph(); }
+        else if (d.type==='agency') { App._graphFocusedAgency=d.id; App.renderForceGraph(); }
+        else if (d.type==='center-agency') { App._graphFocusedAgency=null; App.renderForceGraph(); }
+        else if (d.type==='office') { App.drillDown(d.label,true); App.setSankeyView('sankey'); }
       });
 
-    // ── Tick — live updates during drag ──────────────────────────────────────
-    sim.on('tick', () => {
-      linkSel.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y)
-             .attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
-      nodeSel.attr('cx',d=>d.x).attr('cy',d=>d.y);
-      labelSel.attr('x',d=>d.x).attr('y',d=>d.y+nodeR(d)+12);
-      spendSel.attr('x',d=>d.x).attr('y',d=>d.y+nodeR(d)+23);
-    });
+    svg.on('click', () => { if(centerId){App._graphFocusedAgency=null;App.renderForceGraph();} });
 
-    // Restart simulation gently for drag interactivity
-    sim.alphaTarget(0).alpha(0.05).restart();
+    // Sector label overlay — shows active filter
+    if (App._activeSectors) {
+      const active = [...App._activeSectors].map(k=>App.SECTORS[k].label).join(' · ');
+      svg.append('text').attr('x',8).attr('y',H-8)
+        .style('font-size','9px').style('fill',textTer).style('opacity',0.55)
+        .text(active);
+    }
 
-    // Fade in
-    g.attr('opacity',0).transition().duration(380).attr('opacity',1);
+    // ── Entrance ──────────────────────────────────────────────────────────────
+    arcSel.attr('opacity',0).transition().duration(600).delay(60).attr('opacity',1);
+    nodeSel.attr('opacity',0).transition().duration(400).delay((_,i)=>40+i*14).attr('opacity',1);
+    labelLayer.attr('opacity',0).transition().duration(500).delay(280).attr('opacity',1);
   },
 
   renderSankey() {
