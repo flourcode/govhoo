@@ -8228,7 +8228,6 @@ drillDown(name, preventRender = false) {
 
   _renderForceGraphInner() {
     const container = DOM.get('forceGraphContainer');
-    const tooltip   = DOM.get('forceGraphTooltip');
     if (!container) return;
 
     const data = App.searchData.active;
@@ -8237,26 +8236,19 @@ drillDown(name, preventRender = false) {
       return;
     }
 
-    // ── State ─────────────────────────────────────────────────────────────────
-    // centerId: what sits at the center of the map
-    // null = keyword/market view; string = agency name
     const centerId = App._graphFocusedAgency || null;
+    const isDark   = App.darkMode;
+    const cs       = getComputedStyle(document.documentElement);
+    const cv       = v => cs.getPropertyValue(v).trim();
+    const textPri  = cv('--text-primary');
+    const textTer  = cv('--text-tertiary');
+    const accent   = cv('--accent');  // vendor green
 
-    // ── CSS vars ──────────────────────────────────────────────────────────────
-    const cs          = getComputedStyle(document.documentElement);
-    const cv          = v => cs.getPropertyValue(v).trim();
-    const isDark      = App.darkMode;
-    const textPrimary = cv('--text-primary');
-    const textTertiary= cv('--text-tertiary');
-    const borderCol   = cv('--border');
-    const accentCol   = cv('--accent');           // #638E6E — vendor green
+    const agencyHues = ['#7CA8C4','#E8A468','#D4A0B0','#80C0B0','#9878A0',
+                        '#C75268','#A07860','#8888B8','#B8A878','#98B8C8'];
 
-    const agencyHues  = ['#7CA8C4','#E8A468','#D4A0B0','#80C0B0','#9878A0',
-                         '#C75268','#A07860','#8888B8','#B8A878','#98B8C8'];
-
-    // ── Build data ────────────────────────────────────────────────────────────
-    const agencyMap = {}, officeMap = {}, vendorMap = {};
-
+    // ── Build hierarchy ───────────────────────────────────────────────────────
+    const agencyMap = {};
     data.forEach(d => {
       const amt    = parseFloat(d['Award Amount']) || 0;
       if (amt <= 0) return;
@@ -8267,346 +8259,336 @@ drillDown(name, preventRender = false) {
       const subRaw = sub.toUpperCase().split('(')[0].trim();
       if (agRaw === subRaw && d['Awarding Office']) sub = d['Awarding Office'];
       const office = (sub === agency) ? sub + ' (HQ)' : sub;
-
-      if (!agencyMap[agency]) agencyMap[agency] = { id: agency, spend: 0, offices: {}, colorIdx: 0 };
+      if (!agencyMap[agency]) agencyMap[agency] = { id: agency, spend: 0, offices: {} };
       agencyMap[agency].spend += amt;
       if (!agencyMap[agency].offices[office]) agencyMap[agency].offices[office] = { id: office, spend: 0, vendors: {} };
       agencyMap[agency].offices[office].spend += amt;
-      if (!agencyMap[agency].offices[office].vendors[vendor])
-        agencyMap[agency].offices[office].vendors[vendor] = 0;
-      agencyMap[agency].offices[office].vendors[vendor] += amt;
-
-      if (!vendorMap[vendor]) vendorMap[vendor] = { id: vendor, spend: 0, agencies: new Set() };
-      vendorMap[vendor].spend += amt;
-      vendorMap[vendor].agencies.add(agency);
+      agencyMap[agency].offices[office].vendors[vendor] = (agencyMap[agency].offices[office].vendors[vendor] || 0) + amt;
     });
 
-    // Sort agencies by spend, assign color
-    const agencies = Object.values(agencyMap)
-      .sort((a, b) => b.spend - a.spend).slice(0, 10);
-    agencies.forEach((a, i) => { a.colorIdx = i; });
+    // Top 8 agencies, top 5 offices each, top 6 vendors each
+    const agencies = Object.values(agencyMap).sort((a,b)=>b.spend-a.spend).slice(0, 8);
+    agencies.forEach((a, i) => {
+      a.colorIdx = i;
+      a.officeList = Object.values(a.offices).sort((x,y)=>y.spend-x.spend).slice(0, 5)
+        .map(o => ({
+          ...o,
+          vendorList: Object.entries(o.vendors).sort((x,y)=>y[1]-x[1]).slice(0, 6)
+            .map(([id, spend]) => ({ id, spend }))
+        }));
+    });
 
     // ── Canvas ────────────────────────────────────────────────────────────────
     const W  = Math.max(container.offsetWidth || window.innerWidth, 300);
-    const H  = Math.max(Math.round(W * 0.82), 440);
+    const H  = Math.max(Math.round(W * 0.85), 460);
     container.style.height = H + 'px';
+    d3.select(container).selectAll('*').remove();
 
-    d3.select(container).selectAll('svg').remove();
     const svg = d3.select(container).append('svg')
-      .attr('width', '100%').attr('height', H)
-      .attr('viewBox', `0 0 ${W} ${H}`)
-      .style('display', 'block').style('background', 'transparent');
+      .attr('width','100%').attr('height', H)
+      .attr('viewBox',`0 0 ${W} ${H}`)
+      .style('display','block').style('background','transparent');
 
     const g = svg.append('g');
 
-    // ── Scales ────────────────────────────────────────────────────────────────
-    const maxAgency = Math.max(...agencies.map(a => a.spend), 1);
-    const rCenter   = Math.min(W, H) * 0.09;   // center node
-    const rAgency   = a => 10 + Math.sqrt(a.spend / maxAgency) * (Math.min(W,H) * 0.045);
-    const rOffice   = o => 5  + Math.sqrt(o.spend / maxAgency) * (Math.min(W,H) * 0.025);
-    const rVendor   = () => Math.max(3, Math.min(W,H) * 0.008);
+    // ── Ghost label (no card — single line near node) ─────────────────────────
+    const ghost = svg.append('text')
+      .attr('pointer-events','none')
+      .style('font-size','11px').style('font-weight','600')
+      .style('fill', textPri).style('opacity',0)
+      .style('transition','opacity 0.15s ease');
 
-    // ── Two modes ─────────────────────────────────────────────────────────────
-    // MARKET VIEW: keyword center → agencies ring 1 → offices ring 2 → vendor dots ring 3
-    // AGENCY VIEW: agency center → offices ring 1 → vendor dots ring 2
+    const showGhost = (x, y, text, col) => {
+      ghost.attr('x', x + 10).attr('y', y - 6)
+        .style('fill', col || textPri)
+        .text(text)
+        .style('opacity', 1);
+    };
+    const hideGhost = () => ghost.style('opacity', 0);
 
-    const cx = W / 2, cy = H / 2;
-    const nodes = [], arcs = [];
+    // ── Layout helpers ────────────────────────────────────────────────────────
+    // Tree layout: trunk at bottom-center, branches grow upward.
+    // Each agency gets a horizontal "sector" based on its index.
+    // Offices branch outward from the trunk top at varied angles.
+    // Vendor leaves extend from office tips.
 
-    if (!centerId) {
-      // ── MARKET VIEW ─────────────────────────────────────────────────────────
-      const R1  = Math.min(W, H) * 0.28;   // agency ring
-      const R2  = Math.min(W, H) * 0.42;   // office ring
-      const R3  = Math.min(W, H) * 0.50;   // vendor ring (clamped within canvas)
+    const maxSpend  = Math.max(...agencies.map(a=>a.spend), 1);
+    const trunkW    = a => 2.5 + Math.sqrt(a.spend / maxSpend) * 5;
+    const branchW   = o => 1.2 + Math.sqrt(o.spend / maxSpend) * 3;
+    const leafR     = v => Math.max(3.5, 4 + Math.sqrt(v.spend / maxSpend) * 5);
 
-      // Center
-      nodes.push({ id: '__center__', type: 'center', x: cx, y: cy,
-        r: rCenter, label: App.currentQuery || 'Market', colorIdx: -1 });
+    // When focused: single trunk fills the canvas
+    // When market: trunks distributed across bottom
 
-      agencies.forEach((agency, ai) => {
-        const aAng = (ai / agencies.length) * Math.PI * 2 - Math.PI / 2;
-        const ax   = cx + Math.cos(aAng) * R1;
-        const ay   = cy + Math.sin(aAng) * R1;
-        nodes.push({ id: agency.id, type: 'agency', x: ax, y: ay,
-          r: rAgency(agency), spend: agency.spend, colorIdx: ai, label: agency.id });
+    const nodes = [], edges = [];
 
-        arcs.push({ x1: cx, y1: cy, x2: ax, y2: ay,
-          value: agency.spend, colorIdx: ai, type: 'center-agency' });
+    const addNode = (n) => { nodes.push(n); return n; };
+    const addEdge = (e) => edges.push(e);
 
-        // Top offices for this agency (max 5)
-        const offices = Object.values(agency.offices)
-          .sort((a, b) => b.spend - a.spend).slice(0, 5);
+    if (centerId) {
+      // ── TREE VIEW: single agency trunk, fills canvas ───────────────────────
+      const agency = agencies.find(a => a.id === centerId) || agencies[0];
+      const col    = agencyHues[agency.colorIdx % agencyHues.length];
 
-        offices.forEach((office, oi) => {
-          const spread   = (Math.PI * 2 / agencies.length) * 0.7;
-          const offAng   = aAng - spread/2 + (oi / Math.max(offices.length-1,1)) * spread;
-          const ox       = Math.max(rOffice(office)+4, Math.min(W-rOffice(office)-4, cx + Math.cos(offAng)*R2));
-          const oy       = Math.max(rOffice(office)+4, Math.min(H-rOffice(office)-4, cy + Math.sin(offAng)*R2));
-          const offNodeId = agency.id + '::' + office.id;
-          nodes.push({ id: offNodeId, type: 'office', x: ox, y: oy,
-            r: rOffice(office), spend: office.spend, colorIdx: ai, label: office.id,
-            agencyId: agency.id });
+      // Trunk: bottom-center → ~40% up
+      const trunkX  = W / 2;
+      const trunkY0 = H - 28;
+      const trunkY1 = H * 0.38;
 
-          arcs.push({ x1: ax, y1: ay, x2: ox, y2: oy,
-            value: office.spend, colorIdx: ai, type: 'agency-office' });
+      addNode({ id: agency.id, type:'trunk', x: trunkX, y: trunkY0,
+        x2: trunkX, y2: trunkY1, spend: agency.spend, col, label: agency.id });
 
-          // Top vendors for this office (max 4)
-          const vendors = Object.entries(office.vendors)
-            .sort((a, b) => b[1] - a[1]).slice(0, 4);
+      const offices = agency.officeList;
+      const totalOffices = offices.length;
 
-          vendors.forEach(([ vname, vspend ], vi) => {
-            const vSpread = spread * 0.5;
-            const vAng    = offAng - vSpread/2 + (vi / Math.max(vendors.length-1,1)) * vSpread;
-            const vr      = rVendor();
-            const vx      = Math.max(vr+4, Math.min(W-vr-4, cx + Math.cos(vAng)*R3));
-            const vy      = Math.max(vr+4, Math.min(H-vr-4, cy + Math.sin(vAng)*R3));
-            const vnodeId = offNodeId + '::' + vname;
-            // Avoid duplicate vendor nodes
-            if (!nodes.find(n => n.id === vnodeId)) {
-              nodes.push({ id: vnodeId, type: 'vendor', x: vx, y: vy,
-                r: vr, spend: vspend, colorIdx: ai, label: vname,
-                agencyId: agency.id, officeId: offNodeId });
-              arcs.push({ x1: ox, y1: oy, x2: vx, y2: vy,
-                value: vspend, colorIdx: ai, type: 'office-vendor' });
-            }
-          });
+      offices.forEach((office, oi) => {
+        // Branches fan from trunk tip, spread -80° to +80° from vertical
+        const frac    = totalOffices === 1 ? 0.5 : oi / (totalOffices - 1);
+        const angle   = (-80 + frac * 160) * (Math.PI / 180);
+        const brLen   = H * 0.22 + Math.sqrt(office.spend / maxSpend) * H * 0.08;
+        const bx      = Math.max(12, Math.min(W-12, trunkX + Math.sin(angle) * brLen));
+        const by      = Math.max(12, trunkY1 - Math.cos(angle) * brLen);
+
+        addNode({ id: office.id, type:'branch', x: trunkX, y: trunkY1,
+          x2: bx, y2: by, spend: office.spend, col, label: office.id });
+
+        // Leaves from branch tip
+        office.vendorList.forEach((vendor, vi) => {
+          const vFrac   = office.vendorList.length === 1 ? 0.5 : vi / (office.vendorList.length - 1);
+          const vSpread = 50 * (Math.PI / 180);
+          const vAng    = angle - vSpread/2 + vFrac * vSpread;
+          const vLen    = H * 0.12;
+          const vr      = leafR(vendor);
+          const vx      = Math.max(vr+4, Math.min(W-vr-4, bx + Math.sin(vAng) * vLen));
+          const vy      = Math.max(vr+4, Math.min(H-80, by - Math.cos(vAng) * vLen));
+          addNode({ id: vendor.id + '::' + office.id, type:'leaf',
+            x: vx, y: vy, r: vr, spend: vendor.spend, col: accent,
+            label: vendor.id, bx, by });
         });
       });
 
     } else {
-      // ── AGENCY VIEW ─────────────────────────────────────────────────────────
-      const agency  = agencies.find(a => a.id === centerId) || agencies[0];
-      const ai      = agency ? agencies.indexOf(agency) : 0;
-      const R1      = Math.min(W, H) * 0.30;
-      const R2      = Math.min(W, H) * 0.46;
+      // ── FOREST VIEW: one trunk per agency, distributed across bottom ──────
+      const n = agencies.length;
+      agencies.forEach((agency, ai) => {
+        const col    = agencyHues[agency.colorIdx % agencyHues.length];
+        const frac   = n === 1 ? 0.5 : ai / (n - 1);
+        const trunkX = W * 0.08 + frac * W * 0.84;
+        const trunkY0 = H - 20;
+        // Trunk height proportional to spend
+        const trunkH  = H * 0.18 + Math.sqrt(agency.spend / maxSpend) * H * 0.28;
+        const trunkY1 = trunkY0 - trunkH;
 
-      nodes.push({ id: agency.id, type: 'center-agency', x: cx, y: cy,
-        r: rCenter * 1.2, spend: agency.spend, colorIdx: ai, label: agency.id });
+        addNode({ id: agency.id, type:'trunk', x: trunkX, y: trunkY0,
+          x2: trunkX, y2: Math.max(20, trunkY1),
+          spend: agency.spend, col, label: agency.id, colorIdx: agency.colorIdx });
 
-      const offices = Object.values(agency.offices)
-        .sort((a, b) => b.spend - a.spend).slice(0, 10);
+        const offices = agency.officeList;
+        offices.forEach((office, oi) => {
+          const frac2  = offices.length === 1 ? 0.5 : oi / (offices.length - 1);
+          const angle  = (-60 + frac2 * 120) * (Math.PI / 180);
+          const brLen  = Math.min(W * 0.12, H * 0.14) + Math.sqrt(office.spend / maxSpend) * H * 0.06;
+          const bx     = Math.max(8, Math.min(W-8, trunkX + Math.sin(angle) * brLen));
+          const by     = Math.max(8, trunkY1 - Math.cos(angle) * brLen);
 
-      offices.forEach((office, oi) => {
-        const ang = (oi / offices.length) * Math.PI * 2 - Math.PI / 2;
-        const ox  = Math.max(rOffice(office)+4, Math.min(W-rOffice(office)-4, cx + Math.cos(ang)*R1));
-        const oy  = Math.max(rOffice(office)+4, Math.min(H-rOffice(office)-4, cy + Math.sin(ang)*R1));
-        const offNodeId = agency.id + '::' + office.id;
-        nodes.push({ id: offNodeId, type: 'office', x: ox, y: oy,
-          r: rOffice(office), spend: office.spend, colorIdx: ai, label: office.id,
-          agencyId: agency.id });
-        arcs.push({ x1: cx, y1: cy, x2: ox, y2: oy,
-          value: office.spend, colorIdx: ai, type: 'center-office' });
+          addNode({ id: agency.id+'::'+office.id, type:'branch',
+            x: trunkX, y: Math.max(20, trunkY1),
+            x2: Math.max(8,Math.min(W-8,bx)), y2: Math.max(8,by),
+            spend: office.spend, col, label: office.id });
 
-        const vendors = Object.entries(office.vendors)
-          .sort((a, b) => b[1] - a[1]).slice(0, 6);
-        const vSpread = (Math.PI * 2 / offices.length) * 0.75;
-
-        vendors.forEach(([ vname, vspend ], vi) => {
-          const vAng    = ang - vSpread/2 + (vi / Math.max(vendors.length-1,1)) * vSpread;
-          const vr      = rVendor() * 1.4;
-          const vx      = Math.max(vr+4, Math.min(W-vr-4, cx + Math.cos(vAng)*R2));
-          const vy      = Math.max(vr+4, Math.min(H-vr-4, cy + Math.sin(vAng)*R2));
-          const vnodeId = offNodeId + '::' + vname;
-          if (!nodes.find(n => n.id === vnodeId)) {
-            nodes.push({ id: vnodeId, type: 'vendor', x: vx, y: vy,
-              r: vr, spend: vspend, colorIdx: ai, label: vname,
-              agencyId: agency.id, officeId: offNodeId });
-            arcs.push({ x1: ox, y1: oy, x2: vx, y2: vy,
-              value: vspend, colorIdx: ai, type: 'office-vendor' });
-          }
+          // Leaf dots at branch tips
+          office.vendorList.forEach((vendor, vi) => {
+            const vFrac  = office.vendorList.length === 1 ? 0.5 : vi / (office.vendorList.length - 1);
+            const vSpread= 40 * (Math.PI / 180);
+            const vAng   = angle - vSpread/2 + vFrac * vSpread;
+            const vLen   = Math.min(W*0.06, H*0.07);
+            const vr     = Math.max(2.5, leafR(vendor) * 0.65);
+            const vx     = Math.max(vr+2, Math.min(W-vr-2, bx + Math.sin(vAng)*vLen));
+            const vy     = Math.max(vr+2, Math.min(H-40, by - Math.cos(vAng)*vLen));
+            addNode({ id: vendor.id+'::'+agency.id+'::'+office.id, type:'leaf',
+              x: vx, y: vy, r: vr, spend: vendor.spend, col: accent,
+              label: vendor.id, bx, by });
+          });
         });
       });
     }
 
-    // ── Arc path — curved, like Image 4 ──────────────────────────────────────
-    const arcPath = (a) => {
-      const dx = a.x2 - a.x1, dy = a.y2 - a.y1;
-      const len = Math.sqrt(dx*dx + dy*dy) || 1;
-      // Slight perpendicular curve
-      const bend = len * 0.18;
-      const mx   = (a.x1+a.x2)/2 - (dy/len)*bend;
-      const my   = (a.y1+a.y2)/2 + (dx/len)*bend;
-      return `M${a.x1},${a.y1} Q${mx},${my} ${a.x2},${a.y2}`;
-    };
+    // ── Draw trunks + branches as thick lines ─────────────────────────────────
+    const lineLayer = g.append('g');
+    nodes.filter(n => n.type==='trunk' || n.type==='branch').forEach(n => {
+      const isTrunk = n.type === 'trunk';
+      lineLayer.append('line')
+        .attr('x1', n.x).attr('y1', n.y)
+        .attr('x2', n.x2).attr('y2', n.y2)
+        .attr('stroke', n.col)
+        .attr('stroke-width', isTrunk
+          ? (centerId ? trunkW(agencies.find(a=>a.id===centerId)||agencies[0]) * 2.5
+                      : trunkW({spend: n.spend}) )
+          : branchW({spend: n.spend}))
+        .attr('stroke-opacity', isTrunk ? 0.7 : 0.5)
+        .attr('stroke-linecap', 'round');
+    });
 
-    const maxArcVal = Math.max(...arcs.map(a => a.value), 1);
-    const arcW = v => 0.5 + (v/maxArcVal) * 3.5;
+    // ── Draw leaf dots ────────────────────────────────────────────────────────
+    // Thin stem from branch tip to leaf
+    nodes.filter(n=>n.type==='leaf').forEach(n => {
+      lineLayer.append('line')
+        .attr('x1', n.bx).attr('y1', n.by)
+        .attr('x2', n.x).attr('y2', n.y)
+        .attr('stroke', n.col)
+        .attr('stroke-width', 0.8)
+        .attr('stroke-opacity', 0.35);
+    });
 
-    // ── Draw arcs ─────────────────────────────────────────────────────────────
-    const arcLayer = g.append('g');
-    const arcSel   = arcLayer.selectAll('path').data(arcs).join('path')
-      .attr('fill', 'none')
-      .attr('d', arcPath)
-      .attr('stroke', a => {
-        const col = agencyHues[a.colorIdx % agencyHues.length];
-        return a.type === 'center-agency' ? col : col;
-      })
-      .attr('stroke-width', a => arcW(a.value))
-      .attr('stroke-opacity', a =>
-        a.type === 'center-agency' ? 0.5 :
-        a.type === 'agency-office' || a.type === 'center-office' ? 0.35 : 0.22)
-      .attr('stroke-linecap', 'round')
-      .style('transition', 'stroke-opacity 0.2s ease');
+    const leafLayer = g.append('g');
+    const leafSel = leafLayer.selectAll('circle')
+      .data(nodes.filter(n=>n.type==='leaf')).join('circle')
+      .attr('cx', d=>d.x).attr('cy', d=>d.y)
+      .attr('r',  d=>d.r)
+      .attr('fill', accent)
+      .attr('fill-opacity', 0.78)
+      .attr('stroke', accent)
+      .attr('stroke-width', 1).attr('stroke-opacity', 0.4)
+      .style('cursor','default');
 
-    // ── Draw nodes ────────────────────────────────────────────────────────────
-    const nodeLayer = g.append('g');
-    const nodeSel   = nodeLayer.selectAll('circle').data(nodes).join('circle')
-      .attr('cx', d => d.x).attr('cy', d => d.y)
-      .attr('r',  d => d.r)
-      .attr('fill', d => {
-        if (d.type === 'center') return isDark ? '#2C2B28' : '#F0EFEC';
-        if (d.type === 'vendor') return accentCol;
-        return agencyHues[(d.colorIdx ?? 0) % agencyHues.length];
+    // ── Draw trunk/branch hit targets + labels ────────────────────────────────
+    // Trunk nodes: clickable circle at the TOP of the trunk
+    const trunkLayer = g.append('g');
+    const trunkNodes = nodes.filter(n=>n.type==='trunk');
+
+    // Agency dot at trunk top
+    const agencyDots = trunkLayer.selectAll('circle.agency-dot')
+      .data(trunkNodes).join('circle').attr('class','agency-dot')
+      .attr('cx', d=>d.x2).attr('cy', d=>d.y2)
+      .attr('r', d => {
+        const a = agencies.find(ag=>ag.id===d.id);
+        return a ? Math.max(10, 10 + Math.sqrt(a.spend/maxSpend)*16) : 12;
       })
-      .attr('fill-opacity', d =>
-        d.type === 'center' ? 1 :
-        d.type === 'agency' || d.type === 'center-agency' ? 0.88 :
-        d.type === 'office' ? 0.72 : 0.65)
-      .attr('stroke', d => {
-        if (d.type === 'center') return textTertiary;
-        if (d.type === 'vendor') return accentCol;
-        return agencyHues[(d.colorIdx ?? 0) % agencyHues.length];
-      })
-      .attr('stroke-width', d =>
-        d.type === 'center' || d.type === 'center-agency' ? 2 :
-        d.type === 'agency' ? 2 : 1)
-      .attr('stroke-opacity', 0.4)
-      .style('cursor', d => d.type === 'vendor' ? 'default' : 'pointer')
-      .style('transition', 'fill-opacity 0.2s ease, r 0.2s ease');
+      .attr('fill', d=>d.col)
+      .attr('fill-opacity', 0.88)
+      .attr('stroke', d=>d.col)
+      .attr('stroke-width', 2).attr('stroke-opacity', 0.45)
+      .style('cursor','pointer');
+
+    // Branch dots
+    const branchNodes = nodes.filter(n=>n.type==='branch');
+    const branchDots = trunkLayer.selectAll('circle.branch-dot')
+      .data(branchNodes).join('circle').attr('class','branch-dot')
+      .attr('cx', d=>d.x2).attr('cy', d=>d.y2)
+      .attr('r', d => Math.max(5, 5 + Math.sqrt(d.spend/maxSpend)*8))
+      .attr('fill', d=>d.col)
+      .attr('fill-opacity', 0.72)
+      .attr('stroke', d=>d.col)
+      .attr('stroke-width', 1.5).attr('stroke-opacity', 0.4)
+      .style('cursor','pointer');
 
     // ── Labels ────────────────────────────────────────────────────────────────
-    const labelLayer = svg.append('g').attr('pointer-events', 'none');
+    const labelLayer = svg.append('g').attr('pointer-events','none');
 
-    nodes.forEach(n => {
-      if (n.type === 'vendor') return; // vendor labels only on hover
-
-      const isCenter = n.type === 'center' || n.type === 'center-agency';
-      const isAgency = n.type === 'agency';
-      const col = isCenter ? textPrimary
-                : agencyHues[(n.colorIdx ?? 0) % agencyHues.length];
-
-      // Position label: center gets label inside, others get label outside pointing away from center
-      let lx = n.x, ly = n.y, anchor = 'middle', baseline = 'middle';
-
-      if (!isCenter) {
-        const ang    = Math.atan2(n.y - cy, n.x - cx);
-        const offset = n.r + 7;
-        lx     = n.x + Math.cos(ang) * offset;
-        ly     = n.y + Math.sin(ang) * offset;
-        anchor = Math.cos(ang) > 0.2 ? 'start' : Math.cos(ang) < -0.2 ? 'end' : 'middle';
-        baseline = Math.sin(ang) > 0 ? 'hanging' : 'auto';
+    // Agency name below trunk base (forest) or inside circle (tree)
+    trunkNodes.forEach(n => {
+      const label = Utils.trunc(n.label.replace(/^Department of (the )?/i,''), centerId ? 22 : 14);
+      labelLayer.append('text')
+        .attr('x', n.x).attr('y', n.y + 13)
+        .attr('text-anchor','middle')
+        .style('font-size', centerId?'13px':'10px')
+        .style('font-weight','700')
+        .style('fill', n.col).style('opacity', 0.88)
+        .text(label);
+      if (centerId) {
+        const a = agencies.find(ag=>ag.id===n.id);
+        if (a) labelLayer.append('text')
+          .attr('x', n.x).attr('y', n.y + 27)
+          .attr('text-anchor','middle')
+          .style('font-size','10px').style('font-weight','400')
+          .style('fill', n.col).style('opacity', 0.5)
+          .text(Utils.money(a.spend));
       }
+    });
 
-      const maxChars = isCenter ? 18 : isAgency ? 16 : 13;
-      const label = Utils.trunc(
-        n.label.replace(/^Department of (the )?/i,'').replace(/^Office of (the )?/i,''), maxChars
-      );
-
+    // Branch labels (office names) — always shown, small
+    branchNodes.forEach(n => {
+      const ang    = Math.atan2(n.y2 - n.y, n.x2 - n.x);
+      const off    = 7;
+      const lx     = n.x2 + Math.cos(ang) * off;
+      const ly     = n.y2 + Math.sin(ang) * off;
+      const anchor = Math.cos(ang) > 0.15 ? 'start' : Math.cos(ang) < -0.15 ? 'end' : 'middle';
       labelLayer.append('text')
         .attr('x', lx).attr('y', ly)
         .attr('text-anchor', anchor)
-        .attr('dominant-baseline', isCenter ? 'middle' : baseline)
-        .style('font-size', isCenter ? '13px' : isAgency ? '11px' : '9px')
-        .style('font-weight', isCenter ? '800' : isAgency ? '700' : '500')
-        .style('fill', col)
-        .style('opacity', isCenter ? 1 : isAgency ? 0.90 : 0.72)
-        .text(label);
-
-      if (isAgency || isCenter) {
-        const money = Utils.money(n.spend);
-        labelLayer.append('text')
-          .attr('x', lx).attr('y', isCenter ? ly + 16 : ly + (Math.sin(Math.atan2(n.y-cy,n.x-cx)) > 0 ? 12 : -2))
-          .attr('text-anchor', anchor)
-          .style('font-size', '9px').style('font-weight', '400')
-          .style('fill', col).style('opacity', isCenter ? 0.55 : 0.48)
-          .text(money);
-      }
+        .attr('dominant-baseline','middle')
+        .style('font-size', centerId?'10px':'8.5px')
+        .style('font-weight','600')
+        .style('fill', n.col).style('opacity', 0.72)
+        .text(Utils.trunc(n.label.replace(/^Department of (the )?/i,'').replace(/^Office of (the )?/i,''), centerId?18:12));
     });
 
-    // ── Tooltip + interactions ────────────────────────────────────────────────
-    let _tipTimer = null;
-    const hideTip = () => {
-      clearTimeout(_tipTimer);
-      _tipTimer = setTimeout(() => { if (tooltip) tooltip.style.opacity = '0'; }, 180);
-    };
-
-    const allConnected = (n) => {
-      const ids = new Set([n.id]);
-      if (n.agencyId) ids.add(n.agencyId);
-      if (n.officeId) ids.add(n.officeId);
-      // Forward connections
-      arcs.forEach(a => {
-        if (a.x1 === n.x && a.y1 === n.y) {
-          const target = nodes.find(nd => nd.x === a.x2 && nd.y === a.y2);
-          if (target) ids.add(target.id);
-        }
+    // Vendor leaf labels — always shown in tree view, ghost-only in forest
+    if (centerId) {
+      nodes.filter(n=>n.type==='leaf').forEach(n => {
+        const ang    = Math.atan2(n.y - n.by, n.x - n.bx);
+        const off    = n.r + 5;
+        const lx     = n.x + Math.cos(ang) * off;
+        const ly     = n.y + Math.sin(ang) * off;
+        const anchor = Math.cos(ang) > 0.15 ? 'start' : Math.cos(ang) < -0.15 ? 'end' : 'middle';
+        labelLayer.append('text')
+          .attr('x', lx).attr('y', ly)
+          .attr('text-anchor', anchor)
+          .attr('dominant-baseline','middle')
+          .style('font-size','9px').style('font-weight','500')
+          .style('fill', isDark?'rgba(200,230,201,0.82)':'rgba(30,80,40,0.82)')
+          .style('opacity', 0.8)
+          .text(Utils.trunc(n.label, 20));
       });
-      return ids;
-    };
+    }
 
-    nodeSel
+    // ── Interactions ──────────────────────────────────────────────────────────
+    // Ghost label instead of tooltip card
+    agencyDots
       .on('mousemove', function(event, d) {
-        clearTimeout(_tipTimer);
-        const nb = allConnected(d);
-        nodeSel
-          .attr('fill-opacity', n => nb.has(n.id) ?
-            (n.type==='agency'||n.type==='center-agency'?0.95:n.type==='office'?0.85:0.80) : 0.08)
-          .attr('stroke-opacity', n => nb.has(n.id) ? 0.65 : 0.04);
-        arcSel.attr('stroke-opacity', a => {
-          const src  = nodes.find(n => n.x===a.x1 && n.y===a.y1);
-          const tgt  = nodes.find(n => n.x===a.x2 && n.y===a.y2);
-          return (src&&nb.has(src.id)) || (tgt&&nb.has(tgt.id)) ?
-            (a.type==='center-agency'?0.8:a.type==='agency-office'||a.type==='center-office'?0.6:0.4) : 0.03;
-        });
-
-        if (tooltip) {
-          const col   = d.type==='vendor' ? accentCol : agencyHues[(d.colorIdx??0)%agencyHues.length];
-          const tag   = {center:'Market',agency:'Agency','center-agency':'Agency',office:'Office',vendor:'Vendor'}[d.type];
-          const label = d.label.replace(/^Department of (the )?/i,'').replace(/^Office of (the )?/i,'');
-          tooltip.innerHTML = `
-            <div style="font-weight:800;font-size:var(--text-sm);margin-bottom:3px;">${Html.escapeHtml(label)}</div>
-            <div style="font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-tertiary);margin-bottom:5px;">${tag}</div>
-            ${d.spend?`<div style="font-weight:700;color:${col};">${Utils.money(d.spend)}</div>`:''}`;
-          tooltip.style.opacity = '1';
-          tooltip.style.left = (event.clientX+14)+'px';
-          tooltip.style.top  = (event.clientY-10)+'px';
-        }
+        const a = agencies.find(ag=>ag.id===d.id);
+        showGhost(d.x2, d.y2,
+          Utils.trunc(d.label.replace(/^Department of (the )?/i,''),18) + (a?' · '+Utils.money(a.spend):''),
+          d.col);
       })
-      .on('mouseleave', () => {
-        nodeSel
-          .attr('fill-opacity', d =>
-            d.type==='center'||d.type==='center-agency'?1:d.type==='agency'?0.88:d.type==='office'?0.72:0.65)
-          .attr('stroke-opacity', 0.4);
-        arcSel.attr('stroke-opacity', a =>
-          a.type==='center-agency'?0.5:a.type==='agency-office'||a.type==='center-office'?0.35:0.22);
-        hideTip();
-      })
+      .on('mouseleave', hideGhost)
       .on('click', (e, d) => {
         e.stopPropagation();
-        if (d.type === 'center') {
+        if (centerId) {
           App._graphFocusedAgency = null;
-          App.renderForceGraph();
-        } else if (d.type === 'agency') {
+        } else {
           App._graphFocusedAgency = d.id;
-          App.renderForceGraph();
-        } else if (d.type === 'center-agency') {
-          App._graphFocusedAgency = null;
-          App.renderForceGraph();
-        } else if (d.type === 'office') {
-          App.drillDown(d.label, true);
-          App.setSankeyView('sankey');
         }
+        App.renderForceGraph();
       });
 
+    branchDots
+      .on('mousemove', function(event, d) {
+        showGhost(d.x2, d.y2,
+          Utils.trunc(d.label.replace(/^Office of (the )?/i,''),18) + ' · ' + Utils.money(d.spend),
+          d.col);
+      })
+      .on('mouseleave', hideGhost)
+      .on('click', (e, d) => {
+        e.stopPropagation();
+        App.drillDown(d.label.replace(/^.*?::/,''), true);
+        App.setSankeyView('sankey');
+      });
+
+    leafSel
+      .on('mousemove', function(event, d) {
+        showGhost(d.x, d.y, Utils.trunc(d.label, 22) + ' · ' + Utils.money(d.spend), accent);
+      })
+      .on('mouseleave', hideGhost);
+
+    // Back on canvas click
     svg.on('click', () => {
-      App._graphFocusedAgency = null;
-      App.renderForceGraph();
+      if (centerId) { App._graphFocusedAgency = null; App.renderForceGraph(); }
     });
 
     // ── Entrance ──────────────────────────────────────────────────────────────
-    arcSel.attr('opacity',0).transition().duration(600).delay(80).attr('opacity',1);
-    nodeSel.attr('opacity',0).transition().duration(400).delay((_, i) => 40 + i*12).attr('opacity',1);
-    labelLayer.attr('opacity',0).transition().duration(500).delay(300).attr('opacity',1);
+    g.attr('opacity',0).transition().duration(500).attr('opacity',1);
+    labelLayer.attr('opacity',0).transition().duration(600).delay(200).attr('opacity',1);
   },
 
   renderSankey() {
