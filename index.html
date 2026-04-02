@@ -1173,9 +1173,11 @@ details[open] > summary svg { transform: rotate(180deg); }
   white-space: nowrap;
   transition: var(--transition-fast);
   height: 100%;
-  border-radius: 0;
+  min-height: 48px;
+  border-radius: var(--radius) 0 0 var(--radius);
   letter-spacing: 0;
   min-width: 0;
+  flex-shrink: 0;
 }
 .territory-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
 .territory-btn:active { background: var(--bg-active); }
@@ -1213,12 +1215,12 @@ details[open] > summary svg { transform: rotate(180deg); }
 }
 .territory-btn[aria-expanded="true"] .territory-chevron { transform: rotate(180deg); }
 
-/* The dropdown panel */
+/* The dropdown panel — positioned relative to .hero-search-wrapper or .mini-search-wrapper */
 .territory-dropdown {
   position: absolute;
-  top: calc(100% + 6px);
+  top: calc(100% + 4px);
   left: 0;
-  min-width: 200px;
+  min-width: 220px;
   background: var(--bg-app);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -1270,6 +1272,7 @@ details[open] > summary svg { transform: rotate(180deg); }
   border-radius: var(--radius);
   overflow: hidden;
   width: 100%;
+  position: relative;
 }
 .hero-search-inner input.main-search-input {
   background: transparent !important;
@@ -1305,6 +1308,7 @@ details[open] > summary svg { transform: rotate(180deg); }
   overflow: hidden;
   flex: 1;
   min-width: 0;
+  position: relative;
 }
 .mini-search-inner .territory-btn {
   font-size: 11px;
@@ -1590,35 +1594,36 @@ details[open] > summary svg { transform: rotate(180deg); }
                   <span class="territory-label" id="miniTerritoryLabel">All</span>
                   <span class="territory-chevron">▾</span>
                 </button>
-                <div class="territory-dropdown" id="miniTerritoryDropdown" role="listbox">
-                  <button class="territory-option active" role="option" data-territory="" onclick="App.setTerritory(null,'mini')">
-                    <span class="territory-option-dot" style="background:var(--text-quaternary)"></span>
-                    <span class="territory-option-info"><span class="territory-option-name">All Agencies</span></span>
-                    <span class="territory-option-check">✓</span>
-                  </button>
-                  <button class="territory-option" role="option" data-territory="dod" onclick="App.setTerritory('dod','mini')">
-                    <span class="territory-option-dot" style="background:#7CA8C4"></span>
-                    <span class="territory-option-info"><span class="territory-option-name">DoD</span></span>
-                    <span class="territory-option-check">✓</span>
-                  </button>
-                  <button class="territory-option" role="option" data-territory="fedciv" onclick="App.setTerritory('fedciv','mini')">
-                    <span class="territory-option-dot" style="background:#80C0B0"></span>
-                    <span class="territory-option-info"><span class="territory-option-name">Federal Civilian</span></span>
-                    <span class="territory-option-check">✓</span>
-                  </button>
-                  <button class="territory-option" role="option" data-territory="fedhealth" onclick="App.setTerritory('fedhealth','mini')">
-                    <span class="territory-option-dot" style="background:#D4A0B0"></span>
-                    <span class="territory-option-info"><span class="territory-option-name">Federal Health</span></span>
-                    <span class="territory-option-check">✓</span>
-                  </button>
-                  <button class="territory-option" role="option" data-territory="fedfin" onclick="App.setTerritory('fedfin','mini')">
-                    <span class="territory-option-dot" style="background:#E8A468"></span>
-                    <span class="territory-option-info"><span class="territory-option-name">Federal Financial</span></span>
-                    <span class="territory-option-check">✓</span>
-                  </button>
-                </div>
               </div>
               <input type="search" id="miniSearch" class="mini-search" aria-label="Search keywords, companies, NAICS" placeholder="Search..." enterkeyhint="search" autocorrect="off" autocapitalize="none" autocomplete="off">
+            </div>
+            <!-- Dropdown outside inner wrapper to avoid overflow:hidden clipping -->
+            <div class="territory-dropdown" id="miniTerritoryDropdown" role="listbox">
+              <button class="territory-option active" role="option" data-territory="" onclick="App.setTerritory(null)">
+                <span class="territory-option-dot" style="background:var(--text-quaternary)"></span>
+                <span class="territory-option-info"><span class="territory-option-name">All Agencies</span></span>
+                <span class="territory-option-check">✓</span>
+              </button>
+              <button class="territory-option" role="option" data-territory="dod" onclick="App.setTerritory('dod')">
+                <span class="territory-option-dot" style="background:#7CA8C4"></span>
+                <span class="territory-option-info"><span class="territory-option-name">DoD</span></span>
+                <span class="territory-option-check">✓</span>
+              </button>
+              <button class="territory-option" role="option" data-territory="fedciv" onclick="App.setTerritory('fedciv')">
+                <span class="territory-option-dot" style="background:#80C0B0"></span>
+                <span class="territory-option-info"><span class="territory-option-name">Federal Civilian</span></span>
+                <span class="territory-option-check">✓</span>
+              </button>
+              <button class="territory-option" role="option" data-territory="fedhealth" onclick="App.setTerritory('fedhealth')">
+                <span class="territory-option-dot" style="background:#D4A0B0"></span>
+                <span class="territory-option-info"><span class="territory-option-name">Federal Health</span></span>
+                <span class="territory-option-check">✓</span>
+              </button>
+              <button class="territory-option" role="option" data-territory="fedfin" onclick="App.setTerritory('fedfin')">
+                <span class="territory-option-dot" style="background:#E8A468"></span>
+                <span class="territory-option-info"><span class="territory-option-name">Federal Financial</span></span>
+                <span class="territory-option-check">✓</span>
+              </button>
             </div>
             <div id="miniAgencySuggestions" class="autocomplete-dropdown hidden"></div>
           </div>
@@ -1662,37 +1667,38 @@ details[open] > summary svg { transform: rotate(180deg); }
                 <span class="territory-label" id="heroTerritoryLabel">All</span>
                 <span class="territory-chevron">▾</span>
               </button>
-              <div class="territory-dropdown" id="heroTerritoryDropdown" role="listbox">
-                <button class="territory-option active" role="option" data-territory="" onclick="App.setTerritory(null,'hero')">
-                  <span class="territory-option-dot" style="background:var(--text-quaternary)"></span>
-                  <span class="territory-option-info"><span class="territory-option-name">All Agencies</span><span class="territory-option-desc">No territory filter — full results</span></span>
-                  <span class="territory-option-check">✓</span>
-                </button>
-                <button class="territory-option" role="option" data-territory="dod" onclick="App.setTerritory('dod','hero')">
-                  <span class="territory-option-dot" style="background:#7CA8C4"></span>
-                  <span class="territory-option-info"><span class="territory-option-name">DoD</span><span class="territory-option-desc">Army, Navy, Air Force, DISA, DARPA…</span></span>
-                  <span class="territory-option-check">✓</span>
-                </button>
-                <button class="territory-option" role="option" data-territory="fedciv" onclick="App.setTerritory('fedciv','hero')">
-                  <span class="territory-option-dot" style="background:#80C0B0"></span>
-                  <span class="territory-option-info"><span class="territory-option-name">Federal Civilian</span><span class="territory-option-desc">GSA, DHS, DOJ, State, Commerce…</span></span>
-                  <span class="territory-option-check">✓</span>
-                </button>
-                <button class="territory-option" role="option" data-territory="fedhealth" onclick="App.setTerritory('fedhealth','hero')">
-                  <span class="territory-option-dot" style="background:#D4A0B0"></span>
-                  <span class="territory-option-info"><span class="territory-option-name">Federal Health</span><span class="territory-option-desc">VA, HHS, CMS, CDC, FDA, NIH…</span></span>
-                  <span class="territory-option-check">✓</span>
-                </button>
-                <button class="territory-option" role="option" data-territory="fedfin" onclick="App.setTerritory('fedfin','hero')">
-                  <span class="territory-option-dot" style="background:#E8A468"></span>
-                  <span class="territory-option-info"><span class="territory-option-name">Federal Financial</span><span class="territory-option-desc">Treasury, IRS, SEC, FDIC, Fed…</span></span>
-                  <span class="territory-option-check">✓</span>
-                </button>
-              </div>
             </div>
             <!-- Search icon shown only when no territory selected -->
             <svg class="icon hero-search-icon-inner" aria-hidden="true"><use href="#icon-search"></use></svg>
             <input type="search" id="mainSearchInput" class="main-input main-search-input" aria-label="Search the federal market" placeholder="Search keywords, NAICS, companies..." enterkeyhint="search" autocorrect="off" autocapitalize="none" autocomplete="off">
+          </div>
+          <!-- Dropdowns live OUTSIDE the inner bar so overflow:hidden can't clip them -->
+          <div class="territory-dropdown" id="heroTerritoryDropdown" role="listbox">
+            <button class="territory-option active" role="option" data-territory="" onclick="App.setTerritory(null)">
+              <span class="territory-option-dot" style="background:var(--text-quaternary)"></span>
+              <span class="territory-option-info"><span class="territory-option-name">All Agencies</span><span class="territory-option-desc">No territory filter — full results</span></span>
+              <span class="territory-option-check">✓</span>
+            </button>
+            <button class="territory-option" role="option" data-territory="dod" onclick="App.setTerritory('dod')">
+              <span class="territory-option-dot" style="background:#7CA8C4"></span>
+              <span class="territory-option-info"><span class="territory-option-name">DoD</span><span class="territory-option-desc">Army, Navy, Air Force, DISA, DARPA…</span></span>
+              <span class="territory-option-check">✓</span>
+            </button>
+            <button class="territory-option" role="option" data-territory="fedciv" onclick="App.setTerritory('fedciv')">
+              <span class="territory-option-dot" style="background:#80C0B0"></span>
+              <span class="territory-option-info"><span class="territory-option-name">Federal Civilian</span><span class="territory-option-desc">GSA, DHS, DOJ, State, Commerce…</span></span>
+              <span class="territory-option-check">✓</span>
+            </button>
+            <button class="territory-option" role="option" data-territory="fedhealth" onclick="App.setTerritory('fedhealth')">
+              <span class="territory-option-dot" style="background:#D4A0B0"></span>
+              <span class="territory-option-info"><span class="territory-option-name">Federal Health</span><span class="territory-option-desc">VA, HHS, CMS, CDC, FDA, NIH…</span></span>
+              <span class="territory-option-check">✓</span>
+            </button>
+            <button class="territory-option" role="option" data-territory="fedfin" onclick="App.setTerritory('fedfin')">
+              <span class="territory-option-dot" style="background:#E8A468"></span>
+              <span class="territory-option-info"><span class="territory-option-name">Federal Financial</span><span class="territory-option-desc">Treasury, IRS, SEC, FDIC, Fed…</span></span>
+              <span class="territory-option-check">✓</span>
+            </button>
           </div>
           <div id="agencySuggestions" class="autocomplete-dropdown hidden"></div>
         </div>
@@ -6661,7 +6667,7 @@ const App = {
   },
 
   // Sets the active territory, persists to localStorage, re-runs search if active
-  setTerritory(key, context) {
+  setTerritory(key) {
     App.territory = key || null;
 
     // Persist across sessions
@@ -6698,10 +6704,11 @@ const App = {
     if (!isOpen) {
       dd.classList.add('open');
       btn.setAttribute('aria-expanded','true');
-      // Close on outside click
+      // Close on outside click — check for wrapper element, not just the selector
       setTimeout(() => {
         const close = (e) => {
-          if (!e.target.closest('.territory-selector')) {
+          const wrapper = btn.closest('.hero-search-wrapper, .mini-search-wrapper');
+          if (!wrapper || !wrapper.contains(e.target)) {
             document.querySelectorAll('.territory-dropdown').forEach(d => d.classList.remove('open'));
             document.querySelectorAll('.territory-btn').forEach(b => b.setAttribute('aria-expanded','false'));
             document.removeEventListener('click', close);
