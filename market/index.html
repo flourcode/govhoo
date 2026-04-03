@@ -539,50 +539,64 @@ function normVendor(name) {
 
 /**
  * Build the search plan from Gemini keywords.
- * Returns an array of search items — either strings (for combos/codes)
+ * Returns an array of search items — either strings (for explicit AND-combos)
  * or structured objects { term, pscAnchor, label } for PSC-constrained searches.
  *
- * KEY INSIGHT: Core keywords like "ENDPOINT DETECTION AND RESPONSE" searched
- * as naked keywords return every massive IT contract that mentions endpoints.
- * By anchoring them to the primary PSC code (e.g. D306), we constrain results
- * to contracts actually categorized as cybersecurity purchases.
+ * DESIGN PRINCIPLE: Every search must be constrained. Standalone code searches
+ * (just "D306" or "541519") return the entire code market regardless of product
+ * relevance — $50B+ of managed services contracts that drown out real signal.
+ * PSC/NAICS codes are ONLY used as filters on keyword searches, never alone.
  */
 function buildSearchTerms(kw) {
   const seen = new Set();
   const terms = [];
 
-  // Helper: add if not duplicate
   const add = (item) => {
     const key = typeof item === 'string' ? item : `${item.pscAnchor||''}|${item.term}`;
     if (!seen.has(key)) { seen.add(key); terms.push(item); }
   };
 
-  // Determine primary PSC anchor — the first PSC code is the product category filter
+  // Primary PSC code — used as a filter on all keyword searches
   const primaryPsc = (kw.psc_codes || [])[0] || null;
 
-  // Core keywords — ALWAYS anchored to primary PSC code if available.
-  // This is the single biggest lever for TAM accuracy.
+  // Core keywords — anchored to primary PSC code.
+  // "ENDPOINT DETECTION AND RESPONSE" + psc_codes:["D306"] = only cybersecurity contracts
+  // that mention endpoint detection. This is the main signal source.
   (kw.core_keywords || []).forEach(k => {
     if (primaryPsc) {
       add({ term: k, pscAnchor: primaryPsc, label: `${primaryPsc} + ${k}` });
     } else {
-      add(k); // fallback: no PSC codes available, search as naked keyword
+      add(k);
     }
   });
 
-  // Standalone PSC and NAICS code searches (for breadth — what's the full code market?)
-  (kw.psc_codes || []).forEach(c => add(c));
-  (kw.naics_codes || []).forEach(c => add(c));
+  // NO standalone PSC or NAICS searches — these are the noise source.
+  // D306 alone returns $50B+ of managed services. Codes are filters only.
 
-  // Explicit PSC-keyword combos from Gemini (already structured as "D306 AND ...")
+  // Explicit PSC-keyword combos from Gemini (already have PSC in the AND string)
   (kw.psc_keyword_combos || []).forEach(c => add(c));
 
-  // Agency-keyword combos — these run as keyword searches (no PSC anchor)
-  // because the agency name in the keyword constrains relevance enough
-  (kw.agency_keyword_combos || []).forEach(c => add(c));
+  // Agency-keyword combos — also anchor to PSC to prevent the same blowup.
+  // "ENDPOINT DETECTION AND RESPONSE AND DISA" without PSC still returns
+  // every DISA contract mentioning endpoints, including $2B DODIN omnibus deals.
+  (kw.agency_keyword_combos || []).forEach(c => {
+    if (primaryPsc) {
+      add({ term: c, pscAnchor: primaryPsc, label: `${primaryPsc} + ${c}` });
+    } else {
+      add(c);
+    }
+  });
 
-  // Backwards compat: old-style and_combos
-  (kw.and_combos || []).forEach(c => add(c));
+  // Backwards compat: old-style and_combos — anchor if possible
+  (kw.and_combos || []).forEach(c => {
+    // Don't double-anchor if the combo already contains a PSC code
+    const hasPsc = /^[A-Z]{1,2}\d{1,3}\s+AND\s+/i.test(c);
+    if (primaryPsc && !hasPsc) {
+      add({ term: c, pscAnchor: primaryPsc, label: `${primaryPsc} + ${c}` });
+    } else {
+      add(c);
+    }
+  });
 
   return terms;
 }
