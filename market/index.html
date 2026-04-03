@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="color-scheme" content="light dark">
+<title>Govhoo — Market Analyzer</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='96 96 448 448'%3E%3Cstyle%3Epath%7Bfill:%232C2B28%7D .arrow%7Bfill:%23FFFFFF%7D @media (prefers-color-scheme:dark)%7B.arrow%7Bfill:%23DCD8D0%7D%7D%3C/style%3E%3Cpath d='M480 96C515.3 96 544 124.7 544 160L544 480C544 515.3 515.3 544 480 544L160 544C124.7 544 96 515.3 96 480L96 160C96 124.7 124.7 96 160 96L480 96z'/%3E%3Cpath class='arrow' d='M368 360C368 373.3 378.7 384 392 384C405.3 384 416 373.3 416 360L416 248C416 234.7 405.3 224 392 224L280 224C266.7 224 256 234.7 256 248C256 261.3 266.7 272 280 272L334.1 272L231.1 375C221.7 384.4 221.7 399.6 231.1 408.9C240.5 418.2 255.7 418.3 265 408.9L368 305.9L368 360z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,1..1000&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════
+   DESIGN TOKENS — matches Govhoo core app
+   ═══════════════════════════════════════════════════════ */
+:root {
+  --bg-app: #FFFFFF;
+  --bg-input: rgba(0,0,0,0.03);
+  --bg-elevated: rgba(0,0,0,0.012);
+  --text-primary: #2C2B28;
+  --text-secondary: #4A4845;
+  --text-tertiary: #6B6965;
+  --text-quaternary: #8A8884;
+  --brand: #2C2B28;
+  --brand-dim: rgba(44,43,40,0.06);
+  --accent: #638E6E;
+  --accent-hover: #547E5E;
+  --accent-dim: rgba(99,142,110,0.10);
+  --accent-text: #FFFFFF;
+  --border: rgba(0,0,0,0.055);
+  --border-hover: rgba(0,0,0,0.10);
+  --radius: 12px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.03);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.045);
+  --font-sans: 'Google Sans Flex', -apple-system, BlinkMacSystemFont, sans-serif;
+  --bg-hover: rgba(0,0,0,0.035);
+  --text-sm: 0.95rem;
+  --text-xs: 0.8rem;
+  --text-micro: 0.8rem;
+  --text-lg: clamp(1.25rem, 3vw, 1.45rem);
+}
+
+/* Dark mode */
+.dark-mode {
+  --bg-app: #1E1D1B;
+  --bg-input: rgba(255,255,255,0.06);
+  --bg-elevated: rgba(255,255,255,0.03);
+  --text-primary: #F0EFEC;
+  --text-secondary: #B8B6B2;
+  --text-tertiary: #8A8884;
+  --text-quaternary: #6B6965;
+  --brand: #F0EFEC;
+  --brand-dim: rgba(240,239,236,0.08);
+  --accent: #7DB38A;
+  --accent-dim: rgba(125,179,138,0.12);
+  --border: rgba(255,255,255,0.07);
+  --border-hover: rgba(255,255,255,0.12);
+  --bg-hover: rgba(255,255,255,0.05);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-sans); background: var(--bg-app); color: var(--text-primary); min-height: 100vh; -webkit-text-size-adjust: 100%; }
+
+.container { max-width: 920px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+/* ═══════════════════════════════════════════════════════
+   HEADER + SEARCH
+   ═══════════════════════════════════════════════════════ */
+.header { margin-bottom: 1.75rem; }
+.header-row { display: flex; align-items: center; gap: 10px; margin-bottom: 0.6rem; flex-wrap: wrap; }
+.header h1 { font-size: clamp(1.4rem, 4vw, 1.85rem); font-weight: 700; letter-spacing: -0.025em; line-height: 1.2; }
+.header-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 0.68rem; font-weight: 600; color: var(--accent); background: var(--accent-dim); padding: 3px 9px; border-radius: 999px; letter-spacing: 0.03em; text-transform: uppercase; white-space: nowrap; }
+.header p { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6; max-width: 620px; }
+
+.search-box { position: relative; margin-bottom: 1rem; }
+.search-input { width: 100%; padding: 15px 110px 15px 46px; font-size: 1rem; font-family: var(--font-sans); font-weight: 500; border: 2px solid var(--border); border-radius: var(--radius); background: var(--bg-app); color: var(--text-primary); outline: none; transition: border-color 0.2s; }
+.search-input:focus { border-color: var(--accent); }
+.search-input::placeholder { color: var(--text-quaternary); font-weight: 400; }
+.search-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary); pointer-events: none; }
+.search-btn { position: absolute; right: 7px; top: 50%; transform: translateY(-50%); padding: 9px 22px; background: var(--brand); color: var(--bg-app); border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: var(--font-sans); transition: all 0.15s; }
+.search-btn:hover { opacity: 0.85; }
+.search-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.example-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1.5rem; }
+.example-chip { font-size: 0.78rem; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); cursor: pointer; font-family: var(--font-sans); font-weight: 500; transition: all 0.15s; }
+.example-chip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+/* ═══════════════════════════════════════════════════════
+   PHASE PROGRESS
+   ═══════════════════════════════════════════════════════ */
+.phase-container { display: none; margin: 1.5rem 0; }
+.phase-container.active { display: block; }
+
+.master-progress { margin-bottom: 1.25rem; }
+.master-bar { height: 3px; background: var(--bg-input); border-radius: 999px; overflow: hidden; }
+.master-fill { height: 100%; background: var(--accent); border-radius: 999px; transition: width 0.4s ease; width: 0%; }
+.master-label { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-tertiary); margin-top: 0.3rem; font-variant-numeric: tabular-nums; }
+
+.phase-card { padding: 1rem 1.15rem; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 0.6rem; transition: all 0.25s ease; }
+.phase-card.running { border-color: var(--accent); background: var(--accent-dim); }
+.phase-card.done { opacity: 0.55; }
+.phase-card.pending { opacity: 0.3; }
+.phase-card.error { border-color: #C0392B; background: rgba(192,57,43,0.06); opacity: 1; }
+
+.phase-header { display: flex; align-items: center; gap: 9px; }
+.phase-num { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.68rem; font-weight: 700; flex-shrink: 0; }
+.phase-num.pending { background: var(--bg-input); color: var(--text-quaternary); }
+.phase-num.running { background: var(--accent); color: var(--accent-text); }
+.phase-num.done { background: var(--brand); color: var(--bg-app); }
+.phase-num.error { background: #C0392B; color: #fff; }
+.phase-title { font-size: 0.88rem; font-weight: 600; }
+.phase-detail { font-size: 0.78rem; color: var(--text-tertiary); line-height: 1.55; margin-top: 0.4rem; padding-left: 31px; }
+.phase-ai-raw { background: var(--bg-input); padding: 0.65rem 0.9rem; border-radius: 8px; margin-top: 0.5rem; font-size: 0.72rem; max-height: 180px; overflow-y: auto; white-space: pre-wrap; word-break: break-word; line-height: 1.5; }
+.phase-toggle { font-size: 0.72rem; color: var(--accent); cursor: pointer; margin-left: 6px; border: none; background: none; font-family: var(--font-sans); font-weight: 600; }
+
+/* ═══════════════════════════════════════════════════════
+   DASHBOARD
+   ═══════════════════════════════════════════════════════ */
+.dashboard { display: none; }
+.dashboard.active { display: block; }
+
+.company-header { margin-bottom: 1.5rem; }
+.company-header h2 { font-size: clamp(1.2rem, 3.5vw, 1.6rem); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.25rem; }
+.company-header p { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; }
+
+.dash-section { margin-bottom: 1.75rem; }
+.dash-section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 0.85rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.dash-section-header h3 { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+.section-badge { font-size: 0.65rem; font-weight: 600; color: var(--accent); background: var(--accent-dim); padding: 2px 7px; border-radius: 999px; white-space: nowrap; }
+
+/* Keywords */
+.keyword-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.keyword-chip { font-size: 0.7rem; padding: 3px 8px; border-radius: 999px; font-weight: 500; border: 1px solid; }
+.chip-core { color: var(--brand); border-color: var(--brand); background: var(--brand-dim); }
+.chip-agency { color: #5B6EAD; border-color: #5B6EAD; background: rgba(91,110,173,0.08); }
+.chip-code { color: #8B6E4E; border-color: #8B6E4E; background: rgba(139,110,78,0.08); }
+.chip-combo { color: #8B4E6E; border-color: #8B4E6E; background: rgba(139,78,110,0.08); }
+
+/* KPIs */
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 0.65rem; margin-bottom: 1.75rem; }
+.kpi-card { padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); }
+.kpi-label { font-size: 0.68rem; font-weight: 500; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.25rem; }
+.kpi-value { font-size: 1.45rem; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.kpi-sub { font-size: 0.72rem; color: var(--text-tertiary); margin-top: 0.15rem; }
+
+/* Tables */
+.data-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.data-table th { text-align: left; font-size: 0.66rem; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; padding: 0.45rem 0.55rem; border-bottom: 1px solid var(--border); }
+.data-table td { padding: 0.55rem; border-bottom: 1px solid rgba(0,0,0,0.025); }
+.dark-mode .data-table td { border-bottom-color: rgba(255,255,255,0.03); }
+.data-table tr:hover td { background: var(--bg-hover); }
+.rank-badge { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--brand-dim); font-size: 0.66rem; font-weight: 700; }
+.bar-track { height: 5px; border-radius: 3px; background: var(--accent-dim); min-width: 14px; }
+.bar-fill { height: 100%; border-radius: 3px; background: var(--accent); }
+.target-row { background: var(--accent-dim); }
+.target-row td { font-weight: 600; color: var(--accent); }
+
+/* Agency grid */
+.agency-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(235px, 1fr)); gap: 0.55rem; }
+.agency-card { padding: 0.85rem; border: 1px solid var(--border); border-radius: var(--radius); }
+.agency-name { font-size: 0.83rem; font-weight: 600; margin-bottom: 0.2rem; }
+.agency-spend { font-size: 0.76rem; color: var(--text-secondary); }
+.agency-contracts { font-size: 0.7rem; color: var(--text-tertiary); }
+
+/* Heatmap */
+.heatmap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 3px; }
+.heatmap-cell { padding: 0.45rem 0.35rem; border-radius: 5px; text-align: center; font-size: 0.66rem; font-weight: 600; line-height: 1.25; }
+.heatmap-cell .cell-value { font-size: 0.78rem; font-weight: 700; display: block; margin-top: 2px; font-variant-numeric: tabular-nums; }
+
+/* Recompetes */
+.recompete-item { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0; border-bottom: 1px solid rgba(0,0,0,0.025); gap: 0.75rem; }
+.dark-mode .recompete-item { border-bottom-color: rgba(255,255,255,0.03); }
+.recompete-info { flex: 1; min-width: 0; }
+.recompete-vendor { font-size: 0.8rem; font-weight: 600; }
+.recompete-agency { font-size: 0.7rem; color: var(--text-tertiary); }
+.recompete-meta { text-align: right; flex-shrink: 0; }
+.recompete-value { font-size: 0.8rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.recompete-date { font-size: 0.66rem; color: var(--text-tertiary); }
+.urgency-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 3px; vertical-align: middle; }
+.urgency-hot { background: #C0392B; }
+.urgency-warm { background: #E67E22; }
+.urgency-cool { background: var(--accent); }
+
+/* GTM */
+.gtm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; }
+.gtm-card { padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); }
+.gtm-card .action-label { font-size: 0.6rem; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.35rem; }
+.gtm-card h4 { font-size: 0.8rem; font-weight: 700; margin-bottom: 0.25rem; }
+.gtm-card p { font-size: 0.76rem; color: var(--text-secondary); line-height: 1.5; }
+
+/* Footer */
+.footer-actions { display: flex; gap: 0.75rem; margin-top: 2rem; flex-wrap: wrap; }
+.footer-btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.82rem; font-weight: 500; cursor: pointer; font-family: var(--font-sans); color: var(--text-secondary); background: transparent; transition: all 0.15s; }
+.footer-btn:hover { border-color: var(--brand); color: var(--brand); }
+.footer-btn.primary { background: var(--brand); color: var(--bg-app); border-color: var(--brand); }
+.footer-btn.primary:hover { opacity: 0.85; }
+
+/* Error */
+.error-msg { color: #C0392B; font-size: 0.82rem; font-weight: 500; }
+
+@media (max-width: 600px) {
+  .container { padding: 1.25rem 1rem 3rem; }
+  .kpi-row { grid-template-columns: 1fr 1fr; }
+  .gtm-grid { grid-template-columns: 1fr; }
+  .heatmap-grid { grid-template-columns: repeat(3, 1fr); }
+  .search-input { padding-right: 95px; }
+  .search-btn { padding: 9px 14px; font-size: 0.8rem; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ═══════ SEARCH VIEW ═══════ -->
+  <div id="searchView">
+    <div class="header">
+      <div class="header-row">
+        <h1>Market Analyzer</h1>
+        <span class="header-badge">AI + USASpending</span>
+      </div>
+      <p>Type any company name. Gemini researches their capabilities, generates search keywords, and Govhoo runs them all against USASpending to build a complete federal market analysis.</p>
+    </div>
+
+    <div class="search-box">
+      <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" class="search-input" id="companyInput" placeholder="Company name…" autocomplete="off">
+      <button class="search-btn" id="analyzeBtn" onclick="startAnalysis()">Analyze</button>
+    </div>
+
+    <div class="example-chips" id="exampleChips">
+      <button class="example-chip" onclick="go('SentinelOne')">SentinelOne</button>
+      <button class="example-chip" onclick="go('Palantir')">Palantir</button>
+      <button class="example-chip" onclick="go('Snowflake')">Snowflake</button>
+      <button class="example-chip" onclick="go('Anduril')">Anduril</button>
+      <button class="example-chip" onclick="go('Databricks')">Databricks</button>
+      <button class="example-chip" onclick="go('Zscaler')">Zscaler</button>
+      <button class="example-chip" onclick="go('CrowdStrike')">CrowdStrike</button>
+    </div>
+  </div>
+
+  <!-- ═══════ PHASE PROGRESS ═══════ -->
+  <div class="phase-container" id="phaseContainer">
+    <div class="master-progress">
+      <div class="master-bar"><div class="master-fill" id="masterFill"></div></div>
+      <div class="master-label"><span id="masterLabel">Starting…</span><span id="masterPct">0%</span></div>
+    </div>
+
+    <div class="phase-card pending" id="p1">
+      <div class="phase-header">
+        <div class="phase-num pending" id="p1n">1</div>
+        <div class="phase-title">Research company with Gemini</div>
+      </div>
+      <div class="phase-detail" id="p1d">Waiting…</div>
+    </div>
+    <div class="phase-card pending" id="p2">
+      <div class="phase-header">
+        <div class="phase-num pending" id="p2n">2</div>
+        <div class="phase-title">Build search plan</div>
+      </div>
+      <div class="phase-detail" id="p2d">Waiting…</div>
+    </div>
+    <div class="phase-card pending" id="p3">
+      <div class="phase-header">
+        <div class="phase-num pending" id="p3n">3</div>
+        <div class="phase-title">Query USASpending</div>
+      </div>
+      <div class="phase-detail" id="p3d">Waiting…</div>
+    </div>
+    <div class="phase-card pending" id="p4">
+      <div class="phase-header">
+        <div class="phase-num pending" id="p4n">4</div>
+        <div class="phase-title">Aggregate & render</div>
+      </div>
+      <div class="phase-detail" id="p4d">Waiting…</div>
+    </div>
+  </div>
+
+  <!-- ═══════ DASHBOARD ═══════ -->
+  <div class="dashboard" id="dashboard">
+    <div class="company-header" id="companyHeader"></div>
+    <div class="dash-section"><div class="dash-section-header"><h3>AI-Generated Keywords</h3><span class="section-badge" id="kwBadge"></span></div><div class="keyword-chips" id="kwChips"></div></div>
+    <div class="kpi-row" id="kpiRow"></div>
+    <div class="dash-section"><div class="dash-section-header"><h3>Agency × Capability Heatmap</h3><span class="section-badge">Spend concentration</span></div><div id="heatmapBox"></div></div>
+    <div class="dash-section"><div class="dash-section-header"><h3>Competitive Landscape</h3><span class="section-badge">Deduplicated</span></div><div id="vendorBox"></div></div>
+    <div class="dash-section"><div class="dash-section-header"><h3>Top Buying Agencies</h3></div><div class="agency-grid" id="agencyBox"></div></div>
+    <div class="dash-section"><div class="dash-section-header"><h3>Recompete Pipeline</h3><span class="section-badge">Expiring contracts</span></div><div id="recompeteBox"></div></div>
+    <div class="dash-section"><div class="dash-section-header"><h3>GTM Recommendations</h3><span class="section-badge">Next steps</span></div><div class="gtm-grid" id="gtmBox"></div></div>
+    <div class="footer-actions">
+      <button class="footer-btn primary" onclick="exportCSV()">Export CSV</button>
+      <button class="footer-btn" onclick="resetAll()">← New analysis</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   CONFIG — Point these to your Lambda endpoints
+   ═══════════════════════════════════════════════════════ */
+const ENDPOINTS = {
+  // Your API Gateway — handles usaspending_proxy and the new govhoo_market_research
+  PROXY: 'https://76unm1rlj0.execute-api.us-east-1.amazonaws.com/default/grumpy2',
+  // Your Lambda Function URL — used for streaming AI (action plans, chat)
+  // Not needed for market research since that's a non-streaming JSON call
+  AI: 'https://x6cdyrfcy43r5rpw6i6aiwsegi0effvy.lambda-url.us-east-1.on.aws/',
+};
+
+// Max concurrent USASpending API calls (respect rate limits)
+const MAX_CONCURRENT = 5;
+// USASpending contract type codes for contracts only
+const CONTRACT_TYPES = ['A', 'B', 'C', 'D'];
+const AWARD_FIELDS = [
+  'Award ID', 'Recipient Name', 'Awarding Agency', 'Awarding Sub Agency',
+  'Award Amount', 'Description', 'generated_internal_id',
+  'Start Date', 'End Date', 'NAICS', 'PSC', 'Contract Award Type',
+  'Type of Set Aside', 'parent_award_id'
+];
+
+/* ═══════════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════════ */
+let currentKeywords = null;
+let allContracts = [];
+let abortController = null;
+
+/* ═══════════════════════════════════════════════════════
+   HELPERS
+   ═══════════════════════════════════════════════════════ */
+const $ = id => document.getElementById(id);
+const money = n => n >= 1e9 ? '$'+(n/1e9).toFixed(1)+'B' : n >= 1e6 ? '$'+(n/1e6).toFixed(0)+'M' : n >= 1e3 ? '$'+(n/1e3).toFixed(0)+'K' : '$'+n;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+function setPhase(n, state, detail) {
+  const card = $('p'+n), num = $('p'+n+'n'), det = $('p'+n+'d');
+  card.className = 'phase-card ' + state;
+  num.className = 'phase-num ' + state;
+  if (state === 'done') num.textContent = '✓';
+  else if (state === 'error') num.textContent = '✗';
+  else num.textContent = n;
+  if (detail !== undefined) det.innerHTML = detail;
+}
+
+function setMaster(pct, label) {
+  $('masterFill').style.width = pct + '%';
+  $('masterPct').textContent = pct + '%';
+  $('masterLabel').textContent = label;
+}
+
+function go(name) {
+  $('companyInput').value = name;
+  startAnalysis();
+}
+
+$('companyInput').addEventListener('keydown', e => { if (e.key === 'Enter') startAnalysis(); });
+
+// ═══════════════════════════════════════════════════════
+// API LAYER
+// ═══════════════════════════════════════════════════════
+
+/** Call your Lambda to get Gemini keyword research */
+async function fetchKeywords(company, signal) {
+  const res = await fetch(ENDPOINTS.PROXY, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ request_type: 'govhoo_market_research', company }),
+    signal,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || `API returned ${res.status}`);
+  }
+  return res.json();
+}
+
+/** Call USASpending through your existing proxy */
+async function searchUSA(endpoint, payload, signal) {
+  const res = await fetch(ENDPOINTS.PROXY, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ request_type: 'usaspending_proxy', endpoint, payload }),
+    signal,
+  });
+  if (!res.ok) throw new Error(`USASpending ${res.status}`);
+  return res.json();
+}
+
+/** Run a single keyword search against USASpending */
+async function searchKeyword(keyword, signal) {
+  const now = new Date();
+  const start = new Date(now); start.setFullYear(start.getFullYear() - 1);
+  const fmt = d => d.toISOString().split('T')[0];
+
+  const filters = {
+    time_period: [{ start_date: fmt(start), end_date: fmt(now) }],
+    award_type_codes: CONTRACT_TYPES,
+    keywords: [keyword],
+  };
+
+  const data = await searchUSA('/search/spending_by_award/', {
+    filters, fields: AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc'
+  }, signal);
+
+  return (data.results || []).map(r => ({ ...r, _source_keyword: keyword }));
+}
+
+/** Run searches with concurrency limit */
+async function runParallel(terms, concurrency, signal, onProgress) {
+  const results = [];
+  let completed = 0;
+
+  async function worker(queue) {
+    while (queue.length > 0) {
+      const term = queue.shift();
+      try {
+        const batch = await searchKeyword(term, signal);
+        results.push(...batch);
+      } catch (e) {
+        if (e.name === 'AbortError') throw e;
+        console.warn(`Search failed for "${term}":`, e.message);
+      }
+      completed++;
+      onProgress(completed, terms.length, term);
+    }
+  }
+
+  const queue = [...terms];
+  const workers = Array.from({ length: Math.min(concurrency, queue.length) }, () => worker(queue));
+  await Promise.all(workers);
+  return results;
+}
+
+/** Deduplicate on generated_internal_id, merge keyword tags */
+function dedup(contracts) {
+  const map = new Map();
+  for (const c of contracts) {
+    const id = c.generated_internal_id || c['Award ID'] || JSON.stringify(c);
+    if (map.has(id)) {
+      const existing = map.get(id);
+      existing._keywords.add(c._source_keyword);
+      // Keep higher obligation
+      if ((c['Award Amount'] || 0) > (existing['Award Amount'] || 0)) {
+        map.set(id, { ...c, _keywords: existing._keywords });
+      }
+    } else {
+      map.set(id, { ...c, _keywords: new Set([c._source_keyword]) });
+    }
+  }
+  return [...map.values()].sort((a, b) => (b['Award Amount'] || 0) - (a['Award Amount'] || 0));
+}
+
+/** Normalize vendor names (simplified) */
+function normVendor(name) {
+  if (!name) return 'Unknown';
+  return name.replace(/\b(INC|LLC|CORP|CORPORATION|LTD|CO|COMPANY)\b\.?/gi, '').replace(/[,.]$/,'').trim() || name;
+}
+
+/* ═══════════════════════════════════════════════════════
+   ANALYSIS ENGINE
+   ═══════════════════════════════════════════════════════ */
+
+function buildSearchTerms(kw) {
+  const terms = new Set();
+  (kw.core_keywords || []).forEach(k => terms.add(k));
+  (kw.naics_codes || []).forEach(c => terms.add(c));
+  (kw.psc_codes || []).forEach(c => terms.add(c));
+  // AND combos as single keyword strings (USASpending keyword search handles multi-word)
+  (kw.and_combos || []).forEach(c => terms.add(c));
+  return [...terms];
+}
+
+function analyzeContracts(contracts, keywords) {
+  // Vendor aggregation
+  const vendorMap = new Map();
+  for (const c of contracts) {
+    const name = normVendor(c['Recipient Name']);
+    if (!vendorMap.has(name)) vendorMap.set(name, { name, spend: 0, contracts: 0, agencies: new Set() });
+    const v = vendorMap.get(name);
+    v.spend += (c['Award Amount'] || 0);
+    v.contracts++;
+    if (c['Awarding Agency']) v.agencies.add(c['Awarding Agency']);
+  }
+  const vendors = [...vendorMap.values()]
+    .map(v => ({ ...v, agencies: v.agencies.size }))
+    .sort((a, b) => b.spend - a.spend)
+    .slice(0, 15);
+
+  // Agency aggregation
+  const agencyMap = new Map();
+  for (const c of contracts) {
+    const name = c['Awarding Agency'] || 'Unknown';
+    if (!agencyMap.has(name)) agencyMap.set(name, { name, spend: 0, contracts: 0 });
+    const a = agencyMap.get(name);
+    a.spend += (c['Award Amount'] || 0);
+    a.contracts++;
+  }
+  const agencies = [...agencyMap.values()].sort((a, b) => b.spend - a.spend).slice(0, 12);
+
+  // Heatmap: agency × keyword
+  const heatmap = [];
+  const topAgencies = agencies.slice(0, 4).map(a => a.name);
+  const topKws = (keywords.core_keywords || []).slice(0, 5);
+  for (const ag of topAgencies) {
+    for (const kw of topKws) {
+      const kwLower = kw.toLowerCase();
+      const matching = contracts.filter(c =>
+        (c['Awarding Agency'] || '') === ag &&
+        c._keywords && (c._keywords.has(kw) || [...c._keywords].some(k => k.toLowerCase().includes(kwLower)))
+      );
+      const total = matching.reduce((s, c) => s + (c['Award Amount'] || 0), 0);
+      if (total > 0) {
+        const shortAg = ag.replace(/^Department of the\s*/i, '').replace(/^Department of\s*/i, '').replace(/^Dept\.? of\s*/i, '');
+        const shortKw = kw.length > 14 ? kw.slice(0, 12) + '…' : kw;
+        heatmap.push({ agency: shortAg, keyword: shortKw, value: total });
+      }
+    }
+  }
+
+  // Recompetes
+  const now = new Date();
+  const twoYears = new Date(); twoYears.setFullYear(now.getFullYear() + 2);
+  const recompetes = contracts
+    .filter(c => {
+      const end = new Date(c['End Date']);
+      return end > now && end < twoYears && (c['Award Amount'] || 0) > 50000;
+    })
+    .sort((a, b) => {
+      const da = (new Date(a['End Date']) - now) / 86400000;
+      const db = (new Date(b['End Date']) - now) / 86400000;
+      return ((b['Award Amount']||0) / Math.max(db,1)) - ((a['Award Amount']||0) / Math.max(da,1));
+    })
+    .slice(0, 10);
+
+  const totalSpend = contracts.reduce((s, c) => s + (c['Award Amount'] || 0), 0);
+
+  return { vendors, agencies, heatmap, recompetes, totalSpend, totalContracts: contracts.length };
+}
+
+/* ═══════════════════════════════════════════════════════
+   MAIN FLOW
+   ═══════════════════════════════════════════════════════ */
+async function startAnalysis() {
+  const company = $('companyInput').value.trim();
+  if (!company) return;
+
+  // Reset
+  abortController = new AbortController();
+  const signal = abortController.signal;
+  $('analyzeBtn').disabled = true;
+  $('exampleChips').style.display = 'none';
+  $('phaseContainer').classList.add('active');
+  $('dashboard').classList.remove('active');
+
+  // Reset phases
+  for (let i = 1; i <= 4; i++) setPhase(i, 'pending', 'Waiting…');
+
+  // ─── PHASE 1: Gemini keyword research ───
+  setPhase(1, 'running', `Asking Gemini to research "${company}"…`);
+  setMaster(8, 'Researching ' + company + '…');
+
+  try {
+    currentKeywords = await fetchKeywords(company, signal);
+  } catch (err) {
+    if (err.name === 'AbortError') return;
+    setPhase(1, 'error', `<span class="error-msg">${err.message}</span>`);
+    $('analyzeBtn').disabled = false;
+    return;
+  }
+
+  const kw = currentKeywords;
+  const kwSummary = `${kw.core_keywords?.length||0} keywords, ${kw.agency_targets?.length||0} agencies, ${kw.naics_codes?.length||0} NAICS, ${kw.psc_codes?.length||0} PSC, ${kw.and_combos?.length||0} combos`;
+  setPhase(1, 'done', `${kwSummary} <button class="phase-toggle" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">show JSON</button><div class="phase-ai-raw" style="display:none">${JSON.stringify(kw, null, 2)}</div>`);
+  setMaster(20, 'Keywords ready');
+
+  // ─── PHASE 2: Build search plan ───
+  setPhase(2, 'running', 'Deduplicating and building search plan…');
+  setMaster(25, 'Planning searches…');
+  await sleep(300);
+
+  const searchTerms = buildSearchTerms(kw);
+  setPhase(2, 'done', `${searchTerms.length} unique searches planned`);
+  setMaster(30, `${searchTerms.length} searches queued`);
+
+  // ─── PHASE 3: USASpending queries ───
+  setPhase(3, 'running', `Running ${searchTerms.length} searches (${MAX_CONCURRENT} concurrent)…`);
+
+  let allRaw;
+  try {
+    allRaw = await runParallel(searchTerms, MAX_CONCURRENT, signal, (done, total, term) => {
+      const pct = 30 + Math.round((done / total) * 50);
+      setMaster(pct, `${done}/${total} searches complete`);
+      $('p3d').textContent = `${done}/${total} — last: "${term}"`;
+    });
+  } catch (err) {
+    if (err.name === 'AbortError') return;
+    setPhase(3, 'error', `<span class="error-msg">${err.message}</span>`);
+    $('analyzeBtn').disabled = false;
+    return;
+  }
+
+  setPhase(3, 'done', `${allRaw.length} raw results returned`);
+  setMaster(82, 'Deduplicating…');
+
+  // ─── PHASE 4: Aggregate ───
+  setPhase(4, 'running', 'Deduplicating, aggregating, building dashboard…');
+
+  allContracts = dedup(allRaw);
+  const analysis = analyzeContracts(allContracts, kw);
+
+  setPhase(4, 'done', `${allContracts.length} unique contracts, ${analysis.vendors.length} vendors, ${analysis.agencies.length} agencies`);
+  setMaster(100, 'Complete');
+
+  await sleep(400);
+
+  // ─── Show dashboard ───
+  $('phaseContainer').classList.remove('active');
+  $('searchView').style.display = 'none';
+  $('dashboard').classList.add('active');
+  renderDashboard(kw, analysis);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ═══════════════════════════════════════════════════════
+   RENDERERS
+   ═══════════════════════════════════════════════════════ */
+function renderDashboard(kw, data) {
+  // Header
+  $('companyHeader').innerHTML = `<h2>Federal Market Analysis: ${kw.company || ''}</h2><p>${kw.summary || ''} ${kw.positioning ? '— ' + kw.positioning : ''}</p>`;
+
+  // Keywords
+  const total = (kw.core_keywords?.length||0)+(kw.agency_targets?.length||0)+(kw.naics_codes?.length||0)+(kw.psc_codes?.length||0)+(kw.and_combos?.length||0);
+  $('kwBadge').textContent = total + ' terms';
+  let chips = '';
+  (kw.core_keywords||[]).forEach(k => chips += `<span class="keyword-chip chip-core">${k}</span>`);
+  (kw.agency_targets||[]).forEach(k => chips += `<span class="keyword-chip chip-agency">${k}</span>`);
+  (kw.naics_codes||[]).forEach(k => chips += `<span class="keyword-chip chip-code">${k}</span>`);
+  (kw.psc_codes||[]).forEach(k => chips += `<span class="keyword-chip chip-code">${k}</span>`);
+  (kw.and_combos||[]).slice(0,6).forEach(k => chips += `<span class="keyword-chip chip-combo">${k}</span>`);
+  if ((kw.and_combos||[]).length > 6) chips += `<span class="keyword-chip chip-combo">+${kw.and_combos.length-6} more</span>`;
+  $('kwChips').innerHTML = chips;
+
+  // KPIs
+  const pipelineVal = data.recompetes.reduce((s,r) => s + (r['Award Amount']||0), 0);
+  $('kpiRow').innerHTML = `
+    <div class="kpi-card"><div class="kpi-label">Total Market (12 mo)</div><div class="kpi-value">${money(data.totalSpend)}</div><div class="kpi-sub">Deduplicated across all searches</div></div>
+    <div class="kpi-card"><div class="kpi-label">Unique Contracts</div><div class="kpi-value">${data.totalContracts.toLocaleString()}</div><div class="kpi-sub">After dedup</div></div>
+    <div class="kpi-card"><div class="kpi-label">Active Vendors</div><div class="kpi-value">${data.vendors.length}</div><div class="kpi-sub">${data.vendors.filter(v=>v.spend>100e6).length} over $100M</div></div>
+    <div class="kpi-card"><div class="kpi-label">Recompete Pipeline</div><div class="kpi-value">${money(pipelineVal)}</div><div class="kpi-sub">${data.recompetes.length} expiring in 24 mo</div></div>
+  `;
+
+  // Heatmap
+  if (data.heatmap.length > 0) {
+    const maxH = Math.max(...data.heatmap.map(d=>d.value));
+    let h = '<div class="heatmap-grid">';
+    data.heatmap.forEach(cell => {
+      const int = cell.value / maxH;
+      const alpha = 0.06 + int * 0.38;
+      const tc = int > 0.6 ? (document.body.classList.contains('dark-mode') ? '#a8d8b0' : '#1a5c2a') : 'var(--text-secondary)';
+      h += `<div class="heatmap-cell" style="background:rgba(99,142,110,${alpha});color:${tc};">${cell.agency}<br>${cell.keyword}<span class="cell-value">${money(cell.value)}</span></div>`;
+    });
+    $('heatmapBox').innerHTML = h + '</div>';
+  } else {
+    $('heatmapBox').innerHTML = '<p style="color:var(--text-tertiary);font-size:0.82rem;">Not enough cross-referencing data for heatmap.</p>';
+  }
+
+  // Vendors
+  const maxS = data.vendors[0]?.spend || 1;
+  let vt = `<table class="data-table"><thead><tr><th>#</th><th>Vendor</th><th>Spend (12 mo)</th><th>Share</th><th>Contracts</th><th>Agencies</th></tr></thead><tbody>`;
+  data.vendors.forEach((v, i) => {
+    const pct = Math.round((v.spend / maxS) * 100);
+    const isTarget = v.name.toLowerCase().includes((kw.company||'').toLowerCase());
+    vt += `<tr class="${isTarget?'target-row':''}"><td><span class="rank-badge">${i+1}</span></td><td style="font-weight:${isTarget?700:500}">${v.name}</td><td style="font-weight:600;font-variant-numeric:tabular-nums;">${money(v.spend)}</td><td><div class="bar-track" style="width:80px"><div class="bar-fill" style="width:${pct}%;${isTarget?'background:#C0392B':''}"></div></div></td><td>${v.contracts}</td><td>${v.agencies}</td></tr>`;
+  });
+  $('vendorBox').innerHTML = vt + '</tbody></table>';
+
+  // Agencies
+  $('agencyBox').innerHTML = data.agencies.map(a =>
+    `<div class="agency-card"><div class="agency-name">${a.name}</div><div class="agency-spend">${money(a.spend)}</div><div class="agency-contracts">${a.contracts} contracts</div></div>`
+  ).join('');
+
+  // Recompetes
+  const now = new Date();
+  $('recompeteBox').innerHTML = data.recompetes.length > 0 ? data.recompetes.map(r => {
+    const days = Math.round((new Date(r['End Date']) - now) / 86400000);
+    const uc = days < 180 ? 'urgency-hot' : days < 365 ? 'urgency-warm' : 'urgency-cool';
+    return `<div class="recompete-item"><div class="recompete-info"><div class="recompete-vendor"><span class="urgency-dot ${uc}"></span>${normVendor(r['Recipient Name'])}</div><div class="recompete-agency">${r['Awarding Agency']||''} · ${(r['Description']||'').slice(0,80)}</div></div><div class="recompete-meta"><div class="recompete-value">${money(r['Award Amount']||0)}</div><div class="recompete-date">${r['End Date']} · ${Math.round(days/30)} mo</div></div></div>`;
+  }).join('') : '<p style="color:var(--text-tertiary);font-size:0.82rem;">No contracts expiring in the next 24 months found.</p>';
+
+  // GTM
+  const topVendor = data.vendors[0];
+  const topAgency = data.agencies[0];
+  const topRecomp = data.recompetes[0];
+  $('gtmBox').innerHTML = `
+    <div class="gtm-card"><div class="action-label">Immediate</div><h4>${topRecomp ? `Target ${normVendor(topRecomp['Recipient Name'])}'s expiring work` : 'Identify recompete targets'}</h4><p>${topRecomp ? `${money(topRecomp['Award Amount']||0)} at ${topRecomp['Awarding Agency']||'agency'} expiring ${topRecomp['End Date']}. Begin capture now.` : 'Run deeper searches on specific agencies to surface upcoming recompetes.'}</p></div>
+    <div class="gtm-card"><div class="action-label">Immediate</div><h4>Map ${topAgency?.name || 'top agency'} buying patterns</h4><p>${topAgency ? `${money(topAgency.spend)} across ${topAgency.contracts} contracts. Identify contracting offices, vehicles, and set-asides.` : ''}</p></div>
+    <div class="gtm-card"><div class="action-label">Near-term</div><h4>Partner with ${topVendor?.name || 'top prime'}</h4><p>${topVendor ? `Holds ${money(topVendor.spend)} market share across ${topVendor.agencies} agencies. Explore sub/tech partner positioning.` : ''}</p></div>
+    <div class="gtm-card"><div class="action-label">Strategic</div><h4>Use Ask Arti for deep-dive</h4><p>Copy these keywords into Govhoo's main search to get Arti's tactical brief on specific agencies and contracts.</p></div>
+  `;
+}
+
+/* ═══════════════════════════════════════════════════════
+   EXPORT & RESET
+   ═══════════════════════════════════════════════════════ */
+function exportCSV() {
+  if (!allContracts.length) return;
+  const headers = ['Award ID','Recipient Name','Awarding Agency','Award Amount','Start Date','End Date','NAICS','PSC','Description','Matched Keywords'];
+  const rows = allContracts.map(c => [
+    `"${c['Award ID']||''}"`, `"${(c['Recipient Name']||'').replace(/"/g,'""')}"`,
+    `"${(c['Awarding Agency']||'').replace(/"/g,'""')}"`, c['Award Amount']||0,
+    c['Start Date']||'', c['End Date']||'', c['NAICS']||'', c['PSC']||'',
+    `"${(c['Description']||'').replace(/"/g,'""').slice(0,200)}"`,
+    `"${[...c._keywords].join('; ')}"`,
+  ]);
+  const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `govhoo_market_analysis_${(currentKeywords?.company||'export').replace(/\s+/g,'_')}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function resetAll() {
+  if (abortController) abortController.abort();
+  $('dashboard').classList.remove('active');
+  $('searchView').style.display = '';
+  $('exampleChips').style.display = '';
+  $('phaseContainer').classList.remove('active');
+  $('analyzeBtn').disabled = false;
+  $('companyInput').value = '';
+  allContracts = [];
+  currentKeywords = null;
+  for (let i = 1; i <= 4; i++) { setPhase(i, 'pending', 'Waiting…'); $('p'+i+'n').textContent = i; }
+  setMaster(0, 'Starting…');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
