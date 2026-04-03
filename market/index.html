@@ -387,73 +387,57 @@ async function searchUSA(endpoint, payload, signal) {
 }
 
 /** Run a single search against USASpending.
- *  Accepts either a string (backwards compat) or a structured search object
- *  { term, pscAnchor?, naicsAnchor? } for PSC-constrained keyword searches. */
-async function searchKeyword(searchItem, signal) {
+ *  Parses AND-combos and detects PSC/NAICS codes within them to build proper filters.
+ *  Sorts by Start Date (most recent first) instead of Award Amount to get a natural
+ *  mix of contract sizes — sorting by amount only returns $500M+ omnibus deals. */
+async function searchKeyword(term, signal) {
   const now = new Date();
   const start = new Date(now); start.setFullYear(start.getFullYear() - 1);
   const fmt = d => d.toISOString().split('T')[0];
-
-  // Normalize: string → object
-  const item = typeof searchItem === 'string' ? { term: searchItem } : searchItem;
-  const term = item.term;
-  const label = item.label || term; // for progress display
 
   const filters = {
     time_period: [{ start_date: fmt(start), end_date: fmt(now) }],
     award_type_codes: CONTRACT_TYPES,
   };
 
-  // Apply PSC/NAICS anchors if provided (core keywords get these)
-  if (item.pscAnchor) {
-    filters.psc_codes = Array.isArray(item.pscAnchor) ? item.pscAnchor : [item.pscAnchor];
-  }
-  if (item.naicsAnchor) {
-    filters.naics_codes = { require: Array.isArray(item.naicsAnchor) ? item.naicsAnchor : [item.naicsAnchor] };
-  }
+  // Detect AND-combos: "D306 AND ENDPOINT DETECTION AND RESPONSE"
+  // Problem: "ENDPOINT DETECTION AND RESPONSE" contains " AND " mid-phrase.
+  // Solution: Only treat as a combo if the string starts with a PSC/NAICS code
+  // followed by " AND ", or ends with a known agency abbreviation after " AND ".
+  const pscPat = /^[A-Z]{1,2}\d{1,3}$/i;
+  const naicsPat = /^\d{6}$/;
+  const leadingCodeMatch = term.match(/^([A-Z]{1,2}\d{1,3}|\d{6})\s+AND\s+(.+)$/i);
+  const trailingAgencyMatch = term.match(/^(.+)\s+AND\s+([A-Z]{2,12})$/);
 
-  // Detect if term itself is an AND-combo
-  const andParts = term.split(/\s+AND\s+/i);
-
-  if (andParts.length >= 2) {
-    const pscPat = /^[A-Z]{1,2}\d{1,3}$/i;
-    const naicsPat = /^\d{6}$/;
-    const keywords = [];
-
-    for (const part of andParts) {
-      const p = part.trim();
-      if (pscPat.test(p)) {
-        filters.psc_codes = filters.psc_codes || [];
-        if (!filters.psc_codes.includes(p.toUpperCase())) filters.psc_codes.push(p.toUpperCase());
-      } else if (naicsPat.test(p)) {
-        filters.naics_codes = filters.naics_codes || { require: [] };
-        filters.naics_codes.require.push(p);
-      } else {
-        keywords.push(p);
-      }
+  if (leadingCodeMatch) {
+    const code = leadingCodeMatch[1].trim();
+    const keyword = leadingCodeMatch[2].trim();
+    if (pscPat.test(code)) {
+      filters.psc_codes = [code.toUpperCase()];
+    } else if (naicsPat.test(code)) {
+      filters.naics_codes = { require: [code] };
     }
-    if (keywords.length > 0) filters.keywords = keywords;
+    filters.keywords = [keyword];
+  } else if (trailingAgencyMatch && trailingAgencyMatch[2].length <= 12) {
+    filters.keywords = [term];
   } else {
-    // Single term — check if it's a code or keyword
-    const pscPat = /^[A-Z]{1,2}\d{1,3}$/i;
-    const naicsPat = /^\d{6}$/;
-
     if (pscPat.test(term)) {
-      filters.psc_codes = filters.psc_codes || [];
-      if (!filters.psc_codes.includes(term.toUpperCase())) filters.psc_codes.push(term.toUpperCase());
+      filters.psc_codes = [term.toUpperCase()];
     } else if (naicsPat.test(term)) {
-      filters.naics_codes = filters.naics_codes || { require: [] };
-      filters.naics_codes.require.push(term);
+      filters.naics_codes = { require: [term] };
     } else {
       filters.keywords = [term];
     }
   }
 
+  // Sort by Start Date, not Award Amount. Sorting by amount returns only
+  // $500M+ omnibus contracts, burying the $500K-$50M product purchases
+  // that are actually in the target company's addressable market.
   const data = await searchUSA('/search/spending_by_award/', {
-    filters, fields: AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc'
+    filters, fields: AWARD_FIELDS, limit: 100, sort: 'Start Date', order: 'desc'
   }, signal);
 
-  return (data.results || []).map(r => ({ ...r, _source_keyword: label }));
+  return (data.results || []).map(r => ({ ...r, _source_keyword: term }));
 }
 
 /** Run searches with concurrency limit */
@@ -463,18 +447,16 @@ async function runParallel(terms, concurrency, signal, onProgress) {
 
   async function worker(queue) {
     while (queue.length > 0) {
-      const item = queue.shift();
+      const term = queue.shift();
       try {
-        const batch = await searchKeyword(item, signal);
+        const batch = await searchKeyword(term, signal);
         results.push(...batch);
       } catch (e) {
         if (e.name === 'AbortError') throw e;
-        const label = typeof item === 'string' ? item : item.label || item.term;
-        console.warn(`Search failed for "${label}":`, e.message);
+        console.warn(`Search failed for "${term}":`, e.message);
       }
       completed++;
-      const label = typeof item === 'string' ? item : item.label || item.term;
-      onProgress(completed, terms.length, label);
+      onProgress(completed, terms.length, term);
     }
   }
 
@@ -539,66 +521,67 @@ function normVendor(name) {
 
 /**
  * Build the search plan from Gemini keywords.
- * Returns an array of search items — either strings (for explicit AND-combos)
- * or structured objects { term, pscAnchor, label } for PSC-constrained searches.
  *
- * DESIGN PRINCIPLE: Every search must be constrained. Standalone code searches
- * (just "D306" or "541519") return the entire code market regardless of product
- * relevance — $50B+ of managed services contracts that drown out real signal.
- * PSC/NAICS codes are ONLY used as filters on keyword searches, never alone.
+ * SEARCH STRATEGY: Run keyword searches WITHOUT PSC anchors.
+ * USASpending PSC codes are unreliable for filtering — most endpoint security
+ * purchases are coded D302, D307, D399, or even hardware codes, not D306.
+ * Anchoring to D306 returned $0 because the data isn't coded that precisely.
+ *
+ * Instead, we search broadly with specific multi-word keywords, then apply
+ * a post-search relevance filter (filterRelevant) to remove contracts that
+ * don't actually mention any core keyword in their description.
  */
 function buildSearchTerms(kw) {
   const seen = new Set();
   const terms = [];
 
   const add = (item) => {
-    const key = typeof item === 'string' ? item : `${item.pscAnchor||''}|${item.term}`;
-    if (!seen.has(key)) { seen.add(key); terms.push(item); }
+    const key = typeof item === 'string' ? item : item.term;
+    if (!seen.has(key)) { seen.add(key); terms.push(key); }
   };
 
-  // Primary PSC code — used as a filter on all keyword searches
-  const primaryPsc = (kw.psc_codes || [])[0] || null;
+  // Core keywords — searched as plain keywords. The specificity of the keywords
+  // themselves ("ENDPOINT DETECTION AND RESPONSE" not "CYBERSECURITY") is what
+  // constrains results. The post-search filter catches anything that slips through.
+  (kw.core_keywords || []).forEach(k => add(k));
 
-  // Core keywords — anchored to primary PSC code.
-  // "ENDPOINT DETECTION AND RESPONSE" + psc_codes:["D306"] = only cybersecurity contracts
-  // that mention endpoint detection. This is the main signal source.
-  (kw.core_keywords || []).forEach(k => {
-    if (primaryPsc) {
-      add({ term: k, pscAnchor: primaryPsc, label: `${primaryPsc} + ${k}` });
-    } else {
-      add(k);
-    }
-  });
+  // NO standalone PSC or NAICS searches — these return entire code markets.
 
-  // NO standalone PSC or NAICS searches — these are the noise source.
-  // D306 alone returns $50B+ of managed services. Codes are filters only.
-
-  // Explicit PSC-keyword combos from Gemini (already have PSC in the AND string)
+  // Explicit PSC-keyword combos from Gemini (searchKeyword parses the PSC out)
   (kw.psc_keyword_combos || []).forEach(c => add(c));
 
-  // Agency-keyword combos — also anchor to PSC to prevent the same blowup.
-  // "ENDPOINT DETECTION AND RESPONSE AND DISA" without PSC still returns
-  // every DISA contract mentioning endpoints, including $2B DODIN omnibus deals.
-  (kw.agency_keyword_combos || []).forEach(c => {
-    if (primaryPsc) {
-      add({ term: c, pscAnchor: primaryPsc, label: `${primaryPsc} + ${c}` });
-    } else {
-      add(c);
-    }
-  });
+  // Agency-keyword combos — these are specific enough to run unanchored
+  (kw.agency_keyword_combos || []).forEach(c => add(c));
 
-  // Backwards compat: old-style and_combos — anchor if possible
-  (kw.and_combos || []).forEach(c => {
-    // Don't double-anchor if the combo already contains a PSC code
-    const hasPsc = /^[A-Z]{1,2}\d{1,3}\s+AND\s+/i.test(c);
-    if (primaryPsc && !hasPsc) {
-      add({ term: c, pscAnchor: primaryPsc, label: `${primaryPsc} + ${c}` });
-    } else {
-      add(c);
-    }
-  });
+  // Backwards compat
+  (kw.and_combos || []).forEach(c => add(c));
 
   return terms;
+}
+
+/**
+ * Post-search relevance filter.
+ * Two gates:
+ * 1. Description must contain at least one core keyword.
+ * 2. Contract value must be under $500M — anything larger is almost certainly
+ *    a managed services / systems integration omnibus, not a product purchase.
+ *    A real endpoint security software buy tops out around $50-100M even at
+ *    enterprise scale. $500M gives generous headroom for large IDIQs.
+ */
+function filterRelevant(contracts, coreKeywords) {
+  if (!coreKeywords || coreKeywords.length === 0) return contracts;
+
+  const VALUE_CAP = 500_000_000; // $500M — above this, it's not a product buy
+  const kwPatterns = coreKeywords.map(k => k.toLowerCase());
+
+  return contracts.filter(c => {
+    // Value gate
+    if ((c['Award Amount'] || 0) > VALUE_CAP) return false;
+
+    // Relevance gate: description must mention at least one core keyword
+    const desc = (c['Description'] || '').toLowerCase();
+    return kwPatterns.some(kw => desc.includes(kw));
+  });
 }
 
 function analyzeContracts(contracts, keywords) {
@@ -738,9 +721,7 @@ async function startAnalysis() {
   await sleep(300);
 
   const searchTerms = buildSearchTerms(kw);
-  const anchoredCount = searchTerms.filter(t => typeof t === 'object' && t.pscAnchor).length;
-  const anchorNote = anchoredCount > 0 ? ` (${anchoredCount} anchored to PSC ${kw.psc_codes?.[0] || ''})` : '';
-  setPhase(2, 'done', `${searchTerms.length} unique searches planned${anchorNote}`);
+  setPhase(2, 'done', `${searchTerms.length} unique searches planned`);
   setMaster(30, `${searchTerms.length} searches queued`);
 
   // ─── PHASE 3: USASpending queries ───
@@ -764,13 +745,21 @@ async function startAnalysis() {
   setMaster(82, 'Deduplicating…');
 
   // ─── PHASE 4: Aggregate ───
-  setPhase(4, 'running', 'Deduplicating, aggregating, building dashboard…');
+  setPhase(4, 'running', 'Deduplicating, filtering, building dashboard…');
 
-  allContracts = dedup(allRaw);
+  const dedupedAll = dedup(allRaw);
+  const beforeFilter = dedupedAll.length;
+
+  // Post-search relevance filter: remove contracts that don't mention
+  // any core keyword in their Description. This is what prevents $28B
+  // weapons contracts from appearing in an endpoint security analysis.
+  allContracts = filterRelevant(dedupedAll, kw.core_keywords);
+  const filtered = beforeFilter - allContracts.length;
+
   enrichKeywordTags(allContracts, kw.core_keywords);
   const analysis = analyzeContracts(allContracts, kw);
 
-  setPhase(4, 'done', `${allContracts.length} unique contracts, ${analysis.vendors.length} vendors, ${analysis.agencies.length} agencies`);
+  setPhase(4, 'done', `${beforeFilter} deduped → ${allContracts.length} relevant (${filtered} filtered), ${analysis.vendors.length} vendors, ${analysis.agencies.length} agencies`);
   setMaster(100, 'Complete');
 
   await sleep(400);
