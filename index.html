@@ -1614,16 +1614,14 @@ details[open] > summary svg { transform: rotate(180deg); }
   font-size: var(--text-xs);
 }
 /* SMART SEARCH PILLS */
-#searchPills { display: none; padding: 4px 16px 8px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; }
-#searchPills::-webkit-scrollbar { display: none; }
+#searchPills { display: none; padding: 4px 16px 8px; }
 #searchPills.active { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-bottom: 4px; }
-.search-pill { background: rgba(0,0,0,0.06); border: none; border-radius: var(--radius); padding: 5px 12px; font-size: 0.72rem; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: var(--transition-fast); white-space: nowrap; min-height: 30px; display: inline-flex; align-items: center; font-family: var(--font-sans); }
+.search-pill { background: rgba(0,0,0,0.06); border: none; border-radius: var(--radius); padding: 4px 10px; font-size: 0.7rem; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: var(--transition-fast); white-space: nowrap; min-height: 28px; display: inline-flex; align-items: center; font-family: var(--font-sans); }
 .search-pill:hover { background: rgba(0,0,0,0.10); color: var(--text-primary); }
 .search-pill:active { transform: scale(0.97); }
 .search-pill-comp { color: #C0392B; }
 .search-pill-code { color: var(--text-tertiary); }
 .search-pill-brand { color: var(--accent); font-weight: 600; }
-.search-pill-divider { font-size: 0.58rem; color: var(--text-quaternary); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; padding: 0 2px; white-space: nowrap; user-select: none; }
 .dark-mode .search-pill { background: rgba(255,255,255,0.10); color: var(--text-secondary); }
 .dark-mode .search-pill:hover { background: rgba(255,255,255,0.16); color: var(--text-primary); }
 .dark-mode .search-pill-comp { color: #E8726A; }
@@ -11244,50 +11242,26 @@ const SearchPills = {
     const queryUpper = query.toUpperCase();
 
     const addPill = (term, cls) => {
+      if (pills.length >= 10) return;
       const key = term.toUpperCase();
-      // Don't show a pill for the term the user already searched
       if (key === queryUpper || seen.has(key)) return;
       seen.add(key);
       pills.push({ term, cls });
     };
 
-    // Company name (if different from query)
     if (kw.company) addPill(kw.company, 'search-pill-brand');
-
-    // Competitors — highest value
-    (kw.competitors || []).forEach(c => addPill(c, 'search-pill-comp'));
-
-    // Core keywords
-    (kw.core_keywords || []).forEach(k => addPill(k, ''));
-
-    // Codes
-    [...(kw.naics_codes || []), ...(kw.psc_codes || [])].forEach(c => addPill(c, 'search-pill-code'));
+    (kw.competitors || []).slice(0, 4).forEach(c => addPill(c, 'search-pill-comp'));
+    (kw.core_keywords || []).slice(0, 3).forEach(k => addPill(k, ''));
+    [...(kw.psc_codes || []), ...(kw.naics_codes || [])].slice(0, 2).forEach(c => addPill(c, 'search-pill-code'));
 
     if (pills.length === 0) {
       container.classList.remove('active');
       return;
     }
 
-    // Group: brand first, then competitors, then keywords, then codes
-    // They're already in that order from addPill calls above
-    let html = '';
-    let lastCls = null;
-    const labels = {
-      'search-pill-brand': null, // no label for brand
-      'search-pill-comp': 'competitors',
-      '': 'keywords',
-      'search-pill-code': 'codes'
-    };
-
-    pills.forEach(p => {
-      if (p.cls !== lastCls && labels[p.cls]) {
-        html += `<span class="search-pill-divider">${labels[p.cls]}</span>`;
-      }
-      lastCls = p.cls;
-      html += `<button class="search-pill ${p.cls}" onclick="App.runSearch('${Html.escapeHtml(p.term)}')">${Html.escapeHtml(p.term)}</button>`;
-    });
-
-    container.innerHTML = html;
+    container.innerHTML = pills.map(p =>
+      `<button class="search-pill ${p.cls}" onclick="App.runSearch('${Html.escapeHtml(p.term)}')">${Html.escapeHtml(p.term)}</button>`
+    ).join('');
     container.classList.add('active');
   },
 
