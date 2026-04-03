@@ -1616,16 +1616,17 @@ details[open] > summary svg { transform: rotate(180deg); }
 /* SMART SEARCH PILLS */
 #searchPills { display: none; padding: 4px 16px 8px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; }
 #searchPills::-webkit-scrollbar { display: none; }
-#searchPills.active { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
-.search-pill { background: var(--bg-hover); border: none; border-radius: var(--radius); padding: 5px 12px; font-size: 0.72rem; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: var(--transition-fast); white-space: nowrap; min-height: 30px; display: inline-flex; align-items: center; font-family: var(--font-sans); }
-.search-pill:hover { background: var(--bg-active); color: var(--text-primary); }
+#searchPills.active { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-bottom: 4px; }
+.search-pill { background: rgba(0,0,0,0.06); border: none; border-radius: var(--radius); padding: 5px 12px; font-size: 0.72rem; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: var(--transition-fast); white-space: nowrap; min-height: 30px; display: inline-flex; align-items: center; font-family: var(--font-sans); }
+.search-pill:hover { background: rgba(0,0,0,0.10); color: var(--text-primary); }
 .search-pill:active { transform: scale(0.97); }
 .search-pill-comp { color: #C0392B; }
 .search-pill-code { color: var(--text-tertiary); }
 .search-pill-brand { color: var(--accent); font-weight: 600; }
 .search-pill-divider { font-size: 0.58rem; color: var(--text-quaternary); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; padding: 0 2px; white-space: nowrap; user-select: none; }
-.dark-mode .search-pill { background: var(--bg-hover); }
-.dark-mode .search-pill:hover { background: var(--bg-active); }
+.dark-mode .search-pill { background: rgba(255,255,255,0.10); color: var(--text-secondary); }
+.dark-mode .search-pill:hover { background: rgba(255,255,255,0.16); color: var(--text-primary); }
+.dark-mode .search-pill-comp { color: #E8726A; }
 </style>
 </head>
 <body>
