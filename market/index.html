@@ -386,8 +386,10 @@ async function searchUSA(endpoint, payload, signal) {
   return res.json();
 }
 
-/** Run a single keyword search against USASpending */
-async function searchKeyword(keyword, signal) {
+/** Run a single search term against USASpending.
+ *  Detects AND-combos and PSC/NAICS codes to build proper filters
+ *  instead of treating everything as a flat keyword search. */
+async function searchKeyword(term, signal) {
   const now = new Date();
   const start = new Date(now); start.setFullYear(start.getFullYear() - 1);
   const fmt = d => d.toISOString().split('T')[0];
@@ -395,14 +397,51 @@ async function searchKeyword(keyword, signal) {
   const filters = {
     time_period: [{ start_date: fmt(start), end_date: fmt(now) }],
     award_type_codes: CONTRACT_TYPES,
-    keywords: [keyword],
   };
+
+  // Detect if this is an AND-combo
+  const andParts = term.split(/\s+AND\s+/i);
+
+  if (andParts.length >= 2) {
+    // Parse each part: could be a PSC code, NAICS code, agency alias, or keyword
+    const pscPat = /^[A-Z]{1,2}\d{1,3}$/i;
+    const naicsPat = /^\d{6}$/;
+    const keywords = [];
+
+    for (const part of andParts) {
+      const p = part.trim();
+      if (pscPat.test(p)) {
+        filters.psc_codes = filters.psc_codes || [];
+        filters.psc_codes.push(p.toUpperCase());
+      } else if (naicsPat.test(p)) {
+        filters.naics_codes = filters.naics_codes || { require: [] };
+        filters.naics_codes.require.push(p);
+      } else {
+        // Could be an agency or a keyword — USASpending keyword search
+        // handles agency names in descriptions, so treat as keyword
+        keywords.push(p);
+      }
+    }
+    if (keywords.length > 0) filters.keywords = keywords;
+  } else {
+    // Single term — check if it's a code or a keyword
+    const pscPat = /^[A-Z]{1,2}\d{1,3}$/i;
+    const naicsPat = /^\d{6}$/;
+
+    if (pscPat.test(term)) {
+      filters.psc_codes = [term.toUpperCase()];
+    } else if (naicsPat.test(term)) {
+      filters.naics_codes = { require: [term] };
+    } else {
+      filters.keywords = [term];
+    }
+  }
 
   const data = await searchUSA('/search/spending_by_award/', {
     filters, fields: AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc'
   }, signal);
 
-  return (data.results || []).map(r => ({ ...r, _source_keyword: keyword }));
+  return (data.results || []).map(r => ({ ...r, _source_keyword: term }));
 }
 
 /** Run searches with concurrency limit */
@@ -486,10 +525,16 @@ function normVendor(name) {
 
 function buildSearchTerms(kw) {
   const terms = new Set();
+  // Core product-specific keywords
   (kw.core_keywords || []).forEach(k => terms.add(k));
+  // NAICS and PSC codes as standalone searches
   (kw.naics_codes || []).forEach(c => terms.add(c));
   (kw.psc_codes || []).forEach(c => terms.add(c));
-  // AND combos as single keyword strings (USASpending keyword search handles multi-word)
+  // PSC-anchored combos (highest signal — constrains to right product category)
+  (kw.psc_keyword_combos || []).forEach(c => terms.add(c));
+  // Agency-keyword combos
+  (kw.agency_keyword_combos || []).forEach(c => terms.add(c));
+  // Backwards compat: old-style and_combos
   (kw.and_combos || []).forEach(c => terms.add(c));
   return [...terms];
 }
@@ -557,13 +602,25 @@ function analyzeContracts(contracts, keywords) {
     }
   }
 
-  // Recompetes
+  // Recompetes — with relevance filter
+  // Only surface recompetes where the description actually mentions a core keyword.
+  // This prevents ERP, satellite airtime, and other unrelated high-dollar contracts
+  // from appearing in an endpoint security company's pipeline.
   const now = new Date();
   const twoYears = new Date(); twoYears.setFullYear(now.getFullYear() + 2);
+  const coreKwsLower = (keywords.core_keywords || []).map(k => k.toLowerCase());
+
   const recompetes = contracts
     .filter(c => {
       const end = new Date(c['End Date']);
-      return end > now && end < twoYears && (c['Award Amount'] || 0) > 50000;
+      if (!(end > now && end < twoYears && (c['Award Amount'] || 0) > 50000)) return false;
+
+      // Relevance gate: description or matched keywords must contain
+      // at least one core keyword (not just a broad code/agency match)
+      const desc = (c['Description'] || '').toLowerCase();
+      const matchedKws = c._keywords ? [...c._keywords].map(k => k.toLowerCase()) : [];
+      const allText = desc + ' ' + matchedKws.join(' ');
+      return coreKwsLower.some(kw => allText.includes(kw));
     })
     .sort((a, b) => {
       const da = (new Date(a['End Date']) - now) / 86400000;
@@ -609,7 +666,7 @@ async function startAnalysis() {
   }
 
   const kw = currentKeywords;
-  const kwSummary = `${kw.core_keywords?.length||0} keywords, ${kw.agency_targets?.length||0} agencies, ${kw.naics_codes?.length||0} NAICS, ${kw.psc_codes?.length||0} PSC, ${kw.and_combos?.length||0} combos`;
+  const kwSummary = `${kw.core_keywords?.length||0} keywords, ${kw.agency_targets?.length||0} agencies, ${kw.naics_codes?.length||0} NAICS, ${kw.psc_codes?.length||0} PSC, ${(kw.psc_keyword_combos?.length||0)+(kw.agency_keyword_combos?.length||0)+(kw.and_combos?.length||0)} combos`;
   setPhase(1, 'done', `${kwSummary} <button class="phase-toggle" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">show JSON</button><div class="phase-ai-raw" style="display:none">${JSON.stringify(kw, null, 2)}</div>`);
   setMaster(20, 'Keywords ready');
 
@@ -670,15 +727,16 @@ function renderDashboard(kw, data) {
   $('companyHeader').innerHTML = `<h2>Federal Market Analysis: ${kw.company || ''}</h2><p>${kw.summary || ''} ${kw.positioning ? '— ' + kw.positioning : ''}</p>`;
 
   // Keywords
-  const total = (kw.core_keywords?.length||0)+(kw.agency_targets?.length||0)+(kw.naics_codes?.length||0)+(kw.psc_codes?.length||0)+(kw.and_combos?.length||0);
+  const allCombos = [...(kw.psc_keyword_combos||[]), ...(kw.agency_keyword_combos||[]), ...(kw.and_combos||[])];
+  const total = (kw.core_keywords?.length||0)+(kw.agency_targets?.length||0)+(kw.naics_codes?.length||0)+(kw.psc_codes?.length||0)+allCombos.length;
   $('kwBadge').textContent = total + ' terms';
   let chips = '';
   (kw.core_keywords||[]).forEach(k => chips += `<span class="keyword-chip chip-core">${k}</span>`);
   (kw.agency_targets||[]).forEach(k => chips += `<span class="keyword-chip chip-agency">${k}</span>`);
   (kw.naics_codes||[]).forEach(k => chips += `<span class="keyword-chip chip-code">${k}</span>`);
   (kw.psc_codes||[]).forEach(k => chips += `<span class="keyword-chip chip-code">${k}</span>`);
-  (kw.and_combos||[]).slice(0,6).forEach(k => chips += `<span class="keyword-chip chip-combo">${k}</span>`);
-  if ((kw.and_combos||[]).length > 6) chips += `<span class="keyword-chip chip-combo">+${kw.and_combos.length-6} more</span>`;
+  allCombos.slice(0,6).forEach(k => chips += `<span class="keyword-chip chip-combo">${k}</span>`);
+  if (allCombos.length > 6) chips += `<span class="keyword-chip chip-combo">+${allCombos.length-6} more</span>`;
   $('kwChips').innerHTML = chips;
 
   // KPIs
