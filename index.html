@@ -1613,22 +1613,19 @@ details[open] > summary svg { transform: rotate(180deg); }
 .job-link, .action-btn {
   font-size: var(--text-xs);
 }
-/* RELATED SEARCHES PILL STRIP */
-#pillStrip { padding: 0 0 var(--space-sm); margin-bottom: var(--space-sm); }
-#pillStrip.has-pills { border-bottom: 1px solid var(--border); padding-bottom: var(--space-lg); margin-bottom: var(--space-lg); }
-.pill-strip-row { display: flex; align-items: center; gap: 6px; }
-.pill-strip-input { flex: 1; max-width: 260px; padding: 6px 10px; font-size: var(--text-xs); font-family: var(--font-sans); font-weight: 500; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-input); color: var(--text-primary); outline: none; height: 32px; }
-.pill-strip-input:focus { border-color: var(--accent); }
-.pill-strip-input::placeholder { color: var(--text-quaternary); }
-.pill-strip-go { padding: 6px 12px; background: var(--accent); color: var(--accent-text); border: none; border-radius: var(--radius); font-size: var(--text-xs); font-weight: 600; cursor: pointer; font-family: var(--font-sans); height: 32px; transition: opacity 0.15s; }
-.pill-strip-go:hover { opacity: 0.85; }
-.pill-strip-go:disabled { opacity: 0.3; cursor: not-allowed; }
-.pill-strip-label { font-size: var(--text-xs); color: var(--text-quaternary); font-weight: 500; white-space: nowrap; }
-.pill-strip-pills { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
-.pill-strip-pills .hero-suggestion-chip { min-height: 30px; padding: 5px 12px; font-size: 0.72rem; }
-.pill-strip-group { font-size: 0.6rem; font-weight: 600; color: var(--text-quaternary); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 6px; width: 100%; }
-.pill-strip-clear { background: none; border: none; color: var(--text-quaternary); font-size: var(--text-xs); cursor: pointer; padding: 2px 6px; font-family: var(--font-sans); }
-.pill-strip-clear:hover { color: var(--text-secondary); }
+/* SMART SEARCH PILLS */
+#searchPills { display: none; padding: 4px 16px 8px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; }
+#searchPills::-webkit-scrollbar { display: none; }
+#searchPills.active { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.search-pill { background: var(--bg-hover); border: none; border-radius: var(--radius); padding: 5px 12px; font-size: 0.72rem; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: var(--transition-fast); white-space: nowrap; min-height: 30px; display: inline-flex; align-items: center; font-family: var(--font-sans); }
+.search-pill:hover { background: var(--bg-active); color: var(--text-primary); }
+.search-pill:active { transform: scale(0.97); }
+.search-pill-comp { color: #C0392B; }
+.search-pill-code { color: var(--text-tertiary); }
+.search-pill-brand { color: var(--accent); font-weight: 600; }
+.search-pill-divider { font-size: 0.58rem; color: var(--text-quaternary); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; padding: 0 2px; white-space: nowrap; user-select: none; }
+.dark-mode .search-pill { background: var(--bg-hover); }
+.dark-mode .search-pill:hover { background: var(--bg-active); }
 </style>
 </head>
 <body>
@@ -1748,6 +1745,8 @@ details[open] > summary svg { transform: rotate(180deg); }
         <button data-target="recentAwardsHeader" onclick="App.scrollToPanel('recentAwardsHeader')">Awards</button>
         <button data-target="subawardWrapper" onclick="const s=document.getElementById('subawardAccordion'); if(s) s.open=true; App.scrollToPanel('subawardWrapper')">Subs</button>
       </div>
+	  <!-- Smart Search Pills -->
+<div id="searchPills"></div>
     </header>
 
     <main id="dashboardContainer" class="dashboard-container">
@@ -1817,16 +1816,7 @@ details[open] > summary svg { transform: rotate(180deg); }
       </div>
 
       <div id="searchModeView" class="view-section active">
-<!-- Related Searches Pill Strip -->
-<div id="pillStrip" class="hidden">
-  <div class="pill-strip-row">
-    <span class="pill-strip-label">I sell for</span>
-    <input type="text" class="pill-strip-input" id="pillInput" placeholder="Company name…" autocomplete="off">
-    <button class="pill-strip-go" id="pillGoBtn" onclick="PillGen.run()">Go</button>
-    <button class="pill-strip-clear hidden" id="pillClearBtn" onclick="PillGen.clear()">✕</button>
-  </div>
-  <div class="pill-strip-pills hidden" id="pillResults"></div>
-</div>
+
         <div id="bubbleChartPanel" class="stat-panel hidden">
           <div class="market-desktop-grid">
             
@@ -7364,7 +7354,7 @@ showHero() {
     DOM.show('landingState');
     DOM.hide('searchModeView');
     DOM.hide('quickJumpMenu');
-	DOM.hide('pillStrip');
+	SearchPills.clear();
     DOM.hide('saveSearchBtn');
     
     DOM.get('dashboardContainer')?.classList.add('active');
@@ -7381,7 +7371,6 @@ showHero() {
 transitionToApp() {
     DOM.hide('landingState');
     DOM.show('searchModeView');
-	DOM.show('pillStrip');
     DOM.show('quickJumpMenu');
     DOM.show('saveSearchBtn');
     
@@ -7911,6 +7900,7 @@ async runOpportunityStrategy(awardId) {
       document.querySelectorAll('details').forEach(d => d.open = false);
     }
     App.currentQuery = query;
+	SearchPills.generate(query);
     App.originalQuery = rawQuery;
 
     const thisSearch = ++App._searchId;
@@ -11188,107 +11178,127 @@ selectAgencySuggestion(name, inputId, boxId) {
   } catch(e) {}
 })();
 // ═══════════════════════════════════════════════════════
-// RELATED SEARCHES — "I sell for" pill generator
+// SMART SEARCH PILLS
+// Generates related search pills on every search.
+// Runs in background — never blocks the main search.
 // ═══════════════════════════════════════════════════════
-const PillGen = {
+const SearchPills = {
   _cache: {},
+  _current: null,
 
-  async run() {
-    const input = DOM.get('pillInput');
-    const btn = DOM.get('pillGoBtn');
-    const company = (input?.value || '').trim();
-    if (!company) return;
+  /** Called after every App.runSearch — fires Gemini in background */
+  generate(query) {
+    if (!query || query.length < 2) return;
 
-    if (this._cache[company.toLowerCase()]) {
-      this.render(this._cache[company.toLowerCase()]);
+    // Don't regenerate for the same query
+    if (this._current === query) return;
+    this._current = query;
+
+    // If the query looks like a code (NAICS/PSC), skip — pills aren't useful
+    if (/^\d{6}$/.test(query) || /^[A-Z]{1,2}\d{1,3}$/i.test(query)) return;
+
+    // Check cache
+    if (this._cache[query.toLowerCase()]) {
+      this.render(this._cache[query.toLowerCase()], query);
       return;
     }
 
-    btn.disabled = true;
-    btn.textContent = '…';
+    // Fire Gemini in background — don't await, don't block
+    this._fetchAndRender(query);
+  },
 
+  async _fetchAndRender(query) {
     try {
       const res = await fetch(App.PROXY_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ request_type: 'govhoo_market_research', company }),
+        body: JSON.stringify({ request_type: 'govhoo_market_research', company: query }),
       });
-      if (!res.ok) throw new Error('AI unavailable');
+      if (!res.ok) return;
       const kw = await res.json();
-      this._cache[company.toLowerCase()] = kw;
-      this.render(kw);
+      this._cache[query.toLowerCase()] = kw;
 
-      // Auto-fill Arti context
-      const artiInput = DOM.get('artiContextInput');
-      if (artiInput && !artiInput.value) {
-        artiInput.value = `I sell ${kw.company || company} — ${kw.summary || ''}`;
-        App.artiContext = artiInput.value;
+      // Only render if this is still the active query (user hasn't searched again)
+      if (this._current === query) {
+        this.render(kw, query);
       }
 
-      if (typeof gtag === 'function') gtag('event', 'pill_gen', { company });
+      // Auto-fill Arti context if empty
+      const artiInput = DOM.get('artiContextInput');
+      if (artiInput && !artiInput.value && kw.summary) {
+        artiInput.value = `I sell ${kw.company || query} — ${kw.summary}`;
+        App.artiContext = artiInput.value;
+      }
     } catch (e) {
-      App.toast('Could not generate searches. Try again.', 'warning');
+      // Silent failure — pills are supplementary
     }
-
-    btn.disabled = false;
-    btn.textContent = 'Go';
   },
 
-  render(kw) {
-    const results = DOM.get('pillResults');
-    const strip = DOM.get('pillStrip');
-    const clearBtn = DOM.get('pillClearBtn');
-    let html = '';
+  render(kw, query) {
+    const container = DOM.get('searchPills');
+    if (!container) return;
 
-    const pill = (term, style) =>
-      `<button class="hero-suggestion-chip" onclick="App.runSearch('${Html.escapeHtml(term)}')" ${style ? 'style="'+style+'"' : ''}>${Html.escapeHtml(term)}</button>`;
+    const pills = [];
+    const seen = new Set();
+    const queryUpper = query.toUpperCase();
 
-    // Company name first — most obvious search
-    if (kw.company) {
-      html += pill(kw.company, 'color:var(--accent);font-weight:600;');
-    }
+    const addPill = (term, cls) => {
+      const key = term.toUpperCase();
+      // Don't show a pill for the term the user already searched
+      if (key === queryUpper || seen.has(key)) return;
+      seen.add(key);
+      pills.push({ term, cls });
+    };
 
-    // Competitors — highest signal, most likely to return results
-    const comp = kw.competitors || [];
-    if (comp.length) {
-      html += `<span class="pill-strip-group">Competitors</span>`;
-      html += comp.map(k => pill(k, 'color:#C0392B;')).join('');
-    }
+    // Company name (if different from query)
+    if (kw.company) addPill(kw.company, 'search-pill-brand');
 
-    // Short capability terms
-    const core = kw.core_keywords || [];
-    if (core.length) {
-      html += `<span class="pill-strip-group">Keywords</span>`;
-      html += core.map(k => pill(k)).join('');
-    }
+    // Competitors — highest value
+    (kw.competitors || []).forEach(c => addPill(c, 'search-pill-comp'));
+
+    // Core keywords
+    (kw.core_keywords || []).forEach(k => addPill(k, ''));
 
     // Codes
-    const codes = [...(kw.naics_codes||[]), ...(kw.psc_codes||[])];
-    if (codes.length) {
-      html += `<span class="pill-strip-group">Codes</span>`;
-      html += codes.map(k => pill(k, 'color:var(--text-tertiary);')).join('');
+    [...(kw.naics_codes || []), ...(kw.psc_codes || [])].forEach(c => addPill(c, 'search-pill-code'));
+
+    if (pills.length === 0) {
+      container.classList.remove('active');
+      return;
     }
 
-    results.innerHTML = html;
-    results.classList.remove('hidden');
-    strip.classList.add('has-pills');
-    clearBtn.classList.remove('hidden');
+    // Group: brand first, then competitors, then keywords, then codes
+    // They're already in that order from addPill calls above
+    let html = '';
+    let lastCls = null;
+    const labels = {
+      'search-pill-brand': null, // no label for brand
+      'search-pill-comp': 'competitors',
+      '': 'keywords',
+      'search-pill-code': 'codes'
+    };
+
+    pills.forEach(p => {
+      if (p.cls !== lastCls && labels[p.cls]) {
+        html += `<span class="search-pill-divider">${labels[p.cls]}</span>`;
+      }
+      lastCls = p.cls;
+      html += `<button class="search-pill ${p.cls}" onclick="App.runSearch('${Html.escapeHtml(p.term)}')">${Html.escapeHtml(p.term)}</button>`;
+    });
+
+    container.innerHTML = html;
+    container.classList.add('active');
   },
 
   clear() {
-    DOM.get('pillResults').innerHTML = '';
-    DOM.get('pillResults').classList.add('hidden');
-    DOM.get('pillStrip').classList.remove('has-pills');
-    DOM.get('pillClearBtn').classList.add('hidden');
-    const input = DOM.get('pillInput');
-    if (input) input.value = '';
+    const container = DOM.get('searchPills');
+    if (container) {
+      container.innerHTML = '';
+      container.classList.remove('active');
+    }
+    this._current = null;
   }
 };
-
-document.addEventListener('DOMContentLoaded', () => {
-  const el = document.getElementById('pillInput');
-  if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') PillGen.run(); });
-});
 // Start App
 App.init();
 </script>
