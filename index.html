@@ -1606,56 +1606,23 @@ details[open] > summary svg { transform: rotate(180deg); }
 .job-link, .action-btn {
   font-size: var(--text-xs);
 }
-/* ═══════════════════════════════════════════════════════
-   MARKET ANALYZER
-   ═══════════════════════════════════════════════════════ */
-#marketAnalyzerPanel { scroll-margin-top: 100px; }
-
-.ma-search-row { display: flex; gap: 8px; margin-bottom: var(--space-lg); }
-.ma-search-input { flex: 1; padding: 10px 14px; font-size: var(--text-sm); font-family: var(--font-sans); font-weight: 500; border: 1.5px solid var(--border); border-radius: var(--radius); background: var(--bg-input); color: var(--text-primary); outline: none; transition: border-color 0.2s; }
-.ma-search-input:focus { border-color: var(--accent); }
-.ma-search-input::placeholder { color: var(--text-quaternary); }
-.ma-search-btn { padding: 10px 18px; background: var(--brand); color: var(--bg-app); border: none; border-radius: var(--radius); font-size: var(--text-sm); font-weight: 600; cursor: pointer; font-family: var(--font-sans); white-space: nowrap; transition: opacity 0.15s; }
-.ma-search-btn:hover { opacity: 0.85; }
-.ma-search-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-
-.ma-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: var(--space-sm); }
-.ma-chip { font-size: 0.68rem; padding: 2px 7px; border-radius: 999px; font-weight: 500; border: 1px solid; line-height: 1.4; }
-.ma-chip-kw { color: var(--brand); border-color: var(--brand); background: var(--brand-dim); }
-.ma-chip-comp { color: #C0392B; border-color: #C0392B; background: rgba(192,57,43,0.08); }
-
-.ma-kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: var(--space-lg); }
-.ma-kpi { text-align: center; }
-.ma-kpi-value { font-size: var(--text-lg); font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
-.ma-kpi-label { font-size: 0.68rem; color: var(--text-tertiary); font-weight: 500; }
-
-.ma-progress { margin: var(--space-lg) 0; }
-.ma-bar { height: 3px; background: var(--bg-input); border-radius: 999px; overflow: hidden; }
-.ma-bar-fill { height: 100%; background: var(--accent); border-radius: 999px; transition: width 0.3s; }
-.ma-status { font-size: var(--text-xs); color: var(--text-tertiary); margin-top: 4px; }
-
-.ma-vendor-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; border-radius: var(--radius); gap: var(--space-sm); }
-.ma-vendor-row:hover { background: var(--bg-hover); }
-.ma-vendor-name { font-size: var(--text-sm); font-weight: 500; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ma-vendor-spend { font-size: var(--text-sm); font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
-.ma-vendor-meta { font-size: var(--text-xs); color: var(--text-tertiary); text-align: right; white-space: nowrap; }
-.ma-vendor-target { background: var(--accent-dim); border-radius: var(--radius); }
-.ma-vendor-target .ma-vendor-name { color: var(--accent); font-weight: 600; }
-
-.ma-recompete-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; gap: 8px; border-radius: var(--radius); }
-.ma-recompete-row:hover { background: var(--bg-hover); }
-.ma-rc-info { flex: 1; min-width: 0; }
-.ma-rc-vendor { font-size: var(--text-sm); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ma-rc-desc { font-size: var(--text-xs); color: var(--text-tertiary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ma-rc-meta { text-align: right; flex-shrink: 0; }
-.ma-rc-value { font-size: var(--text-sm); font-weight: 600; font-variant-numeric: tabular-nums; }
-.ma-rc-date { font-size: 0.68rem; color: var(--text-tertiary); }
-
-.ma-disclaimer { font-size: 0.68rem; color: var(--text-quaternary); margin-top: var(--space-sm); line-height: 1.5; }
-
-@media (max-width: 600px) {
-  .ma-kpi-row { grid-template-columns: repeat(2, 1fr); }
-}
+/* RELATED SEARCHES PILL STRIP */
+#pillStrip { padding: 0 0 var(--space-sm); margin-bottom: var(--space-sm); }
+#pillStrip.has-pills { border-bottom: 1px solid var(--border); padding-bottom: var(--space-lg); margin-bottom: var(--space-lg); }
+.pill-strip-row { display: flex; align-items: center; gap: 6px; }
+.pill-strip-input { flex: 1; max-width: 260px; padding: 6px 10px; font-size: var(--text-xs); font-family: var(--font-sans); font-weight: 500; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-input); color: var(--text-primary); outline: none; height: 32px; }
+.pill-strip-input:focus { border-color: var(--accent); }
+.pill-strip-input::placeholder { color: var(--text-quaternary); }
+.pill-strip-go { padding: 6px 12px; background: var(--accent); color: var(--accent-text); border: none; border-radius: var(--radius); font-size: var(--text-xs); font-weight: 600; cursor: pointer; font-family: var(--font-sans); height: 32px; transition: opacity 0.15s; }
+.pill-strip-go:hover { opacity: 0.85; }
+.pill-strip-go:disabled { opacity: 0.3; cursor: not-allowed; }
+.pill-strip-label { font-size: var(--text-xs); color: var(--text-quaternary); font-weight: 500; white-space: nowrap; }
+.pill-strip-pills { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.pill-strip-pills .hero-suggestion-chip { min-height: 30px; padding: 5px 12px; font-size: 0.72rem; }
+.pill-strip-group { font-size: 0.6rem; font-weight: 600; color: var(--text-quaternary); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 6px; width: 100%; }
+.pill-strip-clear { background: none; border: none; color: var(--text-quaternary); font-size: var(--text-xs); cursor: pointer; padding: 2px 6px; font-family: var(--font-sans); }
+.pill-strip-clear:hover { color: var(--text-secondary); }
+.pill-strip-status { font-size: var(--text-xs); color: var(--text-tertiary); margin-top: 6px; }
 </style>
 </head>
 <body>
@@ -1844,7 +1811,17 @@ details[open] > summary svg { transform: rotate(180deg); }
       </div>
 
       <div id="searchModeView" class="view-section active">
-
+<!-- Related Searches Pill Strip -->
+<div id="pillStrip" class="hidden">
+  <div class="pill-strip-row">
+    <span class="pill-strip-label">I sell for</span>
+    <input type="text" class="pill-strip-input" id="pillInput" placeholder="Company name…" autocomplete="off">
+    <button class="pill-strip-go" id="pillGoBtn" onclick="PillGen.run()">Go</button>
+    <button class="pill-strip-clear hidden" id="pillClearBtn" onclick="PillGen.clear()">✕</button>
+  </div>
+  <div class="pill-strip-status hidden" id="pillStatus"></div>
+  <div class="pill-strip-pills hidden" id="pillResults"></div>
+</div>
         <div id="bubbleChartPanel" class="stat-panel hidden">
           <div class="market-desktop-grid">
             
@@ -2150,56 +2127,7 @@ details[open] > summary svg { transform: rotate(180deg); }
             </div> 
           </details> 
         </div>
-<!-- ═══════ MARKET ANALYZER ═══════ -->
-<div id="marketAnalyzerPanel" class="stat-panel" style="margin-top: var(--section-gap);">
-  <div class="section-header">
-    <span class="section-title">Market Scan</span>
-    <span class="data-panel-subtitle" id="maSubtitle" style="font-size:var(--text-xs);color:var(--text-tertiary);">AI-powered competitive analysis</span>
-  </div>
-  
-  <div class="ma-search-row">
-    <input type="text" class="ma-search-input" id="maCompanyInput" placeholder="Enter company name…" autocomplete="off">
-    <button class="ma-search-btn" id="maAnalyzeBtn" onclick="MarketAnalyzer.run()">Scan</button>
-  </div>
 
-  <!-- Progress -->
-  <div class="ma-progress hidden" id="maProgress">
-    <div class="ma-bar"><div class="ma-bar-fill" id="maBarFill" style="width:0%"></div></div>
-    <div class="ma-status" id="maStatus">Starting…</div>
-  </div>
-
-  <!-- Results -->
-  <div id="maResults" class="hidden">
-    <!-- KPIs -->
-    <div class="ma-kpi-row" id="maKpiRow"></div>
-
-    <!-- Keywords -->
-    <details style="margin-bottom:var(--space-lg);">
-      <summary style="font-size:var(--text-xs);font-weight:600;color:var(--text-secondary);cursor:pointer;padding:4px 0;">Search terms (<span id="maTermCount">0</span>)</summary>
-      <div class="ma-chips" id="maChips" style="margin-top:6px;"></div>
-    </details>
-
-    <!-- Vendors -->
-    <div class="data-panel" style="margin-bottom:var(--space-lg);">
-      <div class="data-panel-header"><span class="data-panel-title">Vendors</span><span class="data-panel-subtitle" id="maVendorSub"></span></div>
-      <div class="data-panel-body" id="maVendorBody"></div>
-    </div>
-
-    <!-- Agencies -->
-    <div class="data-panel" style="margin-bottom:var(--space-lg);">
-      <div class="data-panel-header"><span class="data-panel-title">Agencies</span><span class="data-panel-subtitle" id="maAgencySub"></span></div>
-      <div class="data-panel-body" id="maAgencyBody"></div>
-    </div>
-
-    <!-- Recompetes -->
-    <div class="data-panel" style="margin-bottom:var(--space-lg);">
-      <div class="data-panel-header"><span class="data-panel-title">Recompetes</span><span class="data-panel-subtitle" id="maRecompeteSub"></span></div>
-      <div class="data-panel-body" id="maRecompeteBody"></div>
-    </div>
-
-    <div class="ma-disclaimer">Based on contracts with matching descriptions in trailing 12 months. Actual market is larger.</div>
-  </div>
-</div>
       <footer class="hero-footer">
         <div class="footer-grid">
 
@@ -7431,6 +7359,7 @@ showHero() {
     DOM.show('landingState');
     DOM.hide('searchModeView');
     DOM.hide('quickJumpMenu');
+	DOM.hide('pillStrip');
     DOM.hide('saveSearchBtn');
     
     DOM.get('dashboardContainer')?.classList.add('active');
@@ -7447,6 +7376,7 @@ showHero() {
 transitionToApp() {
     DOM.hide('landingState');
     DOM.show('searchModeView');
+	DOM.show('pillStrip');
     DOM.show('quickJumpMenu');
     DOM.show('saveSearchBtn');
     
@@ -11253,291 +11183,191 @@ selectAgencySuggestion(name, inputId, boxId) {
   } catch(e) {}
 })();
 // ═══════════════════════════════════════════════════════
-// MARKET ANALYZER MODULE
+// RELATED SEARCHES — "I sell for" pill generator
+// with preflight validation against USASpending
 // ═══════════════════════════════════════════════════════
-const MarketAnalyzer = {
-  MAX_CONCURRENT: 5,
-  VALUE_CAP: 500_000_000,
-  keywords: null,
-  contracts: [],
-  _abort: null,
+const PillGen = {
+  _cache: {},
+  MAX_PREFLIGHT: 8,
 
-  // ── Helpers ──
-  money(n) {
-    if (n >= 1e9) return '$'+(n/1e9).toFixed(1)+'B';
-    if (n >= 1e6) return '$'+(n/1e6).toFixed(0)+'M';
-    if (n >= 1e3) return '$'+(n/1e3).toFixed(0)+'K';
-    return '$'+n;
-  },
-
-  normVendor(name) {
-    if (!name) return 'Unknown';
-    return name.replace(/\b(INC|LLC|CORP|CORPORATION|LTD|CO|COMPANY)\b\.?/gi, '').replace(/[,.]$/,'').trim() || name;
-  },
-
-  setProgress(pct, text) {
-    DOM.get('maBarFill').style.width = pct + '%';
-    DOM.text('maStatus', text);
-  },
-
-  // ── Gemini call via your Lambda ──
-  async fetchKeywords(company, signal) {
-    const res = await fetch(App.PROXY_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ request_type: 'govhoo_market_research', company }),
-      signal,
-    });
-    if (!res.ok) throw new Error(`API ${res.status}`);
-    return res.json();
-  },
-
-  // ── USASpending search (2-page pagination) ──
-  async searchTerm(term, signal) {
+  /** Check if a search term returns any results (limit:1, minimal payload) */
+  async checkTerm(term) {
     const now = new Date();
     const start = new Date(now); start.setFullYear(start.getFullYear() - 1);
     const fmt = d => d.toISOString().split('T')[0];
     const filters = {
       time_period: [{ start_date: fmt(start), end_date: fmt(now) }],
       award_type_codes: API.CONTRACT_TYPES,
+      keywords: [term],
     };
-
-    // Parse leading PSC/NAICS code in AND-combos
-    const leadingCode = term.match(/^([A-Z]{1,2}\d{1,3}|\d{6})\s+AND\s+(.+)$/i);
-    if (leadingCode) {
-      const code = leadingCode[1].trim();
-      if (/^[A-Z]{1,2}\d{1,3}$/i.test(code)) filters.psc_codes = [code.toUpperCase()];
-      else if (/^\d{6}$/.test(code)) filters.naics_codes = { require: [code] };
-      filters.keywords = [leadingCode[2].trim()];
-    } else if (/^[A-Z]{1,2}\d{1,3}$/i.test(term)) {
-      filters.psc_codes = [term.toUpperCase()];
-    } else if (/^\d{6}$/.test(term)) {
-      filters.naics_codes = { require: [term] };
-    } else {
-      filters.keywords = [term];
-    }
-
-    const payload = { filters, fields: API.AWARD_FIELDS, limit: 100, sort: 'Start Date', order: 'desc' };
-    const d1 = await API._post('/search/spending_by_award/', { ...payload, page: 1 });
-    const results = d1.results || [];
-    if (results.length >= 100) {
-      try { const d2 = await API._post('/search/spending_by_award/', { ...payload, page: 2 }); results.push(...(d2.results || [])); } catch(e) { if (e.name==='AbortError') throw e; }
-    }
-    return results.map(r => ({ ...r, _source: term }));
+    try {
+      const data = await API._post('/search/spending_by_award/', {
+        filters, fields: ['Award ID'], limit: 1, sort: 'Start Date', order: 'desc'
+      });
+      return (data.results && data.results.length > 0);
+    } catch { return false; }
   },
 
-  // ── Build search term list ──
-  buildTerms(kw) {
-    const seen = new Set(), terms = [];
-    const add = t => { const k = t.toUpperCase(); if (!seen.has(k)) { seen.add(k); terms.push(t); } };
-    (kw.core_keywords || []).forEach(add);
-    (kw.competitors || []).forEach(add);
-    if (kw.company) add(kw.company);
-    (kw.psc_keyword_combos || []).forEach(add);
-    (kw.agency_keyword_combos || []).forEach(add);
-    (kw.and_combos || []).forEach(add);
-    return terms;
-  },
-
-  // ── Parallel runner ──
-  async runParallel(terms, signal, onProgress) {
-    const results = []; let done = 0;
+  /** Validate terms in parallel with concurrency limit */
+  async validateTerms(terms, onProgress) {
+    const valid = [];
+    let done = 0;
     const queue = [...terms];
+
     const worker = async () => {
       while (queue.length) {
-        const t = queue.shift();
-        try { results.push(...await this.searchTerm(t, signal)); } catch(e) { if (e.name==='AbortError') throw e; }
+        const term = queue.shift();
+        const ok = await this.checkTerm(term);
+        if (ok) valid.push(term);
         done++;
-        onProgress(done, terms.length, t);
+        if (onProgress) onProgress(done, terms.length);
       }
     };
-    await Promise.all(Array.from({ length: Math.min(this.MAX_CONCURRENT, queue.length) }, worker));
-    return results;
+
+    await Promise.all(Array.from(
+      { length: Math.min(this.MAX_PREFLIGHT, queue.length) },
+      () => worker()
+    ));
+    return valid;
   },
 
-  // ── Dedup ──
-  dedup(raw) {
-    const map = new Map();
-    for (const c of raw) {
-      const id = c.generated_internal_id || c['Award ID'] || JSON.stringify(c);
-      if (map.has(id)) {
-        const ex = map.get(id);
-        ex._kws.add(c._source);
-        if ((c['Award Amount']||0) > (ex['Award Amount']||0)) map.set(id, { ...c, _kws: ex._kws });
-      } else {
-        map.set(id, { ...c, _kws: new Set([c._source]) });
-      }
-    }
-    return [...map.values()].sort((a,b) => (b['Award Amount']||0) - (a['Award Amount']||0));
-  },
-
-  // ── Relevance filter ──
-  filterRelevant(contracts, kw) {
-    const signals = new Set();
-    const STOP = new Set(['and','the','for','with','from','that','this','into','software','platform','system','systems','service','services','technology','solution','solutions','management','security','protection','information','network','data','cloud','support','program','federal','government','defense','national','department','agency','enterprise','digital','cyber','mission','advanced','automated']);
-    (kw.core_keywords||[]).forEach(k => { signals.add(k.toLowerCase()); k.toLowerCase().split(/\s+/).forEach(w => { if (w.length>=3 && !STOP.has(w)) signals.add(w); }); });
-    (kw.competitors||[]).forEach(c => { signals.add(c.toLowerCase()); const f=c.split(/\s+/)[0].toLowerCase(); if(f.length>=4) signals.add(f); });
-    if (kw.company) signals.add(kw.company.toLowerCase());
-    const sigs = [...signals].filter(s => s.length >= 3);
-
-    return contracts.filter(c => {
-      if ((c['Award Amount']||0) > this.VALUE_CAP) return false;
-      const desc = (c['Description']||'').toLowerCase();
-      if (!desc) return false;
-      return sigs.some(s => desc.includes(s));
-    });
-  },
-
-  // ── Analyze ──
-  analyze(contracts, kw) {
-    const companyLower = (kw.company||'').toLowerCase();
-    const vMap = new Map();
-    for (const c of contracts) {
-      const n = this.normVendor(c['Recipient Name']);
-      if (!vMap.has(n)) vMap.set(n, { name:n, spend:0, contracts:0, agencies:new Set() });
-      const v = vMap.get(n); v.spend += (c['Award Amount']||0); v.contracts++; if(c['Awarding Agency']) v.agencies.add(c['Awarding Agency']);
-    }
-    let vendors = [...vMap.values()].map(v=>({...v,agencies:v.agencies.size})).sort((a,b)=>b.spend-a.spend);
-    const top = vendors.slice(0,10);
-    if (!top.some(v=>v.name.toLowerCase().includes(companyLower)) && companyLower) {
-      const found = vendors.find(v=>v.name.toLowerCase().includes(companyLower));
-      top.push(found || { name:kw.company, spend:0, contracts:0, agencies:0, isTarget:true, notFound:true });
-    }
-
-    const aMap = new Map();
-    for (const c of contracts) { const n=c['Awarding Agency']||'Unknown'; if(!aMap.has(n)) aMap.set(n,{name:n,spend:0,contracts:0}); const a=aMap.get(n); a.spend+=(c['Award Amount']||0); a.contracts++; }
-    const agencies = [...aMap.values()].sort((a,b)=>b.spend-a.spend).slice(0,8);
-
-    const now = new Date(), twoYr = new Date(); twoYr.setFullYear(now.getFullYear()+2);
-    const kwsLower = (kw.core_keywords||[]).map(k=>k.toLowerCase());
-    const recompetes = contracts.filter(c => {
-      const end = new Date(c['End Date']);
-      if (!(end>now && end<twoYr && (c['Award Amount']||0)>50000)) return false;
-      const desc = (c['Description']||'').toLowerCase();
-      const kws = c._kws ? [...c._kws].map(k=>k.toLowerCase()) : [];
-      return kwsLower.some(k => (desc+' '+kws.join(' ')).includes(k));
-    }).sort((a,b) => {
-      const da=(new Date(a['End Date'])-now)/86400000, db=(new Date(b['End Date'])-now)/86400000;
-      return ((b['Award Amount']||0)/Math.max(db,1)) - ((a['Award Amount']||0)/Math.max(da,1));
-    }).slice(0,6);
-
-    return { vendors:top, agencies, recompetes, totalSpend:contracts.reduce((s,c)=>s+(c['Award Amount']||0),0), totalContracts:contracts.length };
-  },
-
-  // ── Render ──
-  render(kw, data) {
-    const m = this.money;
-
-    // KPIs
-    DOM.get('maKpiRow').innerHTML = `
-      <div class="ma-kpi"><div class="ma-kpi-value">${m(data.totalSpend)}</div><div class="ma-kpi-label">Market (12 mo)</div></div>
-      <div class="ma-kpi"><div class="ma-kpi-value">${data.totalContracts}</div><div class="ma-kpi-label">Contracts</div></div>
-      <div class="ma-kpi"><div class="ma-kpi-value">${data.vendors.length}</div><div class="ma-kpi-label">Vendors</div></div>
-      <div class="ma-kpi"><div class="ma-kpi-value">${data.recompetes.length}</div><div class="ma-kpi-label">Expiring</div></div>`;
-
-    // Chips
-    const allTerms = [...(kw.core_keywords||[]), ...(kw.competitors||[])];
-    DOM.text('maTermCount', allTerms.length);
-    DOM.get('maChips').innerHTML =
-      (kw.core_keywords||[]).map(k=>`<span class="ma-chip ma-chip-kw">${k}</span>`).join('') +
-      (kw.competitors||[]).map(k=>`<span class="ma-chip ma-chip-comp">${k}</span>`).join('');
-
-    // Vendors
-    DOM.text('maVendorSub', `${data.vendors.length} active`);
-    const maxS = data.vendors[0]?.spend || 1;
-    DOM.get('maVendorBody').innerHTML = data.vendors.map(v => {
-      const isT = v.isTarget || v.name.toLowerCase().includes((kw.company||'').toLowerCase());
-      return `<div class="ma-vendor-row ${isT?'ma-vendor-target':''}">
-        <span class="ma-vendor-name">${v.name}${v.notFound?' <span style="font-size:0.68rem;color:var(--text-quaternary);font-weight:400;">(you)</span>':''}</span>
-        <span class="ma-vendor-spend">${v.notFound?'—':m(v.spend)}</span>
-        <span class="ma-vendor-meta">${v.notFound?'':v.contracts+'c / '+v.agencies+'a'}</span>
-      </div>`;
-    }).join('');
-
-    // Agencies
-    DOM.text('maAgencySub', `${data.agencies.length} buying`);
-    DOM.get('maAgencyBody').innerHTML = data.agencies.map(a =>
-      `<div class="reach-row" style="cursor:default;"><div style="flex:1;min-width:0;"><div style="font-size:var(--text-sm);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.name}</div></div><div style="text-align:right;"><div style="font-size:var(--text-sm);font-weight:600;font-variant-numeric:tabular-nums;">${m(a.spend)}</div><div style="font-size:var(--text-xs);color:var(--text-tertiary);">${a.contracts} contracts</div></div></div>`
-    ).join('');
-
-    // Recompetes
-    DOM.text('maRecompeteSub', data.recompetes.length > 0 ? `${data.recompetes.length} expiring` : 'None found');
-    const now = new Date();
-    DOM.get('maRecompeteBody').innerHTML = data.recompetes.length > 0 ? data.recompetes.map(r => {
-      const days = Math.round((new Date(r['End Date'])-now)/86400000);
-      const mo = Math.max(0, Math.round(days/30));
-      return `<div class="ma-recompete-row">
-        <div class="ma-rc-info"><div class="ma-rc-vendor">${this.normVendor(r['Recipient Name'])}</div><div class="ma-rc-desc">${r['Awarding Agency']||''} · ${(r['Description']||'').slice(0,70)}</div></div>
-        <div class="ma-rc-meta"><div class="ma-rc-value">${m(r['Award Amount']||0)}</div><div class="ma-rc-date">${r['End Date']} · ${mo} mo</div></div>
-      </div>`;
-    }).join('') : '<div style="padding:8px;font-size:var(--text-xs);color:var(--text-tertiary);">No relevant contracts expiring in 24 months.</div>';
-  },
-
-  // ── Main entry point ──
   async run() {
-    const company = DOM.get('maCompanyInput').value.trim();
+    const input = DOM.get('pillInput');
+    const btn = DOM.get('pillGoBtn');
+    const status = DOM.get('pillStatus');
+    const company = (input?.value || '').trim();
     if (!company) return;
 
-    if (this._abort) this._abort.abort();
-    this._abort = new AbortController();
-    const signal = this._abort.signal;
-
-    const btn = DOM.get('maAnalyzeBtn');
-    btn.disabled = true; btn.textContent = 'Scanning…';
-    DOM.show('maProgress'); DOM.hide('maResults');
-    this.setProgress(5, `Researching ${company}…`);
-
-    // Phase 1: Gemini
-    try {
-      this.keywords = await this.fetchKeywords(company, signal);
-    } catch(e) {
-      if (e.name==='AbortError') return;
-      this.setProgress(0, `Error: ${e.message}`);
-      btn.disabled = false; btn.textContent = 'Scan';
+    // Cache hit
+    if (this._cache[company.toLowerCase()]) {
+      this.render(this._cache[company.toLowerCase()]);
       return;
     }
-    const kw = this.keywords;
-    this.setProgress(20, `${kw.core_keywords?.length||0} keywords, ${kw.competitors?.length||0} competitors`);
 
-    // Phase 2: Build terms
-    const terms = this.buildTerms(kw);
-    this.setProgress(25, `${terms.length} searches planned…`);
+    btn.disabled = true;
+    btn.textContent = '…';
+    status.textContent = `Researching ${company}…`;
+    status.classList.remove('hidden');
+    DOM.get('pillResults').classList.add('hidden');
 
-    // Phase 3: USASpending
-    let raw;
     try {
-      raw = await this.runParallel(terms, signal, (done, total) => {
-        this.setProgress(25 + Math.round((done/total)*55), `${done}/${total} searches…`);
+      // Phase 1: Gemini keyword research
+      const res = await fetch(App.PROXY_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ request_type: 'govhoo_market_research', company }),
       });
-    } catch(e) {
-      if (e.name==='AbortError') return;
-      this.setProgress(0, `Search error: ${e.message}`);
-      btn.disabled = false; btn.textContent = 'Scan';
-      return;
+      if (!res.ok) throw new Error('AI unavailable');
+      const kw = await res.json();
+
+      // Phase 2: Collect all candidate terms
+      const unique = [];
+      const seen = new Set();
+      const add = t => { const k = t.toUpperCase(); if (!seen.has(k)) { seen.add(k); unique.push(t); } };
+
+      (kw.core_keywords || []).forEach(add);
+      (kw.competitors || []).forEach(add);
+      if (kw.company) add(kw.company);
+      [...(kw.psc_keyword_combos||[]), ...(kw.agency_keyword_combos||[]), ...(kw.and_combos||[])].slice(0, 6).forEach(add);
+
+      // Phase 3: Preflight validation
+      status.textContent = `Checking ${unique.length} terms…`;
+      const validated = await this.validateTerms(unique, (done, total) => {
+        status.textContent = `Validating ${done}/${total}…`;
+      });
+
+      // Build validated keyword object
+      const validSet = new Set(validated.map(t => t.toUpperCase()));
+      const has = t => validSet.has(t.toUpperCase());
+      const validatedKw = {
+        company: kw.company,
+        summary: kw.summary,
+        core_keywords: (kw.core_keywords || []).filter(has),
+        competitors: (kw.competitors || []).filter(has),
+        psc_keyword_combos: (kw.psc_keyword_combos || []).filter(has),
+        agency_keyword_combos: (kw.agency_keyword_combos || []).filter(has),
+        and_combos: (kw.and_combos || []).filter(has),
+        _companyValid: kw.company ? has(kw.company) : false,
+      };
+
+      this._cache[company.toLowerCase()] = validatedKw;
+      this.render(validatedKw);
+
+      const dropped = unique.length - validated.length;
+      status.textContent = `${validated.length} searches for ${kw.company || company}${dropped ? ` · ${dropped} had no results` : ''}`;
+
+      // Auto-fill Arti context
+      const artiInput = DOM.get('artiContextInput');
+      if (artiInput && !artiInput.value) {
+        artiInput.value = `I sell ${kw.company || company} — ${kw.summary || ''}`;
+        App.artiContext = artiInput.value;
+      }
+
+      if (typeof gtag === 'function') gtag('event', 'pill_gen', { company });
+    } catch (e) {
+      status.textContent = '';
+      App.toast('Could not generate searches. Try again.', 'warning');
     }
 
-    // Phase 4: Filter & analyze
-    this.setProgress(85, 'Filtering…');
-    const deduped = this.dedup(raw);
-    this.contracts = this.filterRelevant(deduped, kw);
-    const analysis = this.analyze(this.contracts, kw);
+    btn.disabled = false;
+    btn.textContent = 'Go';
+  },
 
-    this.setProgress(100, `${deduped.length} → ${this.contracts.length} relevant contracts`);
+  render(kw) {
+    const results = DOM.get('pillResults');
+    const strip = DOM.get('pillStrip');
+    const clearBtn = DOM.get('pillClearBtn');
+    let html = '';
 
-    // Render
-    this.render(kw, analysis);
-    DOM.show('maResults');
-    btn.disabled = false; btn.textContent = 'Scan';
+    const pill = (term, style) =>
+      `<button class="hero-suggestion-chip" onclick="App.runSearch('${Html.escapeHtml(term)}')" ${style ? 'style="'+style+'"' : ''}>${Html.escapeHtml(term)}</button>`;
 
-    // Update panel subtitle
-    DOM.text('maSubtitle', `${kw.company} · ${this.money(analysis.totalSpend)} · ${analysis.totalContracts} contracts`);
+    const core = kw.core_keywords || [];
+    if (core.length) {
+      html += `<span class="pill-strip-group">Capabilities</span>`;
+      html += core.map(k => pill(k)).join('');
+    }
+
+    const comp = kw.competitors || [];
+    if (comp.length) {
+      html += `<span class="pill-strip-group">Competitors</span>`;
+      html += comp.map(k => pill(k, 'color:#C0392B;')).join('');
+    }
+
+    if (kw._companyValid && kw.company) {
+      html += pill(kw.company, 'color:var(--accent);font-weight:600;');
+    }
+
+    const combos = [...(kw.psc_keyword_combos||[]), ...(kw.agency_keyword_combos||[]), ...(kw.and_combos||[])].slice(0, 6);
+    if (combos.length) {
+      html += `<span class="pill-strip-group">Targeted</span>`;
+      html += combos.map(k => pill(k, 'color:var(--text-tertiary);')).join('');
+    }
+
+    if (!html) {
+      html = '<span style="font-size:var(--text-xs);color:var(--text-tertiary);">No active contracts found for these terms.</span>';
+    }
+
+    results.innerHTML = html;
+    results.classList.remove('hidden');
+    strip.classList.add('has-pills');
+    clearBtn.classList.remove('hidden');
+  },
+
+  clear() {
+    DOM.get('pillResults').innerHTML = '';
+    DOM.get('pillResults').classList.add('hidden');
+    DOM.get('pillStrip').classList.remove('has-pills');
+    DOM.get('pillClearBtn').classList.add('hidden');
+    DOM.get('pillStatus').classList.add('hidden');
+    const input = DOM.get('pillInput');
+    if (input) input.value = '';
   }
 };
 
-// Enter key triggers scan
 document.addEventListener('DOMContentLoaded', () => {
-  const input = document.getElementById('maCompanyInput');
-  if (input) input.addEventListener('keydown', e => { if (e.key === 'Enter') MarketAnalyzer.run(); });
+  const el = document.getElementById('pillInput');
+  if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') PillGen.run(); });
 });
 // Start App
 App.init();
