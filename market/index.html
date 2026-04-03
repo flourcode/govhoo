@@ -561,26 +561,77 @@ function buildSearchTerms(kw) {
 
 /**
  * Post-search relevance filter.
+ *
  * Two gates:
- * 1. Description must contain at least one core keyword.
- * 2. Contract value must be under $500M — anything larger is almost certainly
- *    a managed services / systems integration omnibus, not a product purchase.
- *    A real endpoint security software buy tops out around $50-100M even at
- *    enterprise scale. $500M gives generous headroom for large IDIQs.
+ * 1. Contract value under $500M (above that = managed services, not product buys)
+ * 2. Description must match at least one relevance signal.
+ *
+ * Relevance signals (checked against Description):
+ * - Full core keywords: "ENDPOINT DETECTION AND RESPONSE"
+ * - Key fragments extracted from core keywords: "ENDPOINT", "EDR", "MALWARE", "XDR"
+ * - Competitor names from Gemini: "CROWDSTRIKE", "PALO ALTO", "TRELLIX"
+ * - The target company name: "SENTINELONE"
+ *
+ * The fragment approach is critical because USASpending descriptions are often
+ * abbreviated: "CROWDSTRIKE EDR RENEWAL" won't match "ENDPOINT DETECTION AND
+ * RESPONSE" but will match the fragment "EDR" and competitor "CROWDSTRIKE".
  */
-function filterRelevant(contracts, coreKeywords) {
+function filterRelevant(contracts, coreKeywords, keywords) {
   if (!coreKeywords || coreKeywords.length === 0) return contracts;
 
-  const VALUE_CAP = 500_000_000; // $500M — above this, it's not a product buy
-  const kwPatterns = coreKeywords.map(k => k.toLowerCase());
+  const VALUE_CAP = 500_000_000;
+
+  // Build relevance signal set from multiple sources
+  const signals = new Set();
+
+  // 1. Full core keywords
+  coreKeywords.forEach(k => signals.add(k.toLowerCase()));
+
+  // 2. Extract meaningful fragments (3+ chars) from core keywords.
+  //    "ENDPOINT DETECTION AND RESPONSE" → ["endpoint", "detection", "response"]
+  //    Skip common filler words.
+  const STOP_WORDS = new Set(['and','the','for','with','from','that','this','into','over','than','also','been','have','will','were','are','was','has','its','can','may','all','any','but','not','our','per','new','use','via','yet','nor','off','out','set','top','run','own','due','one','two','both','each','more','most','some','such','only','very','just','real','time','full','high','low','end','key','based','using','other','these','those','which','their','about','after','being','could','during','every','first','given','great','large','level','major','small','under','where','while','would']);
+
+  coreKeywords.forEach(k => {
+    k.toLowerCase().split(/\s+/).forEach(word => {
+      if (word.length >= 3 && !STOP_WORDS.has(word)) {
+        signals.add(word);
+      }
+    });
+  });
+
+  // 3. Competitor names (huge signal — "CROWDSTRIKE" in description = relevant)
+  if (keywords?.competitors) {
+    keywords.competitors.forEach(c => signals.add(c.toLowerCase()));
+    // Also add first word of multi-word competitor names
+    keywords.competitors.forEach(c => {
+      const first = c.split(/\s+/)[0].toLowerCase();
+      if (first.length >= 4) signals.add(first);
+    });
+  }
+
+  // 4. Target company name
+  if (keywords?.company) {
+    signals.add(keywords.company.toLowerCase());
+  }
+
+  // Remove signals that are too generic and would let noise through
+  const BANNED_SIGNALS = new Set(['software','platform','system','systems','service','services',
+    'technology','technologies','solution','solutions','management','security','protection',
+    'information','network','data','cloud','support','program','project','federal','government',
+    'defense','national','department','agency','office','command','center','capability',
+    'capabilities','automated','advanced','enterprise','digital','cyber','mission']);
+
+  const finalSignals = [...signals].filter(s => !BANNED_SIGNALS.has(s) && s.length >= 3);
 
   return contracts.filter(c => {
-    // Value gate
     if ((c['Award Amount'] || 0) > VALUE_CAP) return false;
 
-    // Relevance gate: description must mention at least one core keyword
     const desc = (c['Description'] || '').toLowerCase();
-    return kwPatterns.some(kw => desc.includes(kw));
+    if (!desc) return false;
+
+    // Must match at least one relevance signal in the description
+    return finalSignals.some(signal => desc.includes(signal));
   });
 }
 
@@ -753,7 +804,7 @@ async function startAnalysis() {
   // Post-search relevance filter: remove contracts that don't mention
   // any core keyword in their Description. This is what prevents $28B
   // weapons contracts from appearing in an endpoint security analysis.
-  allContracts = filterRelevant(dedupedAll, kw.core_keywords);
+  allContracts = filterRelevant(dedupedAll, kw.core_keywords, kw);
   const filtered = beforeFilter - allContracts.length;
 
   enrichKeywordTags(allContracts, kw.core_keywords);
