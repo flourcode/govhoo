@@ -386,24 +386,36 @@ async function searchUSA(endpoint, payload, signal) {
   return res.json();
 }
 
-/** Run a single search term against USASpending.
- *  Detects AND-combos and PSC/NAICS codes to build proper filters
- *  instead of treating everything as a flat keyword search. */
-async function searchKeyword(term, signal) {
+/** Run a single search against USASpending.
+ *  Accepts either a string (backwards compat) or a structured search object
+ *  { term, pscAnchor?, naicsAnchor? } for PSC-constrained keyword searches. */
+async function searchKeyword(searchItem, signal) {
   const now = new Date();
   const start = new Date(now); start.setFullYear(start.getFullYear() - 1);
   const fmt = d => d.toISOString().split('T')[0];
+
+  // Normalize: string → object
+  const item = typeof searchItem === 'string' ? { term: searchItem } : searchItem;
+  const term = item.term;
+  const label = item.label || term; // for progress display
 
   const filters = {
     time_period: [{ start_date: fmt(start), end_date: fmt(now) }],
     award_type_codes: CONTRACT_TYPES,
   };
 
-  // Detect if this is an AND-combo
+  // Apply PSC/NAICS anchors if provided (core keywords get these)
+  if (item.pscAnchor) {
+    filters.psc_codes = Array.isArray(item.pscAnchor) ? item.pscAnchor : [item.pscAnchor];
+  }
+  if (item.naicsAnchor) {
+    filters.naics_codes = { require: Array.isArray(item.naicsAnchor) ? item.naicsAnchor : [item.naicsAnchor] };
+  }
+
+  // Detect if term itself is an AND-combo
   const andParts = term.split(/\s+AND\s+/i);
 
   if (andParts.length >= 2) {
-    // Parse each part: could be a PSC code, NAICS code, agency alias, or keyword
     const pscPat = /^[A-Z]{1,2}\d{1,3}$/i;
     const naicsPat = /^\d{6}$/;
     const keywords = [];
@@ -412,26 +424,26 @@ async function searchKeyword(term, signal) {
       const p = part.trim();
       if (pscPat.test(p)) {
         filters.psc_codes = filters.psc_codes || [];
-        filters.psc_codes.push(p.toUpperCase());
+        if (!filters.psc_codes.includes(p.toUpperCase())) filters.psc_codes.push(p.toUpperCase());
       } else if (naicsPat.test(p)) {
         filters.naics_codes = filters.naics_codes || { require: [] };
         filters.naics_codes.require.push(p);
       } else {
-        // Could be an agency or a keyword — USASpending keyword search
-        // handles agency names in descriptions, so treat as keyword
         keywords.push(p);
       }
     }
     if (keywords.length > 0) filters.keywords = keywords;
   } else {
-    // Single term — check if it's a code or a keyword
+    // Single term — check if it's a code or keyword
     const pscPat = /^[A-Z]{1,2}\d{1,3}$/i;
     const naicsPat = /^\d{6}$/;
 
     if (pscPat.test(term)) {
-      filters.psc_codes = [term.toUpperCase()];
+      filters.psc_codes = filters.psc_codes || [];
+      if (!filters.psc_codes.includes(term.toUpperCase())) filters.psc_codes.push(term.toUpperCase());
     } else if (naicsPat.test(term)) {
-      filters.naics_codes = { require: [term] };
+      filters.naics_codes = filters.naics_codes || { require: [] };
+      filters.naics_codes.require.push(term);
     } else {
       filters.keywords = [term];
     }
@@ -441,7 +453,7 @@ async function searchKeyword(term, signal) {
     filters, fields: AWARD_FIELDS, limit: 100, sort: 'Award Amount', order: 'desc'
   }, signal);
 
-  return (data.results || []).map(r => ({ ...r, _source_keyword: term }));
+  return (data.results || []).map(r => ({ ...r, _source_keyword: label }));
 }
 
 /** Run searches with concurrency limit */
@@ -451,16 +463,18 @@ async function runParallel(terms, concurrency, signal, onProgress) {
 
   async function worker(queue) {
     while (queue.length > 0) {
-      const term = queue.shift();
+      const item = queue.shift();
       try {
-        const batch = await searchKeyword(term, signal);
+        const batch = await searchKeyword(item, signal);
         results.push(...batch);
       } catch (e) {
         if (e.name === 'AbortError') throw e;
-        console.warn(`Search failed for "${term}":`, e.message);
+        const label = typeof item === 'string' ? item : item.label || item.term;
+        console.warn(`Search failed for "${label}":`, e.message);
       }
       completed++;
-      onProgress(completed, terms.length, term);
+      const label = typeof item === 'string' ? item : item.label || item.term;
+      onProgress(completed, terms.length, label);
     }
   }
 
@@ -523,20 +537,54 @@ function normVendor(name) {
    ANALYSIS ENGINE
    ═══════════════════════════════════════════════════════ */
 
+/**
+ * Build the search plan from Gemini keywords.
+ * Returns an array of search items — either strings (for combos/codes)
+ * or structured objects { term, pscAnchor, label } for PSC-constrained searches.
+ *
+ * KEY INSIGHT: Core keywords like "ENDPOINT DETECTION AND RESPONSE" searched
+ * as naked keywords return every massive IT contract that mentions endpoints.
+ * By anchoring them to the primary PSC code (e.g. D306), we constrain results
+ * to contracts actually categorized as cybersecurity purchases.
+ */
 function buildSearchTerms(kw) {
-  const terms = new Set();
-  // Core product-specific keywords
-  (kw.core_keywords || []).forEach(k => terms.add(k));
-  // NAICS and PSC codes as standalone searches
-  (kw.naics_codes || []).forEach(c => terms.add(c));
-  (kw.psc_codes || []).forEach(c => terms.add(c));
-  // PSC-anchored combos (highest signal — constrains to right product category)
-  (kw.psc_keyword_combos || []).forEach(c => terms.add(c));
-  // Agency-keyword combos
-  (kw.agency_keyword_combos || []).forEach(c => terms.add(c));
+  const seen = new Set();
+  const terms = [];
+
+  // Helper: add if not duplicate
+  const add = (item) => {
+    const key = typeof item === 'string' ? item : `${item.pscAnchor||''}|${item.term}`;
+    if (!seen.has(key)) { seen.add(key); terms.push(item); }
+  };
+
+  // Determine primary PSC anchor — the first PSC code is the product category filter
+  const primaryPsc = (kw.psc_codes || [])[0] || null;
+
+  // Core keywords — ALWAYS anchored to primary PSC code if available.
+  // This is the single biggest lever for TAM accuracy.
+  (kw.core_keywords || []).forEach(k => {
+    if (primaryPsc) {
+      add({ term: k, pscAnchor: primaryPsc, label: `${primaryPsc} + ${k}` });
+    } else {
+      add(k); // fallback: no PSC codes available, search as naked keyword
+    }
+  });
+
+  // Standalone PSC and NAICS code searches (for breadth — what's the full code market?)
+  (kw.psc_codes || []).forEach(c => add(c));
+  (kw.naics_codes || []).forEach(c => add(c));
+
+  // Explicit PSC-keyword combos from Gemini (already structured as "D306 AND ...")
+  (kw.psc_keyword_combos || []).forEach(c => add(c));
+
+  // Agency-keyword combos — these run as keyword searches (no PSC anchor)
+  // because the agency name in the keyword constrains relevance enough
+  (kw.agency_keyword_combos || []).forEach(c => add(c));
+
   // Backwards compat: old-style and_combos
-  (kw.and_combos || []).forEach(c => terms.add(c));
-  return [...terms];
+  (kw.and_combos || []).forEach(c => add(c));
+
+  return terms;
 }
 
 function analyzeContracts(contracts, keywords) {
@@ -676,7 +724,9 @@ async function startAnalysis() {
   await sleep(300);
 
   const searchTerms = buildSearchTerms(kw);
-  setPhase(2, 'done', `${searchTerms.length} unique searches planned`);
+  const anchoredCount = searchTerms.filter(t => typeof t === 'object' && t.pscAnchor).length;
+  const anchorNote = anchoredCount > 0 ? ` (${anchoredCount} anchored to PSC ${kw.psc_codes?.[0] || ''})` : '';
+  setPhase(2, 'done', `${searchTerms.length} unique searches planned${anchorNote}`);
   setMaster(30, `${searchTerms.length} searches queued`);
 
   // ─── PHASE 3: USASpending queries ───
