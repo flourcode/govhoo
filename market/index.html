@@ -450,6 +450,30 @@ function dedup(contracts) {
   return [...map.values()].sort((a, b) => (b['Award Amount'] || 0) - (a['Award Amount'] || 0));
 }
 
+/**
+ * Improvement 2: Enrich keyword tags by scanning contract description.
+ * After dedup, each contract only has _keywords from the searches that found it.
+ * This pass scans the Description field against ALL core keywords so the heatmap
+ * reflects true keyword presence, not just search-origin.
+ */
+function enrichKeywordTags(contracts, coreKeywords) {
+  if (!coreKeywords || coreKeywords.length === 0) return;
+  // Pre-build lowercase keyword list for matching
+  const kwLower = coreKeywords.map(k => ({ original: k, lower: k.toLowerCase() }));
+  for (const c of contracts) {
+    const haystack = [
+      c['Description'] || '',
+      c['Recipient Name'] || '',
+      c['Award ID'] || ''
+    ].join(' ').toLowerCase();
+    for (const { original, lower } of kwLower) {
+      if (haystack.includes(lower)) {
+        c._keywords.add(original);
+      }
+    }
+  }
+}
+
 /** Normalize vendor names (simplified) */
 function normVendor(name) {
   if (!name) return 'Unknown';
@@ -471,6 +495,8 @@ function buildSearchTerms(kw) {
 }
 
 function analyzeContracts(contracts, keywords) {
+  const companyName = (keywords.company || '').toLowerCase();
+
   // Vendor aggregation
   const vendorMap = new Map();
   for (const c of contracts) {
@@ -481,10 +507,24 @@ function analyzeContracts(contracts, keywords) {
     v.contracts++;
     if (c['Awarding Agency']) v.agencies.add(c['Awarding Agency']);
   }
-  const vendors = [...vendorMap.values()]
+  let vendors = [...vendorMap.values()]
     .map(v => ({ ...v, agencies: v.agencies.size }))
-    .sort((a, b) => b.spend - a.spend)
-    .slice(0, 15);
+    .sort((a, b) => b.spend - a.spend);
+
+  // Improvement 3: Always include target company even if outside top 15
+  const top15 = vendors.slice(0, 15);
+  const targetInTop = top15.some(v => v.name.toLowerCase().includes(companyName));
+  if (!targetInTop && companyName) {
+    const targetEntry = vendors.find(v => v.name.toLowerCase().includes(companyName));
+    if (targetEntry) {
+      targetEntry.isTarget = true;
+      top15.push(targetEntry);
+    } else {
+      // Company not found in results at all — add a placeholder so user sees their position
+      top15.push({ name: keywords.company, spend: 0, contracts: 0, agencies: 0, isTarget: true, notFound: true });
+    }
+  }
+  vendors = top15;
 
   // Agency aggregation
   const agencyMap = new Map();
@@ -606,6 +646,7 @@ async function startAnalysis() {
   setPhase(4, 'running', 'Deduplicating, aggregating, building dashboard…');
 
   allContracts = dedup(allRaw);
+  enrichKeywordTags(allContracts, kw.core_keywords);
   const analysis = analyzeContracts(allContracts, kw);
 
   setPhase(4, 'done', `${allContracts.length} unique contracts, ${analysis.vendors.length} vendors, ${analysis.agencies.length} agencies`);
@@ -669,8 +710,10 @@ function renderDashboard(kw, data) {
   let vt = `<table class="data-table"><thead><tr><th>#</th><th>Vendor</th><th>Spend (12 mo)</th><th>Share</th><th>Contracts</th><th>Agencies</th></tr></thead><tbody>`;
   data.vendors.forEach((v, i) => {
     const pct = Math.round((v.spend / maxS) * 100);
-    const isTarget = v.name.toLowerCase().includes((kw.company||'').toLowerCase());
-    vt += `<tr class="${isTarget?'target-row':''}"><td><span class="rank-badge">${i+1}</span></td><td style="font-weight:${isTarget?700:500}">${v.name}</td><td style="font-weight:600;font-variant-numeric:tabular-nums;">${money(v.spend)}</td><td><div class="bar-track" style="width:80px"><div class="bar-fill" style="width:${pct}%;${isTarget?'background:#C0392B':''}"></div></div></td><td>${v.contracts}</td><td>${v.agencies}</td></tr>`;
+    const isTarget = v.isTarget || v.name.toLowerCase().includes((kw.company||'').toLowerCase());
+    const rank = isTarget && i >= 15 ? '—' : i + 1;
+    const spendLabel = v.notFound ? '<span style="color:var(--text-tertiary);font-style:italic;">Not found in results</span>' : money(v.spend);
+    vt += `<tr class="${isTarget?'target-row':''}"><td><span class="rank-badge">${rank}</span></td><td style="font-weight:${isTarget?700:500}">${v.name}${isTarget && i >= 15 ? ' <span style="font-size:0.65rem;font-weight:400;color:var(--text-tertiary);">(your company)</span>' : ''}</td><td style="font-weight:600;font-variant-numeric:tabular-nums;">${spendLabel}</td><td><div class="bar-track" style="width:80px"><div class="bar-fill" style="width:${pct}%;${isTarget?'background:#C0392B':''}"></div></div></td><td>${v.notFound ? '—' : v.contracts}</td><td>${v.notFound ? '—' : v.agencies}</td></tr>`;
   });
   $('vendorBox').innerHTML = vt + '</tbody></table>';
 
