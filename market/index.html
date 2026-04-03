@@ -137,6 +137,7 @@ body { font-family: var(--font-sans); background: var(--bg-app); color: var(--te
 .chip-agency { color: #5B6EAD; border-color: #5B6EAD; background: rgba(91,110,173,0.08); }
 .chip-code { color: #8B6E4E; border-color: #8B6E4E; background: rgba(139,110,78,0.08); }
 .chip-combo { color: #8B4E6E; border-color: #8B4E6E; background: rgba(139,78,110,0.08); }
+.chip-competitor { color: #C0392B; border-color: #C0392B; background: rgba(192,57,43,0.08); }
 
 /* KPIs */
 .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 0.65rem; margin-bottom: 1.75rem; }
@@ -387,9 +388,8 @@ async function searchUSA(endpoint, payload, signal) {
 }
 
 /** Run a single search against USASpending.
- *  Parses AND-combos and detects PSC/NAICS codes within them to build proper filters.
- *  Sorts by Start Date (most recent first) instead of Award Amount to get a natural
- *  mix of contract sizes — sorting by amount only returns $500M+ omnibus deals. */
+ *  Fetches pages 1 and 2 (up to 200 results) to improve coverage.
+ *  Sorts by Start Date to get a natural mix of contract sizes. */
 async function searchKeyword(term, signal) {
   const now = new Date();
   const start = new Date(now); start.setFullYear(start.getFullYear() - 1);
@@ -400,10 +400,7 @@ async function searchKeyword(term, signal) {
     award_type_codes: CONTRACT_TYPES,
   };
 
-  // Detect AND-combos: "D306 AND ENDPOINT DETECTION AND RESPONSE"
-  // Problem: "ENDPOINT DETECTION AND RESPONSE" contains " AND " mid-phrase.
-  // Solution: Only treat as a combo if the string starts with a PSC/NAICS code
-  // followed by " AND ", or ends with a known agency abbreviation after " AND ".
+  // Parse AND-combos
   const pscPat = /^[A-Z]{1,2}\d{1,3}$/i;
   const naicsPat = /^\d{6}$/;
   const leadingCodeMatch = term.match(/^([A-Z]{1,2}\d{1,3}|\d{6})\s+AND\s+(.+)$/i);
@@ -430,14 +427,30 @@ async function searchKeyword(term, signal) {
     }
   }
 
-  // Sort by Start Date, not Award Amount. Sorting by amount returns only
-  // $500M+ omnibus contracts, burying the $500K-$50M product purchases
-  // that are actually in the target company's addressable market.
-  const data = await searchUSA('/search/spending_by_award/', {
+  const basePayload = {
     filters, fields: AWARD_FIELDS, limit: 100, sort: 'Start Date', order: 'desc'
-  }, signal);
+  };
 
-  return (data.results || []).map(r => ({ ...r, _source_keyword: term }));
+  // Page 1
+  const data1 = await searchUSA('/search/spending_by_award/', {
+    ...basePayload, page: 1
+  }, signal);
+  const results = (data1.results || []);
+
+  // Page 2 — only fetch if page 1 was full (100 results = likely more data)
+  if (results.length >= 100) {
+    try {
+      const data2 = await searchUSA('/search/spending_by_award/', {
+        ...basePayload, page: 2
+      }, signal);
+      results.push(...(data2.results || []));
+    } catch (e) {
+      // Page 2 failures are non-fatal — we still have page 1
+      if (e.name === 'AbortError') throw e;
+    }
+  }
+
+  return results.map(r => ({ ...r, _source_keyword: term }));
 }
 
 /** Run searches with concurrency limit */
@@ -536,21 +549,26 @@ function buildSearchTerms(kw) {
   const terms = [];
 
   const add = (item) => {
-    const key = typeof item === 'string' ? item : item.term;
-    if (!seen.has(key)) { seen.add(key); terms.push(key); }
+    const key = (typeof item === 'string' ? item : item.term).toUpperCase();
+    if (!seen.has(key)) { seen.add(key); terms.push(typeof item === 'string' ? item : item.term); }
   };
 
-  // Core keywords — searched as plain keywords. The specificity of the keywords
-  // themselves ("ENDPOINT DETECTION AND RESPONSE" not "CYBERSECURITY") is what
-  // constrains results. The post-search filter catches anything that slips through.
+  // Core product-specific keywords
   (kw.core_keywords || []).forEach(k => add(k));
 
-  // NO standalone PSC or NAICS searches — these return entire code markets.
+  // Competitor names — searching "CROWDSTRIKE" or "JFROG" directly captures
+  // contracts described as "CROWDSTRIKE RENEWAL" that don't contain full
+  // capability phrases. This is how experienced BD teams like the Sonatype
+  // approach works: search for Jfrog, Snyk, Black Duck to find the market.
+  (kw.competitors || []).forEach(c => add(c));
 
-  // Explicit PSC-keyword combos from Gemini (searchKeyword parses the PSC out)
+  // Also search the target company name itself
+  if (kw.company) add(kw.company);
+
+  // Explicit PSC-keyword combos from Gemini
   (kw.psc_keyword_combos || []).forEach(c => add(c));
 
-  // Agency-keyword combos — these are specific enough to run unanchored
+  // Agency-keyword combos
   (kw.agency_keyword_combos || []).forEach(c => add(c));
 
   // Backwards compat
@@ -832,10 +850,12 @@ function renderDashboard(kw, data) {
 
   // Keywords
   const allCombos = [...(kw.psc_keyword_combos||[]), ...(kw.agency_keyword_combos||[]), ...(kw.and_combos||[])];
-  const total = (kw.core_keywords?.length||0)+(kw.agency_targets?.length||0)+(kw.naics_codes?.length||0)+(kw.psc_codes?.length||0)+allCombos.length;
+  const competitors = kw.competitors || [];
+  const total = (kw.core_keywords?.length||0)+(kw.agency_targets?.length||0)+(kw.naics_codes?.length||0)+(kw.psc_codes?.length||0)+allCombos.length+competitors.length;
   $('kwBadge').textContent = total + ' terms';
   let chips = '';
   (kw.core_keywords||[]).forEach(k => chips += `<span class="keyword-chip chip-core">${k}</span>`);
+  competitors.forEach(k => chips += `<span class="keyword-chip chip-competitor">${k}</span>`);
   (kw.agency_targets||[]).forEach(k => chips += `<span class="keyword-chip chip-agency">${k}</span>`);
   (kw.naics_codes||[]).forEach(k => chips += `<span class="keyword-chip chip-code">${k}</span>`);
   (kw.psc_codes||[]).forEach(k => chips += `<span class="keyword-chip chip-code">${k}</span>`);
