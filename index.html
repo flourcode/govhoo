@@ -7916,7 +7916,8 @@ async runOpportunityStrategy(awardId) {
 
       const filteredResults = Utils.filterActiveContracts(searchResults);
 
-      if (!filteredResults || filteredResults.length === 0) {
+      const totalSpend = (filteredResults || []).reduce((s, c) => s + (parseFloat(c['Award Amount']) || 0), 0);
+      if (!filteredResults || filteredResults.length === 0 || totalSpend <= 0) {
         // Track zero-result searches in GA4 for daily monitoring
         if (typeof gtag === 'function') {
           gtag('event', 'no_results', { search_term: query, territory: App.territory || 'all' });
@@ -7925,7 +7926,6 @@ async runOpportunityStrategy(awardId) {
         App.transitionToApp(); 
         
         allPanels.forEach(id => DOM.hide(id));
-
         const emptySearch = DOM.get('emptySearchState');
         if (!emptySearch) return;
         emptySearch.classList.remove('hidden');
