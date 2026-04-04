@@ -1726,9 +1726,6 @@ details[open] > summary svg { transform: rotate(180deg); }
           </div>
         </div>
       <div class="header-actions">
-          <button class="icon-btn icon-btn-save hidden" id="saveSearchBtn" data-action="saveSearch" aria-label="Save this search">
-            <svg class="icon" aria-hidden="true"><use href="#icon-bookmark"></use></svg>
-          </button>
           <button class="icon-btn icon-btn-slack" data-action="shareBrief" aria-label="Share Brief to Slack">
             <svg class="icon" aria-hidden="true"><use href="#icon-slack"></use></svg>
           </button>
@@ -7169,8 +7166,8 @@ const App = {
            }
         },
         'toggleDarkMode': () => App.toggleDarkMode(),
-        'saveSearch': () => App.saveCurrentSearch(),
-        'deleteSavedSearch': () => App.deleteSavedSearch(value),
+        'saveSearch': () => {},
+        'deleteSavedSearch': () => {},
         'runSaved': () => {
           if (query) { DOM.get('miniSearch').value = query; App.runSearch(query); }
         }
@@ -7355,7 +7352,6 @@ showHero() {
     DOM.hide('searchModeView');
     DOM.hide('quickJumpMenu');
 	SearchPills.clear();
-    DOM.hide('saveSearchBtn');
     
     DOM.get('dashboardContainer')?.classList.add('active');
     const mini = DOM.get('miniSearch');
@@ -7372,7 +7368,6 @@ transitionToApp() {
     DOM.hide('landingState');
     DOM.show('searchModeView');
     DOM.show('quickJumpMenu');
-    DOM.show('saveSearchBtn');
     
     const mini = DOM.get('miniSearch');
     if(mini) mini.value = App.currentQuery;
