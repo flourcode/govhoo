@@ -11189,21 +11189,13 @@ const SearchPills = {
   /** Called after every App.runSearch — fires Gemini in background */
   generate(query) {
     if (!query || query.length < 2) return;
-
-    // Don't regenerate for the same query
     if (this._current === query) return;
     this._current = query;
-
-    // If the query looks like a code (NAICS/PSC), skip — pills aren't useful
     if (/^\d{6}$/.test(query) || /^[A-Z]{1,2}\d{1,3}$/i.test(query)) return;
-
-    // Check cache
     if (this._cache[query.toLowerCase()]) {
       this.render(this._cache[query.toLowerCase()], query);
       return;
     }
-
-    // Fire Gemini in background — don't await, don't block
     this._fetchAndRender(query);
   },
 
@@ -11217,13 +11209,9 @@ const SearchPills = {
       if (!res.ok) return;
       const kw = await res.json();
       this._cache[query.toLowerCase()] = kw;
-
-      // Only render if this is still the active query (user hasn't searched again)
       if (this._current === query) {
         this.render(kw, query);
       }
-
-      // Auto-fill Arti context if empty
       const artiInput = DOM.get('artiContextInput');
       if (artiInput && !artiInput.value && kw.summary) {
         artiInput.value = `I sell ${kw.company || query} — ${kw.summary}`;
@@ -11243,17 +11231,21 @@ const SearchPills = {
     const queryUpper = query.toUpperCase();
 
     const addPill = (term, cls) => {
-      if (pills.length >= 10) return;
+      if (pills.length >= 12) return;
       const key = term.toUpperCase();
       if (key === queryUpper || seen.has(key)) return;
       seen.add(key);
       pills.push({ term, cls });
     };
 
+    // 1 brand
     if (kw.company) addPill(kw.company, 'search-pill-brand');
-    (kw.competitors || []).slice(0, 4).forEach(c => addPill(c, 'search-pill-comp'));
+    // 6 competitors
+    (kw.competitors || []).slice(0, 6).forEach(c => addPill(c, 'search-pill-comp'));
+    // 3 keywords
     (kw.core_keywords || []).slice(0, 3).forEach(k => addPill(k, ''));
-    [...(kw.psc_codes || []), ...(kw.naics_codes || [])].slice(0, 2).forEach(c => addPill(c, 'search-pill-code'));
+    // 2 codes (1 PSC + 1 NAICS)
+    [...(kw.psc_codes || []).slice(0, 1), ...(kw.naics_codes || []).slice(0, 1)].forEach(c => addPill(c, 'search-pill-code'));
 
     if (pills.length === 0) {
       container.classList.remove('active');
