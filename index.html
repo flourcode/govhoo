@@ -11297,7 +11297,7 @@ const SearchPills = {
    const company = Html.escapeHtml(kw.company || '');
     container.innerHTML = '<span style="font-size:0.65rem;color:var(--text-quaternary);font-weight:500;padding:4px 2px;white-space:nowrap;">Also try</span>' + pills.map(p =>
       `<button class="search-pill ${p.cls}" onclick="SearchPills.clickPill('${Html.escapeHtml(p.term)}', '${company}')">${Html.escapeHtml(p.term)}</button>`
-    ).join('');
+    ).join('<span style="font-size:0;color:transparent;user-select:text;">, </span>');
     container.classList.add('active');
   },
 
