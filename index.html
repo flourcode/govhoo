@@ -1682,7 +1682,7 @@ details[open] > summary svg { transform: rotate(180deg); }
     <header class="app-header">
       <div class="app-header-row">
         <div class="header-left">
-          <span class="logo-btn" data-action="showHero">
+          <span class="logo-btn" onclick="window.location.reload()" style="cursor:pointer;">
             <span class="logo-name logo-full">Govhoo.</span>
             <span class="logo-name logo-short">G</span>
           </span>
@@ -6678,7 +6678,7 @@ const App = {
 
     window.addEventListener('popstate', (e) => {
       if (!e.state || e.state.view !== 'app') {
-        App.showHero();
+        window.location.reload();
       }
     });
 
@@ -7126,7 +7126,7 @@ const App = {
           const input = DOM.get('mainSearchInput');
           if(input) { input.value = ''; input.focus(); }
         },
-        'showHero': () => App.showHero(),
+        'showHero': () => window.location.reload(),
         'resetDrill': () => {
           const panel = target.closest('#bubbleChartPanel, #targetAccountsPanel') ? 'bubbleChartPanel' : 'sankeyPanel';
           App._pendingDrillScroll = panel;
@@ -8035,7 +8035,7 @@ async runOpportunityStrategy(awardId) {
               
               <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2.5rem;">
                  ${_emptySuggestions()}
-                 <button class="hero-suggestion-chip" onclick="App.showHero()" style="border-color: var(--brand); color: var(--brand);">Start Over</button>
+                 <button class="hero-suggestion-chip" onclick="window.location.reload()" style="border-color: var(--brand); color: var(--brand);">Start Over</button>
               </div>
 
               <div class="callout-box">
