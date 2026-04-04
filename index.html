@@ -1738,7 +1738,7 @@ details[open] > summary svg { transform: rotate(180deg); }
         </div>
       </div>
       <div class="quick-jump-menu hidden" id="quickJumpMenu">
-        <button class="active" data-target="bubbleChartPanel" onclick="App.scrollToPanel('searchPills')">Market</button>
+        <button class="active" data-target="searchPills" onclick="App.scrollToPanel('searchPills')">Market</button>
         <button data-target="pipelineTargetsSection" onclick="App.scrollToPanel('pipelineTargetsSection')">Pipeline</button>
         <button data-target="sankeyHeader" onclick="App.scrollToPanel('sankeyHeader')">Flow</button>
         <button data-target="competitorMatrixPanel" onclick="App.scrollToPanel('competitorMatrixPanel')">Compete</button>
@@ -6704,8 +6704,7 @@ const App = {
     const appView = DOM.get('appView');
     if (appView) {
       appView.addEventListener('scroll', () => {
-        // FIXED: Added pipelineTargetsSection and AI panels to the tracking array
-        const trackedPanels = ['bubbleChartPanel', 'pipelineTargetsSection', 'sankeyPanel', 'competitorMatrixPanel', 'agencyReachPanel', 'recentAwardsHeader', 'subawardWrapper', 'aiActionPanel', 'aiIntelligenceBanner'];
+        const trackedPanels = ['searchPills', 'bubbleChartPanel', 'pipelineTargetsSection', 'sankeyPanel', 'competitorMatrixPanel', 'agencyReachPanel', 'recentAwardsHeader', 'subawardWrapper', 'aiActionPanel', 'aiIntelligenceBanner'];
         let activePanelId = '';
 
         for (const panelId of trackedPanels) {
@@ -6725,7 +6724,8 @@ const App = {
           // Map sub-panels and containers back to their parent buttons
           let targetMatch = activePanelId;
           if (activePanelId === 'aiActionPanel') targetMatch = 'aiIntelligenceBanner';
-          if (activePanelId === 'sankeyPanel') targetMatch = 'sankeyHeader'; // <-- ADD THIS LINE
+          if (activePanelId === 'sankeyPanel') targetMatch = 'sankeyHeader';
+		  if (activePanelId === 'searchPills') targetMatch = 'searchPills';
 
           document.querySelectorAll('#quickJumpMenu button').forEach(btn => {
             btn.classList.toggle('active', btn.getAttribute('data-target') === targetMatch);
