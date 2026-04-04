@@ -7364,6 +7364,28 @@ showHero() {
     DOM.get('appView')?.scrollTo({ top: 0, behavior: 'instant' });
     window.scrollTo({ top: 0, behavior: 'instant' });
   },
+ _refreshEmptyState() {
+    const emptySearch = DOM.get('emptySearchState');
+    if (!emptySearch || emptySearch.classList.contains('hidden')) return;
+    const query = App.currentQuery || '';
+    const cached = SearchPills._cache[query.toLowerCase()];
+    if (!cached) return;
+    const pills = [];
+    const seen = new Set([query.toUpperCase()]);
+    const add = (t, style) => { const k = t.toUpperCase(); if (!seen.has(k) && pills.length < 6) { seen.add(k); pills.push({ term: t, style }); } };
+    (cached.competitors || []).forEach(c => add(c, 'color:#C0392B;'));
+    (cached.core_keywords || []).forEach(k => add(k, ''));
+    if (pills.length === 0) return;
+    const buttons = emptySearch.querySelectorAll('.hero-suggestion-chip');
+    if (!buttons.length) return;
+    const btnContainer = buttons[0].parentElement;
+    if (!btnContainer) return;
+    const pillHtml = pills.map(p =>
+      `<button class="hero-suggestion-chip" onclick="SearchPills.clickPill('${Html.escapeHtml(p.term)}', '${Html.escapeHtml(cached.company || '')}')" ${p.style ? 'style="'+p.style+'"' : ''}>${Html.escapeHtml(p.term)}</button>`
+    ).join('');
+    const reloadBtn = `<button class="hero-suggestion-chip" onclick="window.location.reload()" style="border-color: var(--brand); color: var(--brand);">Start Over</button>`;
+    btnContainer.innerHTML = pillHtml + reloadBtn;
+  },
 transitionToApp() {
     DOM.hide('landingState');
     DOM.show('searchModeView');
@@ -11225,6 +11247,11 @@ const SearchPills = {
       if (artiInput && kw.summary) {
         artiInput.value = `I sell ${kw.company || query} — ${kw.summary}`;
         App.artiContext = artiInput.value;
+      }
+      // If empty state is showing, refresh it with pill-based suggestions
+      const emptyEl = DOM.get('emptySearchState');
+      if (emptyEl && !emptyEl.classList.contains('hidden')) {
+        App._refreshEmptyState && App._refreshEmptyState();
       }
     } catch (e) {
       // Silent failure — pills are supplementary
