@@ -1614,7 +1614,7 @@ details[open] > summary svg { transform: rotate(180deg); }
   font-size: var(--text-xs);
 }
 /* SMART SEARCH PILLS */
-#searchPills { display: none; padding: 4px 16px 8px; }
+#searchPills { display: none; padding: 0 0 8px; }
 #searchPills.active { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-bottom: 4px; }
 .search-pill { background: rgba(0,0,0,0.06); border: none; border-radius: var(--radius); padding: 4px 10px; font-size: 0.7rem; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: var(--transition-fast); white-space: nowrap; min-height: 28px; display: inline-flex; align-items: center; font-family: var(--font-sans); }
 .search-pill:hover { background: rgba(0,0,0,0.10); color: var(--text-primary); }
@@ -1744,8 +1744,6 @@ details[open] > summary svg { transform: rotate(180deg); }
         <button data-target="recentAwardsHeader" onclick="App.scrollToPanel('recentAwardsHeader')">Awards</button>
         <button data-target="subawardWrapper" onclick="const s=document.getElementById('subawardAccordion'); if(s) s.open=true; App.scrollToPanel('subawardWrapper')">Subs</button>
       </div>
-	  <!-- Smart Search Pills -->
-<div id="searchPills"></div>
     </header>
 
     <main id="dashboardContainer" class="dashboard-container">
@@ -1817,6 +1815,8 @@ details[open] > summary svg { transform: rotate(180deg); }
       <div id="searchModeView" class="view-section active">
 
         <div id="bubbleChartPanel" class="stat-panel hidden">
+			  <!-- Smart Search Pills -->
+<div id="searchPills"></div>
           <div class="market-desktop-grid">
             
             <div class="market-header-area">
