@@ -1614,6 +1614,7 @@ details[open] > summary svg { transform: rotate(180deg); }
   font-size: var(--text-xs);
 }
 /* SMART SEARCH PILLS */
+#searchPills { scroll-margin-top: 95px; }
 #searchPills { display: none; padding: 0 0 8px; }
 #searchPills.active { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-bottom: 4px; }
 .search-pill { background: rgba(0,0,0,0.06); border: none; border-radius: var(--radius); padding: 4px 10px; font-size: 0.7rem; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: var(--transition-fast); white-space: nowrap; min-height: 28px; display: inline-flex; align-items: center; font-family: var(--font-sans); }
@@ -1737,7 +1738,7 @@ details[open] > summary svg { transform: rotate(180deg); }
         </div>
       </div>
       <div class="quick-jump-menu hidden" id="quickJumpMenu">
-        <button class="active" data-target="bubbleChartPanel" onclick="App.scrollToPanel('bubbleChartPanel')">Market</button>
+        <button class="active" data-target="searchPills" onclick="App.scrollToPanel('searchPills')">Market</button>
         <button data-target="pipelineTargetsSection" onclick="App.scrollToPanel('pipelineTargetsSection')">Pipeline</button>
         <button data-target="sankeyHeader" onclick="App.scrollToPanel('sankeyHeader')">Flow</button>
         <button data-target="competitorMatrixPanel" onclick="App.scrollToPanel('competitorMatrixPanel')">Compete</button>
@@ -8083,7 +8084,7 @@ async runOpportunityStrategy(awardId) {
       }
 
       
-      App._pendingDrillScroll = 'bubbleChartPanel';
+      App._pendingDrillScroll = 'searchPills';
       App.transitionToApp();
       App.updateSearchDashboard(); 
       Utils.syncUrlState();
@@ -8819,7 +8820,7 @@ copySectionLink(sectionHash, btnElement) {
     App.activeFeedSource = 'prime';
     App.activeVehicleFilter = null;
     App.bubbleMode = 'auto';
-    if (typeof App._pendingDrillScroll !== 'string') App._pendingDrillScroll = 'bubbleChartPanel';
+    if (typeof App._pendingDrillScroll !== 'string') App._pendingDrillScroll = 'searchPills';
     Utils.syncUrlState();
     App.updateSearchDashboard(); 
   },
