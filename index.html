@@ -11295,10 +11295,10 @@ const SearchPills = {
     }
 
    const company = Html.escapeHtml(kw.company || '');
-    const allTerms = pills.filter(p => p.cls !== 'search-pill-code').map(p => p.term).join(', ');
+    const compTerms = pills.filter(p => p.cls === 'search-pill-comp' || p.cls === 'search-pill-brand').map(p => p.term).join(', ');
     container.innerHTML = '<span style="font-size:0.65rem;color:var(--text-quaternary);font-weight:500;padding:4px 2px;white-space:nowrap;">Also try</span>' + pills.map(p =>
       `<button class="search-pill ${p.cls}" onclick="SearchPills.clickPill('${Html.escapeHtml(p.term)}', '${company}')">${Html.escapeHtml(p.term)}</button>`
-    ).join('') + `<button class="search-pill" onclick="App.runSearch('${Html.escapeHtml(allTerms)}')" style="color:var(--accent);font-weight:600;border:1px solid var(--accent-dim);">Search all ›</button>`;
+    ).join('') + `<button class="search-pill" onclick="App.runSearch('${Html.escapeHtml(compTerms)}')" style="color:var(--accent);font-weight:600;border:1px solid var(--accent-dim);">Search all ›</button>`;
     container.classList.add('active');
   },
 
