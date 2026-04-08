@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,1..1000&display=swap" rel="stylesheet">
-<title>Govhoo — Market Analyzer</title>
+<title>Govhoo — TAM Lab</title>
 <style>
 :root {
   --bg:        #F7F7F5;
@@ -391,7 +391,7 @@ a, button, input, select { touch-action: manipulation; }
 <header class="site-header">
   <div class="header-top">
     <a class="logo-link" href="/">Govhoo</a>
-    <span class="header-label">Market Analyzer</span>
+    <span class="header-label">TAM Lab</span>
     <div class="header-right">
       <a class="back-link" href="/tools/">Tools</a>
     </div>
@@ -402,9 +402,9 @@ a, button, input, select { touch-action: manipulation; }
 
   <div id="searchView">
     <div class="page-header">
-      <div class="page-title">Govhoo.</div>
-      <div class="page-subtitle">Open-source Signals for Federal Markets</div>
-      <div style="font-size:var(--text-sm);color:var(--text-tertiary);font-weight:400;margin-top:10px;line-height:1.65;">Enter a company name. Gemini identifies their capability space and generates a keyword set covering their products, competitors, and contract codes. Those terms are run against <strong style="color:var(--text-secondary);font-weight:600">USASpending.gov</strong> — the U.S. government’s public database of federal contract obligations — to surface who’s buying in that category, which vendors are winning, how spend is concentrated, and what contracts are expiring. All dollar figures are obligated award amounts, not budgets or projections. Classified contracts, sub-awards under $50K, and IDIQ ceiling values without discrete award records are excluded. Data lags real-time by approximately 90 days.<br><br><strong style="color:var(--text-secondary);font-weight:600">Experimental.</strong> AI-generated keyword sets may miss or misclassify capability areas. Validate figures against USASpending.gov directly before committing resources or presenting to stakeholders.</div>
+      <div class="page-title">TAM Lab.</div>
+      <div class="page-subtitle">Federal Category Market Sizing</div>
+      <div style="font-size:var(--text-sm);color:var(--text-tertiary);font-weight:400;margin-top:10px;line-height:1.65;">Enter any company name to size the federal market for their capability space. Gemini builds a keyword set, runs it against <strong style="color:var(--text-secondary);font-weight:600">USASpending.gov</strong>, and returns the category TAM — total obligated spend, active vendors, buying agencies, and expiring contracts. This is a <strong style="color:var(--text-secondary);font-weight:600">market sizing tool, not a company profile</strong>. For company-specific contract data, use <a href="/" style="color:var(--accent);font-weight:600;text-decoration:none;">Govhoo Search →</a><br><br><strong style="color:var(--text-secondary);font-weight:600">Experimental.</strong> Keyword sets are AI-generated. Validate before using in presentations or resource decisions.</div>
     </div>
 
     <div class="app-card">
@@ -414,9 +414,9 @@ a, button, input, select { touch-action: manipulation; }
       <div style="margin-bottom:14px;">
         <div class="input-label" style="margin-bottom:8px;">What are you trying to decide?</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;" id="objectiveChips">
-          <button class="obj-chip active" data-obj="entry" onclick="setObjective(this,'entry')">Entering this market</button>
-          <button class="obj-chip" data-obj="positioning" onclick="setObjective(this,'positioning')">Understanding the competition</button>
-          <button class="obj-chip" data-obj="opportunity" onclick="setObjective(this,'opportunity')">Finding a specific opportunity</button>
+          <button class="obj-chip active" data-obj="entry" onclick="setObjective(this,'entry')">Size the market</button>
+          <button class="obj-chip" data-obj="positioning" onclick="setObjective(this,'positioning')">Map the competition</button>
+          <button class="obj-chip" data-obj="opportunity" onclick="setObjective(this,'opportunity')">Find expiring contracts</button>
         </div>
       </div>
       <button class="calc-btn-primary" id="analyzeBtn" onclick="startAnalysis()">Run analysis</button>
@@ -479,9 +479,9 @@ a, button, input, select { touch-action: manipulation; }
         <div style="margin-bottom:12px;">
           <div class="input-label" style="margin-bottom:7px;">What are you trying to decide?</div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;" id="dashObjectiveChips">
-            <button class="obj-chip active" data-obj="entry" onclick="setObjectiveDash(this,'entry')">Entering this market</button>
-            <button class="obj-chip" data-obj="positioning" onclick="setObjectiveDash(this,'positioning')">Understanding the competition</button>
-            <button class="obj-chip" data-obj="opportunity" onclick="setObjectiveDash(this,'opportunity')">Finding a specific opportunity</button>
+            <button class="obj-chip active" data-obj="entry" onclick="setObjectiveDash(this,'entry')">Size the market</button>
+            <button class="obj-chip" data-obj="positioning" onclick="setObjectiveDash(this,'positioning')">Map the competition</button>
+            <button class="obj-chip" data-obj="opportunity" onclick="setObjectiveDash(this,'opportunity')">Find expiring contracts</button>
           </div>
         </div>
         <button class="calc-btn-primary" onclick="startFromDash()" style="margin-top:0;">Run analysis</button>
@@ -578,7 +578,6 @@ const AWARD_FIELDS = ['Award ID','Recipient Name','Awarding Agency','Awarding Su
 
 let currentKeywords = null, allContracts = [], abortController = null;
 let analysisHistory = [], compareMode = null, currentAnalysis = null;
-let currentFootprint = null;
 let currentObjective = null; // 'entry' | 'positioning' | 'opportunity'
 
 const $ = id => document.getElementById(id);
@@ -911,124 +910,6 @@ function buildActions(kw, data) {
   return actions;
 }
 
-function updateFootprintDisplay(fp) {
-  const el = document.getElementById('footprintValue');
-  const sub = document.getElementById('footprintSub');
-  if (!el || !sub) return;
-  if (!fp) {
-    el.textContent = '—';
-    sub.textContent = 'Lookup unavailable';
-    return;
-  }
-
-  // Reconcile with vendor table: if the vendor table found the company at a
-  // lower spend, the API lookup may be overcounting (pulling parent company
-  // entities). Use whichever is lower and flag the source.
-  const vendorTableEntry = currentAnalysis
-    ? currentAnalysis.vendors.find(v => v.isTarget && !v.notFound)
-    : null;
-  const vendorTableSpend = vendorTableEntry ? vendorTableEntry.spend : null;
-
-  let displaySpend = fp.spend;
-  let displayLabel = fp.label;
-  let displayContracts = fp.contracts;
-
-  if (vendorTableSpend !== null && vendorTableSpend > 0 && vendorTableSpend < fp.spend * 0.6) {
-    // API overcounting — vendor table is more precise (same dataset, relevance-filtered)
-    displaySpend = vendorTableSpend;
-    displayContracts = vendorTableEntry.contracts;
-    displayLabel = 'From matched award records (vendor table)';
-  }
-
-  el.textContent = displaySpend > 0 ? money(displaySpend) : '—';
-  el.style.color = displaySpend > 0 ? 'var(--text-primary)' : 'var(--text-quaternary)';
-  sub.textContent = displayContracts + (fp.capped ? '+' : '') + ' contract' + (displayContracts !== 1 ? 's' : '') + ' · ' + displayLabel;
-
-  // Show market share ratio bar once footprint is known
-  const tam = currentAnalysis ? currentAnalysis.totalSpend : 0;
-  const sharePctEl = document.getElementById('sharePct');
-  const shareBarEl = document.getElementById('shareBarFill');
-  const shareWrap  = document.getElementById('shareBarWrap');
-  if (displaySpend > 0 && tam > 0 && sharePctEl && shareBarEl && shareWrap) {
-    const share = displaySpend / tam;
-    const sharePctNum = Math.round(share * 1000) / 10; // one decimal
-    sharePctEl.textContent = sharePctNum + '% of TAM';
-    shareWrap.style.display = 'flex';
-    requestAnimationFrame(() => { shareBarEl.style.width = Math.min(share * 100, 100) + '%'; });
-  }
-
-  // Also pass reconciled footprint into Arti payload if Arti hasn't streamed yet
-  if (currentFootprint) currentFootprint._displaySpend = displaySpend;
-}
-
-async function fetchCompanyFootprint(company, signal) {
-  const now = new Date(), start = new Date(now);
-  start.setFullYear(start.getFullYear() - 1);
-  const fmt = d => d.toISOString().split('T')[0];
-  const base = {
-    time_period: [{ start_date: fmt(start), end_date: fmt(now) }],
-    award_type_codes: ['A','B','C','D']
-  };
-  const fields = ['Award ID','Award Amount','Awarding Agency'];
-
-  // Short or generic names (< 5 chars) produce massive false-positive matches
-  // in description keyword search. For these, only run the recipient lookup.
-  const nameIsShort = company.trim().length < 5;
-
-  const searches = [
-    searchUSA('/search/spending_by_award/', {
-      filters: { ...base, recipient_search_text: [company] },
-      fields, limit: 100, sort: 'Award Amount', order: 'desc', page: 1
-    }, signal)
-  ];
-  if (!nameIsShort) {
-    searches.push(searchUSA('/search/spending_by_award/', {
-      filters: { ...base, keywords: [company] },
-      fields, limit: 100, sort: 'Award Amount', order: 'desc', page: 1
-    }, signal));
-  }
-
-  const [recipientResult, keywordResult] = await Promise.allSettled(searches);
-
-  const recipientRows = recipientResult.status === 'fulfilled' ? (recipientResult.value.results || []) : [];
-  const keywordRows   = (!nameIsShort && keywordResult?.status === 'fulfilled') ? (keywordResult.value.results || []) : [];
-
-  const recipientSpend = recipientRows.reduce((s, r) => s + (r['Award Amount'] || 0), 0);
-  const keywordSpend   = keywordRows.reduce((s, r)  => s + (r['Award Amount'] || 0), 0);
-
-  // Sanity check: if keyword spend is more than 20x the recipient spend,
-  // the keyword is too generic and is pulling unrelated contracts.
-  // In that case, trust only the recipient results.
-  const keywordIsNoisy = recipientSpend > 0 && keywordSpend > recipientSpend * 20;
-  const useKeyword = !nameIsShort && !keywordIsNoisy;
-
-  // Deduplicate by Award ID
-  const seen = new Set();
-  const combined = [];
-  const sources = useKeyword ? [...recipientRows, ...keywordRows] : recipientRows;
-  for (const r of sources) {
-    const id = r['Award ID'] || r['generated_internal_id'] || JSON.stringify(r);
-    if (!seen.has(id)) { seen.add(id); combined.push(r); }
-  }
-  const combinedSpend = combined.reduce((s, r) => s + (r['Award Amount'] || 0), 0);
-
-  const directOnly  = recipientSpend > 0 && (keywordSpend === 0 || keywordIsNoisy || nameIsShort);
-  const mentionOnly = recipientSpend === 0 && keywordSpend > 0 && useKeyword;
-  const both        = recipientSpend > 0 && keywordSpend > 0 && useKeyword;
-
-  const label = directOnly  ? 'Direct prime recipient'
-              : mentionOnly ? 'Named in contract descriptions via resellers'
-              : both        ? 'Direct awards + description mentions'
-              : 'No matching award records';
-
-  return {
-    spend: combinedSpend,
-    contracts: combined.length,
-    capped: recipientRows.length >= 100 || keywordRows.length >= 100,
-    label
-  };
-}
-
 async function startAnalysis() {
   const company = ($('companyInput').value || $('dashSearchInput').value).trim();
   if (!company) return;
@@ -1039,7 +920,6 @@ async function startAnalysis() {
   $('dashboard').classList.remove('active');
   $('phaseWrap').classList.add('active');
   compareMode = null;
-  currentFootprint = null;
   for (let i=1;i<=4;i++) { setPhase(i,'pending','Waiting\u2026'); $('p'+i+'n').textContent=i; }
   setMaster(0,'Starting\u2026');
   window.scrollTo({top:0,behavior:'smooth'});
@@ -1053,9 +933,6 @@ async function startAnalysis() {
     $('analyzeBtn').disabled=false; return;
   }
   const kw = currentKeywords;
-  // Fire isolated recipient lookup in parallel — don't await, store when done
-  currentFootprint = null;
-  fetchCompanyFootprint(kw.company || company, signal).then(fp => { currentFootprint = fp; updateFootprintDisplay(fp); });
   setPhase(1,'done',(kw.core_keywords?.length||0)+' keywords, '+(kw.naics_codes?.length||0)+' NAICS, '+(kw.psc_codes?.length||0)+' PSC, '+(kw.competitors?.length||0)+' competitors <button class="phase-toggle" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'block\':\'none\'">show JSON</button><div class="phase-raw" style="display:none">'+JSON.stringify(kw,null,2)+'</div>');
   setMaster(20,'Keywords ready');
 
@@ -1100,8 +977,6 @@ function showDashboard(kw, analysis, subtitle) {
   $('dashboard').classList.add('active');
   $('analyzeBtn').disabled = false;
   renderDashboard(kw, analysis, subtitle);
-  // Apply footprint if lookup already returned
-  if (currentFootprint !== null) updateFootprintDisplay(currentFootprint);
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -1137,10 +1012,10 @@ function renderDashboard(kw, data, subtitle) {
   const kwTermCount = ((kw.core_keywords||[]).length+(kw.agency_targets||[]).length+(kw.naics_codes||[]).length+(kw.psc_codes||[]).length+((kw.psc_keyword_combos||[]).concat(kw.agency_keyword_combos||[]).concat(kw.and_combos||[])).length+(kw.competitors||[]).length);
     const _catLabel = (kw.core_keywords||[]).slice(0,3).join(' · ') || kw.company;
   $('companyHeader').innerHTML =
-    '<div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px;">'+'<div>'+'<div style="font-size:var(--text-xs);font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Federal Market</div>'+'<div style="font-size:var(--text-xl);font-weight:800;letter-spacing:-0.025em;line-height:1.15;">'+_catLabel+'</div>'+'<div style="font-size:var(--text-sm);color:var(--text-tertiary);margin-top:4px;">Analyzed for <strong style=\'color:var(--text-secondary)\'>'+kw.company+'</strong></div>'+'</div>'+'<span style="font-size:var(--text-xs);color:var(--text-quaternary);flex-shrink:0;">'+ts+'</span></div>' +
+    '<div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px;">'+'<div>'+'<div style="font-size:var(--text-xs);font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Federal Category TAM</div>'+'<div style="font-size:var(--text-xl);font-weight:800;letter-spacing:-0.025em;line-height:1.15;">'+_catLabel+'</div>'+'<div style="font-size:var(--text-sm);color:var(--text-tertiary);margin-top:4px;">Analyzed for <strong style=\'color:var(--text-secondary)\'>'+kw.company+'</strong></div>'+'</div>'+'<span style="font-size:var(--text-xs);color:var(--text-quaternary);flex-shrink:0;">'+ts+'</span></div>' +
     '<div style="font-size:var(--text-sm);color:var(--text-tertiary);line-height:1.5;margin-top:8px;margin-bottom:20px;">'+(kw.summary||'')+'</div>' +
-    '<div style="padding:16px 18px;background:var(--bg);border:1px solid var(--border-inner);border-radius:var(--radius-sm);margin-bottom:8px;">'+'<div style="font-size:var(--text-xs);font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;">Category TAM · Trailing 12 Mo.</div>'+'<div style="font-size:clamp(2rem,5vw,3rem);font-weight:900;letter-spacing:-0.04em;line-height:1;font-variant-numeric:tabular-nums;">'+money(data.totalSpend)+'</div>'+'<div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:5px;">'+data.totalContracts.toLocaleString()+' contracts · '+data.vendors.length+' vendors · aggregate spend across all capability keywords — not '+kw.company+'\u2019s revenue</div>'+'</div>'+'<div style="padding:14px 18px;border:1px solid var(--border-inner);border-radius:var(--radius-sm);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">'+'<div>'+'<div style="font-size:var(--text-xs);font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">'+kw.company+' in USASpending</div>'+'<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">'+'<div id="footprintValue" style="font-size:var(--text-2xl);font-weight:900;letter-spacing:-0.03em;font-variant-numeric:tabular-nums;color:var(--text-quaternary);">Checking…</div>'+'<div id="shareBarWrap" style="display:none;align-items:center;gap:6px;">'+'<div style="width:60px;height:4px;background:var(--border);border-radius:9999px;overflow:hidden;">'+'<div id="shareBarFill" style="height:100%;border-radius:9999px;background:var(--accent);width:0%;transition:width 0.8s cubic-bezier(0.16,1,0.3,1);"></div>'+'</div>'+'<span id="sharePct" style="font-size:var(--text-xs);font-weight:700;color:var(--text-secondary);"></span>'+'</div></div>'+'<div id="footprintSub" style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:3px;">Searching direct awards…</div>'+'</div>'+'<a href="https://govhoo.com/?q='+encodeURIComponent(kw.company)+'" target="_blank" rel="noopener" style="font-size:var(--text-xs);font-weight:600;color:var(--accent);text-decoration:none;white-space:nowrap;flex-shrink:0;">Company profile →</a>'+'</div>' +
-    '<details style="margin-top:14px;">'+'<summary style="font-size:var(--text-xs);font-weight:600;color:var(--text-quaternary);cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:4px;">'+'<span>Methodology</span><span style="font-size:0.6rem">▾</span></summary>'+'<div style="margin-top:8px;padding:10px 14px;background:var(--bg);border:1px solid var(--border-inner);border-radius:var(--radius-sm);font-size:var(--text-xs);color:var(--text-tertiary);line-height:1.6;">'+'Gemini generated <strong style=\'color:var(--text-secondary)\'>'+kwTermCount+' search terms</strong> from '+kw.company+'\u2019s capabilities, product names, competitor names, and NAICS/PSC codes. '+'Each term was run against <strong style=\'color:var(--text-secondary)\'>USASpending.gov \/search\/spending_by_award\/</strong> filtering to contract types A–D over the trailing 12 months. '+'Results were deduplicated on Award ID and filtered by description relevance. '+'<strong style=\'color:var(--text-secondary)\'>Not included:</strong> classified contracts, sub-awards under $50K, IDIQ ceiling values without discrete award records, grants, and loans. '+'Data lags real-time by approximately 90 days.'+'<br><br><strong style=\'color:var(--text-secondary)\'>Important:</strong> The Category TAM reflects total obligated spend across all keyword searches in this capability space — not '+kw.company+'\u2019s own revenue. The '+kw.company+' Footprint cell shows only contracts where '+kw.company+' appears as recipient or is named in contract descriptions.</div></details>';
+    '<div style="padding:16px 18px;background:var(--bg);border:1px solid var(--border-inner);border-radius:var(--radius-sm);margin-bottom:8px;">'+'<div style="font-size:var(--text-xs);font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;">Category TAM · Trailing 12 Mo.</div>'+'<div style="font-size:clamp(2rem,5vw,3rem);font-weight:900;letter-spacing:-0.04em;line-height:1;font-variant-numeric:tabular-nums;">'+money(data.totalSpend)+'</div>'+'<div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:5px;">'+data.totalContracts.toLocaleString()+' contracts · '+data.vendors.length+' vendors · aggregate spend across all capability keywords — not '+kw.company+'\u2019s revenue</div>'+'</div>'+'<div style="margin-top:6px;">'+'<a href="https://govhoo.com/?q='+encodeURIComponent(kw.company)+'" target="_blank" rel="noopener" style="font-size:var(--text-xs);font-weight:600;color:var(--accent);text-decoration:none;padding:5px 10px;border:1px solid rgba(43,108,176,0.25);border-radius:var(--radius-sm);background:var(--accent-dim);display:inline-flex;align-items:center;gap:4px;">'+kw.company+' in Govhoo Search →</a>'+'</div>' +
+    '<details style="margin-top:14px;">'+'<summary style="font-size:var(--text-xs);font-weight:600;color:var(--text-quaternary);cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:4px;">'+'<span>Methodology</span><span style="font-size:0.6rem">▾</span></summary>'+'<div style="margin-top:8px;padding:10px 14px;background:var(--bg);border:1px solid var(--border-inner);border-radius:var(--radius-sm);font-size:var(--text-xs);color:var(--text-tertiary);line-height:1.6;">'+'Gemini generated <strong style=\'color:var(--text-secondary)\'>'+kwTermCount+' search terms</strong> from '+kw.company+'\u2019s capabilities, product names, competitor names, and NAICS/PSC codes. '+'Each term was run against <strong style=\'color:var(--text-secondary)\'>USASpending.gov \/search\/spending_by_award\/</strong> filtering to contract types A–D over the trailing 12 months. '+'Results were deduplicated on Award ID and filtered by description relevance. '+'<strong style=\'color:var(--text-secondary)\'>Not included:</strong> classified contracts, sub-awards under $50K, IDIQ ceiling values without discrete award records, grants, and loans. '+'Data lags real-time by approximately 90 days.'+'<br><br>This is a <strong style=\'color:var(--text-secondary)\'>category TAM</strong>, not '+kw.company+'\u2019s revenue. For company-specific data use <a href="https://govhoo.com/?q='+encodeURIComponent(kw.company)+'" style="color:var(--accent);">Govhoo Search</a>.</div></details>';
 
   if (compareMode !== null) {
     const bEntry = analysisHistory[compareMode.b];
@@ -1264,7 +1139,7 @@ function streamArtiAction(kw, data) {
     contracts_expiring_soon: exp,
     market_fragmentation_top3_pct: data.totalSpend>0?Math.round((topV.slice(0,3).reduce((s,v)=>s+v.spend,0)/data.totalSpend)*100):0
   };
-  fetch(ENDPOINTS.AI,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_type:'govhoo_action_plan',market_data:mkt,objective:'Lead with the total_addressable_market_spend figure in your opening sentence — state it precisely and explain what it means for someone in this role. Role: '+(currentObjective==='positioning'?'federal sales representative benchmarking competitive position for ':currentObjective==='opportunity'?'federal sales representative hunting specific contract opportunities for ':'federal sales representative evaluating market entry for ')+kw.company})})
+  fetch(ENDPOINTS.AI,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_type:'govhoo_action_plan',market_data:mkt,objective:'You are sizing the FEDERAL CATEGORY TAM for '+_catLabel+'. Do NOT describe '+kw.company+' as a company. Your job: state the TAM precisely, identify which agencies dominate spend, describe who is winning contracts in this category, and surface the most valuable expiring contracts. Objective: '+(currentObjective==='positioning'?'federal sales representative benchmarking competitive position for ':currentObjective==='opportunity'?'federal sales representative hunting specific contract opportunities for ':'federal sales representative evaluating market entry for ')+kw.company})})
   .then(res=>{
     if(!res.ok||!res.body){el.textContent='Brief unavailable.';el.style.cssText='font-style:normal;color:var(--text-tertiary)';return;}
     const reader=res.body.getReader(),decoder=new TextDecoder();
