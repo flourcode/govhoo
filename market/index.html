@@ -450,34 +450,49 @@ a, button, input, select { touch-action: manipulation; }
     <div class="app-card">
       <div id="companyHeader"></div>
 
-      <!-- Arti brief — answer-first, streams in after data loads -->
-      <div class="dash-section" id="artiSection" style="margin-top:20px;">
-        <div class="dash-section-head"><h3 id="artiSectionTitle">Strategic brief</h3></div>
-        <div id="artiFullText" style="font-size:var(--text-sm);color:var(--text-secondary);line-height:1.65;"></div>
-      </div>
-
-      <!-- Data-grounded next steps -->
-      <div class="dash-section">
-        <div class="dash-section-head"><h3>Next steps</h3><span class="dash-badge" id="actionCount"></span></div>
-        <ul class="action-list" id="actionList"></ul>
-      </div>
-
+      <!-- 3. Keywords -->
       <div class="dash-section" style="margin-top:20px;">
         <div class="dash-section-head"><h3>Keywords</h3><span class="dash-badge" id="kwBadge"></span></div>
         <div class="kw-chips" id="kwChips"></div>
       </div>
-      <div class="kpi-row" id="kpiRow" style="margin-top:20px;"></div>
+
+      <!-- 4. Market Stats -->
+      <div class="kpi-row" id="kpiRow"></div>
+
+      <!-- 5. Department Spend -->
+      <div class="dash-section">
+        <div class="dash-section-head"><h3 id="agencyHeadEl">Department Spend</h3></div>
+        <div class="agency-grid" id="agencyBox"></div>
+      </div>
+
+      <!-- 6. Agency x Capability Heatmap -->
       <div class="dash-section">
         <div class="dash-section-head"><h3 id="heatHeadEl">Agency × Capability Heatmap</h3><span class="dash-badge">Spend concentration</span></div>
         <div id="heatmapBox"></div>
       </div>
+
+      <!-- 7. Vendor List -->
       <div class="dash-section">
-        <div class="dash-section-head"><h3 id="vendorHeadEl">Competitive Landscape</h3><span class="dash-badge" id="vendorBadge">Deduplicated</span></div>
+        <div class="dash-section-head"><h3 id="vendorHeadEl">Vendor List</h3><span class="dash-badge" id="vendorBadge">Deduplicated</span></div>
         <div id="vendorBox"></div>
       </div>
+
+      <!-- 8. Market Brief — streams from Arti -->
+      <div class="dash-section" id="artiSection">
+        <div class="dash-section-head"><h3 id="artiSectionTitle">Market Brief</h3></div>
+        <div id="artiFullText" style="font-size:var(--text-sm);color:var(--text-secondary);line-height:1.65;"></div>
+      </div>
+
+      <!-- 9. Your Next 30 Days — split from Arti response -->
+      <div class="dash-section" id="next30Section" style="display:none;">
+        <div class="dash-section-head"><h3>Your Next 30 Days</h3></div>
+        <div id="next30Text" style="font-size:var(--text-sm);color:var(--text-secondary);line-height:1.65;"></div>
+      </div>
+
+      <!-- 10. Next Steps — data-grounded actions -->
       <div class="dash-section">
-        <div class="dash-section-head"><h3 id="agencyHeadEl">Top Buying Agencies</h3></div>
-        <div class="agency-grid" id="agencyBox"></div>
+        <div class="dash-section-head"><h3>Next Steps</h3><span class="dash-badge" id="actionCount"></span></div>
+        <ul class="action-list" id="actionList"></ul>
       </div>
 
       <div class="dash-footer">
@@ -979,6 +994,10 @@ function streamArtiAction(kw, data) {
   const titleEl = document.getElementById('artiSectionTitle');
   if (!el) return;
   el.innerHTML = '<span style="color:var(--text-quaternary);font-style:italic">Loading Arti’s analysis…</span>';
+  const n30sec = document.getElementById('next30Section');
+  if(n30sec) n30sec.style.display = 'none';
+  const n30el = document.getElementById('next30Text');
+  if(n30el) n30el.innerHTML = '';
   const topV = data.vendors.slice(0,5).map(v=>({name:v.name,spend:v.spend,contracts:v.contracts}));
   const topA = data.agencies.slice(0,5).map(a=>({name:a.name,spend:a.spend,contracts:a.contracts}));
   const exp = data.recompetes.slice(0,5).map(r=>({vendor:normVendor(r['Recipient Name']),agency:r['Awarding Agency'],value:r['Award Amount'],end_date:r['End Date'],description:(r['Description']||'').slice(0,120)}));
@@ -1005,7 +1024,7 @@ function streamArtiAction(kw, data) {
     const reader=res.body.getReader(),decoder=new TextDecoder();
     let buf='',full='';
     el.style.cssText='font-style:normal;color:var(--text-secondary)';
-    if(titleEl){titleEl.textContent=currentObjective==='positioning'?'Competitive position brief':currentObjective==='opportunity'?'Opportunity brief':'Market entry brief';}
+    if(titleEl){titleEl.textContent=currentObjective==='positioning'?'Competitive Position Brief':currentObjective==='opportunity'?'Opportunity Brief':'Market Brief';}
     function pump(){return reader.read().then(({done,value})=>{
       if(done)return;
       buf+=decoder.decode(value,{stream:true});
@@ -1013,7 +1032,22 @@ function streamArtiAction(kw, data) {
       for(const line of lines){
         if(!line.startsWith('data: '))continue;
         try{const p=JSON.parse(line.slice(6).trim());
-          if(p.t==='chunk'&&p.text){full+=p.text;el.innerHTML=full.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>').replace(/<mark>(.*?)<\/mark>/g,'<span style="background:rgba(200,160,0,0.18);color:var(--warn-text);padding:1px 4px;border-radius:3px;font-weight:700">$1</span>');}
+          if(p.t==='chunk'&&p.text){
+              full+=p.text;
+              // Split on Arti's "Your next 30 days" heading
+              const splitRx = /\*\*Your next 30 days\*\*/i;
+              const splitIdx = full.search(splitRx);
+              const briefPart = splitIdx > -1 ? full.slice(0, splitIdx) : full;
+              const next30Part = splitIdx > -1 ? full.slice(full.indexOf('\n', splitIdx)+1) : '';
+              const fmt = t => t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>').replace(/<mark>(.*?)<\/mark>/g,'<span style="background:rgba(200,160,0,0.18);color:var(--warn-text);padding:1px 4px;border-radius:3px;font-weight:700">$1</span>');
+              el.innerHTML = fmt(briefPart);
+              const n30el = document.getElementById('next30Text');
+              const n30sec = document.getElementById('next30Section');
+              if(next30Part && n30el && n30sec){
+                n30el.innerHTML = fmt(next30Part);
+                n30sec.style.display = '';
+              }
+            }
           if(p.t==='error'){el.textContent='Brief unavailable.';el.style.color='var(--text-tertiary)';}
         }catch{}
       }
