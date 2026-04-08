@@ -840,6 +840,126 @@ function buildActions(kw, data) {
   return actions;
 }
 
+// Fetch PSC/NAICS description from USASpending reference API
+async function fetchCodeDescription(code, codeType) {
+  try {
+    if (codeType === 'psc') {
+      const res = await fetch(ENDPOINTS.PROXY, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          request_type: 'usaspending_proxy',
+          endpoint: '/references/product_or_service_codes/?product_or_service_code=' + encodeURIComponent(code),
+          payload: null
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const match = (data.results || []).find(r => r.productOrServiceCode === code || r.code === code);
+        if (match) return match.description || match.productOrServiceCodeDescription || null;
+      }
+    } else if (codeType === 'naics') {
+      const res = await fetch(ENDPOINTS.PROXY, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          request_type: 'usaspending_proxy',
+          endpoint: '/references/naics/?code=' + encodeURIComponent(code),
+          payload: null
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const match = (data.results || []).find(r => r.naics_code === code || r.code === code);
+        if (match) return match.naics_description || match.description || null;
+      }
+    }
+  } catch(e) { /* silently fall through */ }
+  return null;
+}
+
+
+async function goChip(kw, type) {
+  if (type === 'psc' || type === 'naics') {
+    // Fetch the real official description from USASpending reference API
+    const desc = await fetchCodeDescription(kw, type);
+    const label = desc || (type.toUpperCase() + ' ' + kw);
+    runDirectCodeSearch(kw, type, label);
+  } else if (type === 'combo') {
+    $('companyInput').value = kw;
+    startAnalysis();
+  } else {
+    goDash(kw);
+  }
+}
+
+async function runDirectCodeSearch(code, codeType, label) {
+  // Bypass Gemini — run the code directly against USASpending
+  // Build a synthetic kw object so the dashboard renders correctly
+  abortController = new AbortController();
+  const signal = abortController.signal;
+  $('analyzeBtn').disabled = true;
+  $('searchView').style.display = 'none';
+  $('dashboard').classList.remove('active');
+  $('phaseWrap').classList.add('active');
+  compareMode = null;
+  for (let i=1;i<=4;i++) { setPhase(i,'pending','Waiting\u2026'); $('p'+i+'n').textContent=i; }
+  setMaster(0,'Starting\u2026');
+  window.scrollTo({top:0,behavior:'smooth'});
+
+  setPhase(1,'running','Looking up '+codeType.toUpperCase()+' '+code+'\u2026');
+  setMaster(15, codeType.toUpperCase()+' '+code);
+
+  // Build synthetic keyword object
+  currentKeywords = {
+    company: code,
+    summary: label,
+    positioning: '',
+    core_keywords: [code],
+    competitors: [],
+    agency_targets: [],
+    naics_codes: codeType === 'naics' ? [code] : [],
+    psc_codes:   codeType === 'psc'   ? [code] : [],
+    psc_keyword_combos: [],
+    agency_keyword_combos: [],
+    and_combos: [],
+  };
+  const kw = currentKeywords;
+
+  setPhase(1,'done', codeType.toUpperCase()+' '+code+' — '+label);
+  setMaster(25, 'Searching USASpending\u2026');
+  setPhase(2,'done','Direct code search — no keyword expansion needed');
+
+  setPhase(3,'running','Querying USASpending for '+codeType.toUpperCase()+' '+code+'\u2026');
+  let allRaw;
+  try {
+    allRaw = await runParallel([code], MAX_CONCURRENT, signal, (done, total, term) => {
+      setMaster(25+Math.round((done/total)*55), done+'/'+total+' searches complete');
+      $('p3d').textContent = 'Searching '+term+'\u2026';
+    });
+  } catch(err) {
+    if (err.name==='AbortError') return;
+    setPhase(3,'error','<span style="color:var(--crit-text)">'+err.message+'</span>');
+    $('analyzeBtn').disabled=false; return;
+  }
+  setPhase(3,'done',allRaw.length+' results'); setMaster(82,'Aggregating\u2026');
+
+  setPhase(4,'running','Aggregating results\u2026');
+  const dedupedAll = dedup(allRaw);
+  allContracts = dedupedAll;
+  const analysis = analyzeContracts(allContracts, kw);
+  currentAnalysis = analysis;
+  setPhase(4,'done',allContracts.length+' contracts \u00b7 '+analysis.vendors.length+' vendors \u00b7 '+analysis.agencies.length+' agencies');
+  setMaster(100,'Complete');
+
+  autoSave();
+  await sleep(350);
+  $('phaseWrap').classList.remove('active');
+  showDashboard(kw, analysis, null);
+  streamArtiAction(kw, analysis);
+}
+
+
 async function startAnalysis() {
   const company = ($('companyInput').value || $('dashSearchInput').value).trim();
   if (!company) return;
@@ -958,18 +1078,18 @@ function renderDashboard(kw, data, subtitle) {
   const total = (kw.core_keywords?.length||0)+(kw.agency_targets?.length||0)+(kw.naics_codes?.length||0)+(kw.psc_codes?.length||0)+allCombos.length+(kw.competitors?.length||0);
   $('kwBadge').textContent = total+' terms';
   let chips = '';
-  (kw.core_keywords||[]).forEach(k => chips += '<button class="kw-chip kw-core kw-clickable" data-kw="'+k.replace(/"/g,'&quot;')+'">'+k+'</button>');
-  (kw.competitors||[]).forEach(k => chips += '<button class="kw-chip kw-comp kw-clickable" data-kw="'+k.replace(/"/g,'&quot;')+'">'+k+'</button>');
-  (kw.agency_targets||[]).forEach(k => chips += '<button class="kw-chip kw-agency kw-clickable" data-kw="'+k.replace(/"/g,'&quot;')+'">'+k+'</button>');
-  (kw.naics_codes||[]).forEach(k => chips += '<button class="kw-chip kw-code kw-clickable" data-kw="'+k.replace(/"/g,'&quot;')+'">'+k+'</button>');
-  (kw.psc_codes||[]).forEach(k => chips += '<button class="kw-chip kw-code kw-clickable" data-kw="'+k.replace(/"/g,'&quot;')+'">'+k+'</button>');
-  allCombos.slice(0,5).forEach(k => chips += '<button class="kw-chip kw-code kw-clickable" data-kw="'+k.replace(/"/g,'&quot;')+'">'+k+'</button>');
+  (kw.core_keywords||[]).forEach(k => chips += '<button class="kw-chip kw-core kw-clickable" data-kw="'+k.replace(/"/g,'&quot;')+'" data-kw-type="core">'+k+'</button>');
+  (kw.competitors||[]).forEach(k => chips += '<button class="kw-chip kw-comp kw-clickable" data-kw="'+k.replace(/"/g,'&quot;')+'" data-kw-type="comp">'+k+'</button>');
+  (kw.agency_targets||[]).forEach(k => chips += '<button class="kw-chip kw-agency kw-clickable" data-kw="'+k.replace(/"/g,'&quot;')+'" data-kw-type="agency">'+k+'</button>');
+  (kw.naics_codes||[]).forEach(k => chips += '<button class="kw-chip kw-code kw-clickable" data-kw="'+k.replace(/"/g,'&quot;')+'" data-kw-type="naics">'+k+'</button>');
+  (kw.psc_codes||[]).forEach(k => chips += '<button class="kw-chip kw-code kw-clickable" data-kw="'+k.replace(/"/g,'&quot;')+'" data-kw-type="psc">'+k+'</button>');
+  allCombos.slice(0,5).forEach(k => chips += '<button class="kw-chip kw-code kw-clickable" data-kw="'+k.replace(/"/g,'&quot;')+'" data-kw-type="combo">'+k+'</button>');
   if (allCombos.length > 5) chips += '<span class="kw-chip kw-code">+'+(allCombos.length-5)+' more</span>';
   $('kwChips').innerHTML = chips;
   const kwSec = $('kwSection'); if (kwSec) kwSec.style.display = '';
   // Attach click handlers to core keyword chips
   $('kwChips').querySelectorAll('.kw-clickable').forEach(btn => {
-    btn.addEventListener('click', () => goDash(btn.dataset.kw));
+    btn.addEventListener('click', () => goChip(btn.dataset.kw, btn.dataset.kwType));
   });
 
   const heads = conclusionHeadlines(kw, data);
