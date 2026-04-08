@@ -144,15 +144,6 @@ a, button, input, select { touch-action: manipulation; }
   cursor: pointer; transition: var(--transition); font-family: var(--font);
 }
 .ex-chip:hover { background: var(--chip-hover); color: var(--text-primary); }
-.obj-chip {
-  font-size: var(--text-xs); font-weight: 600;
-  padding: 6px 12px; border-radius: 9999px;
-  background: var(--chip-bg); color: var(--text-secondary);
-  border: 1px solid transparent;
-  cursor: pointer; transition: var(--transition); font-family: var(--font);
-}
-.obj-chip:hover { background: var(--chip-hover); color: var(--text-primary); }
-.obj-chip.active { background: var(--btn-bg); color: var(--btn-text); }
 
 .section-label {
   font-size: var(--text-xs); font-weight: 700; color: var(--text-quaternary);
@@ -283,8 +274,6 @@ a, button, input, select { touch-action: manipulation; }
 .rank-num { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--chip-bg); font-size: 0.66rem; font-weight: 800; }
 .bar-track { height: 4px; border-radius: 9999px; background: var(--border); min-width: 14px; }
 .bar-fill  { height: 100%; border-radius: 9999px; background: var(--accent); }
-.target-row td { font-weight: 700; color: var(--accent); }
-.target-row { background: var(--accent-dim); }
 .cmp-up   { color: var(--go-text);   font-weight: 700; }
 .cmp-down { color: var(--crit-text); font-weight: 700; }
 .cmp-new  { font-size: 0.66rem; font-weight: 700; color: var(--warn-text); background: var(--warn-bg); padding: 1px 5px; border-radius: 3px; }
@@ -405,20 +394,12 @@ a, button, input, select { touch-action: manipulation; }
     <div class="page-header">
       <div class="page-title">QuickTAM.</div>
       <div class="page-subtitle">Federal Category Market Sizing</div>
-      <div style="font-size:var(--text-sm);color:var(--text-tertiary);font-weight:400;margin-top:10px;line-height:1.65;">Enter any company name to size the federal market for their capability space. Gemini builds a keyword set, runs it against <strong style="color:var(--text-secondary);font-weight:600">USASpending.gov</strong>, and returns the category TAM — total obligated spend, active vendors, buying agencies, and expiring contracts. This is a <strong style="color:var(--text-secondary);font-weight:600">market sizing tool, not a company profile</strong>. For company-specific contract data, use <a href="/" style="color:var(--accent);font-weight:600;text-decoration:none;">Govhoo Search →</a><br><br><strong style="color:var(--text-secondary);font-weight:600">Experimental.</strong> Keyword sets are AI-generated. Validate before using in presentations or resource decisions.</div>
+      <div style="font-size:var(--text-sm);color:var(--text-tertiary);font-weight:400;margin-top:10px;line-height:1.65;">Enter <strong style="color:var(--text-secondary);font-weight:600">any keyword or company name</strong> — "Cybersecurity," "Drone," "Palantir," "Zero Trust," whatever you want to size. Gemini maps the capability space and builds a search set. Those terms run against <strong style="color:var(--text-secondary);font-weight:600">USASpending.gov</strong> to return the federal category TAM: total obligated spend, active vendors, buying agencies, and expiring contracts. For company-specific contract data, use <a href="/" style="color:var(--accent);font-weight:600;text-decoration:none;">Govhoo Search →</a><br><br><strong style="color:var(--text-secondary);font-weight:600">Experimental.</strong> Keyword sets are AI-generated. Validate before using in presentations or resource decisions.</div>
     </div>
 
     <div class="app-card">
       <div class="input-group" style="margin-bottom:10px;">
         <input type="text" class="input-field" id="companyInput" placeholder="Company name or keyword…" autocomplete="off" spellcheck="false">
-      </div>
-      <div style="margin-bottom:14px;">
-        <div class="input-label" style="margin-bottom:8px;">What are you trying to decide?</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;" id="objectiveChips">
-          <button class="obj-chip active" data-obj="entry" onclick="setObjective(this,'entry')">Size the market</button>
-          <button class="obj-chip" data-obj="positioning" onclick="setObjective(this,'positioning')">Map the competition</button>
-          <button class="obj-chip" data-obj="opportunity" onclick="setObjective(this,'opportunity')">Find expiring contracts</button>
-        </div>
       </div>
       <button class="calc-btn-primary" id="analyzeBtn" onclick="startAnalysis()">Run analysis</button>
       <div style="margin-top:10px;">
@@ -477,14 +458,6 @@ a, button, input, select { touch-action: manipulation; }
       <div class="app-card dash-full">
         <div class="input-group" style="margin-bottom:10px;">
           <input type="text" class="input-field" id="dashSearchInput" placeholder="Company name or keyword…" autocomplete="off" spellcheck="false">
-        </div>
-        <div style="margin-bottom:12px;">
-          <div class="input-label" style="margin-bottom:7px;">What are you trying to decide?</div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;" id="dashObjectiveChips">
-            <button class="obj-chip active" data-obj="entry" onclick="setObjectiveDash(this,'entry')">Size the market</button>
-            <button class="obj-chip" data-obj="positioning" onclick="setObjectiveDash(this,'positioning')">Map the competition</button>
-            <button class="obj-chip" data-obj="opportunity" onclick="setObjectiveDash(this,'opportunity')">Find expiring contracts</button>
-          </div>
         </div>
         <button class="calc-btn-primary" onclick="startFromDash()" style="margin-top:0;">Run analysis</button>
         <div style="margin-top:10px;">
@@ -554,12 +527,7 @@ a, button, input, select { touch-action: manipulation; }
       </div>
 
       <!-- Your Next 30 Days — full width, hidden until Arti streams it -->
-      <div class="app-card dash-full" id="next30Section" style="display:none;">
-        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-inner);">
-          <h3 style="font-size:var(--text-base);font-weight:800;letter-spacing:-0.01em;">Your Next 30 Days</h3>
-        </div>
-        <div id="next30Text" style="font-size:var(--text-sm);color:var(--text-secondary);line-height:1.65;"></div>
-      </div>
+    
 
       <!-- Footer -->
       <div class="dash-full" style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -581,7 +549,6 @@ const AWARD_FIELDS = ['Award ID','Recipient Name','Awarding Agency','Awarding Su
 
 let currentKeywords = null, allContracts = [], abortController = null;
 let analysisHistory = [], compareMode = null, currentAnalysis = null;
-let currentObjective = null; // 'entry' | 'positioning' | 'opportunity'
 
 const $ = id => document.getElementById(id);
 const money = n => n >= 1e9 ? '$'+(n/1e9).toFixed(1)+'B' : n >= 1e6 ? '$'+(n/1e6).toFixed(0)+'M' : n >= 1e3 ? '$'+(n/1e3).toFixed(0)+'K' : '$'+Math.round(n);
@@ -611,39 +578,18 @@ function showSearchView() {
   $('searchView').style.display = '';
   $('analyzeBtn').disabled = false;
   $('companyInput').value = '';
-  // Reset objective chips
-  currentObjective = 'entry';
-  document.querySelectorAll('#objectiveChips .obj-chip').forEach((b,i)=>b.classList.toggle('active',i===0));
-  document.querySelectorAll('#dashObjectiveChips .obj-chip').forEach((b,i)=>b.classList.toggle('active',i===0));
   for (let i = 1; i <= 4; i++) { setPhase(i, 'pending', 'Waiting\u2026'); $('p'+i+'n').textContent = i; }
   setMaster(0, 'Starting\u2026');
   window.scrollTo({ top: 0, behavior: 'smooth' });
   renderHistory();
 }
 
-function setObjective(btn, obj) {
-  currentObjective = obj;
-  document.querySelectorAll('#objectiveChips .obj-chip').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  // Keep dash chips in sync
-  document.querySelectorAll('#dashObjectiveChips .obj-chip').forEach(b => b.classList.toggle('active', b.dataset.obj === obj));
-}
 
-function setObjectiveDash(btn, obj) {
-  currentObjective = obj;
-  document.querySelectorAll('#dashObjectiveChips .obj-chip').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  // Keep search view chips in sync
-  document.querySelectorAll('#objectiveChips .obj-chip').forEach(b => b.classList.toggle('active', b.dataset.obj === obj));
-}
 
 function goDash(name) {
   $('dashSearchInput').value = name;
   startFromDash();
 }
-// Default objective on load
-currentObjective = 'entry';
-
 function go(name) { $('companyInput').value = name; startAnalysis(); }
 
 function startFromDash() {
@@ -829,13 +775,7 @@ function analyzeContracts(contracts, keywords) {
     if (c['Awarding Agency']) v.agencies.add(c['Awarding Agency']);
   }
   let vendors = [...vendorMap.values()].map(v => ({...v, agencies:v.agencies.size})).sort((a,b) => b.spend-a.spend);
-  const top15 = vendors.slice(0,15);
-  if (!top15.some(v => v.name.toLowerCase().includes(companyName)) && companyName) {
-    const t = vendors.find(v => v.name.toLowerCase().includes(companyName));
-    if (t) { t.isTarget = true; top15.push(t); }
-    else top15.push({name:keywords.company, spend:0, contracts:0, agencies:0, isTarget:true, notFound:true});
-  }
-  vendors = top15;
+  vendors = vendors.slice(0,15);
   const agencyMap = new Map();
   for (const c of contracts) {
     const name = c['Awarding Agency']||'Unknown';
@@ -1015,7 +955,7 @@ function renderDashboard(kw, data, subtitle) {
   const kwTermCount = ((kw.core_keywords||[]).length+(kw.agency_targets||[]).length+(kw.naics_codes||[]).length+(kw.psc_codes||[]).length+((kw.psc_keyword_combos||[]).concat(kw.agency_keyword_combos||[]).concat(kw.and_combos||[])).length+(kw.competitors||[]).length);
     const _catLabel = (kw.core_keywords||[]).slice(0,3).join(' · ') || kw.company;
   $('companyHeader').innerHTML =
-    '<div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px;">'+'<div>'+'<div style="font-size:var(--text-xs);font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Federal Category TAM</div>'+'<div style="font-size:var(--text-xl);font-weight:800;letter-spacing:-0.025em;line-height:1.15;">'+_catLabel+'</div>'+'<div style="font-size:var(--text-sm);color:var(--text-tertiary);margin-top:4px;">Analyzed for <strong style=\'color:var(--text-secondary)\'>'+kw.company+'</strong></div>'+'</div>'+'<span style="font-size:var(--text-xs);color:var(--text-quaternary);flex-shrink:0;">'+ts+'</span></div>' +
+    '<div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px;">'+'<div>'+'<div style="font-size:var(--text-xs);font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Federal Category TAM</div>'+'<div style="font-size:var(--text-xl);font-weight:800;letter-spacing:-0.025em;line-height:1.15;">'+_catLabel+'</div>'+'<div style="font-size:var(--text-sm);color:var(--text-tertiary);margin-top:4px;">Keyword: <strong style=\'color:var(--text-secondary)\'>'+kw.company+'</strong></div>'+'</div>'+'<span style="font-size:var(--text-xs);color:var(--text-quaternary);flex-shrink:0;">'+ts+'</span></div>' +
     '<div style="font-size:var(--text-sm);color:var(--text-tertiary);line-height:1.5;margin-top:8px;margin-bottom:20px;">'+(kw.summary||'')+'</div>' +
     '<div style="padding:16px 18px;background:var(--bg);border:1px solid var(--border-inner);border-radius:var(--radius-sm);margin-bottom:8px;">'+'<div style="font-size:var(--text-xs);font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;">Category TAM · Trailing 12 Mo.</div>'+'<div style="font-size:clamp(2rem,5vw,3rem);font-weight:900;letter-spacing:-0.04em;line-height:1;font-variant-numeric:tabular-nums;">'+money(data.totalSpend)+'</div>'+'<div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:5px;">'+data.totalContracts.toLocaleString()+' contracts · '+data.vendors.length+' vendors · aggregate spend across all capability keywords — not '+kw.company+'\u2019s revenue</div>'+'</div>'+'<div style="margin-top:6px;">'+'<a href="https://govhoo.com/?q='+encodeURIComponent(kw.company)+'" target="_blank" rel="noopener" style="font-size:var(--text-xs);font-weight:600;color:var(--accent);text-decoration:none;padding:5px 10px;border:1px solid rgba(43,108,176,0.25);border-radius:var(--radius-sm);background:var(--accent-dim);display:inline-flex;align-items:center;gap:4px;">'+kw.company+' in Govhoo Search →</a>'+'</div>' +
     '<details style="margin-top:14px;">'+'<summary style="font-size:var(--text-xs);font-weight:600;color:var(--text-quaternary);cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:4px;">'+'<span>Methodology</span><span style="font-size:0.6rem">▾</span></summary>'+'<div style="margin-top:8px;padding:10px 14px;background:var(--bg);border:1px solid var(--border-inner);border-radius:var(--radius-sm);font-size:var(--text-xs);color:var(--text-tertiary);line-height:1.6;">'+'Gemini generated <strong style=\'color:var(--text-secondary)\'>'+kwTermCount+' search terms</strong> from '+kw.company+'\u2019s capabilities, product names, competitor names, and NAICS/PSC codes. '+'Each term was run against <strong style=\'color:var(--text-secondary)\'>USASpending.gov \/search\/spending_by_award\/</strong> filtering to contract types A–D over the trailing 12 months. '+'Results were deduplicated on Award ID and filtered by description relevance. '+'<strong style=\'color:var(--text-secondary)\'>Not included:</strong> classified contracts, sub-awards under $50K, IDIQ ceiling values without discrete award records, grants, and loans. '+'Data lags real-time by approximately 90 days.'+'<br><br>This is a <strong style=\'color:var(--text-secondary)\'>category TAM</strong>, not '+kw.company+'\u2019s revenue. For company-specific data use <a href="https://govhoo.com/?q='+encodeURIComponent(kw.company)+'" style="color:var(--accent);">Govhoo Search</a>.</div></details>';
@@ -1117,10 +1057,6 @@ function streamArtiAction(kw, data) {
   const titleEl = document.getElementById('artiSectionTitle');
   if (!el) return;
   el.innerHTML = '<span style="color:var(--text-quaternary);font-style:italic">Loading Arti’s analysis…</span>';
-  const n30sec = document.getElementById('next30Section');
-  if(n30sec) n30sec.style.display = 'none';
-  const n30el = document.getElementById('next30Text');
-  if(n30el) n30el.innerHTML = '';
   const topV = data.vendors.slice(0,5).map(v=>({name:v.name,spend:v.spend,contracts:v.contracts}));
   const topA = data.agencies.slice(0,5).map(a=>({name:a.name,spend:a.spend,contracts:a.contracts}));
   const exp = data.recompetes.slice(0,5).map(r=>({vendor:normVendor(r['Recipient Name']),agency:r['Awarding Agency'],value:r['Award Amount'],end_date:r['End Date'],description:(r['Description']||'').slice(0,120)}));
@@ -1132,9 +1068,9 @@ function streamArtiAction(kw, data) {
     CRITICAL_DATA_NOTE: 'RULES YOU MUST FOLLOW: (1) total_addressable_market_spend is the TAM for the entire capability category — NOT the target company revenue. State it as TAM, not company revenue. (2) The target company spend is ONLY in target_company_federal_spend — use that number for the company footprint. (3) NEVER name or recommend any vendor, agency, contract, or opportunity not present in top_vendors_by_federal_spend, top_buying_agencies, or contracts_expiring_soon. Do not invent SIs, primes, or partners. Every recommendation must cite a specific name and dollar amount from this payload. (4) State the target company market share as a percentage of TAM — divide target_company_federal_spend by total_addressable_market_spend.',
     total_addressable_market_spend: data.totalSpend,
     total_addressable_market_contracts: data.totalContracts,
-    target_company_federal_spend: targetVendor && !targetVendor.notFound ? targetVendor.spend : 0,
-    target_company_market_share_pct: (targetVendor && !targetVendor.notFound && data.totalSpend > 0) ? Math.round((targetVendor.spend / data.totalSpend) * 100 * 10) / 10 : 0,
-    target_company_found_in_results: targetVendor ? !targetVendor.notFound : false,
+    target_company_federal_spend: targetVendor ? targetVendor.spend : 0,
+    target_company_market_share_pct: (targetVendor && data.totalSpend > 0) ? Math.round((targetVendor.spend / data.totalSpend) * 100 * 10) / 10 : 0,
+    target_company_found_in_results: targetVendor ? true : false,
     search_keywords_used: kw.core_keywords,
     competitor_names_searched: (kw.competitors||[]).slice(0,8),
     top_vendors_by_federal_spend: topV,
@@ -1142,13 +1078,13 @@ function streamArtiAction(kw, data) {
     contracts_expiring_soon: exp,
     market_fragmentation_top3_pct: data.totalSpend>0?Math.round((topV.slice(0,3).reduce((s,v)=>s+v.spend,0)/data.totalSpend)*100):0
   };
-  fetch(ENDPOINTS.AI,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_type:'govhoo_action_plan',market_data:mkt,objective:'You are sizing the FEDERAL CATEGORY TAM for '+((kw.core_keywords||[]).slice(0,3).join(' · ')||kw.company)+'. Do NOT describe '+kw.company+' as a company. Your job: state the TAM precisely, identify which agencies dominate spend, describe who is winning contracts in this category, and surface the most valuable expiring contracts. Objective: '+(currentObjective==='positioning'?'federal sales representative benchmarking competitive position for ':currentObjective==='opportunity'?'federal sales representative hunting specific contract opportunities for ':'federal sales representative evaluating market entry for ')+kw.company})})
+  fetch(ENDPOINTS.AI,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_type:'govhoo_action_plan',market_data:mkt,objective:'You are sizing the FEDERAL CATEGORY TAM for the capability space: '+((kw.core_keywords||[]).slice(0,3).join(' · ')||kw.company)+'. State the TAM precisely, identify which agencies dominate spend, describe who is winning contracts in this category, and surface the most valuable expiring contracts. Do not personalize to any company.'})})
   .then(res=>{
     if(!res.ok||!res.body){el.textContent='Brief unavailable.';el.style.cssText='font-style:normal;color:var(--text-tertiary)';return;}
     const reader=res.body.getReader(),decoder=new TextDecoder();
     let buf='',full='';
     el.style.cssText='font-style:normal;color:var(--text-secondary)';
-    if(titleEl){titleEl.textContent=currentObjective==='positioning'?'Competitive Position Brief':currentObjective==='opportunity'?'Opportunity Brief':'Market Brief';}
+    if(titleEl){titleEl.textContent='Market Brief';}
     function pump(){return reader.read().then(({done,value})=>{
       if(done)return;
       buf+=decoder.decode(value,{stream:true});
@@ -1158,19 +1094,10 @@ function streamArtiAction(kw, data) {
         try{const p=JSON.parse(line.slice(6).trim());
           if(p.t==='chunk'&&p.text){
               full+=p.text;
-              // Split on Arti's "Your next 30 days" heading
-              const splitRx = /\*\*Your next 30 days\*\*/i;
-              const splitIdx = full.search(splitRx);
-              const briefPart = splitIdx > -1 ? full.slice(0, splitIdx) : full;
-              const next30Part = splitIdx > -1 ? full.slice(full.indexOf('\n', splitIdx)+1) : '';
               const fmt = t => t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>').replace(/<mark>(.*?)<\/mark>/g,'<span style="background:rgba(200,160,0,0.18);color:var(--warn-text);padding:1px 4px;border-radius:3px;font-weight:700">$1</span>');
-              el.innerHTML = fmt(briefPart);
-              const n30el = document.getElementById('next30Text');
-              const n30sec = document.getElementById('next30Section');
-              if(next30Part && n30el && n30sec){
-                n30el.innerHTML = fmt(next30Part);
-                n30sec.style.display = '';
-              }
+              // Strip "Your next 30 days" section — not relevant for TAM sizing
+              const splitIdx = full.search(/\*\*Your next 30 days\*\*/i);
+              el.innerHTML = fmt(splitIdx > -1 ? full.slice(0, splitIdx) : full);
             }
           if(p.t==='error'){el.textContent='Brief unavailable.';el.style.color='var(--text-tertiary)';}
         }catch{}
@@ -1189,17 +1116,14 @@ function renderVendorTable(vendors, kw, cmpData) {
   const extraTh = hasCompare ? '<th>vs prior</th>' : '';
   let html = '<table class="data-table"><thead><tr><th>#</th><th>Vendor</th><th>Spend</th><th>Share</th><th>Contracts</th><th>Agencies</th>'+extraTh+'</tr></thead><tbody>';
   vendors.forEach((v, i) => {
-    const isTarget = v.isTarget||v.name.toLowerCase().includes(companyName);
-    const rank = isTarget&&i>=15?'\u2014':i+1;
-    const spendLabel = v.notFound?'<span style="color:var(--text-quaternary);font-style:italic">Not found</span>':money(v.spend);
     const barPct = Math.round((v.spend/maxS)*100);
     let cmpCell = '';
     if (hasCompare) {
       const prevV = cmpData.vendors.find(x => x.name.toLowerCase()===v.name.toLowerCase());
-      if (!prevV||v.notFound) cmpCell = '<td><span class="cmp-new">NEW</span></td>';
+      if (!prevV) cmpCell = '<td><span class="cmp-new">NEW</span></td>';
       else { const d=deltaPct(v.spend,prevV.spend); cmpCell = d===null||d===0?'<td style="color:var(--text-quaternary)">\u2014</td>':'<td class="'+(d>0?'cmp-up':'cmp-down')+'">'+(d>0?'+':'')+d+'%</td>'; }
     }
-    html += '<tr class="'+(isTarget?'target-row':'')+'"><td><span class="rank-num">'+rank+'</span></td><td style="font-weight:'+(isTarget?800:500)+';max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+v.name+(isTarget&&i>=15?' <span style="font-size:0.62rem;font-weight:400;color:var(--text-quaternary)">(your co.)</span>':'')+'</td><td style="font-weight:700;font-variant-numeric:tabular-nums">'+spendLabel+'</td><td><div class="bar-track" style="width:56px"><div class="bar-fill" style="width:'+barPct+'%;'+(isTarget?'background:var(--crit-text)':'')+'"></div></div></td><td>'+(v.notFound?'\u2014':v.contracts)+'</td><td>'+(v.notFound?'\u2014':v.agencies)+'</td>'+cmpCell+'</tr>';
+    html += '<tr><td><span class="rank-num">'+(i+1)+'</span></td><td style="font-weight:500;max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+v.name+'</td><td style="font-weight:700;font-variant-numeric:tabular-nums">'+money(v.spend)+'</td><td><div class="bar-track" style="width:56px"><div class="bar-fill" style="width:'+barPct+'%"></div></div></td><td>'+v.contracts+'</td><td>'+v.agencies+'</td>'+cmpCell+'</tr>';
   });
   $('vendorBox').innerHTML = '<div class="data-table-wrap">'+html+'</tbody></table></div>';
 }
