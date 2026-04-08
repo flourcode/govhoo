@@ -331,20 +331,16 @@ a, button, input, select { touch-action: manipulation; }
   .toast.show { transform: translateY(0); }
 }
 /* ── MARKET GRID (tools.html pattern) ── */
-.tools-grid {
-  columns: 6 340px;
-  column-gap: 18px;
+.dash-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
 }
-.tools-grid > * {
-  break-inside: avoid;
-  -webkit-column-break-inside: avoid;
-  margin-bottom: 18px;
-  display: inline-block;
-  width: 100%;
-}
-.tools-grid > .span-all {
-  column-span: all;
-  display: block;
+.dash-layout > * { min-width: 0; }
+.dash-full { grid-column: 1 / -1; }
+@media (max-width: 700px) {
+  .dash-layout { grid-template-columns: 1fr; }
+  .dash-full { grid-column: 1; }
 }
 
 /* ── STAT STRIP ── */
@@ -473,10 +469,10 @@ a, button, input, select { touch-action: manipulation; }
       <button class="compare-notice-dismiss" onclick="clearCompare()">Exit compare</button>
     </div>
 
-    <div class="tools-grid">
+    <div class="dash-layout">
 
-      <!-- Search card — same as landing page -->
-      <div class="app-card span-all">
+      <!-- Search — full width -->
+      <div class="app-card dash-full">
         <div class="input-group" style="margin-bottom:10px;">
           <input type="text" class="input-field" id="dashSearchInput" placeholder="Company name…" autocomplete="off" spellcheck="false">
         </div>
@@ -502,13 +498,13 @@ a, button, input, select { touch-action: manipulation; }
         </div>
       </div>
 
-      <!-- Company header card — market title, TAM, footprint -->
-      <div class="app-card span-all" id="companyHeaderCard">
+      <!-- Company header — full width -->
+      <div class="app-card dash-full" id="companyHeaderCard">
         <div id="companyHeader"></div>
       </div>
 
-      <!-- Keywords card -->
-      <div class="app-card span-all">
+      <!-- Keywords — full width -->
+      <div class="app-card dash-full">
         <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px;">
           <h3 style="font-size:var(--text-base);font-weight:800;letter-spacing:-0.01em;">Keywords</h3>
           <span class="dash-badge" id="kwBadge"></span>
@@ -516,12 +512,12 @@ a, button, input, select { touch-action: manipulation; }
         <div class="kw-chips" id="kwChips"></div>
       </div>
 
-      <!-- Stat strip — full width -->
+      <!-- Stats — left col -->
       <div class="app-card" style="padding:0;overflow:hidden;">
         <div class="stat-strip" id="statStrip" style="border:none;border-radius:0;"></div>
       </div>
 
-      <!-- Department spend card -->
+      <!-- Department spend — right col -->
       <div class="app-card">
         <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-inner);">
           <h3 style="font-size:var(--text-base);font-weight:800;letter-spacing:-0.01em;" id="agencyHeadEl">Department Spend</h3>
@@ -529,8 +525,8 @@ a, button, input, select { touch-action: manipulation; }
         <div class="agency-bars" id="agencyBox"></div>
       </div>
 
-      <!-- Market Brief card — streams from Arti -->
-      <div class="app-card span-all" id="artiSection">
+      <!-- Market Brief — full width -->
+      <div class="app-card dash-full" id="artiSection">
         <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-inner);">
           <h3 style="font-size:var(--text-base);font-weight:800;letter-spacing:-0.01em;" id="artiSectionTitle">Market Brief</h3>
         </div>
@@ -538,7 +534,7 @@ a, button, input, select { touch-action: manipulation; }
       </div>
 
       <!-- Agency × Capability — full width -->
-      <div class="app-card span-all">
+      <div class="app-card dash-full">
         <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-inner);">
           <h3 style="font-size:var(--text-base);font-weight:800;letter-spacing:-0.01em;" id="heatHeadEl">Agency × Capability</h3>
         </div>
@@ -546,7 +542,7 @@ a, button, input, select { touch-action: manipulation; }
       </div>
 
       <!-- Vendor list — full width -->
-      <div class="app-card span-all">
+      <div class="app-card dash-full">
         <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-inner);">
           <h3 style="font-size:var(--text-base);font-weight:800;letter-spacing:-0.01em;" id="vendorHeadEl">Vendor List</h3>
           <span class="dash-badge" id="vendorBadge">Deduplicated</span>
@@ -554,8 +550,8 @@ a, button, input, select { touch-action: manipulation; }
         <div id="vendorBox"></div>
       </div>
 
-      <!-- Your Next 30 Days -->
-      <div class="app-card span-all" id="next30Section" style="display:none;">
+      <!-- Your Next 30 Days — full width, hidden until Arti streams it -->
+      <div class="app-card dash-full" id="next30Section" style="display:none;">
         <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-inner);">
           <h3 style="font-size:var(--text-base);font-weight:800;letter-spacing:-0.01em;">Your Next 30 Days</h3>
         </div>
@@ -563,13 +559,12 @@ a, button, input, select { touch-action: manipulation; }
       </div>
 
       <!-- Footer -->
-      <div class="span-all" style="display:flex;gap:8px;flex-wrap:wrap;padding-top:4px;">
+      <div class="dash-full" style="display:flex;gap:8px;flex-wrap:wrap;">
         <button class="calc-btn-primary" style="width:auto;padding:0 20px;margin-top:0;" onclick="exportCSV()">Export CSV</button>
         <button class="btn-secondary" onclick="showSearchView()">New analysis</button>
       </div>
 
-    </div><!-- /tools-grid -->
-  </div><!-- /page-wrap -->
+    </div><!-- /dash-layout -->  </div><!-- /page-wrap -->
 </div>
 
 <script>
