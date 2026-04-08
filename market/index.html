@@ -350,7 +350,7 @@ a, button, input, select { touch-action: manipulation; }
 /* ── STAT STRIP ── */
 .stat-strip {
   display: grid;
-  grid-template-columns: repeat(4,1fr);
+  grid-template-columns: 1fr 1fr;
   gap: 1px;
   background: var(--border-inner);
   border: 1px solid var(--border-inner);
@@ -383,7 +383,6 @@ a, button, input, select { touch-action: manipulation; }
 .akm-empty { color: var(--border); font-weight: 400; }
 
 @media (max-width: 640px) {
-  .stat-strip { grid-template-columns: 1fr 1fr; }
   .agency-bar-name { width: 80px; }
 }
 
@@ -509,7 +508,7 @@ a, button, input, select { touch-action: manipulation; }
       </div>
 
       <!-- Keywords card -->
-      <div class="app-card span-all">
+      <div class="app-card">
         <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px;">
           <h3 style="font-size:var(--text-base);font-weight:800;letter-spacing:-0.01em;">Keywords</h3>
           <span class="dash-badge" id="kwBadge"></span>
@@ -518,7 +517,7 @@ a, button, input, select { touch-action: manipulation; }
       </div>
 
       <!-- Stat strip — full width -->
-      <div class="app-card span-all" style="padding:0;overflow:hidden;">
+      <div class="app-card" style="padding:0;overflow:hidden;">
         <div class="stat-strip" id="statStrip" style="border:none;border-radius:0;"></div>
       </div>
 
@@ -546,8 +545,8 @@ a, button, input, select { touch-action: manipulation; }
         <div id="heatmapBox"></div>
       </div>
 
-      <!-- Vendor list — full width -->
-      <div class="app-card span-all">
+      <!-- Vendor list -->
+      <div class="app-card">
         <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-inner);">
           <h3 style="font-size:var(--text-base);font-weight:800;letter-spacing:-0.01em;" id="vendorHeadEl">Vendor List</h3>
           <span class="dash-badge" id="vendorBadge">Deduplicated</span>
@@ -555,8 +554,8 @@ a, button, input, select { touch-action: manipulation; }
         <div id="vendorBox"></div>
       </div>
 
-      <!-- Your Next 30 Days — full width, hidden until Arti streams it -->
-      <div class="app-card span-all" id="next30Section" style="display:none;">
+      <!-- Your Next 30 Days -->
+      <div class="app-card" id="next30Section" style="display:none;">
         <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-inner);">
           <h3 style="font-size:var(--text-base);font-weight:800;letter-spacing:-0.01em;">Your Next 30 Days</h3>
         </div>
