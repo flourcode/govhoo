@@ -276,7 +276,7 @@ a, button, input, select { touch-action: manipulation; }
 
 .data-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
 .data-table th { text-align: left; font-size: var(--text-xs); font-weight: 700; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; padding: 6px 8px; border-bottom: 1px solid var(--border); }
-.data-table td { padding: 8px; border-bottom: 1px solid var(--border-inner); }
+.data-table td { padding: 7px 8px; border-bottom: 1px solid var(--border-inner); vertical-align: middle; }
 .data-table tr:hover td { background: var(--bg-hover); }
 .data-table tr:last-child td { border-bottom: none; }
 .rank-num { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--chip-bg); font-size: 0.66rem; font-weight: 800; }
@@ -545,8 +545,8 @@ a, button, input, select { touch-action: manipulation; }
         <div id="heatmapBox"></div>
       </div>
 
-      <!-- Vendor list -->
-      <div class="app-card">
+      <!-- Vendor list — full width -->
+      <div class="app-card span-all">
         <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-inner);">
           <h3 style="font-size:var(--text-base);font-weight:800;letter-spacing:-0.01em;" id="vendorHeadEl">Vendor List</h3>
           <span class="dash-badge" id="vendorBadge">Deduplicated</span>
@@ -555,7 +555,7 @@ a, button, input, select { touch-action: manipulation; }
       </div>
 
       <!-- Your Next 30 Days -->
-      <div class="app-card" id="next30Section" style="display:none;">
+      <div class="app-card span-all" id="next30Section" style="display:none;">
         <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-inner);">
           <h3 style="font-size:var(--text-base);font-weight:800;letter-spacing:-0.01em;">Your Next 30 Days</h3>
         </div>
@@ -1314,7 +1314,7 @@ function renderVendorTable(vendors, kw, cmpData) {
   $('vendorBadge').textContent = hasCompare ? 'vs '+(analysisHistory[compareMode?.b]?.company||'?') : 'Deduplicated';
   const maxS = vendors[0]?.spend||1;
   const extraTh = hasCompare ? '<th>vs prior</th>' : '';
-  let html = '<table class="data-table"><thead><tr><th>#</th><th>Vendor</th><th>Spend (12 mo)</th><th>Share</th><th>Contracts</th><th>Agencies</th>'+extraTh+'</tr></thead><tbody>';
+  let html = '<table class="data-table"><thead><tr><th>#</th><th>Vendor</th><th>Spend</th><th>Share</th><th>Contracts</th><th>Agencies</th>'+extraTh+'</tr></thead><tbody>';
   vendors.forEach((v, i) => {
     const isTarget = v.isTarget||v.name.toLowerCase().includes(companyName);
     const rank = isTarget&&i>=15?'\u2014':i+1;
@@ -1326,7 +1326,7 @@ function renderVendorTable(vendors, kw, cmpData) {
       if (!prevV||v.notFound) cmpCell = '<td><span class="cmp-new">NEW</span></td>';
       else { const d=deltaPct(v.spend,prevV.spend); cmpCell = d===null||d===0?'<td style="color:var(--text-quaternary)">\u2014</td>':'<td class="'+(d>0?'cmp-up':'cmp-down')+'">'+(d>0?'+':'')+d+'%</td>'; }
     }
-    html += '<tr class="'+(isTarget?'target-row':'')+'"><td><span class="rank-num">'+rank+'</span></td><td style="font-weight:'+(isTarget?800:500)+'">'+v.name+(isTarget&&i>=15?' <span style="font-size:0.62rem;font-weight:400;color:var(--text-quaternary)">(your co.)</span>':'')+'</td><td style="font-weight:700;font-variant-numeric:tabular-nums">'+spendLabel+'</td><td><div class="bar-track" style="width:72px"><div class="bar-fill" style="width:'+barPct+'%;'+(isTarget?'background:var(--crit-text)':'')+'"></div></div></td><td>'+(v.notFound?'\u2014':v.contracts)+'</td><td>'+(v.notFound?'\u2014':v.agencies)+'</td>'+cmpCell+'</tr>';
+    html += '<tr class="'+(isTarget?'target-row':'')+'"><td><span class="rank-num">'+rank+'</span></td><td style="font-weight:'+(isTarget?800:500)+';max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+v.name+(isTarget&&i>=15?' <span style="font-size:0.62rem;font-weight:400;color:var(--text-quaternary)">(your co.)</span>':'')+'</td><td style="font-weight:700;font-variant-numeric:tabular-nums">'+spendLabel+'</td><td><div class="bar-track" style="width:56px"><div class="bar-fill" style="width:'+barPct+'%;'+(isTarget?'background:var(--crit-text)':'')+'"></div></div></td><td>'+(v.notFound?'\u2014':v.contracts)+'</td><td>'+(v.notFound?'\u2014':v.agencies)+'</td>'+cmpCell+'</tr>';
   });
   $('vendorBox').innerHTML = html+'</tbody></table>';
 }
