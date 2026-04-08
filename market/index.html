@@ -463,18 +463,7 @@ a, button, input, select { touch-action: manipulation; }
           <input type="text" class="input-field" id="dashSearchInput" placeholder="Keyword or company name…" autocomplete="off" spellcheck="false">
         </div>
         <button class="calc-btn-primary" onclick="startFromDash()" style="margin-top:0;">Run analysis</button>
-        <div style="margin-top:10px;" id="dashChipsWrap">
-          <div class="input-label" style="margin-bottom:6px;" id="dashChipsLabel">Try a keyword or company</div>
-          <div class="chip-row" id="dashChips">
-            <button class="ex-chip" onclick="goDash('Cybersecurity')">Cybersecurity</button>
-            <button class="ex-chip" onclick="goDash('Cloud Computing')">Cloud Computing</button>
-            <button class="ex-chip" onclick="goDash('Artificial Intelligence')">AI</button>
-            <button class="ex-chip" onclick="goDash('Zero Trust')">Zero Trust</button>
-            <button class="ex-chip" onclick="goDash('Palantir')">Palantir</button>
-            <button class="ex-chip" onclick="goDash('Logistics')">Logistics</button>
-            <button class="ex-chip" onclick="goDash('Drone')">Drone</button>
-          </div>
-        </div>
+
       </div>
 
       <!-- 1. Keywords — full width -->
@@ -947,27 +936,6 @@ function conclusionHeadlines(kw, data) {
   return { vendorHead, agencyHead, heatHead };
 }
 
-function updateDashChips(kw) {
-  const container = document.getElementById('dashChips');
-  const label = document.getElementById('dashChipsLabel');
-  if (!container || !kw) return;
-
-  const codeRx = /^\d{6}$|^[A-Z0-9]{4}$/i;
-  const safe = (kw.core_keywords || [])
-    .filter(k => k && k.length >= 3 && !codeRx.test(k.trim()))
-    .slice(0, 10);
-
-  if (safe.length === 0) return;
-
-  if (label) label.textContent = 'Related searches';
-  container.innerHTML = safe
-    .map(k => '<button class="ex-chip">' + k + '</button>')
-    .join('');
-
-  Array.from(container.querySelectorAll('.ex-chip')).forEach((btn, i) => {
-    btn.addEventListener('click', () => goDash(safe[i]));
-  });
-}
 
 function renderDashboard(kw, data, subtitle) {
   const ts = subtitle || new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
@@ -1001,7 +969,6 @@ function renderDashboard(kw, data, subtitle) {
   $('kwChips').querySelectorAll('.kw-clickable').forEach(btn => {
     btn.addEventListener('click', () => goDash(btn.dataset.kw));
   });
-  updateDashChips(kw);
 
   const heads = conclusionHeadlines(kw, data);
   const cmpData = compareMode !== null ? analysisHistory[compareMode.b]?.analysis : null;
