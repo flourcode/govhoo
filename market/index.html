@@ -274,7 +274,8 @@ a, button, input, select { touch-action: manipulation; }
 .kw-agency { color: var(--accent); border-color: rgba(43,108,176,0.25); background: var(--accent-dim); }
 
 
-.data-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
+.data-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.data-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); min-width: 420px; }
 .data-table th { text-align: left; font-size: var(--text-xs); font-weight: 700; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; padding: 6px 8px; border-bottom: 1px solid var(--border); }
 .data-table td { padding: 7px 8px; border-bottom: 1px solid var(--border-inner); vertical-align: middle; }
 .data-table tr:hover td { background: var(--bg-hover); }
@@ -409,7 +410,7 @@ a, button, input, select { touch-action: manipulation; }
 
     <div class="app-card">
       <div class="input-group" style="margin-bottom:10px;">
-        <input type="text" class="input-field" id="companyInput" placeholder="Company name…" autocomplete="off" spellcheck="false">
+        <input type="text" class="input-field" id="companyInput" placeholder="Company name or keyword…" autocomplete="off" spellcheck="false">
       </div>
       <div style="margin-bottom:14px;">
         <div class="input-label" style="margin-bottom:8px;">What are you trying to decide?</div>
@@ -421,14 +422,15 @@ a, button, input, select { touch-action: manipulation; }
       </div>
       <button class="calc-btn-primary" id="analyzeBtn" onclick="startAnalysis()">Run analysis</button>
       <div style="margin-top:10px;">
+        <div class="input-label" style="margin-bottom:6px;">Try a keyword or company</div>
         <div class="chip-row" id="exampleChips">
-          <button class="ex-chip" onclick="go('SentinelOne')">SentinelOne</button>
+          <button class="ex-chip" onclick="go('Cybersecurity')">Cybersecurity</button>
+          <button class="ex-chip" onclick="go('Cloud Computing')">Cloud Computing</button>
+          <button class="ex-chip" onclick="go('Artificial Intelligence')">AI</button>
+          <button class="ex-chip" onclick="go('Zero Trust')">Zero Trust</button>
           <button class="ex-chip" onclick="go('Palantir')">Palantir</button>
-          <button class="ex-chip" onclick="go('Snowflake')">Snowflake</button>
-          <button class="ex-chip" onclick="go('Anduril')">Anduril</button>
-          <button class="ex-chip" onclick="go('Databricks')">Databricks</button>
-          <button class="ex-chip" onclick="go('Zscaler')">Zscaler</button>
-          <button class="ex-chip" onclick="go('CrowdStrike')">CrowdStrike</button>
+          <button class="ex-chip" onclick="go('Logistics')">Logistics</button>
+          <button class="ex-chip" onclick="go('Drone')">Drone</button>
         </div>
       </div>
     </div>
@@ -474,7 +476,7 @@ a, button, input, select { touch-action: manipulation; }
       <!-- Search — full width -->
       <div class="app-card dash-full">
         <div class="input-group" style="margin-bottom:10px;">
-          <input type="text" class="input-field" id="dashSearchInput" placeholder="Company name…" autocomplete="off" spellcheck="false">
+          <input type="text" class="input-field" id="dashSearchInput" placeholder="Company name or keyword…" autocomplete="off" spellcheck="false">
         </div>
         <div style="margin-bottom:12px;">
           <div class="input-label" style="margin-bottom:7px;">What are you trying to decide?</div>
@@ -486,14 +488,15 @@ a, button, input, select { touch-action: manipulation; }
         </div>
         <button class="calc-btn-primary" onclick="startFromDash()" style="margin-top:0;">Run analysis</button>
         <div style="margin-top:10px;">
+          <div class="input-label" style="margin-bottom:6px;">Try a keyword or company</div>
           <div class="chip-row">
-            <button class="ex-chip" onclick="goDash('SentinelOne')">SentinelOne</button>
+            <button class="ex-chip" onclick="goDash('Cybersecurity')">Cybersecurity</button>
+            <button class="ex-chip" onclick="goDash('Cloud Computing')">Cloud Computing</button>
+            <button class="ex-chip" onclick="goDash('Artificial Intelligence')">AI</button>
+            <button class="ex-chip" onclick="goDash('Zero Trust')">Zero Trust</button>
             <button class="ex-chip" onclick="goDash('Palantir')">Palantir</button>
-            <button class="ex-chip" onclick="goDash('Snowflake')">Snowflake</button>
-            <button class="ex-chip" onclick="goDash('Anduril')">Anduril</button>
-            <button class="ex-chip" onclick="goDash('Databricks')">Databricks</button>
-            <button class="ex-chip" onclick="goDash('Zscaler')">Zscaler</button>
-            <button class="ex-chip" onclick="goDash('CrowdStrike')">CrowdStrike</button>
+            <button class="ex-chip" onclick="goDash('Logistics')">Logistics</button>
+            <button class="ex-chip" onclick="goDash('Drone')">Drone</button>
           </div>
         </div>
       </div>
@@ -1198,7 +1201,7 @@ function renderVendorTable(vendors, kw, cmpData) {
     }
     html += '<tr class="'+(isTarget?'target-row':'')+'"><td><span class="rank-num">'+rank+'</span></td><td style="font-weight:'+(isTarget?800:500)+';max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+v.name+(isTarget&&i>=15?' <span style="font-size:0.62rem;font-weight:400;color:var(--text-quaternary)">(your co.)</span>':'')+'</td><td style="font-weight:700;font-variant-numeric:tabular-nums">'+spendLabel+'</td><td><div class="bar-track" style="width:56px"><div class="bar-fill" style="width:'+barPct+'%;'+(isTarget?'background:var(--crit-text)':'')+'"></div></div></td><td>'+(v.notFound?'\u2014':v.contracts)+'</td><td>'+(v.notFound?'\u2014':v.agencies)+'</td>'+cmpCell+'</tr>';
   });
-  $('vendorBox').innerHTML = html+'</tbody></table>';
+  $('vendorBox').innerHTML = '<div class="data-table-wrap">'+html+'</tbody></table></div>';
 }
 
 function exportCSV() {
