@@ -950,8 +950,6 @@ function updateDashChips(kw) {
   const label = document.getElementById('dashChipsLabel');
   if (!container || !kw) return;
 
-  // Only use core_keywords — plain capability terms safe for USASpending keyword search
-  // Exclude: codes (NAICS = 6 digits, PSC = 4 alphanum), short strings, pure numbers
   const codeRx = /^\d{6}$|^[A-Z0-9]{4}$/i;
   const safe = (kw.core_keywords || [])
     .filter(k => k && k.length >= 3 && !codeRx.test(k.trim()))
@@ -959,10 +957,31 @@ function updateDashChips(kw) {
 
   if (safe.length === 0) return;
 
-  label.textContent = 'Related searches';
+  if (label) label.textContent = 'Related searches';
   container.innerHTML = safe
-    .map(k => '<button class="ex-chip" onclick="goDash(' + JSON.stringify(k) + ')">' + k + '</button>')
+    .map(k => '<button class="ex-chip">' + k + '</button>')
     .join('');
+
+  Array.from(container.querySelectorAll('.ex-chip')).forEach((btn, i) => {
+    btn.addEventListener('click', () => goDash(safe[i]));
+  });
+}$|^[A-Z0-9]{4}$/i;
+  const safe = (kw.core_keywords || [])
+    .filter(k => k && k.length >= 3 && !codeRx.test(k.trim()))
+    .slice(0, 10);
+
+  if (safe.length === 0) return;
+
+  label.textContent = 'Related searches';
+  // Use data-kw attribute — avoids quote conflicts in onclick
+  container.innerHTML = safe
+    .map(k => '<button class="ex-chip" data-kw="' + k.replace(/"/g, '&quot;') + '">' + k + '</button>')
+    .join('');
+
+  // Attach click handlers via JS — no inline onclick
+  container.querySelectorAll('[data-kw]').forEach(btn => {
+    btn.addEventListener('click', () => goDash(btn.dataset.kw));
+  });
 }
 
 function renderDashboard(kw, data, subtitle) {
