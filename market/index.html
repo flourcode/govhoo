@@ -143,6 +143,15 @@ a, button, input, select { touch-action: manipulation; }
   cursor: pointer; transition: var(--transition); font-family: var(--font);
 }
 .ex-chip:hover { background: var(--chip-hover); color: var(--text-primary); }
+.obj-chip {
+  font-size: var(--text-xs); font-weight: 600;
+  padding: 6px 12px; border-radius: 9999px;
+  background: var(--chip-bg); color: var(--text-secondary);
+  border: 1px solid transparent;
+  cursor: pointer; transition: var(--transition); font-family: var(--font);
+}
+.obj-chip:hover { background: var(--chip-hover); color: var(--text-primary); }
+.obj-chip.active { background: var(--btn-bg); color: var(--btn-text); }
 
 .section-label {
   font-size: var(--text-xs); font-weight: 700; color: var(--text-quaternary);
@@ -379,6 +388,14 @@ a, button, input, select { touch-action: manipulation; }
       <div class="input-group" style="margin-bottom:10px;">
         <input type="text" class="input-field" id="companyInput" placeholder="Company name…" autocomplete="off" spellcheck="false">
       </div>
+      <div style="margin-bottom:14px;">
+        <div class="input-label" style="margin-bottom:8px;">What are you trying to decide?</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;" id="objectiveChips">
+          <button class="obj-chip active" data-obj="entry" onclick="setObjective(this,'entry')">Entering this market</button>
+          <button class="obj-chip" data-obj="positioning" onclick="setObjective(this,'positioning')">Understanding the competition</button>
+          <button class="obj-chip" data-obj="opportunity" onclick="setObjective(this,'opportunity')">Finding a specific opportunity</button>
+        </div>
+      </div>
       <button class="calc-btn-primary" id="analyzeBtn" onclick="startAnalysis()">Run analysis</button>
       <div style="margin-top:10px;">
         <div class="chip-row" id="exampleChips">
@@ -432,27 +449,37 @@ a, button, input, select { touch-action: manipulation; }
     </div>
     <div class="app-card">
       <div id="companyHeader"></div>
+
+      <!-- Arti brief — answer-first, streams in after data loads -->
+      <div class="dash-section" id="artiSection" style="margin-top:20px;">
+        <div class="dash-section-head"><h3 id="artiSectionTitle">Strategic brief</h3></div>
+        <div id="artiFullText" style="font-size:var(--text-sm);color:var(--text-secondary);line-height:1.65;"></div>
+      </div>
+
+      <!-- Data-grounded next steps -->
+      <div class="dash-section">
+        <div class="dash-section-head"><h3>Next steps</h3><span class="dash-badge" id="actionCount"></span></div>
+        <ul class="action-list" id="actionList"></ul>
+      </div>
+
       <div class="dash-section" style="margin-top:20px;">
         <div class="dash-section-head"><h3>Keywords</h3><span class="dash-badge" id="kwBadge"></span></div>
         <div class="kw-chips" id="kwChips"></div>
       </div>
       <div class="kpi-row" id="kpiRow" style="margin-top:20px;"></div>
       <div class="dash-section">
-        <div class="dash-section-head"><h3>Agency &times; Capability Heatmap</h3><span class="dash-badge">Spend concentration</span></div>
+        <div class="dash-section-head"><h3 id="heatHeadEl">Agency × Capability Heatmap</h3><span class="dash-badge">Spend concentration</span></div>
         <div id="heatmapBox"></div>
       </div>
       <div class="dash-section">
-        <div class="dash-section-head"><h3>Competitive Landscape</h3><span class="dash-badge" id="vendorBadge">Deduplicated</span></div>
+        <div class="dash-section-head"><h3 id="vendorHeadEl">Competitive Landscape</h3><span class="dash-badge" id="vendorBadge">Deduplicated</span></div>
         <div id="vendorBox"></div>
       </div>
       <div class="dash-section">
-        <div class="dash-section-head"><h3>Top Buying Agencies</h3></div>
+        <div class="dash-section-head"><h3 id="agencyHeadEl">Top Buying Agencies</h3></div>
         <div class="agency-grid" id="agencyBox"></div>
       </div>
-      <div class="dash-section">
-        <div class="dash-section-head"><h3>Next Steps</h3><span class="dash-badge" id="actionCount"></span></div>
-        <ul class="action-list" id="actionList"></ul>
-      </div>
+
       <div class="dash-footer">
         <button class="calc-btn-primary" style="width:auto;padding:0 20px;margin-top:0;" onclick="exportCSV()">Export CSV</button>
         <button class="btn-secondary" onclick="showSearchView()">New analysis</button>
@@ -473,6 +500,7 @@ const AWARD_FIELDS = ['Award ID','Recipient Name','Awarding Agency','Awarding Su
 
 let currentKeywords = null, allContracts = [], abortController = null;
 let analysisHistory = [], compareMode = null, currentAnalysis = null;
+let currentObjective = null; // 'entry' | 'positioning' | 'opportunity'
 
 const $ = id => document.getElementById(id);
 const money = n => n >= 1e9 ? '$'+(n/1e9).toFixed(1)+'B' : n >= 1e6 ? '$'+(n/1e6).toFixed(0)+'M' : n >= 1e3 ? '$'+(n/1e3).toFixed(0)+'K' : '$'+Math.round(n);
@@ -502,11 +530,22 @@ function showSearchView() {
   $('searchView').style.display = '';
   $('analyzeBtn').disabled = false;
   $('companyInput').value = '';
+  // Reset objective chips
+  currentObjective = 'entry';
+  document.querySelectorAll('.obj-chip').forEach((b,i)=>b.classList.toggle('active',i===0));
   for (let i = 1; i <= 4; i++) { setPhase(i, 'pending', 'Waiting\u2026'); $('p'+i+'n').textContent = i; }
   setMaster(0, 'Starting\u2026');
   window.scrollTo({ top: 0, behavior: 'smooth' });
   renderHistory();
 }
+
+function setObjective(btn, obj) {
+  currentObjective = obj;
+  document.querySelectorAll('.obj-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+// Default objective on load
+currentObjective = 'entry';
 
 function go(name) { $('companyInput').value = name; startAnalysis(); }
 
@@ -756,8 +795,6 @@ function buildActions(kw, data) {
   else if (top3Pct > 70 && data.totalContracts > 10) actions.push({priority:'plan', head:"Market is consolidated \u2014 go through the primes, not around them", text:"Top 3 vendors hold <strong>"+top3Pct+"%</strong> of spend. Direct competition against entrenched incumbents at this level has a low win rate. Get embedded in existing recompetes as a named sub or tech partner before the solicitation drops.", chips:[top3Pct+'% concentration','Teaming','Named sub']});
 
 
-  // Arti brief — streamed inline
-  actions.push({priority:'plan', head:"Arti’s strategic brief", text:'<span id="artiActionText" style="color:var(--text-quaternary);font-style:italic">Loading Arti’s analysis…</span>', chips:[]});
   return actions;
 }
 
@@ -831,12 +868,39 @@ function showDashboard(kw, analysis, subtitle) {
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
+function conclusionHeadlines(kw, data) {
+  const top3Spend = data.vendors.slice(0,3).reduce((s,v)=>s+v.spend,0);
+  const top3Pct = data.totalSpend > 0 ? Math.round((top3Spend/data.totalSpend)*100) : 0;
+  const topV = data.vendors[0];
+  const topA = data.agencies[0];
+
+  // Competitive landscape headline
+  let vendorHead = 'Competitive Landscape';
+  if (data.vendors.length > 0 && data.totalSpend > 0) {
+    if (top3Pct > 70) vendorHead = top3Pct+'% of spend held by 3 vendors — consolidated market';
+    else if (top3Pct < 40) vendorHead = 'Fragmented across '+data.vendors.length+' vendors — no dominant incumbent';
+    else vendorHead = (topV ? topV.name : 'Top vendor')+' leads with '+Math.round((topV?.spend||0)/data.totalSpend*100)+'% share';
+  }
+
+  // Agency headline
+  let agencyHead = 'Top Buying Agencies';
+  if (topA && data.totalSpend > 0) {
+    const topAgPct = Math.round((topA.spend/data.totalSpend)*100);
+    agencyHead = shortAg(topA.name)+' accounts for '+topAgPct+'% of category spend';
+  }
+
+  // Heatmap headline
+  let heatHead = 'Agency × Capability Heatmap';
+
+  return { vendorHead, agencyHead, heatHead };
+}
+
 function renderDashboard(kw, data, subtitle) {
   const ts = subtitle || new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
   $('companyHeader').innerHTML =
     '<div style="margin-bottom:4px"><span style="font-size:var(--text-xl);font-weight:800;letter-spacing:-0.025em">'+kw.company+'</span></div>' +
     '<div style="font-size:var(--text-sm);color:var(--text-tertiary);line-height:1.5;margin-bottom:4px">'+(kw.summary||'')+(kw.positioning?' \u2014 '+kw.positioning:'')+'</div>' +
-    '<div style="font-size:var(--text-xs);color:var(--text-quaternary)">'+ts+'</div>';
+    '<div style="font-size:var(--text-xs);color:var(--text-quaternary)">'+ts+'</div>'+'<div id="methodologyNote" style="margin-top:12px;padding:10px 14px;background:var(--bg);border:1px solid var(--border-inner);border-radius:var(--radius-sm);font-size:var(--text-xs);color:var(--text-tertiary);line-height:1.6;"><strong style=\'color:var(--text-secondary)\'>Methodology — </strong>Spend and contract counts reflect USASpending.gov awards matching <strong style=\'color:var(--text-secondary)\'>'+total+' search terms</strong> (product keywords, competitor names, NAICS/PSC codes) over the trailing 12 months. This represents the <strong style=\'color:var(--text-secondary)\'>total addressable market</strong> for this capability category, not '+kw.company+'\u2019s own federal revenue. Excludes classified contracts, sub-awards under $50K, and IDIQ ceiling values without discrete award records. Data lags real-time by approximately 90 days.</div>';
 
   if (compareMode !== null) {
     const bEntry = analysisHistory[compareMode.b];
@@ -857,6 +921,7 @@ function renderDashboard(kw, data, subtitle) {
   if (allCombos.length > 5) chips += '<span class="kw-chip kw-code">+'+(allCombos.length-5)+' more</span>';
   $('kwChips').innerHTML = chips;
 
+  const heads = conclusionHeadlines(kw, data);
   const cmpData = compareMode !== null ? analysisHistory[compareMode.b]?.analysis : null;
   const pipelineVal = data.recompetes.reduce((s,r) => s+(r['Award Amount']||0), 0);
   const prevPipeline = cmpData?.recompetes?.reduce((s,r) => s+(r['Award Amount']||0), 0) ?? null;
@@ -872,6 +937,11 @@ function renderDashboard(kw, data, subtitle) {
     '<div class="kpi-cell"><div class="kpi-label">Contracts</div><div class="kpi-value">'+data.totalContracts.toLocaleString()+'</div>'+kpiDelta(data.totalContracts,cmpData?.totalContracts)+'<div class="kpi-sub">After dedup</div></div>' +
     '<div class="kpi-cell"><div class="kpi-label">Vendors</div><div class="kpi-value">'+data.vendors.length+'</div>'+kpiDelta(data.vendors.length,cmpData?.vendors.length)+'<div class="kpi-sub">'+data.vendors.filter(v=>v.spend>100e6).length+' over $100M</div></div>' +
     '<div class="kpi-cell"><div class="kpi-label">Expiring (≤24 mo)</div><div class="kpi-value">'+data.recompetes.length+'</div>'+kpiDelta(data.recompetes.length,cmpData?.recompetes?.length??null)+'<div class="kpi-sub">'+money(pipelineVal)+' at stake</div></div>';
+
+  // Apply conclusion-first section headlines
+  const vhEl = $('vendorHeadEl'); if (vhEl) vhEl.textContent = heads.vendorHead;
+  const ahEl = $('agencyHeadEl'); if (ahEl) ahEl.textContent = heads.agencyHead;
+  const hhEl = $('heatHeadEl');  if (hhEl) hhEl.textContent = heads.heatHead;
 
   if (data.heatmap.length > 0) {
     const maxH = Math.max(...data.heatmap.map(d => d.value));
@@ -905,8 +975,10 @@ function renderDashboard(kw, data, subtitle) {
 }
 
 function streamArtiAction(kw, data) {
-  const el = document.getElementById('artiActionText');
+  const el = document.getElementById('artiFullText');
+  const titleEl = document.getElementById('artiSectionTitle');
   if (!el) return;
+  el.innerHTML = '<span style="color:var(--text-quaternary);font-style:italic">Loading Arti’s analysis…</span>';
   const topV = data.vendors.slice(0,5).map(v=>({name:v.name,spend:v.spend,contracts:v.contracts}));
   const topA = data.agencies.slice(0,5).map(a=>({name:a.name,spend:a.spend,contracts:a.contracts}));
   const exp = data.recompetes.slice(0,5).map(r=>({vendor:normVendor(r['Recipient Name']),agency:r['Awarding Agency'],value:r['Award Amount'],end_date:r['End Date'],description:(r['Description']||'').slice(0,120)}));
@@ -927,12 +999,13 @@ function streamArtiAction(kw, data) {
     contracts_expiring_soon: exp,
     market_fragmentation_top3_pct: data.totalSpend>0?Math.round((topV.slice(0,3).reduce((s,v)=>s+v.spend,0)/data.totalSpend)*100):0
   };
-  fetch(ENDPOINTS.AI,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_type:'govhoo_action_plan',market_data:mkt,objective:'federal sales representative analyzing the market for '+kw.company})})
+  fetch(ENDPOINTS.AI,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_type:'govhoo_action_plan',market_data:mkt,objective:(currentObjective==='positioning'?'federal sales representative benchmarking competitive position for ':currentObjective==='opportunity'?'federal sales representative hunting specific contract opportunities for ':'federal sales representative evaluating market entry for ')+kw.company})})
   .then(res=>{
     if(!res.ok||!res.body){el.textContent='Brief unavailable.';el.style.cssText='font-style:normal;color:var(--text-tertiary)';return;}
     const reader=res.body.getReader(),decoder=new TextDecoder();
     let buf='',full='';
     el.style.cssText='font-style:normal;color:var(--text-secondary)';
+    if(titleEl){titleEl.textContent=currentObjective==='positioning'?'Competitive position brief':currentObjective==='opportunity'?'Opportunity brief':'Market entry brief';}
     function pump(){return reader.read().then(({done,value})=>{
       if(done)return;
       buf+=decoder.decode(value,{stream:true});
