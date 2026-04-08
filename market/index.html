@@ -461,9 +461,9 @@ a, button, input, select { touch-action: manipulation; }
           <input type="text" class="input-field" id="dashSearchInput" placeholder="Keyword or company name…" autocomplete="off" spellcheck="false">
         </div>
         <button class="calc-btn-primary" onclick="startFromDash()" style="margin-top:0;">Run analysis</button>
-        <div style="margin-top:10px;">
-          <div class="input-label" style="margin-bottom:6px;">Try a keyword or company</div>
-          <div class="chip-row">
+        <div style="margin-top:10px;" id="dashChipsWrap">
+          <div class="input-label" style="margin-bottom:6px;" id="dashChipsLabel">Try a keyword or company</div>
+          <div class="chip-row" id="dashChips">
             <button class="ex-chip" onclick="goDash('Cybersecurity')">Cybersecurity</button>
             <button class="ex-chip" onclick="goDash('Cloud Computing')">Cloud Computing</button>
             <button class="ex-chip" onclick="goDash('Artificial Intelligence')">AI</button>
@@ -945,6 +945,26 @@ function conclusionHeadlines(kw, data) {
   return { vendorHead, agencyHead, heatHead };
 }
 
+function updateDashChips(kw) {
+  const container = document.getElementById('dashChips');
+  const label = document.getElementById('dashChipsLabel');
+  if (!container || !kw) return;
+
+  // Only use core_keywords — plain capability terms safe for USASpending keyword search
+  // Exclude: codes (NAICS = 6 digits, PSC = 4 alphanum), short strings, pure numbers
+  const codeRx = /^\d{6}$|^[A-Z0-9]{4}$/i;
+  const safe = (kw.core_keywords || [])
+    .filter(k => k && k.length >= 3 && !codeRx.test(k.trim()))
+    .slice(0, 10);
+
+  if (safe.length === 0) return;
+
+  label.textContent = 'Related searches';
+  container.innerHTML = safe
+    .map(k => '<button class="ex-chip" onclick="goDash(' + JSON.stringify(k) + ')">' + k + '</button>')
+    .join('');
+}
+
 function renderDashboard(kw, data, subtitle) {
   const ts = subtitle || new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
   const kwTermCount = ((kw.core_keywords||[]).length+(kw.agency_targets||[]).length+(kw.naics_codes||[]).length+(kw.psc_codes||[]).length+((kw.psc_keyword_combos||[]).concat(kw.agency_keyword_combos||[]).concat(kw.and_combos||[])).length+(kw.competitors||[]).length);
@@ -973,6 +993,7 @@ function renderDashboard(kw, data, subtitle) {
   allCombos.slice(0,5).forEach(k => chips += '<span class="kw-chip kw-code">'+k+'</span>');
   if (allCombos.length > 5) chips += '<span class="kw-chip kw-code">+'+(allCombos.length-5)+' more</span>';
   $('kwChips').innerHTML = chips;
+  updateDashChips(kw);
 
   const heads = conclusionHeadlines(kw, data);
   const cmpData = compareMode !== null ? analysisHistory[compareMode.b]?.analysis : null;
