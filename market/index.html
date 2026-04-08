@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,1..1000&display=swap" rel="stylesheet">
-<title>Govhoo — TAM Lab</title>
+<title>Govhoo — QuickTAM</title>
 <style>
 :root {
   --bg:        #F7F7F5;
@@ -391,7 +391,7 @@ a, button, input, select { touch-action: manipulation; }
 <header class="site-header">
   <div class="header-top">
     <a class="logo-link" href="/">Govhoo</a>
-    <span class="header-label">TAM Lab</span>
+    <span class="header-label">QuickTAM</span>
     <div class="header-right">
       <a class="back-link" href="/tools/">Tools</a>
     </div>
@@ -402,7 +402,7 @@ a, button, input, select { touch-action: manipulation; }
 
   <div id="searchView">
     <div class="page-header">
-      <div class="page-title">TAM Lab.</div>
+      <div class="page-title">QuickTAM.</div>
       <div class="page-subtitle">Federal Category Market Sizing</div>
       <div style="font-size:var(--text-sm);color:var(--text-tertiary);font-weight:400;margin-top:10px;line-height:1.65;">Enter any company name to size the federal market for their capability space. Gemini builds a keyword set, runs it against <strong style="color:var(--text-secondary);font-weight:600">USASpending.gov</strong>, and returns the category TAM — total obligated spend, active vendors, buying agencies, and expiring contracts. This is a <strong style="color:var(--text-secondary);font-weight:600">market sizing tool, not a company profile</strong>. For company-specific contract data, use <a href="/" style="color:var(--accent);font-weight:600;text-decoration:none;">Govhoo Search →</a><br><br><strong style="color:var(--text-secondary);font-weight:600">Experimental.</strong> Keyword sets are AI-generated. Validate before using in presentations or resource decisions.</div>
     </div>
@@ -1139,7 +1139,7 @@ function streamArtiAction(kw, data) {
     contracts_expiring_soon: exp,
     market_fragmentation_top3_pct: data.totalSpend>0?Math.round((topV.slice(0,3).reduce((s,v)=>s+v.spend,0)/data.totalSpend)*100):0
   };
-  fetch(ENDPOINTS.AI,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_type:'govhoo_action_plan',market_data:mkt,objective:'You are sizing the FEDERAL CATEGORY TAM for '+_catLabel+'. Do NOT describe '+kw.company+' as a company. Your job: state the TAM precisely, identify which agencies dominate spend, describe who is winning contracts in this category, and surface the most valuable expiring contracts. Objective: '+(currentObjective==='positioning'?'federal sales representative benchmarking competitive position for ':currentObjective==='opportunity'?'federal sales representative hunting specific contract opportunities for ':'federal sales representative evaluating market entry for ')+kw.company})})
+  fetch(ENDPOINTS.AI,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_type:'govhoo_action_plan',market_data:mkt,objective:'You are sizing the FEDERAL CATEGORY TAM for '+((kw.core_keywords||[]).slice(0,3).join(' · ')||kw.company)+'. Do NOT describe '+kw.company+' as a company. Your job: state the TAM precisely, identify which agencies dominate spend, describe who is winning contracts in this category, and surface the most valuable expiring contracts. Objective: '+(currentObjective==='positioning'?'federal sales representative benchmarking competitive position for ':currentObjective==='opportunity'?'federal sales representative hunting specific contract opportunities for ':'federal sales representative evaluating market entry for ')+kw.company})})
   .then(res=>{
     if(!res.ok||!res.body){el.textContent='Brief unavailable.';el.style.cssText='font-style:normal;color:var(--text-tertiary)';return;}
     const reader=res.body.getReader(),decoder=new TextDecoder();
