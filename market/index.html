@@ -93,16 +93,13 @@ a, button, input, select { touch-action: manipulation; }
 .page-wrap { max-width: 960px; margin: 0 auto; padding: 36px 20px calc(4rem + var(--safe-bottom)); }
 .page-header { margin-bottom: 28px; }
 .page-title { font-size: var(--text-hero); font-weight: 800; color: var(--text-primary); letter-spacing: -0.03em; line-height: 1; margin-bottom: 6px; }
-.page-subtitle { font-size: var(--text-2xl); font-weight: 600; color: var(--text-primary); letter-spacing: -0.03em; line-height: 1; margin-bottom: 6px; }
-.page-sub { font-size: var(--text-base); color: var(--text-tertiary); font-weight: 400; line-height: 1.5; }
+.page-subtitle { font-size: var(--text-2xl); font-weight: 600; color: var(--text-primary); letter-spacing: -0.03em; line-height: 1; margin-bottom: 18px; }
 
 .app-card {
   background: var(--bg-app); border-radius: var(--radius);
   border: 1px solid var(--border); padding: 26px;
   box-shadow: var(--shadow); margin-bottom: 18px;
 }
-.card-title { font-size: var(--text-xl); font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em; margin-bottom: 3px; }
-.card-desc  { font-size: var(--text-sm); color: var(--text-tertiary); font-weight: 400; margin-bottom: 22px; line-height: 1.45; }
 
 .input-group { margin-bottom: 14px; }
 .input-label { display: block; font-size: var(--text-xs); font-weight: 700; color: var(--text-tertiary); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.06em; }
@@ -375,19 +372,14 @@ a, button, input, select { touch-action: manipulation; }
     <div class="page-header">
       <div class="page-title">Govhoo.</div>
       <div class="page-subtitle">OSINT for Federal Markets</div>
-      <div class="page-sub">Type any company name. Gemini builds a keyword set and runs it against USASpending to map the federal market.</div>
     </div>
 
     <div class="app-card">
-      <div class="card-title">Company search</div>
-      <div class="card-desc">Enter a company name to generate a complete federal market analysis — spend, vendors, agencies, expiring contracts, and Arti’s strategic brief.</div>
-      <div class="input-group">
-        <label class="input-label">Company name</label>
-        <input type="text" class="input-field" id="companyInput" placeholder="e.g. CrowdStrike, Snowflake, Palantir…" autocomplete="off" spellcheck="false">
+      <div class="input-group" style="margin-bottom:10px;">
+        <input type="text" class="input-field" id="companyInput" placeholder="Company name…" autocomplete="off" spellcheck="false">
       </div>
       <button class="calc-btn-primary" id="analyzeBtn" onclick="startAnalysis()">Run analysis</button>
-      <div style="margin-top:14px;">
-        <div class="input-label" style="margin-bottom:7px;">Try an example</div>
+      <div style="margin-top:10px;">
         <div class="chip-row" id="exampleChips">
           <button class="ex-chip" onclick="go('SentinelOne')">SentinelOne</button>
           <button class="ex-chip" onclick="go('Palantir')">Palantir</button>
