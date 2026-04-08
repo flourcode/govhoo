@@ -260,6 +260,8 @@ a, button, input, select { touch-action: manipulation; }
 .kw-chips { display: flex; flex-wrap: wrap; gap: 4px; }
 .kw-chip { font-size: var(--text-xs); padding: 3px 8px; border-radius: 9999px; font-weight: 600; border: 1px solid; cursor: default; }
 .kw-core   { color: var(--text-primary); border-color: rgba(0,0,0,0.2); background: rgba(0,0,0,0.04); }
+.kw-clickable { cursor: pointer; border: none; font-family: var(--font); transition: var(--transition); }
+.kw-clickable:hover { background: rgba(0,0,0,0.09); }
 .kw-comp   { color: var(--crit-text); border-color: rgba(200,50,30,0.25); background: var(--crit-bg); }
 .kw-code   { color: var(--warn-text); border-color: rgba(200,160,0,0.25); background: var(--warn-bg); }
 .kw-agency { color: var(--accent); border-color: rgba(43,108,176,0.25); background: var(--accent-dim); }
@@ -987,7 +989,7 @@ function renderDashboard(kw, data, subtitle) {
   const total = (kw.core_keywords?.length||0)+(kw.agency_targets?.length||0)+(kw.naics_codes?.length||0)+(kw.psc_codes?.length||0)+allCombos.length+(kw.competitors?.length||0);
   $('kwBadge').textContent = total+' terms';
   let chips = '';
-  (kw.core_keywords||[]).forEach(k => chips += '<span class="kw-chip kw-core">'+k+'</span>');
+  (kw.core_keywords||[]).forEach(k => chips += '<button class="kw-chip kw-core kw-clickable" data-kw="'+k.replace(/"/g,'&quot;')+'">'+k+'</button>');
   (kw.competitors||[]).forEach(k => chips += '<span class="kw-chip kw-comp">'+k+'</span>');
   (kw.agency_targets||[]).forEach(k => chips += '<span class="kw-chip kw-agency">'+k+'</span>');
   (kw.naics_codes||[]).forEach(k => chips += '<span class="kw-chip kw-code">'+k+'</span>');
@@ -995,6 +997,10 @@ function renderDashboard(kw, data, subtitle) {
   allCombos.slice(0,5).forEach(k => chips += '<span class="kw-chip kw-code">'+k+'</span>');
   if (allCombos.length > 5) chips += '<span class="kw-chip kw-code">+'+(allCombos.length-5)+' more</span>';
   $('kwChips').innerHTML = chips;
+  // Attach click handlers to core keyword chips
+  $('kwChips').querySelectorAll('.kw-clickable').forEach(btn => {
+    btn.addEventListener('click', () => goDash(btn.dataset.kw));
+  });
   updateDashChips(kw);
 
   const heads = conclusionHeadlines(kw, data);
