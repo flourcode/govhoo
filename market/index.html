@@ -399,7 +399,7 @@ a, button, input, select { touch-action: manipulation; }
 
     <div class="app-card">
       <div class="input-group" style="margin-bottom:10px;">
-        <input type="text" class="input-field" id="companyInput" placeholder="Company name or keyword…" autocomplete="off" spellcheck="false">
+        <input type="text" class="input-field" id="companyInput" placeholder="Keyword or company name…" autocomplete="off" spellcheck="false">
       </div>
       <button class="calc-btn-primary" id="analyzeBtn" onclick="startAnalysis()">Run analysis</button>
       <div style="margin-top:10px;">
@@ -436,7 +436,7 @@ a, button, input, select { touch-action: manipulation; }
       <div class="prog-track"><div class="prog-fill" id="masterFill"></div></div>
       <div class="prog-meta"><span id="masterLabel">Starting…</span><span id="masterPct">0%</span></div>
       <div class="phase-list">
-        <div class="phase-item pending" id="p1"><div class="phase-num pending" id="p1n">1</div><div class="phase-body"><div class="phase-title">Research company with Gemini</div><div class="phase-detail" id="p1d">Waiting…</div></div></div>
+        <div class="phase-item pending" id="p1"><div class="phase-num pending" id="p1n">1</div><div class="phase-body"><div class="phase-title">Research query with Gemini</div><div class="phase-detail" id="p1d">Waiting…</div></div></div>
         <div class="phase-item pending" id="p2"><div class="phase-num pending" id="p2n">2</div><div class="phase-body"><div class="phase-title">Build search plan</div><div class="phase-detail" id="p2d">Waiting…</div></div></div>
         <div class="phase-item pending" id="p3"><div class="phase-num pending" id="p3n">3</div><div class="phase-body"><div class="phase-title">Query USASpending</div><div class="phase-detail" id="p3d">Waiting…</div></div></div>
         <div class="phase-item pending" id="p4"><div class="phase-num pending" id="p4n">4</div><div class="phase-body"><div class="phase-title">Aggregate &amp; render</div><div class="phase-detail" id="p4d">Waiting…</div></div></div>
@@ -457,7 +457,7 @@ a, button, input, select { touch-action: manipulation; }
       <!-- Search — full width -->
       <div class="app-card dash-full">
         <div class="input-group" style="margin-bottom:10px;">
-          <input type="text" class="input-field" id="dashSearchInput" placeholder="Company name or keyword…" autocomplete="off" spellcheck="false">
+          <input type="text" class="input-field" id="dashSearchInput" placeholder="Keyword or company name…" autocomplete="off" spellcheck="false">
         </div>
         <button class="calc-btn-primary" onclick="startFromDash()" style="margin-top:0;">Run analysis</button>
         <div style="margin-top:10px;">
@@ -474,7 +474,7 @@ a, button, input, select { touch-action: manipulation; }
         </div>
       </div>
 
-      <!-- Company header — full width -->
+      <!-- Header — full width -->
       <div class="app-card dash-full" id="companyHeaderCard">
         <div id="companyHeader"></div>
       </div>
@@ -867,8 +867,8 @@ async function startAnalysis() {
   setMaster(0,'Starting\u2026');
   window.scrollTo({top:0,behavior:'smooth'});
 
-  setPhase(1,'running','Researching "'+company+'"\u2026');
-  setMaster(8,'Researching '+company+'\u2026');
+  setPhase(1,'running','Researching \u201c'+company+'\u201d\u2026');
+  setMaster(8,'Researching \u201c'+company+'\u201d\u2026');
   try { currentKeywords = await fetchKeywords(company, signal); }
   catch(err) {
     if (err.name==='AbortError') return;
@@ -1136,7 +1136,7 @@ function exportCSV() {
   const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href=url; a.download='market_'+((currentKeywords?.company||'export').replace(/\s+/g,'_'))+'.csv';
+  a.href=url; a.download='quicktam_'+((currentKeywords?.company||'export').replace(/\s+/g,'_'))+'.csv';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
