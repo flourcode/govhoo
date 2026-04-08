@@ -533,6 +533,7 @@ const AWARD_FIELDS = ['Award ID','Recipient Name','Awarding Agency','Awarding Su
 
 let currentKeywords = null, allContracts = [], abortController = null;
 let analysisHistory = [], compareMode = null, currentAnalysis = null;
+let currentFootprint = null;
 let currentObjective = null; // 'entry' | 'positioning' | 'opportunity'
 
 const $ = id => document.getElementById(id);
@@ -854,6 +855,45 @@ function buildActions(kw, data) {
   return actions;
 }
 
+function updateFootprintDisplay(fp) {
+  const el = document.getElementById('footprintValue');
+  const sub = document.getElementById('footprintSub');
+  if (!el || !sub) return;
+  if (!fp) {
+    el.textContent = '—';
+    sub.textContent = 'Lookup unavailable';
+    return;
+  }
+  el.textContent = money(fp.spend);
+  el.style.color = 'var(--text-primary)';
+  sub.textContent = fp.contracts + (fp.capped ? '+' : '') + ' direct award' + (fp.contracts !== 1 ? 's' : '') + ' as prime recipient';
+}
+
+async function fetchCompanyFootprint(company, signal) {
+  const now = new Date(), start = new Date(now);
+  start.setFullYear(start.getFullYear() - 1);
+  const fmt = d => d.toISOString().split('T')[0];
+  try {
+    const data = await searchUSA('/search/spending_by_award/', {
+      filters: {
+        time_period: [{ start_date: fmt(start), end_date: fmt(now) }],
+        award_type_codes: ['A','B','C','D'],
+        recipient_search_text: [company]
+      },
+      fields: ['Award ID','Award Amount','Awarding Agency'],
+      limit: 100,
+      sort: 'Award Amount',
+      order: 'desc',
+      page: 1
+    }, signal);
+    const results = data.results || [];
+    const totalObligated = results.reduce((sum, r) => sum + (r['Award Amount'] || 0), 0);
+    return { spend: totalObligated, contracts: results.length, capped: results.length >= 100 };
+  } catch(e) {
+    return null;
+  }
+}
+
 async function startAnalysis() {
   const company = ($('companyInput').value || $('dashSearchInput').value).trim();
   if (!company) return;
@@ -864,6 +904,7 @@ async function startAnalysis() {
   $('dashboard').classList.remove('active');
   $('phaseWrap').classList.add('active');
   compareMode = null;
+  currentFootprint = null;
   for (let i=1;i<=4;i++) { setPhase(i,'pending','Waiting\u2026'); $('p'+i+'n').textContent=i; }
   setMaster(0,'Starting\u2026');
   window.scrollTo({top:0,behavior:'smooth'});
@@ -877,6 +918,9 @@ async function startAnalysis() {
     $('analyzeBtn').disabled=false; return;
   }
   const kw = currentKeywords;
+  // Fire isolated recipient lookup in parallel — don't await, store when done
+  currentFootprint = null;
+  fetchCompanyFootprint(company, signal).then(fp => { currentFootprint = fp; updateFootprintDisplay(fp); });
   setPhase(1,'done',(kw.core_keywords?.length||0)+' keywords, '+(kw.naics_codes?.length||0)+' NAICS, '+(kw.psc_codes?.length||0)+' PSC, '+(kw.competitors?.length||0)+' competitors <button class="phase-toggle" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'block\':\'none\'">show JSON</button><div class="phase-raw" style="display:none">'+JSON.stringify(kw,null,2)+'</div>');
   setMaster(20,'Keywords ready');
 
@@ -921,6 +965,8 @@ function showDashboard(kw, analysis, subtitle) {
   $('dashboard').classList.add('active');
   $('analyzeBtn').disabled = false;
   renderDashboard(kw, analysis, subtitle);
+  // Apply footprint if lookup already returned
+  if (currentFootprint !== null) updateFootprintDisplay(currentFootprint);
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -957,7 +1003,7 @@ function renderDashboard(kw, data, subtitle) {
   $('companyHeader').innerHTML =
     '<div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px;">'+'<span style="font-size:var(--text-xl);font-weight:800;letter-spacing:-0.025em">'+kw.company+'</span>'+'<span style="font-size:var(--text-xs);color:var(--text-quaternary)">'+ts+'</span></div>' +
     '<div style="font-size:var(--text-sm);color:var(--text-tertiary);line-height:1.5;margin-bottom:20px;">'+(kw.summary||'')+(kw.positioning?' \u2014 '+kw.positioning:'')+'</div>' +
-    '<div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:6px;">'+'<div>'+'<div style="font-size:var(--text-xs);font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Federal Contract Obligations · Trailing 12 Months</div>'+'<div style="font-size:clamp(2.2rem,5vw,3rem);font-weight:900;letter-spacing:-0.04em;line-height:1;font-variant-numeric:tabular-nums;color:var(--text-primary);">'+money(data.totalSpend)+'</div>'+'</div>'+'<div style="padding-bottom:4px;">'+'<div style="font-size:var(--text-xs);font-weight:600;color:var(--text-tertiary);margin-bottom:2px;">'+data.totalContracts.toLocaleString()+' contracts · '+data.vendors.length+' vendors</div>'+'<div style="font-size:var(--text-xs);color:var(--text-quaternary);">Capability category TAM — not '+kw.company+'\u2019s revenue</div>'+'</div>'+'</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border-inner);border:1px solid var(--border-inner);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:14px;">'+'<div style="padding:16px 18px;background:var(--bg-app);">'+'<div style="font-size:var(--text-xs);font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;">Category TAM · Trailing 12 Mo.</div>'+'<div style="font-size:clamp(1.75rem,4.5vw,2.5rem);font-weight:900;letter-spacing:-0.04em;line-height:1;font-variant-numeric:tabular-nums;">'+money(data.totalSpend)+'</div>'+'<div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:5px;">'+data.totalContracts.toLocaleString()+' contracts across '+data.vendors.length+' vendors</div>'+'</div>'+'<div style="padding:16px 18px;background:var(--bg-app);">'+'<div style="font-size:var(--text-xs);font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;">'+kw.company+' Federal Footprint</div>'+'<div id="footprintValue" style="font-size:clamp(1.75rem,4.5vw,2.5rem);font-weight:900;letter-spacing:-0.04em;line-height:1;font-variant-numeric:tabular-nums;color:var(--text-quaternary);">Checking…</div>'+'<div id="footprintSub" style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:5px;">Searching direct awards…</div>'+'</div>'+'</div>' +
     '<details style="margin-top:14px;">'+'<summary style="font-size:var(--text-xs);font-weight:600;color:var(--text-quaternary);cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:4px;">'+'<span>Methodology</span><span style="font-size:0.6rem">▾</span></summary>'+'<div style="margin-top:8px;padding:10px 14px;background:var(--bg);border:1px solid var(--border-inner);border-radius:var(--radius-sm);font-size:var(--text-xs);color:var(--text-tertiary);line-height:1.6;">'+'Gemini generated <strong style=\'color:var(--text-secondary)\'>'+kwTermCount+' search terms</strong> from '+kw.company+'\u2019s capabilities, product names, competitor names, and NAICS/PSC codes. '+'Each term was run against <strong style=\'color:var(--text-secondary)\'>USASpending.gov \/search\/spending_by_award\/</strong> filtering to contract types A–D over the trailing 12 months. '+'Results were deduplicated on Award ID and filtered by description relevance. '+'<strong style=\'color:var(--text-secondary)\'>Not included:</strong> classified contracts, sub-awards under $50K, IDIQ ceiling values without discrete award records, grants, and loans. '+'Data lags real-time by approximately 90 days. This figure represents total obligated spend in the capability category — not '+kw.company+'\u2019s own federal revenue or market share.</div></details>';
 
   if (compareMode !== null) {
