@@ -695,6 +695,13 @@ function normVendor(name) {
   if (!name) return 'Unknown';
   return name.replace(/\b(INC|LLC|CORP|CORPORATION|LTD|CO|COMPANY)\b\.?/gi,'').replace(/[,.]$/,'').trim() || name;
 }
+function codeVal(field) {
+  if (!field) return '';
+  if (typeof field === 'string') return field;
+  if (typeof field === 'object') return field.code || field.naics_code || field.psc_code || '';
+  return String(field);
+}
+
 function buildSearchTerms(kw) {
   const seen = new Set(), terms = [];
   const add = item => { const k = item.toUpperCase(); if (!seen.has(k)) { seen.add(k); terms.push(item); } };
@@ -781,7 +788,7 @@ function buildActions(kw, data) {
   const hotRecomps = data.recompetes.filter(r => Math.round((new Date(r['End Date'])-now)/86400000) < 180 && (r['Award Amount']||0) > 100000);
   if (hotRecomps.length > 0) {
     const r = hotRecomps[0], days = Math.round((new Date(r['End Date'])-now)/86400000);
-    actions.push({priority:'now', head:normVendor(r['Recipient Name'])+"'s work at "+shortAg(r['Awarding Agency'])+" expires in "+days+" days", text:"This <strong>"+money(r['Award Amount']||0)+"</strong> contract expires "+r['End Date']+". The window to position a competing bid or get on a teaming agreement is closing. Identify the contracting officer now.", chips:[r['Awarding Agency'], typeof r['PSC']==='string'?r['PSC']:null, typeof r['NAICS']==='string'?r['NAICS']:null].filter(Boolean)});
+    actions.push({priority:'now', head:normVendor(r['Recipient Name'])+"'s work at "+shortAg(r['Awarding Agency'])+" expires in "+days+" days", text:"This <strong>"+money(r['Award Amount']||0)+"</strong> contract expires "+r['End Date']+". The window to position a competing bid or get on a teaming agreement is closing. Identify the contracting officer now.", chips:[r['Awarding Agency'], codeVal(r['PSC'])||null, codeVal(r['NAICS'])||null].filter(Boolean)});
     if (hotRecomps.length > 1) {
       const extras = hotRecomps.slice(1,3);
       actions.push({priority:'now', head:(hotRecomps.length-1)+" more contract"+(hotRecomps.length>2?'s':'')+' expiring under 180 days', text:extras.map(r2 => { const d2=Math.round((new Date(r2['End Date'])-now)/86400000); return "<strong>"+normVendor(r2['Recipient Name'])+"</strong> at "+shortAg(r2['Awarding Agency'])+" \u2014 "+money(r2['Award Amount']||0)+", "+d2+" days"; }).join('<br>'), chips:[]});
@@ -1083,7 +1090,7 @@ function renderVendorTable(vendors, kw, cmpData) {
 function exportCSV() {
   if (!allContracts.length) return;
   const headers = ['Award ID','Recipient Name','Awarding Agency','Award Amount','Start Date','End Date','NAICS','PSC','Description','Matched Keywords'];
-  const rows = allContracts.map(c => ['"'+(c['Award ID']||'')+'"', '"'+((c['Recipient Name']||'').replace(/"/g,'""'))+'"', '"'+((c['Awarding Agency']||'').replace(/"/g,'""'))+'"', c['Award Amount']||0, c['Start Date']||'', c['End Date']||'', c['NAICS']||'', c['PSC']||'', '"'+((c['Description']||'').replace(/"/g,'""').slice(0,200))+'"', '"'+[...c._keywords].join('; ')+'"']);
+  const rows = allContracts.map(c => ['"'+(c['Award ID']||'')+'"', '"'+((c['Recipient Name']||'').replace(/"/g,'""'))+'"', '"'+((c['Awarding Agency']||'').replace(/"/g,'""'))+'"', c['Award Amount']||0, c['Start Date']||'', c['End Date']||'', codeVal(c['NAICS']), codeVal(c['PSC']), '"'+((c['Description']||'').replace(/"/g,'""').slice(0,200))+'"', '"'+[...c._keywords].join('; ')+'"']);
   const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
   const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
   const url = URL.createObjectURL(blob);
