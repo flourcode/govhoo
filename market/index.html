@@ -378,7 +378,7 @@ a, button, input, select { touch-action: manipulation; }
     <div class="page-header">
       <div class="page-title">Govhoo.</div>
       <div class="page-subtitle">Open-source Signals for Federal Markets</div>
-      <div style="font-size:var(--text-sm);color:var(--text-tertiary);font-weight:400;margin-top:10px;line-height:1.65;max-width:580px;">Enter a company name to map federal contract activity in their capability space. Results are drawn entirely from <strong style="color:var(--text-secondary);font-weight:600">USASpending.gov</strong> — the U.S. government’s public database of federal contract obligations. Gemini builds a keyword set from the company’s capabilities and competitors, runs up to 30 parallel searches, deduplicates the results, and surfaces spend concentration, active vendors, buying agencies, and expiring contracts. Numbers reflect <strong style="color:var(--text-secondary);font-weight:600">awarded obligations</strong>, not budgets or forecasts. Classified spend, sub-awards under $50K, and IDIQ contract ceilings without discrete award records are not visible here. Data lags approximately 90 days behind real-time.</div>
+      <div style="font-size:var(--text-sm);color:var(--text-tertiary);font-weight:400;margin-top:10px;line-height:1.65;max-width:560px;">Enter any company name. We use AI to figure out what they sell, then search <strong style="color:var(--text-secondary);font-weight:600">USASpending.gov</strong> — the U.S. government’s public contracts database — to show you who’s buying in that space, who’s winning, and what’s up for renewal. All numbers are actual awarded dollars, not budgets. Classified contracts and reseller pass-throughs under $50K won’t appear. Data is roughly 90 days behind real-time.</div>
     </div>
 
     <div class="app-card">
@@ -866,32 +866,65 @@ function updateFootprintDisplay(fp) {
   }
   el.textContent = money(fp.spend);
   el.style.color = 'var(--text-primary)';
-  sub.textContent = fp.contracts + (fp.capped ? '+' : '') + ' direct award' + (fp.contracts !== 1 ? 's' : '') + ' as prime recipient';
+  sub.textContent = fp.contracts + (fp.capped ? '+' : '') + ' contract' + (fp.contracts !== 1 ? 's' : '') + ' · ' + fp.label;
 }
 
 async function fetchCompanyFootprint(company, signal) {
   const now = new Date(), start = new Date(now);
   start.setFullYear(start.getFullYear() - 1);
   const fmt = d => d.toISOString().split('T')[0];
-  try {
-    const data = await searchUSA('/search/spending_by_award/', {
-      filters: {
-        time_period: [{ start_date: fmt(start), end_date: fmt(now) }],
-        award_type_codes: ['A','B','C','D'],
-        recipient_search_text: [company]
-      },
-      fields: ['Award ID','Award Amount','Awarding Agency'],
-      limit: 100,
-      sort: 'Award Amount',
-      order: 'desc',
-      page: 1
-    }, signal);
-    const results = data.results || [];
-    const totalObligated = results.reduce((sum, r) => sum + (r['Award Amount'] || 0), 0);
-    return { spend: totalObligated, contracts: results.length, capped: results.length >= 100 };
-  } catch(e) {
-    return null;
+  const base = {
+    time_period: [{ start_date: fmt(start), end_date: fmt(now) }],
+    award_type_codes: ['A','B','C','D']
+  };
+  const fields = ['Award ID','Award Amount','Awarding Agency'];
+
+  // Run both lookups in parallel:
+  // A) Direct awards — company is the prime recipient (e.g. Databricks, Palantir)
+  // B) Description mentions — company named in contract but award goes to reseller/SI
+  //    (e.g. SentinelOne licenses flowing through Thundercat)
+  const [recipientResult, keywordResult] = await Promise.allSettled([
+    searchUSA('/search/spending_by_award/', {
+      filters: { ...base, recipient_search_text: [company] },
+      fields, limit: 100, sort: 'Award Amount', order: 'desc', page: 1
+    }, signal),
+    searchUSA('/search/spending_by_award/', {
+      filters: { ...base, keywords: [company] },
+      fields, limit: 100, sort: 'Award Amount', order: 'desc', page: 1
+    }, signal)
+  ]);
+
+  const recipientRows = recipientResult.status === 'fulfilled' ? (recipientResult.value.results || []) : [];
+  const keywordRows  = keywordResult.status  === 'fulfilled' ? (keywordResult.value.results  || []) : [];
+
+  const recipientSpend = recipientRows.reduce((s, r) => s + (r['Award Amount'] || 0), 0);
+  const keywordSpend   = keywordRows.reduce((s, r)  => s + (r['Award Amount'] || 0), 0);
+
+  // Deduplicate by Award ID across both result sets
+  const seen = new Set();
+  const combined = [];
+  for (const r of [...recipientRows, ...keywordRows]) {
+    const id = r['Award ID'] || r['generated_internal_id'] || JSON.stringify(r);
+    if (!seen.has(id)) { seen.add(id); combined.push(r); }
   }
+  const combinedSpend = combined.reduce((s, r) => s + (r['Award Amount'] || 0), 0);
+
+  // Label tells user how the company shows up in federal contracts
+  const directOnly   = recipientSpend > 0 && keywordSpend === 0;
+  const mentionOnly  = recipientSpend === 0 && keywordSpend > 0;
+  const both         = recipientSpend > 0 && keywordSpend > 0;
+
+  const label = directOnly  ? 'Direct prime recipient'
+              : mentionOnly ? 'Named in contract descriptions via resellers'
+              : both        ? 'Direct awards + description mentions'
+              : 'No matching award records';
+
+  return {
+    spend: combinedSpend,
+    contracts: combined.length,
+    capped: recipientRows.length >= 100 || keywordRows.length >= 100,
+    label
+  };
 }
 
 async function startAnalysis() {
