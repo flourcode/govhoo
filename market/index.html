@@ -730,17 +730,28 @@ function normVendor(name) {
   if (!name) return 'Unknown';
   return name.replace(/\b(INC|LLC|CORP|CORPORATION|LTD|CO|COMPANY)\b\.?/gi,'').replace(/[,.]$/,'').trim() || name;
 }
-function codeVal(field) {
+function codeVal(field, type) {
   if (!field) return '';
-  if (typeof field === 'string') return field;
-  if (typeof field === 'object') return field.code || field.naics_code || field.psc_code || '';
-  return String(field);
+  let raw = '';
+  if (typeof field === 'string') raw = field;
+  else if (typeof field === 'object') raw = field.code || field.naics_code || field.psc_code || '';
+  else raw = String(field);
+  raw = raw.trim();
+  if (!raw) return '';
+  // Validate format to avoid leaking unrelated field values
+  if (type === 'naics') return /^\d{6}$/.test(raw) ? raw : '';
+  if (type === 'psc')   return /^[A-Z0-9]{4}$/i.test(raw) ? raw : '';
+  // Generic: accept NAICS (6 digits) or PSC (4 alphanum)
+  if (/^\d{6}$/.test(raw) || /^[A-Z0-9]{4}$/i.test(raw)) return raw;
+  return '';
 }
 
 function buildSearchTerms(kw) {
   const seen = new Set(), terms = [];
   const add = item => { const k = item.toUpperCase(); if (!seen.has(k)) { seen.add(k); terms.push(item); } };
-  (kw.core_keywords||[]).forEach(add); (kw.competitors||[]).forEach(add);
+  (kw.core_keywords||[]).forEach(add);
+  // Cap competitors to avoid over-broad TAM inflation from tangential vendors
+  (kw.competitors||[]).slice(0,8).forEach(add);
   if (kw.company) add(kw.company);
   (kw.psc_keyword_combos||[]).forEach(add); (kw.agency_keyword_combos||[]).forEach(add); (kw.and_combos||[]).forEach(add);
   return terms;
@@ -823,7 +834,7 @@ function buildActions(kw, data) {
   const hotRecomps = data.recompetes.filter(r => Math.round((new Date(r['End Date'])-now)/86400000) < 180 && (r['Award Amount']||0) > 100000);
   if (hotRecomps.length > 0) {
     const r = hotRecomps[0], days = Math.round((new Date(r['End Date'])-now)/86400000);
-    actions.push({priority:'now', head:normVendor(r['Recipient Name'])+"'s work at "+shortAg(r['Awarding Agency'])+" expires in "+days+" days", text:"This <strong>"+money(r['Award Amount']||0)+"</strong> contract expires "+r['End Date']+". The window to position a competing bid or get on a teaming agreement is closing. Identify the contracting officer now.", chips:[r['Awarding Agency'], codeVal(r['PSC'])||null, codeVal(r['NAICS'])||null].filter(Boolean)});
+    actions.push({priority:'now', head:normVendor(r['Recipient Name'])+"'s work at "+shortAg(r['Awarding Agency'])+" expires in "+days+" days", text:"This <strong>"+money(r['Award Amount']||0)+"</strong> contract expires "+r['End Date']+". The window to position a competing bid or get on a teaming agreement is closing. Identify the contracting officer now.", chips:[r['Awarding Agency'], codeVal(r['PSC'],'psc')||null, codeVal(r['NAICS'],'naics')||null].filter(Boolean)});
     if (hotRecomps.length > 1) {
       const extras = hotRecomps.slice(1,3);
       actions.push({priority:'now', head:(hotRecomps.length-1)+" more contract"+(hotRecomps.length>2?'s':'')+' expiring under 180 days', text:extras.map(r2 => { const d2=Math.round((new Date(r2['End Date'])-now)/86400000); return "<strong>"+normVendor(r2['Recipient Name'])+"</strong> at "+shortAg(r2['Awarding Agency'])+" \u2014 "+money(r2['Award Amount']||0)+", "+d2+" days"; }).join('<br>'), chips:[]});
@@ -864,9 +875,32 @@ function updateFootprintDisplay(fp) {
     sub.textContent = 'Lookup unavailable';
     return;
   }
-  el.textContent = money(fp.spend);
-  el.style.color = 'var(--text-primary)';
-  sub.textContent = fp.contracts + (fp.capped ? '+' : '') + ' contract' + (fp.contracts !== 1 ? 's' : '') + ' · ' + fp.label;
+
+  // Reconcile with vendor table: if the vendor table found the company at a
+  // lower spend, the API lookup may be overcounting (pulling parent company
+  // entities). Use whichever is lower and flag the source.
+  const vendorTableEntry = currentAnalysis
+    ? currentAnalysis.vendors.find(v => v.isTarget && !v.notFound)
+    : null;
+  const vendorTableSpend = vendorTableEntry ? vendorTableEntry.spend : null;
+
+  let displaySpend = fp.spend;
+  let displayLabel = fp.label;
+  let displayContracts = fp.contracts;
+
+  if (vendorTableSpend !== null && vendorTableSpend > 0 && vendorTableSpend < fp.spend * 0.6) {
+    // API overcounting — vendor table is more precise (same dataset, relevance-filtered)
+    displaySpend = vendorTableSpend;
+    displayContracts = vendorTableEntry.contracts;
+    displayLabel = 'From matched award records (vendor table)';
+  }
+
+  el.textContent = displaySpend > 0 ? money(displaySpend) : '—';
+  el.style.color = displaySpend > 0 ? 'var(--text-primary)' : 'var(--text-quaternary)';
+  sub.textContent = displayContracts + (fp.capped ? '+' : '') + ' contract' + (displayContracts !== 1 ? 's' : '') + ' · ' + displayLabel;
+
+  // Also pass reconciled footprint into Arti payload if Arti hasn't streamed yet
+  if (currentFootprint) currentFootprint._displaySpend = displaySpend;
 }
 
 async function fetchCompanyFootprint(company, signal) {
@@ -1138,13 +1172,14 @@ function streamArtiAction(kw, data) {
   const mkt = {
     target_company: kw.company,
     summary: kw.summary,
-    CRITICAL_DATA_NOTE: 'total_addressable_market_spend and total_contracts represent the ENTIRE FEDERAL MARKET across all keywords searched — competitor names, product categories, and the target company combined. This is the TAM, NOT the target company revenue or spend. The target company actual federal spend is in target_company_federal_spend below.',
+    CRITICAL_DATA_NOTE: 'RULES YOU MUST FOLLOW: (1) total_addressable_market_spend is the TAM for the entire capability category — NOT the target company revenue. State it as TAM, not company revenue. (2) The target company spend is ONLY in target_company_federal_spend — use that number for the company footprint. (3) NEVER name or recommend any vendor, agency, contract, or opportunity not present in top_vendors_by_federal_spend, top_buying_agencies, or contracts_expiring_soon. Do not invent SIs, primes, or partners. Every recommendation must cite a specific name and dollar amount from this payload. (4) State the target company market share as a percentage of TAM — divide target_company_federal_spend by total_addressable_market_spend.',
     total_addressable_market_spend: data.totalSpend,
     total_addressable_market_contracts: data.totalContracts,
     target_company_federal_spend: targetVendor && !targetVendor.notFound ? targetVendor.spend : 0,
+    target_company_market_share_pct: (targetVendor && !targetVendor.notFound && data.totalSpend > 0) ? Math.round((targetVendor.spend / data.totalSpend) * 100 * 10) / 10 : 0,
     target_company_found_in_results: targetVendor ? !targetVendor.notFound : false,
     search_keywords_used: kw.core_keywords,
-    competitor_names_searched: kw.competitors,
+    competitor_names_searched: (kw.competitors||[]).slice(0,8),
     top_vendors_by_federal_spend: topV,
     top_buying_agencies: topA,
     contracts_expiring_soon: exp,
@@ -1215,7 +1250,7 @@ function renderVendorTable(vendors, kw, cmpData) {
 function exportCSV() {
   if (!allContracts.length) return;
   const headers = ['Award ID','Recipient Name','Awarding Agency','Award Amount','Start Date','End Date','NAICS','PSC','Description','Matched Keywords'];
-  const rows = allContracts.map(c => ['"'+(c['Award ID']||'')+'"', '"'+((c['Recipient Name']||'').replace(/"/g,'""'))+'"', '"'+((c['Awarding Agency']||'').replace(/"/g,'""'))+'"', c['Award Amount']||0, c['Start Date']||'', c['End Date']||'', codeVal(c['NAICS']), codeVal(c['PSC']), '"'+((c['Description']||'').replace(/"/g,'""').slice(0,200))+'"', '"'+[...c._keywords].join('; ')+'"']);
+  const rows = allContracts.map(c => ['"'+(c['Award ID']||'')+'"', '"'+((c['Recipient Name']||'').replace(/"/g,'""'))+'"', '"'+((c['Awarding Agency']||'').replace(/"/g,'""'))+'"', c['Award Amount']||0, c['Start Date']||'', c['End Date']||'', codeVal(c['NAICS'],'naics'), codeVal(c['PSC'],'psc'), '"'+((c['Description']||'').replace(/"/g,'""').slice(0,200))+'"', '"'+[...c._keywords].join('; ')+'"']);
   const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
   const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
   const url = URL.createObjectURL(blob);
