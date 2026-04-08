@@ -840,42 +840,13 @@ function buildActions(kw, data) {
   return actions;
 }
 
-// Fetch PSC/NAICS description from USASpending reference API
-async function fetchCodeDescription(code, codeType) {
-  try {
-    if (codeType === 'psc') {
-      const res = await fetch(ENDPOINTS.PROXY, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          request_type: 'usaspending_proxy',
-          endpoint: '/references/product_or_service_codes/?product_or_service_code=' + encodeURIComponent(code),
-          payload: null
-        })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const match = (data.results || []).find(r => r.productOrServiceCode === code || r.code === code);
-        if (match) return match.description || match.productOrServiceCodeDescription || null;
-      }
-    } else if (codeType === 'naics') {
-      const res = await fetch(ENDPOINTS.PROXY, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          request_type: 'usaspending_proxy',
-          endpoint: '/references/naics/?code=' + encodeURIComponent(code),
-          payload: null
-        })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const match = (data.results || []).find(r => r.naics_code === code || r.code === code);
-        if (match) return match.naics_description || match.description || null;
-      }
-    }
-  } catch(e) { /* silently fall through */ }
-  return null;
+const NAICS_DESC = {"334111": "Electronic Computer Manufacturing", "334118": "Computer Terminal and Peripheral Equipment Manufacturing", "334210": "Telephone Apparatus Manufacturing", "334220": "Radio and TV Broadcasting and Wireless Communications Equipment Manufacturing", "334290": "Other Communications Equipment Manufacturing", "334411": "Electron Tube Manufacturing", "334511": "Search, Detection, Navigation, Guidance, Aeronautical Systems Manufacturing", "334512": "Automatic Environmental Control Manufacturing", "334519": "Other Measuring and Controlling Device Manufacturing", "334613": "Magnetic and Optical Recording Media Manufacturing", "336411": "Aircraft Manufacturing", "336412": "Aircraft Engine and Engine Parts Manufacturing", "336413": "Other Aircraft Parts and Auxiliary Equipment Manufacturing", "336414": "Guided Missile and Space Vehicle Manufacturing", "336415": "Guided Missile and Space Vehicle Propulsion Unit Manufacturing", "336419": "Other Guided Missile and Space Vehicle Parts Manufacturing", "423430": "Computer and Peripheral Equipment and Software Wholesalers", "511210": "Software Publishers", "517110": "Wired Telecommunications Carriers", "517210": "Wireless Telecommunications Carriers", "517310": "Telecommunications Resellers", "517410": "Satellite Telecommunications", "518210": "Data Processing, Hosting, and Related Services", "519130": "Internet Publishing and Web Search Portals", "541330": "Engineering Services", "541380": "Testing Laboratories", "541511": "Custom Computer Programming Services", "541512": "Computer Systems Design Services", "541513": "Computer Facilities Management Services", "541519": "Other Computer Related Services", "541611": "Administrative Management and General Management Consulting", "541612": "Human Resources Consulting Services", "541614": "Process, Physical Distribution, and Logistics Consulting", "541618": "Other Management Consulting Services", "541620": "Environmental Consulting Services", "541690": "Other Scientific and Technical Consulting Services", "541711": "Research and Development in Biotechnology", "541715": "Research and Development in Physical, Engineering, and Life Sciences", "541720": "Research and Development in Social Sciences and Humanities", "541810": "Advertising Agencies", "541820": "Public Relations Agencies", "541910": "Marketing Research and Public Opinion Polling", "541990": "All Other Professional, Scientific, and Technical Services", "561110": "Office Administrative Services", "561210": "Facilities Support Services", "561320": "Temporary Help Services", "561499": "All Other Business Support Services", "561611": "Investigation and Personal Background Check Services", "561612": "Security Guards and Patrol Services", "561621": "Security Systems Services", "561710": "Exterminating and Pest Control Services", "561720": "Janitorial Services", "561730": "Landscaping Services", "561990": "All Other Support Services", "611420": "Computer Training", "611430": "Professional and Management Development Training", "611519": "Other Technical and Trade Schools", "621111": "Offices of Physicians", "621610": "Home Health Care Services", "622110": "General Medical and Surgical Hospitals", "811212": "Computer and Office Machine Repair and Maintenance", "923120": "Administration of Public Health Programs", "928110": "National Security"};
+const PSC_DESC = {"D301": "IT \u2014 Facility Operation and Maintenance", "D302": "IT \u2014 Systems Development", "D303": "IT \u2014 Backup and Security Services", "D304": "IT \u2014 Telecommunications and Transmission", "D305": "IT \u2014 Automatic Data Processing", "D306": "IT \u2014 ADP Systems Analysis Services", "D307": "IT \u2014 Automated Information System Design and Integration", "D308": "IT \u2014 Programming Services", "D309": "IT \u2014 Information and Data Broadcasting", "D310": "IT \u2014 Cyber Security and Data Backup", "D311": "IT \u2014 Annual Software Maintenance Service Plans", "D314": "IT \u2014 System Acquisition Support", "D315": "IT \u2014 Digitizing of Documents", "D316": "IT \u2014 IT Strategy and Architecture", "D317": "IT \u2014 Digital Investigative Services", "D318": "IT \u2014 IT Management Support", "D319": "IT \u2014 Annual Software Maintenance Service Plans", "D320": "IT \u2014 Business Application Development", "D321": "IT \u2014 Program Management and Support", "D322": "IT \u2014 Modeling and Simulation", "D399": "IT \u2014 Other IT and Telecommunications", "R408": "Program Management and Support Services", "R409": "Program Evaluation and Review Support", "R410": "Program Evaluation and Development Support", "R411": "Scientific Research and Development Support", "R412": "Management and Organization Development Support", "R413": "Logistics Support Services", "R414": "Engineering and Technical Support Services", "R415": "Facilities Support Services", "R416": "Communications Support Services", "R417": "Intelligence Operations Support", "R418": "Training Support Services", "R425": "Engineering and Technical Services", "R499": "Other Professional Services", "R706": "Management Support Services", "R707": "Contract and Procurement Support Services", "B504": "Special Studies \u2014 Science and Technology", "B507": "Intelligence Studies and Analysis", "B509": "Economic and Social Analysis", "B510": "Military Operational Planning Studies", "B599": "Other Special Studies and Analysis", "U008": "Training \u2014 IT and Computers", "U009": "Training \u2014 Communications", "U099": "Training \u2014 Other", "J059": "Maintenance of ADP Equipment and Supplies", "J065": "Maintenance of Medical Equipment", "J070": "Maintenance of Office Machines", "7010": "ADP Central Processing Unit and Servers", "7020": "ADP Input/Output and Storage Devices", "7021": "ADP Central Processing Unit", "7022": "ADP Input/Output Equipment", "7025": "ADP Supplies", "7030": "ADP Software", "7035": "ADP Support Equipment", "6910": "Training Aids", "6920": "Armament Training Devices", "6930": "Operational Training Devices", "6940": "Communication Training Devices", "A111": "Research \u2014 Threat Analysis", "A112": "Research \u2014 Threat Assessment"};
+
+function fetchCodeDescription(code, codeType) {
+  if (codeType === 'naics') return Promise.resolve(NAICS_DESC[code] || null);
+  if (codeType === 'psc')   return Promise.resolve(PSC_DESC[code]   || null);
+  return Promise.resolve(null);
 }
 
 
