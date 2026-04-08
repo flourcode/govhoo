@@ -372,6 +372,7 @@ a, button, input, select { touch-action: manipulation; }
     <div class="page-header">
       <div class="page-title">Govhoo.</div>
       <div class="page-subtitle">OSINT for Federal Markets</div>
+      <div style="font-size:var(--text-sm);color:var(--text-tertiary);font-weight:400;margin-top:10px;line-height:1.5;">Enter a company name to see who's winning federal contracts in their space, which agencies are buying, what's expiring, and how to get in.</div>
     </div>
 
     <div class="app-card">
@@ -909,7 +910,23 @@ function streamArtiAction(kw, data) {
   const topV = data.vendors.slice(0,5).map(v=>({name:v.name,spend:v.spend,contracts:v.contracts}));
   const topA = data.agencies.slice(0,5).map(a=>({name:a.name,spend:a.spend,contracts:a.contracts}));
   const exp = data.recompetes.slice(0,5).map(r=>({vendor:normVendor(r['Recipient Name']),agency:r['Awarding Agency'],value:r['Award Amount'],end_date:r['End Date'],description:(r['Description']||'').slice(0,120)}));
-  const mkt = {company:kw.company,summary:kw.summary,core_keywords:kw.core_keywords,competitors:kw.competitors,total_spend:data.totalSpend,total_contracts:data.totalContracts,top_vendors:topV,top_agencies:topA,expiring_soon:exp,fragmentation_pct:data.totalSpend>0?Math.round((topV.slice(0,3).reduce((s,v)=>s+v.spend,0)/data.totalSpend)*100):0};
+  const companyName=(kw.company||'').toLowerCase();
+  const targetVendor=data.vendors.find(v=>v.name.toLowerCase().includes(companyName));
+  const mkt = {
+    target_company: kw.company,
+    summary: kw.summary,
+    CRITICAL_DATA_NOTE: 'total_addressable_market_spend and total_contracts represent the ENTIRE FEDERAL MARKET across all keywords searched — competitor names, product categories, and the target company combined. This is the TAM, NOT the target company revenue or spend. The target company actual federal spend is in target_company_federal_spend below.',
+    total_addressable_market_spend: data.totalSpend,
+    total_addressable_market_contracts: data.totalContracts,
+    target_company_federal_spend: targetVendor && !targetVendor.notFound ? targetVendor.spend : 0,
+    target_company_found_in_results: targetVendor ? !targetVendor.notFound : false,
+    search_keywords_used: kw.core_keywords,
+    competitor_names_searched: kw.competitors,
+    top_vendors_by_federal_spend: topV,
+    top_buying_agencies: topA,
+    contracts_expiring_soon: exp,
+    market_fragmentation_top3_pct: data.totalSpend>0?Math.round((topV.slice(0,3).reduce((s,v)=>s+v.spend,0)/data.totalSpend)*100):0
+  };
   fetch(ENDPOINTS.AI,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_type:'govhoo_action_plan',market_data:mkt,objective:'federal sales representative analyzing the market for '+kw.company})})
   .then(res=>{
     if(!res.ok||!res.body){el.textContent='Brief unavailable.';el.style.cssText='font-style:normal;color:var(--text-tertiary)';return;}
