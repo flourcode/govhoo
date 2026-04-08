@@ -69,7 +69,7 @@ a, button, input, select { touch-action: manipulation; }
   border-bottom: 1px solid var(--border);
   padding: max(10px, var(--safe-top)) 20px 10px;
 }
-.header-top { display: flex; align-items: center; gap: 10px; max-width: 960px; margin: 0 auto; }
+.header-top { display: flex; align-items: center; gap: 10px; max-width: min(96vw, 1920px); margin: 0 auto; }
 .logo-link {
   font-size: 0.95rem; font-weight: 800; letter-spacing: -0.01em;
   color: var(--text-primary); text-decoration: none;
@@ -90,8 +90,9 @@ a, button, input, select { touch-action: manipulation; }
 }
 .back-link:hover { background: var(--bg-hover); }
 
-.page-wrap { max-width: 960px; margin: 0 auto; padding: 36px 20px calc(4rem + var(--safe-bottom)); }
-.page-header { margin-bottom: 28px; }
+.page-wrap { max-width: min(96vw, 1920px); margin: 0 auto; padding: 36px 20px calc(4rem + var(--safe-bottom)); }
+.page-header { margin-bottom: 28px; max-width: 680px; }
+.search-constrain { max-width: 680px; }
 .page-title { font-size: var(--text-hero); font-weight: 800; color: var(--text-primary); letter-spacing: -0.03em; line-height: 1; margin-bottom: 6px; }
 .page-subtitle { font-size: var(--text-2xl); font-weight: 600; color: var(--text-primary); letter-spacing: -0.03em; line-height: 1; margin-bottom: 18px; }
 
@@ -244,6 +245,7 @@ a, button, input, select { touch-action: manipulation; }
 
 .dashboard { display: none; }
 .dashboard.active { display: block; padding: 0; }
+#searchView { max-width: 680px; }
 
 
 .compare-notice {
