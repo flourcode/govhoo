@@ -819,6 +819,7 @@ async function startAnalysis() {
   await sleep(350);
   $('phaseWrap').classList.remove('active');
   showDashboard(kw, analysis, null);
+  streamArtiAction(kw, analysis);
 }
 
 function showDashboard(kw, analysis, subtitle) {
@@ -900,7 +901,6 @@ function renderDashboard(kw, data, subtitle) {
     const chipHtml = a.chips.filter(Boolean).map(c => '<span class="action-chip">'+c+'</span>').join('');
     return '<li class="action-row"><div class="action-priority '+cls+'">'+label+'</div><div class="action-body"><div class="action-head">'+a.head+'</div><div class="action-text">'+a.text+'</div>'+(chipHtml?'<div class="action-chips">'+chipHtml+'</div>':'')+'</div></li>';
   }).join('');
-  requestAnimationFrame(()=>streamArtiAction(kw,data));
 }
 
 function streamArtiAction(kw, data) {
