@@ -378,7 +378,7 @@ a, button, input, select { touch-action: manipulation; }
     <div class="page-header">
       <div class="page-title">Govhoo.</div>
       <div class="page-subtitle">Open-source Signals for Federal Markets</div>
-      <div style="font-size:var(--text-sm);color:var(--text-tertiary);font-weight:400;margin-top:10px;line-height:1.65;max-width:560px;">Enter any company name. We use AI to figure out what they sell, then search <strong style="color:var(--text-secondary);font-weight:600">USASpending.gov</strong> — the U.S. government’s public contracts database — to show you who’s buying in that space, who’s winning, and what’s up for renewal. All numbers are actual awarded dollars, not budgets. Classified contracts and reseller pass-throughs under $50K won’t appear. Data is roughly 90 days behind real-time.</div>
+      <div style="font-size:var(--text-sm);color:var(--text-tertiary);font-weight:400;margin-top:10px;line-height:1.65;">Enter a company name. Gemini identifies their capability space and generates a keyword set covering their products, competitors, and contract codes. Those terms are run against <strong style="color:var(--text-secondary);font-weight:600">USASpending.gov</strong> — the U.S. government’s public database of federal contract obligations — to surface who’s buying in that category, which vendors are winning, how spend is concentrated, and what contracts are expiring. All dollar figures are obligated award amounts, not budgets or projections. Classified contracts, sub-awards under $50K, and IDIQ ceiling values without discrete award records are excluded. Data lags real-time by approximately 90 days.<br><br><strong style="color:var(--text-secondary);font-weight:600">Experimental.</strong> AI-generated keyword sets may miss or misclassify capability areas. Validate figures against USASpending.gov directly before committing resources or presenting to stakeholders.</div>
     </div>
 
     <div class="app-card">
@@ -879,40 +879,50 @@ async function fetchCompanyFootprint(company, signal) {
   };
   const fields = ['Award ID','Award Amount','Awarding Agency'];
 
-  // Run both lookups in parallel:
-  // A) Direct awards — company is the prime recipient (e.g. Databricks, Palantir)
-  // B) Description mentions — company named in contract but award goes to reseller/SI
-  //    (e.g. SentinelOne licenses flowing through Thundercat)
-  const [recipientResult, keywordResult] = await Promise.allSettled([
+  // Short or generic names (< 5 chars) produce massive false-positive matches
+  // in description keyword search. For these, only run the recipient lookup.
+  const nameIsShort = company.trim().length < 5;
+
+  const searches = [
     searchUSA('/search/spending_by_award/', {
       filters: { ...base, recipient_search_text: [company] },
       fields, limit: 100, sort: 'Award Amount', order: 'desc', page: 1
-    }, signal),
-    searchUSA('/search/spending_by_award/', {
+    }, signal)
+  ];
+  if (!nameIsShort) {
+    searches.push(searchUSA('/search/spending_by_award/', {
       filters: { ...base, keywords: [company] },
       fields, limit: 100, sort: 'Award Amount', order: 'desc', page: 1
-    }, signal)
-  ]);
+    }, signal));
+  }
+
+  const [recipientResult, keywordResult] = await Promise.allSettled(searches);
 
   const recipientRows = recipientResult.status === 'fulfilled' ? (recipientResult.value.results || []) : [];
-  const keywordRows  = keywordResult.status  === 'fulfilled' ? (keywordResult.value.results  || []) : [];
+  const keywordRows   = (!nameIsShort && keywordResult?.status === 'fulfilled') ? (keywordResult.value.results || []) : [];
 
   const recipientSpend = recipientRows.reduce((s, r) => s + (r['Award Amount'] || 0), 0);
   const keywordSpend   = keywordRows.reduce((s, r)  => s + (r['Award Amount'] || 0), 0);
 
-  // Deduplicate by Award ID across both result sets
+  // Sanity check: if keyword spend is more than 20x the recipient spend,
+  // the keyword is too generic and is pulling unrelated contracts.
+  // In that case, trust only the recipient results.
+  const keywordIsNoisy = recipientSpend > 0 && keywordSpend > recipientSpend * 20;
+  const useKeyword = !nameIsShort && !keywordIsNoisy;
+
+  // Deduplicate by Award ID
   const seen = new Set();
   const combined = [];
-  for (const r of [...recipientRows, ...keywordRows]) {
+  const sources = useKeyword ? [...recipientRows, ...keywordRows] : recipientRows;
+  for (const r of sources) {
     const id = r['Award ID'] || r['generated_internal_id'] || JSON.stringify(r);
     if (!seen.has(id)) { seen.add(id); combined.push(r); }
   }
   const combinedSpend = combined.reduce((s, r) => s + (r['Award Amount'] || 0), 0);
 
-  // Label tells user how the company shows up in federal contracts
-  const directOnly   = recipientSpend > 0 && keywordSpend === 0;
-  const mentionOnly  = recipientSpend === 0 && keywordSpend > 0;
-  const both         = recipientSpend > 0 && keywordSpend > 0;
+  const directOnly  = recipientSpend > 0 && (keywordSpend === 0 || keywordIsNoisy || nameIsShort);
+  const mentionOnly = recipientSpend === 0 && keywordSpend > 0 && useKeyword;
+  const both        = recipientSpend > 0 && keywordSpend > 0 && useKeyword;
 
   const label = directOnly  ? 'Direct prime recipient'
               : mentionOnly ? 'Named in contract descriptions via resellers'
@@ -953,7 +963,7 @@ async function startAnalysis() {
   const kw = currentKeywords;
   // Fire isolated recipient lookup in parallel — don't await, store when done
   currentFootprint = null;
-  fetchCompanyFootprint(company, signal).then(fp => { currentFootprint = fp; updateFootprintDisplay(fp); });
+  fetchCompanyFootprint(kw.company || company, signal).then(fp => { currentFootprint = fp; updateFootprintDisplay(fp); });
   setPhase(1,'done',(kw.core_keywords?.length||0)+' keywords, '+(kw.naics_codes?.length||0)+' NAICS, '+(kw.psc_codes?.length||0)+' PSC, '+(kw.competitors?.length||0)+' competitors <button class="phase-toggle" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'block\':\'none\'">show JSON</button><div class="phase-raw" style="display:none">'+JSON.stringify(kw,null,2)+'</div>');
   setMaster(20,'Keywords ready');
 
