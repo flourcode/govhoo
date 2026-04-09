@@ -12,6 +12,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='96 96 448 448'%3E%3Cstyle%3Epath%7Bfill:%232C2B28%7D .arrow%7Bfill:%23FFFFFF%7D @media (prefers-color-scheme:dark)%7B.arrow%7Bfill:%23DCD8D0%7D%7D%3C/style%3E%3Cpath d='M480 96C515.3 96 544 124.7 544 160L544 480C544 515.3 515.3 544 480 544L160 544C124.7 544 96 515.3 96 480L96 160C96 124.7 124.7 96 160 96L480 96z'/%3E%3Cpath class='arrow' d='M368 360C368 373.3 378.7 384 392 384C405.3 384 416 373.3 416 360L416 248C416 234.7 405.3 224 392 224L280 224C266.7 224 256 234.7 256 248C256 261.3 266.7 272 280 272L334.1 272L231.1 375C221.7 384.4 221.7 399.6 231.1 408.9C240.5 418.2 255.7 418.3 265 408.9L368 305.9L368 360z'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,1..1000&display=swap" rel="stylesheet">
 <title>Govhoo — QuickTAM</title>
 <style>
@@ -346,6 +347,20 @@ a, button, input, select { touch-action: manipulation; }
   .toast { transform: translateY(100%); max-width: 100%; }
   .toast.show { transform: translateY(0); }
 }
+
+/* ── VIZ: BUBBLE CHART ── */
+#bubbleViz { width: 100%; touch-action: pan-y; }
+#bubbleViz svg { width: 100%; display: block; }
+.bubble-label { font-family: var(--font); font-size: 9px; font-weight: 700; fill: #fff; text-anchor: middle; pointer-events: none; }
+.bubble-sublabel { font-family: var(--font); font-size: 7.5px; fill: rgba(255,255,255,0.7); text-anchor: middle; pointer-events: none; }
+.bubble-circle { cursor: pointer; transition: opacity 0.15s; }
+.bubble-circle:hover { opacity: 0.85; }
+
+/* ── VIZ: AGENCY TREEMAP ── */
+#agencyViz { width: 100%; }
+#agencyViz svg { width: 100%; display: block; }
+.treemap-label { font-family: var(--font); font-size: 9px; font-weight: 700; fill: #fff; pointer-events: none; }
+.treemap-sub { font-family: var(--font); font-size: 7.5px; fill: rgba(255,255,255,0.65); pointer-events: none; }
 </style>
 </head>
 <body>
@@ -468,6 +483,18 @@ a, button, input, select { touch-action: manipulation; }
       <div class="app-card">
         <div class="card-label" id="heatHeadEl">Agency × Capability</div>
         <div class="akm-wrap"><div id="heatmapBox"></div></div>
+      </div>
+
+      <!-- VIZ 1: VENDOR BUBBLES -->
+      <div class="app-card" id="bubbleCard" style="display:none;">
+        <div class="card-label">Vendor Spend — Bubble View</div>
+        <div id="bubbleViz"></div>
+      </div>
+
+      <!-- VIZ 2: AGENCY TREEMAP -->
+      <div class="app-card" id="treemapCard" style="display:none;">
+        <div class="card-label">Agency Spend — Treemap</div>
+        <div id="agencyViz"></div>
       </div>
 
       <!-- VENDOR LIST -->
@@ -1188,6 +1215,9 @@ function renderDashboard(kw, data, subtitle) {
   // ── VENDOR TABLE ──────────────────────────────────────────────────────────
   renderVendorTable(data.vendors, kw, cmpData);
 
+  // ── VISUALIZATIONS ───────────────────────────────────────────────────────
+  setTimeout(() => { renderBubbleChart(data.vendors); renderAgencyTreemap(data.agencies, data.totalSpend); }, 50);
+
   // ── KEYWORDS ──────────────────────────────────────────────────────────────
   const allCombos = [...(kw.psc_keyword_combos||[]),...(kw.agency_keyword_combos||[]),...(kw.and_combos||[])];
   const total = (kw.core_keywords?.length||0)+(kw.agency_targets?.length||0)+(kw.naics_codes?.length||0)+(kw.psc_codes?.length||0)+allCombos.length+(kw.competitors?.length||0);
@@ -1281,13 +1311,145 @@ STRICT RULES: Only name companies, agencies, and contracts present in the payloa
   }).catch(()=>{if(el){el.textContent='Brief unavailable.';el.style.cssText='font-style:normal;color:var(--text-tertiary)';}});
 }
 
+function renderBubbleChart(vendors) {
+  const el = document.getElementById('bubbleViz');
+  const card = document.getElementById('bubbleCard');
+  if (!el || !vendors || vendors.length === 0) return;
+  card.style.display = '';
+  el.innerHTML = '';
+
+  const W = el.offsetWidth || 360;
+  const H = Math.min(W * 0.72, 320);
+  const maxSpend = vendors[0].spend || 1;
+
+  // Color by vehicle type
+  const vehicleColors = {
+    'GSA MAS': '#1d4ed8', 'Alliant': '#7c3aed', 'OASIS': '#0891b2',
+    'SEWP': '#0d9488', 'CIO-SP3': '#059669', '8(a) STARS': '#d97706',
+    'VETS': '#dc2626', 'BPA': '#9333ea', 'IDIQ/TO': '#2563eb',
+    'Army IDIQ': '#1e40af', 'NIH': '#16a34a', 'DISA IDIQ': '#0e7490',
+    'Standalone': '#6b7280', 'default': '#374151'
+  };
+
+  const color = v => {
+    const veh = (v.vehicle || 'Standalone').split(',')[0].trim();
+    return vehicleColors[veh] || vehicleColors['default'];
+  };
+
+  const svg = d3.select(el).append('svg')
+    .attr('viewBox', '0 0 '+W+' '+H)
+    .attr('height', H);
+
+  const nodes = vendors.map(v => ({
+    ...v,
+    r: Math.max(16, Math.sqrt(v.spend / maxSpend) * (W < 400 ? 44 : 62)),
+  }));
+
+  const sim = d3.forceSimulation(nodes)
+    .force('charge', d3.forceManyBody().strength(6))
+    .force('center', d3.forceCenter(W/2, H/2))
+    .force('collision', d3.forceCollide(d => d.r + 3))
+    .force('x', d3.forceX(W/2).strength(0.08))
+    .force('y', d3.forceY(H/2).strength(0.12))
+    .stop();
+
+  for (let i = 0; i < 200; i++) sim.tick();
+
+  // Clamp to bounds
+  nodes.forEach(n => {
+    n.x = Math.max(n.r + 2, Math.min(W - n.r - 2, n.x));
+    n.y = Math.max(n.r + 2, Math.min(H - n.r - 2, n.y));
+  });
+
+  const g = svg.selectAll('g').data(nodes).enter().append('g')
+    .attr('transform', d => 'translate('+d.x+','+d.y+')')
+    .on('click', (event, d) => goDash(d.name));
+
+  g.append('circle')
+    .attr('r', d => d.r)
+    .attr('fill', color)
+    .attr('class', 'bubble-circle')
+    .attr('opacity', 0.9);
+
+  g.each(function(d) {
+    const shortName = d.name.length > 12 ? d.name.slice(0, 11) + '…' : d.name;
+    const sel = d3.select(this);
+    if (d.r > 22) {
+      sel.append('text').attr('class', 'bubble-label').attr('dy', d.r > 30 ? '-0.2em' : '0.35em').text(shortName);
+      if (d.r > 30) sel.append('text').attr('class', 'bubble-sublabel').attr('dy', '1em').text(money(d.spend));
+    }
+  });
+
+  // Legend
+  const vehicles = [...new Set(vendors.map(v => (v.vehicle||'Standalone').split(',')[0].trim()))].slice(0,5);
+  const lg = svg.append('g').attr('transform', 'translate(6,'+(H-14*(vehicles.length)-4)+')');
+  vehicles.forEach((v, i) => {
+    lg.append('circle').attr('cx', 5).attr('cy', i*13+5).attr('r', 4).attr('fill', vehicleColors[v] || vehicleColors['default']);
+    lg.append('text').attr('x', 12).attr('y', i*13+9).attr('font-size', '7').attr('font-family', 'var(--font)').attr('fill', 'var(--text-tertiary)').text(v);
+  });
+}
+
+function renderAgencyTreemap(agencies, totalSpend) {
+  const el = document.getElementById('agencyViz');
+  const card = document.getElementById('treemapCard');
+  if (!el || !agencies || agencies.length === 0) return;
+  card.style.display = '';
+  el.innerHTML = '';
+
+  const W = el.offsetWidth || 360;
+  const H = Math.min(W * 0.55, 240);
+
+  // Agency color palette — each agency gets a distinct blue/teal/indigo shade
+  const palette = ['#1d4ed8','#0891b2','#0d9488','#7c3aed','#059669','#2563eb','#0e7490','#1e40af','#6d28d9','#0f766e','#1a56db','#3730a3'];
+
+  const root = d3.hierarchy({ children: agencies.slice(0, 10) })
+    .sum(d => d.spend || 0);
+  d3.treemap().size([W, H]).paddingInner(2).paddingOuter(0).round(true)(root);
+
+  const svg = d3.select(el).append('svg')
+    .attr('viewBox', '0 0 '+W+' '+H)
+    .attr('height', H);
+
+  const nodes = svg.selectAll('g')
+    .data(root.leaves())
+    .enter().append('g')
+    .attr('transform', d => 'translate('+d.x0+','+d.y0+')');
+
+  nodes.append('rect')
+    .attr('width', d => Math.max(0, d.x1 - d.x0))
+    .attr('height', d => Math.max(0, d.y1 - d.y0))
+    .attr('fill', (d,i) => palette[i % palette.length])
+    .attr('rx', 3)
+    .attr('opacity', 0.9);
+
+  nodes.each(function(d) {
+    const w = d.x1 - d.x0, h = d.y1 - d.y0;
+    if (w < 28 || h < 18) return;
+    const shortName = d.data.name
+      .replace(/^Department of the\s*/i,'')
+      .replace(/^Department of\s*/i,'')
+      .replace(/^Dept\.? of\s*/i,'')
+      .replace(/^National\s*/i,'');
+    const display = shortName.length > 14 ? shortName.slice(0,13)+'…' : shortName;
+    const pct = Math.round((d.data.spend / totalSpend) * 100);
+    const sel = d3.select(this);
+    if (h > 32) {
+      sel.append('text').attr('class','treemap-label').attr('x', 5).attr('y', 14).text(display);
+      sel.append('text').attr('class','treemap-sub').attr('x', 5).attr('y', 26).text(money(d.data.spend)+' · '+pct+'%');
+    } else {
+      sel.append('text').attr('class','treemap-label').attr('x', 4).attr('y', h/2+4).text(display);
+    }
+  });
+}
+
+
 function renderVendorTable(vendors, kw, cmpData) {
   const companyName = (kw.company||'').toLowerCase();
   const hasCompare = cmpData!==null&&cmpData!==undefined;
   $('vendorBadge').textContent = hasCompare ? 'vs '+(analysisHistory[compareMode?.b]?.company||'?') : 'Deduplicated';
   const maxS = vendors[0]?.spend||1;
   const extraTh = hasCompare ? '<th>vs prior</th>' : '';
-  let html = '<table class="data-table"><thead><tr><th>#</th><th>Vendor</th><th>Spend</th><th>Share</th><th>Contracts</th><th>Agencies</th><th>Vehicle</th><th>Sole%</th>'+extraTh+'</tr></thead><tbody>';
+  let html = '<table class="data-table"><thead><tr><th>#</th><th>Vendor</th><th>Spend</th><th>Share</th><th>Contracts</th><th>Agencies</th><th>Vehicle</th>'+extraTh+'</tr></thead><tbody>';
   vendors.forEach((v, i) => {
     const barPct = Math.round((v.spend/maxS)*100);
     let cmpCell = '';
@@ -1298,8 +1460,7 @@ function renderVendorTable(vendors, kw, cmpData) {
     }
     const resellerTag = v.reseller ? ' <span style="font-size:0.6rem;font-weight:700;padding:1px 4px;border-radius:3px;background:rgba(200,160,0,0.12);color:var(--warn-text);vertical-align:middle;">RESELLER</span>' : '';
     const saTag = v.setasides ? ' <span style="font-size:0.6rem;font-weight:700;padding:1px 4px;border-radius:3px;background:var(--accent-dim);color:var(--accent);vertical-align:middle;">'+v.setasides+'</span>' : '';
-    const soleColor = v.solePct>70?'var(--crit-text)':v.solePct>40?'var(--warn-text)':'var(--go-text)';
-    html += '<tr><td><span class="rank-num">'+(i+1)+'</span></td><td style="font-weight:500;max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+v.name+resellerTag+saTag+'</td><td style="font-weight:700;font-variant-numeric:tabular-nums">'+money(v.spend)+'</td><td><div class="bar-track" style="width:56px"><div class="bar-fill" style="width:'+barPct+'%"></div></div></td><td>'+v.contracts+'</td><td>'+v.agencies+'</td><td style="font-size:var(--text-xs);color:var(--text-tertiary);white-space:nowrap;">'+v.vehicle+'</td><td style="font-size:var(--text-xs);font-weight:700;color:'+soleColor+';">'+v.solePct+'%</td>'+cmpCell+'</tr>';
+    html += '<tr><td><span class="rank-num">'+(i+1)+'</span></td><td style="font-weight:500;max-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+v.name+resellerTag+saTag+'</td><td style="font-weight:700;font-variant-numeric:tabular-nums">'+money(v.spend)+'</td><td><div class="bar-track" style="width:48px"><div class="bar-fill" style="width:'+barPct+'%"></div></div></td><td>'+v.contracts+'</td><td>'+v.agencies+'</td><td style="font-size:var(--text-xs);color:var(--text-tertiary);white-space:nowrap;">'+v.vehicle+'</td>'+cmpCell+'</tr>';
   });
   $('vendorBox').innerHTML = '<div class="data-table-wrap">'+html+'</tbody></table></div>';
 }
