@@ -720,10 +720,7 @@ async function searchKeyword(term, signal) {
   const base = { filters, fields:AWARD_FIELDS, limit:100, sort:'Start Date', order:'desc' };
   const d1 = await searchUSA('/search/spending_by_award/', {...base, page:1}, signal);
   const results = d1.results || [];
-  if (results.length >= 100) {
-    try { const d2 = await searchUSA('/search/spending_by_award/', {...base, page:2}, signal); results.push(...(d2.results||[])); }
-    catch(e) { if (e.name==='AbortError') throw e; }
-  }
+
   return results.map(r => ({...r, _source_keyword:term}));
 }
 async function runParallel(terms, concurrency, signal, onProgress) {
