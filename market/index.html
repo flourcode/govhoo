@@ -1304,7 +1304,7 @@ function streamArtiAction(kw, data) {
   const el = document.getElementById('artiFullText');
   const titleEl = document.getElementById('artiSectionTitle');
   if (!el) return;
-  el.innerHTML = '<span style="color:var(--text-quaternary);font-style:italic">Loading Arti’s analysis…</span>';
+  el.innerHTML = '<span style="color:var(--text-quaternary);font-style:italic">Loading Arti's analysis…</span>';
   const topV = data.vendors.slice(0,5).map(v=>({name:v.name,spend:v.spend,contracts:v.contracts}));
   const topA = data.agencies.slice(0,5).map(a=>({name:a.name,spend:a.spend,contracts:a.contracts}));
   const exp = data.recompetes.slice(0,5).map(r=>({vendor:normVendor(r['Recipient Name']),agency:r['Awarding Agency'],value:r['Award Amount'],end_date:r['End Date'],award_id:r['Award ID']||'',usa_link:'https://www.usaspending.gov/award/'+(r['generated_internal_id']||''),description:(r['Description']||'').slice(0,120)}));
