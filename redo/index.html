@@ -174,10 +174,8 @@ a, button, input, select { touch-action: manipulation; }
   flex-shrink: 0;
 }
 .arti-avatar-lg {
-  width: 52px; height: 52px; border-radius: 50%;
-  object-fit: contain; background: var(--bg-app);
-  border: 2px solid var(--border); padding: 3px;
-  box-shadow: var(--shadow);
+  width: 100px; height: 100px; border-radius: 50%;
+  object-fit: cover; display: block;
 }
 .arti-intro { flex: 1; min-width: 0; }
 .arti-intro-name {
@@ -193,7 +191,7 @@ a, button, input, select { touch-action: manipulation; }
   margin-bottom: 10px; font-size: var(--text-sm) !important;
 }
 .arti-inline {
-  margin-top: 20px; padding: 16px;
+  margin-top: 28px; padding: 16px;
   background: var(--bg); border: 1px solid var(--border);
   border-radius: var(--radius-sm);
 }
@@ -5804,7 +5802,7 @@ selectAgencySuggestion(name, inputId, boxId) {
       const contentEl = DOM.get('aiContentContainer');
       contentEl.innerHTML = `
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border-inner);">
-          <img src="/images/arti.png" style="width:44px;height:44px;border-radius:50%;object-fit:contain;background:var(--bg-app);border:2px solid var(--border);padding:3px;box-shadow:var(--shadow-sm);flex-shrink:0;">
+          <img src="/images/arti.png" style="width:72px;height:72px;border-radius:50%;object-fit:cover;flex-shrink:0;">
           <div>
             <div style="font-size:var(--text-base);font-weight:800;color:var(--text-primary);letter-spacing:-0.02em;">Arti</div>
             <div style="font-size:var(--text-xs);color:var(--text-quaternary);">Your 30-day action plan</div>
@@ -5918,6 +5916,16 @@ selectAgencySuggestion(name, inputId, boxId) {
         res,
         (fullText) => {
           this.aiState.history.push({ role: 'model', content: fullText });
+          // Inject copy button below this response
+          const msgEl = DOM.get(loaderId);
+          if (msgEl) {
+            const copyId = `${loaderId}-copy`;
+            msgEl.insertAdjacentHTML('beforeend',
+              `<button id="${copyId}" class="copy-btn" style="margin-top:8px;"
+                onclick="Utils.copyAndAnimate(document.getElementById('${loaderId}-text').innerText, this, 'Copied!')">
+                Copy
+              </button>`);
+          }
           if (chatInput) chatInput.disabled = false;
           if (chatSend)  chatSend.disabled  = false;
           if (chatInput) chatInput.focus();
