@@ -190,10 +190,17 @@ a, button, input, select { touch-action: manipulation; }
   margin-bottom: 10px; font-size: var(--text-sm) !important;
 }
 .arti-inline {
-  margin-top: 28px; padding: 16px;
+  margin-top: 28px;
   background: var(--bg); border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-sm); overflow: hidden;
 }
+#artiTrigger { padding: 16px; }
+#artiProgress { margin: 0; }
+#aiContentContainer { padding: 0 16px 4px; }
+#artiActions { padding: 0 16px 8px; }
+#chatHistory { padding: 0 16px; }
+#chatInputWrap { padding: 12px 16px !important; border-top: 1px solid var(--border-inner); margin-top: 0 !important; }
+#artiDisclaimer { padding: 0 16px 14px !important; }
 .arti-inline-header {
   display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px;
 }
@@ -640,59 +647,64 @@ a, button, input, select { touch-action: manipulation; }
         <button class="bubble-toggle-btn" data-mode="vendors" id="bubbleToggleVendors">Prime</button>
       </div>
 
-      <!-- Bridge → Arti inline (replaces separate Arti card) -->
+      <!-- Arti — one persistent surface: trigger → response → chat -->
       <div class="arti-inline hidden" id="artiBridge">
-        <div class="arti-inline-header">
-          <div class="arti-avatar-wrap">
-            <img src="/images/arti.png" alt="Arti" class="arti-avatar-lg">
+
+        <!-- Pre-trigger: avatar + context + button -->
+        <div id="artiTrigger">
+          <div class="arti-inline-header">
+            <div class="arti-avatar-wrap">
+              <img src="/images/arti.png" alt="Arti" class="arti-avatar-lg">
+            </div>
+            <div class="arti-intro">
+              <div class="arti-intro-name">Arti <span class="arti-intro-role">· Your federal BD strategist</span></div>
+              <div class="arti-bridge-text" id="artiBridgeText"></div>
+            </div>
           </div>
-          <div class="arti-intro">
-            <div class="arti-intro-name">Arti <span class="arti-intro-role">· Your federal BD strategist</span></div>
-            <div class="arti-bridge-text" id="artiBridgeText"></div>
+          <input type="text" id="artiContextInput" class="input-field arti-ctx-input"
+            placeholder="Who are you selling for? e.g. I sell cloud security to Army and Air Force"
+            autocomplete="off" autocorrect="off">
+          <button class="arti-bridge-btn" id="triggerArtiBtn" onclick="App.runAiActionPlan()">
+            Build my 30-day action plan
+          </button>
+        </div>
+
+        <!-- Post-trigger: stays inside the same surface -->
+        <div class="arti-progress hidden" id="artiProgress">
+          <div class="arti-progress-fill" id="artiProgressFill"></div>
+        </div>
+        <div id="aiContentContainer"></div>
+
+        <!-- Follow-up chips -->
+        <div class="hidden" id="artiActions">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:12px;border-top:1px solid var(--border-inner);padding-top:12px;margin-top:16px;">
+            <span style="font-size:var(--text-xs);font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.05em;">Ask a follow-up</span>
+            <button class="copy-btn" id="copyArtiBtn" onclick="App.copyArtiBrief()" style="margin-left:auto;">Copy brief</button>
+          </div>
+          <div class="prompt-chips" id="artiPromptChips">
+            <button class="prompt-chip" onclick="App.sendArtiChat('Give me 5 Salesforce-ready pipeline opportunities based on this data. Include the contract name, agency, incumbent, expiry, and why we can win.')">Top 5 pipeline opps</button>
+            <button class="prompt-chip" onclick="App.sendArtiChat('Write a cold outreach email to a program manager at the top agency in this market. Make it specific to their recent spending — not a generic pitch.')">Draft outreach email</button>
+            <button class="prompt-chip" onclick="App.sendArtiChat('Generate a 30-60-90 day territory plan for a new AE. Use actual agencies, incumbents, and dollar figures from this data.')">30-60-90 plan</button>
+            <button class="prompt-chip" onclick="App.sendArtiChat('Recommend 2-3 specific teaming partners that would make us more competitive here. Explain why each one.')">Teaming partners</button>
+            <button class="prompt-chip" onclick="App.sendArtiChat('I am prepping for a job interview at a company selling into this market. Give me 3 highly specific talking points using exact numbers and contract names from this data.')">Interview prep</button>
           </div>
         </div>
-        <input type="text" id="artiContextInput" class="input-field arti-ctx-input"
-          placeholder="Who are you selling for? e.g. I sell cloud security to Army and Air Force"
-          autocomplete="off" autocorrect="off">
-        <button class="arti-bridge-btn" id="triggerArtiBtn" onclick="App.runAiActionPlan()">
-          Build my 30-day action plan
-        </button>
-      </div>
 
-      <!-- Arti progress + output (inline) -->
-      <div class="arti-progress hidden" id="artiProgress" style="margin-top:16px;">
-        <div class="arti-progress-fill" id="artiProgressFill"></div>
-      </div>
-      <div id="aiContentContainer"></div>
+        <!-- Chat history -->
+        <div class="chat-history hidden" id="chatHistory"></div>
 
-      <!-- Follow-up actions (shown after brief) -->
-      <div class="hidden" id="artiActions" style="margin-top:16px;">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border-inner);">
-          <span style="font-size:var(--text-xs);font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.05em;">Ask a follow-up</span>
-          <button class="copy-btn" id="copyArtiBtn" onclick="App.copyArtiBrief()" style="margin-left:auto;">Copy brief</button>
+        <!-- Chat input -->
+        <div class="hidden" id="chatInputWrap">
+          <div class="chat-input-row">
+            <input type="text" class="input-field" id="chatInput" placeholder="Ask a follow-up question…" autocomplete="off">
+            <button class="chat-send-btn" id="chatSendBtn">Send</button>
+          </div>
+          <div class="chat-counter hidden" id="chatCounter"></div>
         </div>
-        <div class="prompt-chips" id="artiPromptChips">
-          <button class="prompt-chip" onclick="App.sendArtiChat('Give me 5 Salesforce-ready pipeline opportunities based on this data. Include the contract name, agency, incumbent, expiry, and why we can win.')">Top 5 pipeline opps</button>
-          <button class="prompt-chip" onclick="App.sendArtiChat('Write a cold outreach email to a program manager at the top agency in this market. Make it specific to their recent spending — not a generic pitch.')">Draft outreach email</button>
-          <button class="prompt-chip" onclick="App.sendArtiChat('Generate a 30-60-90 day territory plan for a new AE. Use actual agencies, incumbents, and dollar figures from this data.')">30-60-90 plan</button>
-          <button class="prompt-chip" onclick="App.sendArtiChat('Recommend 2-3 specific teaming partners that would make us more competitive here. Explain why each one.')">Teaming partners</button>
-          <button class="prompt-chip" onclick="App.sendArtiChat('I am prepping for a job interview at a company selling into this market. Give me 3 highly specific talking points using exact numbers and contract names from this data.')">Interview prep</button>
-        </div>
-      </div>
 
-      <!-- Chat history -->
-      <div class="chat-history hidden" id="chatHistory"></div>
+        <div class="hidden" id="artiDisclaimer" style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:12px;">Always use your own judgment before making strategic decisions.</div>
 
-      <!-- Chat input -->
-      <div class="hidden" id="chatInputWrap" style="margin-top:16px;">
-        <div class="chat-input-row">
-          <input type="text" class="input-field" id="chatInput" placeholder="Ask a follow-up question…" autocomplete="off">
-          <button class="chat-send-btn" id="chatSendBtn">Send</button>
-        </div>
-        <div class="chat-counter hidden" id="chatCounter"></div>
-      </div>
-
-      <div class="hidden" id="artiDisclaimer" style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:12px;">Always use your own judgment before making strategic decisions.</div>
+      </div><!-- /artiBridge -->
 
       <div style="font-size:var(--text-xs);color:var(--text-quaternary);margin-top:12px;">
         Top 100 contracts by obligated value · active funding past 12 months · USASpending.gov
@@ -5169,6 +5181,7 @@ const App = {
     DOM.hide('chatInputWrap');
     DOM.hide('artiDisclaimer');
     DOM.hide('artiProgress');
+    DOM.show('artiTrigger'); // ensure trigger is visible for next search
     this.showLoader('Searching USASpending…', `"${query}"`);
 
     // Update URL
@@ -5749,8 +5762,8 @@ selectAgencySuggestion(name, inputId, boxId) {
     // Capture context before async
     this.artiContext = (DOM.get('artiContextInput')?.value || '').trim();
 
-    // Hide bridge, show progress
-    DOM.hide('artiBridge');
+    // Hide trigger panel, keep artiBridge container open
+    DOM.hide('artiTrigger');
     DOM.show('artiProgress');
     const fill = DOM.get('artiProgressFill');
     let pct = 0;
@@ -5866,7 +5879,7 @@ selectAgencySuggestion(name, inputId, boxId) {
         (msg) => {
           clearInterval(progTimer);
           DOM.hide('artiProgress');
-          DOM.show('artiBridge');
+          DOM.show('artiTrigger');
           contentEl.innerHTML = `<p style="color:var(--crit-text);font-size:var(--text-sm);padding:1rem 0;">${Html.escapeHtml(msg)}</p>`;
           if (btn) { btn.disabled = false; btn.textContent = 'Build my 30-day action plan'; }
         }
@@ -5875,7 +5888,7 @@ selectAgencySuggestion(name, inputId, boxId) {
     } catch (e) {
       clearInterval(progTimer);
       DOM.hide('artiProgress');
-      DOM.show('artiBridge');
+      DOM.show('artiTrigger');
       const msg = (e.name === 'AbortError' || (e.message||'').includes('timed'))
         ? 'Arti took too long — try a more focused search.'
         : (e.message || 'Something went wrong. Try again.');
