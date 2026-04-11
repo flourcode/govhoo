@@ -85,14 +85,16 @@ a, button, input, select { touch-action: manipulation; }
   max-width: min(96vw, 1920px); margin: 0 auto;
 }
 /* jump-wrap removed — only two sections, user can scroll */
+.logo-link {
   font-size: 0.95rem; font-weight: 800; letter-spacing: -0.01em;
   color: var(--text-primary); text-decoration: none;
-  background: var(--bg-app); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); padding: 0 11px; height: 34px;
+  background: var(--btn-bg); color: var(--btn-text);
+  border: none; border-radius: var(--radius-sm); padding: 0 14px; height: 34px;
   display: inline-flex; align-items: center;
   box-shadow: var(--shadow-sm); transition: var(--transition);
+  cursor: pointer;
 }
-.logo-link:hover { background: var(--bg-hover); }
+.logo-link:hover { background: var(--btn-hover); }
 .header-actions { display: flex; align-items: center; gap: 8px; }
 .hdr-btn {
   background: var(--bg-app); border: 1px solid var(--border);
@@ -572,15 +574,7 @@ a, button, input, select { touch-action: manipulation; }
       </div>
     </div>
 
-    <!-- Example searches — static, no chips module needed -->
-    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;">
-      <span style="font-size:var(--text-xs);color:var(--text-quaternary);align-self:center;font-weight:500;padding:0 2px;">Try →</span>
-      <button class="recent-chip" onclick="App.runSearch('Zero Trust')">Zero Trust</button>
-      <button class="recent-chip" onclick="App.runSearch('Lockheed Martin')">Lockheed Martin</button>
-      <button class="recent-chip" onclick="App.runSearch('541512')">541512</button>
-      <button class="recent-chip" onclick="App.runSearch('Cloud')">Cloud</button>
-    </div>
-  </div>
+  </div><!-- /search-hero -->
 
   <!-- RESULTS GRID -->
   <div class="tools-grid hidden" id="resultsGrid">
@@ -5098,7 +5092,6 @@ const App = {
       history.unshift(query);
       localStorage.setItem('govhoo-recent', JSON.stringify(history.slice(0, 5)));
     } catch(e) {}
-    this.renderRecentSearches();
 
     if (query !== this.currentQuery) {
       this.searchData = { raw: [], active: [], filter: null, loaded: false };
@@ -5226,8 +5219,10 @@ const App = {
         const agency = award['Awarding Agency'] || '';
         return (sectors[key]?.agencies || []).some(a => agency.toLowerCase().includes(a.toLowerCase()));
       });
-      Utils.filterActiveContracts(this.searchData.active);
       this.renderBubbleChart();
+      this.renderBridge();
+      this.renderExpiring();
+      this.renderRecent();
     }
   },
 
@@ -5321,6 +5316,7 @@ const App = {
     if (!data || data.length === 0) { DOM.hide('marketCard'); return; }
 
     DOM.show('marketCard');
+    DOM.show('bubbleToggleRow');
     this.updateBubbleToggles();
     this.renderBubbleBreadcrumb();
     
@@ -6130,7 +6126,6 @@ selectAgencySuggestion(name, inputId, boxId) {
     } catch(e) {}
 
     // Render recent searches
-    this.renderRecentSearches();
 
     // Re-render treemap on window resize (debounced)
     let resizeTimer;
