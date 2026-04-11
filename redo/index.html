@@ -84,12 +84,7 @@ a, button, input, select { touch-action: manipulation; }
   padding-bottom: 10px; gap: 10px;
   max-width: min(96vw, 1920px); margin: 0 auto;
 }
-.jump-wrap {
-  padding: 8px 0 10px;
-  border-top: 1px solid var(--border-inner);
-  max-width: min(96vw, 1920px); margin: 0 auto;
-}
-.logo-link {
+/* jump-wrap removed — only two sections, user can scroll */
   font-size: 0.95rem; font-weight: 800; letter-spacing: -0.01em;
   color: var(--text-primary); text-decoration: none;
   background: var(--bg-app); border: 1px solid var(--border);
@@ -107,18 +102,7 @@ a, button, input, select { touch-action: manipulation; }
   gap: 6px; transition: var(--transition);
 }
 .hdr-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
-.jump-select {
-  width: 100%; height: 36px;
-  background: var(--bg); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); padding: 0 32px 0 12px;
-  font-size: var(--text-sm); font-weight: 600; color: var(--text-secondary);
-  font-family: var(--font); cursor: pointer; outline: none;
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23AEAEAC' d='M5 6L0 0h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 12px center;
-  transition: var(--transition);
-}
-.jump-select:focus { border-color: var(--text-secondary); box-shadow: 0 0 0 2px rgba(0,0,0,0.06); }
+.jump-select:focus { outline: none; } /* stub — jump nav removed */
 
 /* ── PAGE LAYOUT (minitools exact) ── */
 .page-wrap { max-width: min(96vw, 1920px); margin: 0 auto; padding: 36px 20px calc(4rem + var(--safe-bottom)); }
@@ -289,7 +273,7 @@ a, button, input, select { touch-action: manipulation; }
   white-space: nowrap; font-family: var(--font);
 }
 .bubble-toggle-btn.active { background: var(--bg-active); color: var(--text-primary); font-weight: 600; }
-.toggle-sep { border-left: 1px solid var(--border); height: 1rem; margin: 0 2px; flex-shrink: 0; }
+
 #bubbleChartContainer { width: 100%; min-height: 400px; position: relative; margin-top: 14px; }
 #bubbleChartContainer svg { width: 100%; height: auto; display: block; }
 .bubble-tooltip {
@@ -450,18 +434,7 @@ a, button, input, select { touch-action: manipulation; }
       </button>
     </div>
   </div>
-  <div class="jump-wrap hidden" id="jumpWrap">
-    <select class="jump-select" id="jumpSelect">
-      <option value="">Jump to…</option>
-      <optgroup label="Market">
-        <option value="marketCard">Market Signals</option>
-      </optgroup>
-      <optgroup label="AI">
-        <option value="artiCard">Ask Arti</option>
-      </optgroup>
-    </select>
-  </div>
-</header>
+
 
 <!-- LOADER -->
 <div class="loader-overlay hidden" id="loader">
@@ -571,9 +544,6 @@ a, button, input, select { touch-action: manipulation; }
         <button class="bubble-toggle-btn active" data-mode="agencies" id="bubbleToggleAgencies">Agency</button>
         <button class="bubble-toggle-btn" data-mode="subagencies" id="bubbleToggleSubAgencies">Office</button>
         <button class="bubble-toggle-btn" data-mode="vendors" id="bubbleToggleVendors">Prime</button>
-        <span class="toggle-sep"></span>
-        <button class="bubble-toggle-btn" data-type="bubbles" id="chartTypeBubbles">Bubble</button>
-        <button class="bubble-toggle-btn active" data-type="treemap" id="chartTypeTreemap">Tree</button>
       </div>
 
       <!-- Empty -->
@@ -4860,7 +4830,7 @@ const App = {
   searchData: { raw: [], active: [], filter: null, loaded: false },
   drillState: { level: 0, path: [], currentAgency: null, currentSubAgency: null },
   bubbleMode: 'agencies',
-  bubbleChartType: 'treemap',
+  bubbleChartType: 'treemap', // always treemap — bubble option removed
   aiState: { history: [], count: 0, max: 5 },
 
   SECTORS: {
@@ -5127,9 +5097,6 @@ const App = {
       DOM.show('resultsGrid');
       DOM.show('artiCard');
 
-      // Update jump nav
-      DOM.show('jumpWrap');
-
       // Render chart
       this.renderBubbleChart();
 
@@ -5260,10 +5227,6 @@ const App = {
     ['agencies','subagencies','vendors'].forEach(m => {
       const btn = document.querySelector(`[data-mode="${m}"]`);
       if (btn) btn.classList.toggle('active', m === effective);
-    });
-    ['bubbles','treemap'].forEach(t => {
-      const btn = document.querySelector(`[data-type="${t}"]`);
-      if (btn) btn.classList.toggle('active', t === this.bubbleChartType);
     });
   },
 
@@ -5940,31 +5903,13 @@ selectAgencySuggestion(name, inputId, boxId) {
     const chatSend = DOM.get('chatSendBtn');
     if (chatSend) chatSend.addEventListener('click', () => App.sendArtiChatFromInput());
 
-    // Wire bubble toggle buttons
+    // Wire bubble mode toggles (Agency / Office / Prime)
     document.querySelectorAll('[data-mode]').forEach(b => {
       b.addEventListener('click', () => {
         App.bubbleMode = b.dataset.mode;
         App.renderBubbleChart();
       });
     });
-    document.querySelectorAll('[data-type]').forEach(b => {
-      b.addEventListener('click', () => {
-        App.bubbleChartType = b.dataset.type;
-        App.renderBubbleChart();
-      });
-    });
-
-    // Wire jump select
-    const jump = DOM.get('jumpSelect');
-    if (jump) {
-      jump.addEventListener('change', function() {
-        const id = this.value;
-        if (!id) return;
-        const el = document.getElementById(id);
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        this.value = '';
-      });
-    }
 
     // Restore from URL params
     try {
