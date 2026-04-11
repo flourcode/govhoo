@@ -400,9 +400,7 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: searchf
 }
 .app-header-row {
   display: flex; align-items: center; gap: 8px;
-  padding: 0 24px 10px;
-  max-width: 1440px;
-  margin: 0 auto;
+  padding: 0 20px 10px;
   width: 100%;
   box-sizing: border-box;
 }
@@ -414,9 +412,7 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: searchf
 .quick-jump-menu-inner {
   display: flex;
   align-items: center;
-  padding: 8px 24px 10px;
-  max-width: 1440px;
-  margin: 0 auto;
+  padding: 8px 20px 10px;
   width: 100%;
   box-sizing: border-box;
 }
@@ -774,7 +770,7 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: searchf
   .header-left { gap: 5px; flex: 1; min-width: 0; }
   .quick-jump-menu-inner { padding: 6px 12px 8px; }
   .jump-select { height: 34px; font-size: var(--text-xs); }
-  .tools-grid { padding: 16px 12px calc(4rem + var(--safe-bottom)); column-gap: 12px; }
+  .tools-grid { padding: 12px 12px calc(4rem + var(--safe-bottom)); column-gap: 10px; columns: 1; }
   .app-card { padding: 16px; margin-bottom: 12px; }
   .mini-search-wrapper { flex: 1; min-width: 0; }
   .mini-search-inner { height: 34px; }
@@ -976,7 +972,7 @@ details[open] > summary svg { transform: rotate(180deg); }
 
 /* 24. EXTRACTED COMPONENT CLASSES (NEW)
    =========================================== */
-.landing-state { display: flex; flex-direction: column; align-items: flex-start; padding: max(6vh, 2.5rem) 24px max(4vh, 2rem); min-height: 60vh; width: 100%; max-width: 1440px; margin: 0 auto; box-sizing: border-box; }
+.landing-state { display: flex; flex-direction: column; align-items: flex-start; padding: max(6vh, 2.5rem) 20px max(4vh, 2rem); min-height: 60vh; width: 100%; box-sizing: border-box; }
 .hero-search-wrapper { width: 100%; max-width: 680px; position: relative; margin-bottom: 0.75rem; }
 .hero-search-icon { position: absolute; left: 1.35rem; top: 50%; transform: translateY(-50%); font-size: 1.35rem; color: var(--text-tertiary); pointer-events: none; }
 /* Search bar: card style — white bg, border, shadow */
@@ -1420,13 +1416,11 @@ details[open] > summary svg { transform: rotate(180deg); }
   line-height: 1.45;
 }
 
-/* Masonry grid */
+/* Masonry grid — flows to fill any screen width */
 .tools-grid {
-  columns: 3 380px;
+  columns: 6 300px;
   column-gap: 20px;
-  padding: 24px 24px calc(4rem + var(--safe-bottom));
-  max-width: 1440px;
-  margin: 0 auto;
+  padding: 20px 20px calc(4rem + var(--safe-bottom));
   width: 100%;
   box-sizing: border-box;
 }
@@ -1525,7 +1519,7 @@ details[open] > summary svg { transform: rotate(180deg); }
 }
 
 /* ── Minitools site footer ── */
-.site-footer { border-top: 1px solid var(--border); padding: 26px 24px calc(1.5rem + var(--safe-bottom)); max-width: 1440px; margin: 16px auto 0; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.site-footer { border-top: 1px solid var(--border); padding: 26px 20px calc(1.5rem + var(--safe-bottom)); width: 100%; display: flex; flex-direction: column; align-items: center; gap: 5px; box-sizing: border-box; }
 .footer-back { font-size: var(--text-sm); font-weight: 500; color: var(--accent); text-decoration: none; }
 .footer-back:hover { opacity: 0.72; }
 .footer-copy { font-size: var(--text-xs); color: var(--text-quaternary); }
