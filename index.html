@@ -1669,7 +1669,7 @@ details[open] > summary svg { transform: rotate(180deg); }
           </button>
         </div>
       </div>
-      <div class="quick-jump-menu" id="quickJumpMenu" style="opacity:0.35;pointer-events:none;">
+      <div class="quick-jump-menu hidden" id="quickJumpMenu">
         <button class="active" data-target="searchPills" onclick="App.scrollToPanel('searchPills')">Market</button>
         <button data-target="pipelineTargetsSection" onclick="App.scrollToPanel('pipelineTargetsSection')">Pipe</button>
         <button data-target="sankeyHeader" onclick="App.scrollToPanel('sankeyHeader')">Flow</button>
@@ -1732,15 +1732,19 @@ details[open] > summary svg { transform: rotate(180deg); }
         <div id="recentSearchesContainer" class="hero-suggestions hero-suggestions-container"></div>
         <div id="territorySuggestions" class="territory-suggestions"></div>
 
-        <p style="font-size:0.72rem;color:var(--text-quaternary);text-align:center;margin-top:0.5rem;line-height:1.6;">
-          Try: <a onclick="App.runSearch('CLOUD')" style="cursor:pointer;color:var(--text-tertiary);text-decoration:none;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-tertiary)'">CLOUD</a>
-          &nbsp;·&nbsp;
-          <a onclick="App.runSearch('DHS AND Splunk')" style="cursor:pointer;color:var(--text-tertiary);text-decoration:none;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-tertiary)'">DHS AND Splunk</a>
-          &nbsp;·&nbsp;
-          <a onclick="App.runSearch('541512')" style="cursor:pointer;color:var(--text-tertiary);text-decoration:none;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-tertiary)'">541512</a>
-          &nbsp;·&nbsp;
-          <a onclick="App.runSearch('Zero Trust, Firewall')" style="cursor:pointer;color:var(--text-tertiary);text-decoration:none;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-tertiary)'">Zero Trust, Firewall</a>
-        </p>
+        <div class="callout-box">
+          <h2 class="callout-title">
+            <svg class="icon" aria-hidden="true"><use href="#icon-bulb"></use></svg>
+            Search like a pro
+          </h2>
+          <ul class="callout-list">
+            <li><strong>Company names may differ:</strong> Federal databases use legal entity names, not brand names. If nothing comes up for a company, check the colored chips that appear below your search — they show the exact name USASpending uses. Click any chip to search it.</li>
+            <li><strong>Keep it literal:</strong> This is a rigid database, not Google. Search <code class="code-highlight">Zero Trust</code> instead of <em style="color:var(--text-tertiary);">"agencies buying zero trust"</em>.</li>
+            <li><strong>Intersect targets:</strong> Type <code class="code-highlight">DHS AND Splunk</code> to find the exact overlap of an agency and a keyword/vendor.</li>
+            <li><strong>Commas mean "OR":</strong> Searching <code class="code-highlight">Cloud, Cyber</code> will return contracts containing <em>either</em> word.</li>
+            <li><strong>Use codes to cut through noise:</strong> Type a 6-digit NAICS (<code class="code-highlight">541512</code>) or a 4-character PSC (<code class="code-highlight">D316</code>) to capture poorly-titled contracts.</li>
+          </ul>
+        </div>
       </div>
 
       <div id="searchModeView" class="view-section active">
@@ -2135,22 +2139,50 @@ details[open] > summary svg { transform: rotate(180deg); }
             </div>
           </section>
           <section class="footer-section">
-            <div class="footer-label">Work with us</div>
-            <div style="font-size:var(--text-sm);color:var(--text-secondary);line-height:1.6;margin-bottom:1rem;">
-              Bring a territory or target account. We’ll pull the data together on a call and show you how to read the signals, size the market, and prep for your next meeting in minutes.
+            <div class="footer-label">Built by a seller</div>
+            <p class="footer-text">
+              <img src="https://govhoo.com/images/oldmark.jpg" alt="" class="tip-bio-img">
+              Hi, I’m Mark. Before building Govhoo I used to spend hours before every pipeline review digging through <em class="explainer-highlight">FPDS ezSearch, USASpending, SAM.gov, and industry day decks</em> just trying to answer a few basic questions: how big is this market, who owns the workshare, and is there actually an opening.
+              <br><br>
+              I’ve sold at AWS, F5, and Red Hat, served as a DISA COTR, and spent 20 years in the Marines. <em class="explainer-highlight">Govhoo is the tool I wished I had at every one of those jobs.</em>
+              <br><br>
+              Pull it up before a customer meeting, during a QBR, or when your boss asks why you’re chasing what you’re chasing. <em class="explainer-highlight">Everyone in the room can see the same picture in seconds and align on where to focus.</em>
+            </p>
+
+            <div style="padding:1rem 0;margin-top:1.2rem;border-top:1px solid var(--border);">
+              <div style="font-size:var(--text-base);font-weight:600;color:var(--text-primary);margin-bottom:0.5rem;">
+                Need help?
+              </div>
+              <div style="font-size:var(--text-sm);color:var(--text-secondary);line-height:1.5;margin-bottom:1rem;">
+                Bring a territory or target account. We’ll <em class="explainer-highlight">pull the data together on a call</em> and show you how to read the signals, size the market, and prep for your next meeting in minutes.
+              </div>
+              <a href="https://calendly.com/markflournoy/govhoo" target="_blank" class="btn-primary" style="width:100%;padding:0.6rem;font-size:var(--text-sm);justify-content:center;text-decoration:none;">
+                Book a Session
+              </a>
             </div>
-            <a href="https://calendly.com/markflournoy/govhoo" target="_blank" class="btn-primary" style="width:100%;padding:0.6rem;font-size:var(--text-sm);justify-content:center;text-decoration:none;">
-              Book a Session
-            </a>
           </section>
 
         </div>
 
-        <div class="footer-bottom" style="display:flex;flex-direction:column;align-items:center;margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border);">
-          <div class="footer-copyright" style="margin-top:0;">
+        <div class="footer-bottom" style="display: flex; flex-direction: column; align-items: center; margin-top: 3rem; padding-top: 2.5rem; border-top: 1px solid var(--border);">
+          <span style="cursor: pointer; margin-bottom: 0.25rem;" data-action="showHero">
+            <span class="logo-name" style="font-size: clamp(1.25rem, 3vw, 1.5rem); color: var(--text-primary);">Govhoo.</span>
+          </span>
+          <div style="font-size: var(--text-base); color: var(--text-secondary); font-weight: 500; margin-bottom: 1rem; letter-spacing: -0.01em;">
+            Follow the money.
+          </div>
+          <a href="/tools/" class="footer-link" style="margin-bottom: 2rem; font-size: var(--text-sm);">Free Sales Tools →</a>
+		  <div style="font-size: var(--text-xs); color: var(--text-tertiary); text-align: center; max-width: 520px; line-height: 1.5; margin-bottom: 0.75rem;">
+  Govhoo uses Google Analytics to understand site usage and improve the product. We do not collect personal information or sell data.
+  <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" style="color: var(--text-secondary); text-decoration: underline;">
+    Opt out using Google’s Analytics Opt-out Browser Add-on
+  </a>.
+</div>
+          <div class="footer-copyright" style="margin-top: 0;">
             © 2026 <span style="font-weight:500;color:var(--text-secondary);">Govhoo.com</span> — Data via USASpending.gov
           </div>
         </div>
+      </footer>
 
     </main> 
   </div> 
@@ -7304,8 +7336,7 @@ showHero() {
 
     DOM.show('landingState');
     DOM.hide('searchModeView');
-    const qj = DOM.get('quickJumpMenu');
-    if (qj) { qj.style.opacity = '0.35'; qj.style.pointerEvents = 'none'; }
+    DOM.hide('quickJumpMenu');
 	SearchPills.clear();
     
     DOM.get('dashboardContainer')?.classList.add('active');
@@ -7345,8 +7376,6 @@ transitionToApp() {
     DOM.hide('landingState');
     DOM.show('searchModeView');
     DOM.show('quickJumpMenu');
-    const qj = DOM.get('quickJumpMenu');
-    if (qj) { qj.style.opacity = ''; qj.style.pointerEvents = ''; }
     
     const mini = DOM.get('miniSearch');
     if(mini) mini.value = App.currentQuery;
@@ -8209,8 +8238,6 @@ async loadBackgroundData(query) {
     DOM.hide('emptySearchState');
     App.resetAiPanel();
     DOM.show('quickJumpMenu');
-    const qj = DOM.get('quickJumpMenu');
-    if (qj) { qj.style.opacity = ''; qj.style.pointerEvents = ''; }
 
 
     const data = App.searchData.active;
@@ -11304,8 +11331,8 @@ const SearchPills = {
       if (!res.ok) return;
       const kw = await res.json();
       this._cache[query.toLowerCase()] = kw;
-      // Always render — even if _current changed, stale pills are better than none.
-      // The cache means re-running the same query is instant next time.
+      // Always render — even if _current changed, stale pills are better than
+      // silently dropping the result. Cache means repeat searches are instant.
       this.render(kw, query);
       const artiInput = DOM.get('artiContextInput');
       if (artiInput && kw.summary) {
