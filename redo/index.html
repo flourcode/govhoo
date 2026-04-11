@@ -5212,18 +5212,9 @@ const App = {
       label.textContent = 'All';
     }
 
-    // Re-filter and re-render if we have data
-    if (this.searchData.loaded) {
-      this.searchData.active = this.searchData.raw.filter(award => {
-        if (!key) return true;
-        const agency = award['Awarding Agency'] || '';
-        return (sectors[key]?.agencies || []).some(a => agency.toLowerCase().includes(a.toLowerCase()));
-      });
-      this.renderBubbleChart();
-      this.renderBridge();
-      this.renderExpiring();
-      this.renderRecent();
-    }
+    // Re-run search with new territory so API applies the sector filter at fetch time
+    const q = this.currentQuery || (DOM.get('searchInput')?.value || '').trim();
+    if (q) this.runSearch(q);
   },
 
   // ── Drill state ─────────────────────────────────────────────
