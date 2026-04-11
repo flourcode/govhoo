@@ -107,16 +107,6 @@ a, button, input, select { touch-action: manipulation; }
 /* ── PAGE LAYOUT (minitools exact) ── */
 .page-wrap { max-width: min(96vw, 1920px); margin: 0 auto; padding: 36px 20px calc(4rem + var(--safe-bottom)); }
 
-/* ── RESULT SUMMARY LINE ── */
-.result-summary {
-  font-size: var(--text-sm); color: var(--text-secondary);
-  margin-bottom: 16px; line-height: 1.5;
-  padding: 10px 14px; background: var(--bg-app);
-  border: 1px solid var(--border); border-radius: var(--radius-sm);
-  max-width: 680px;
-}
-.result-summary strong { color: var(--text-primary); font-weight: 700; }
-.result-summary .rs-query { color: var(--accent); font-weight: 600; }
 
 /* ── RECENT CHIP LABEL ── */
 .recent-chip-label {
@@ -553,9 +543,6 @@ a, button, input, select { touch-action: manipulation; }
       <button class="recent-chip" onclick="App.runSearch('Cloud')">Cloud</button>
     </div>
   </div>
-
-  <!-- Result summary line (shown after search) -->
-  <div class="result-summary hidden" id="resultSummary"></div>
 
   <!-- SEARCH PILLS (also-try) -->
   <div id="searchPills"></div>
@@ -5077,7 +5064,6 @@ const App = {
 
     // Hide results, show loader
     DOM.hide('resultsGrid');
-    DOM.hide('resultSummary');
     DOM.hide('artiBridge');
     DOM.hide('searchPills');
     DOM.get('aiContentContainer').innerHTML = '';
@@ -5121,23 +5107,6 @@ const App = {
       const cap = s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
       document.getElementById('marketCardTitle').textContent = cap(label) + ' Market';
       document.getElementById('marketCardDesc').textContent = 'Where the money is concentrated. Click any segment to drill in.';
-
-      // Result summary line
-      const topAgency = (() => {
-        const agMap = {};
-        filtered.forEach(c => {
-          const a = c['Awarding Agency'] || 'Unknown';
-          agMap[a] = (agMap[a] || 0) + (parseFloat(c['Award Amount']) || 0);
-        });
-        return Object.entries(agMap).sort((a,b) => b[1]-a[1])[0]?.[0] || '';
-      })();
-      const totalSpendFmt = Utils.money(totalSpend);
-      const agencyCount = new Set(filtered.map(c => c['Awarding Agency'])).size;
-      const summaryEl = DOM.get('resultSummary');
-      if (summaryEl) {
-        summaryEl.innerHTML = `Found <strong>${filtered.length} contracts</strong> worth <strong>${totalSpendFmt}</strong> across <strong>${agencyCount} agencies</strong> in the past 12 months.${topAgency ? ` Top buyer: <strong>${Html.escapeHtml(Utils.cleanAgency ? Utils.cleanAgency(topAgency) : topAgency)}</strong>.` : ''}`;
-        DOM.show('resultSummary');
-      }
 
       // Show results grid
       DOM.show('resultsGrid');
@@ -5947,7 +5916,6 @@ selectAgencySuggestion(name, inputId, boxId) {
 
   resetToSearch() {
     DOM.hide('resultsGrid');
-    DOM.hide('resultSummary');
     DOM.get('searchInput').focus();
   },
 
