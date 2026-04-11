@@ -107,7 +107,74 @@ a, button, input, select { touch-action: manipulation; }
 /* ── PAGE LAYOUT (minitools exact) ── */
 .page-wrap { max-width: min(96vw, 1920px); margin: 0 auto; padding: 36px 20px calc(4rem + var(--safe-bottom)); }
 
-/* ── SEARCH HERO ── */
+/* ── RESULT SUMMARY LINE ── */
+.result-summary {
+  font-size: var(--text-sm); color: var(--text-secondary);
+  margin-bottom: 16px; line-height: 1.5;
+  padding: 10px 14px; background: var(--bg-app);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  max-width: 680px;
+}
+.result-summary strong { color: var(--text-primary); font-weight: 700; }
+.result-summary .rs-query { color: var(--accent); font-weight: 600; }
+
+/* ── RECENT CHIP LABEL ── */
+.recent-chip-label {
+  font-size: var(--text-xs); color: var(--text-quaternary);
+  font-weight: 500; align-self: center; padding: 0 2px;
+}
+
+/* ── ARTI BRIDGE (inside market card) ── */
+.arti-bridge {
+  margin-top: 20px; padding: 14px 16px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+}
+.arti-bridge-text {
+  font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.5;
+  flex: 1; min-width: 0;
+}
+.arti-bridge-text strong { color: var(--text-primary); font-weight: 700; }
+.arti-bridge-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--btn-bg); color: var(--btn-text);
+  border: none; border-radius: var(--radius-sm);
+  padding: 0 16px; height: 38px; font-size: var(--text-sm);
+  font-weight: 600; cursor: pointer; white-space: nowrap;
+  transition: var(--transition); font-family: var(--font); flex-shrink: 0;
+}
+.arti-bridge-btn:hover { background: var(--btn-hover); }
+.arti-bridge-btn:active { transform: scale(0.97); }
+
+/* ── ARTI CARD SUB ── */
+.arti-card-sub {
+  font-size: var(--text-sm); color: var(--text-tertiary);
+  font-weight: 400; margin: 0;
+}
+
+/* ── ARTI CONTEXT (minimal, inline) ── */
+.arti-context-wrap { margin-bottom: 10px; }
+.arti-context-input { font-size: var(--text-sm) !important; }
+
+/* ── ARTI PREVIEW ROW ── */
+.arti-preview-row {
+  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  margin-top: 10px;
+}
+.arti-preview-label {
+  font-size: var(--text-xs); color: var(--text-quaternary);
+  font-weight: 500; margin-right: 2px;
+}
+.arti-preview-tag {
+  font-size: var(--text-xs); font-weight: 500;
+  color: var(--text-tertiary); background: var(--chip-bg);
+  border-radius: 9999px; padding: 3px 10px;
+}
+
+/* ── SEARCH HERO TITLE — two lines ── */
+.search-hero-title { line-height: 1.05; }
 .search-hero { margin-bottom: 32px; }
 .search-hero-title { font-size: var(--text-hero); font-weight: 800; color: var(--text-primary); letter-spacing: -0.03em; line-height: 1; margin-bottom: 6px; }
 .search-hero-sub { font-size: var(--text-base); color: var(--text-tertiary); font-weight: 400; margin-bottom: 20px; }
@@ -452,8 +519,8 @@ a, button, input, select { touch-action: manipulation; }
 
   <!-- SEARCH HERO -->
   <div class="search-hero" id="searchHero">
-    <h1 class="search-hero-title">Federal Market Intelligence</h1>
-    <p class="search-hero-sub">Search a keyword, company, NAICS, or PSC code.</p>
+    <h1 class="search-hero-title">Know any federal market<br>before the meeting starts.</h1>
+    <p class="search-hero-sub">Search a company, keyword, or NAICS code → see who's buying and who's winning → get AI strategy in seconds.</p>
     <div class="search-bar-wrap">
       <div class="search-bar-inner" id="searchBarInner">
         <button class="search-territory-btn" id="territoryBtn" onclick="App.toggleTerritoryMenu()">
@@ -501,9 +568,18 @@ a, button, input, select { touch-action: manipulation; }
       </div>
     </div>
 
-    <!-- Recent searches -->
-    <div class="recent-chips" id="recentChips"></div>
+    <!-- Example searches (landing) / Recent searches (after search) -->
+    <div class="recent-chips" id="recentChips">
+      <span class="recent-chip-label">Try →</span>
+      <button class="recent-chip" onclick="App.runSearch('Zero Trust')">Zero Trust</button>
+      <button class="recent-chip" onclick="App.runSearch('Lockheed Martin')">Lockheed Martin</button>
+      <button class="recent-chip" onclick="App.runSearch('541512')">541512</button>
+      <button class="recent-chip" onclick="App.runSearch('Cloud')">Cloud</button>
+    </div>
   </div>
+
+  <!-- Result summary line (shown after search) -->
+  <div class="result-summary hidden" id="resultSummary"></div>
 
   <!-- SEARCH PILLS (also-try) -->
   <div id="searchPills"></div>
@@ -538,6 +614,15 @@ a, button, input, select { touch-action: manipulation; }
         <button class="bubble-toggle-btn" data-mode="vendors" id="bubbleToggleVendors">Prime</button>
       </div>
 
+      <!-- Bridge to Arti — shown after chart renders -->
+      <div class="arti-bridge hidden" id="artiBridge">
+        <div class="arti-bridge-text" id="artiBridgeText"></div>
+        <button class="arti-bridge-btn" onclick="App.triggerArtiFromBridge()">
+          <img src="/images/arti.png" alt="" style="width:18px;height:18px;border-radius:50%;object-fit:contain;">
+          Ask Arti about this market →
+        </button>
+      </div>
+
       <!-- Empty -->
       <div class="hidden" id="marketEmpty">
         <div class="empty-state">
@@ -558,22 +643,26 @@ a, button, input, select { touch-action: manipulation; }
         <img src="/images/arti.png" alt="" class="arti-avatar">
         <div>
           <h2 class="card-title" style="margin-bottom:1px;">Ask Arti</h2>
-          <p style="font-size:var(--text-xs);color:var(--text-tertiary);font-weight:400;">AI reads this market data and tells you what to do next.</p>
+          <p class="arti-card-sub" id="artiCardSub">Arti has read this market data and is ready to build your strategy.</p>
         </div>
       </div>
 
-      <!-- Context input + trigger -->
+      <!-- Context input (collapsed by default, expands on focus) -->
       <div id="artiBanner">
-        <div class="input-group">
-          <label class="input-label" for="artiContextInput">Who are you? <span style="font-weight:400;text-transform:none;">(optional — helps Arti give better advice)</span></label>
-          <input type="text" id="artiContextInput" class="input-field" placeholder="e.g. I sell cloud security to Army and Air Force" autocomplete="off" autocorrect="off">
+        <div class="arti-context-wrap" id="artiContextWrap">
+          <input type="text" id="artiContextInput" class="input-field arti-context-input"
+            placeholder="Optional: tell Arti who you are — e.g. I sell cloud security to Army and Air Force"
+            autocomplete="off" autocorrect="off">
         </div>
-        <button class="calc-btn-primary" id="triggerArtiBtn" onclick="App.runAiActionPlan()">Ask Arti</button>
-        <div class="prompt-chips" style="margin-top:10px;opacity:0.5;pointer-events:none;" id="artiPreviewChips">
-          <span style="font-size:var(--text-xs);color:var(--text-quaternary);font-weight:500;align-self:center;">After brief:</span>
-          <button class="prompt-chip">Top 5 pipeline opps</button>
-          <button class="prompt-chip">Draft an outreach email</button>
-          <button class="prompt-chip">30-60-90 plan</button>
+        <button class="calc-btn-primary" id="triggerArtiBtn" onclick="App.runAiActionPlan()">
+          Get my strategy
+        </button>
+        <div class="arti-preview-row" id="artiPreviewChips">
+          <span class="arti-preview-label">You'll get:</span>
+          <span class="arti-preview-tag">Win themes</span>
+          <span class="arti-preview-tag">Top targets</span>
+          <span class="arti-preview-tag">30-60-90 plan</span>
+          <span class="arti-preview-tag">Teaming plays</span>
         </div>
       </div>
 
@@ -585,25 +674,26 @@ a, button, input, select { touch-action: manipulation; }
       <!-- Content area -->
       <div id="aiContentContainer"></div>
 
-      <!-- Copy + follow-up chips (shown after brief) -->
-      <div class="hidden" id="artiActions" style="margin-top:12px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;">
-          <button class="copy-btn" id="copyArtiBtn" onclick="App.copyArtiBrief()">Copy brief</button>
+      <!-- Follow-up chips (shown after brief) -->
+      <div class="hidden" id="artiActions" style="margin-top:16px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border-inner);">
+          <span style="font-size:var(--text-xs);font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.05em;">Ask a follow-up</span>
+          <button class="copy-btn" id="copyArtiBtn" onclick="App.copyArtiBrief()" style="margin-left:auto;">Copy brief</button>
         </div>
         <div class="prompt-chips" id="artiPromptChips">
-          <button class="prompt-chip" onclick="App.sendArtiChat('Give me 5 Salesforce-ready pipeline opportunities based on this data.')">Top 5 pipeline opps</button>
-          <button class="prompt-chip" onclick="App.sendArtiChat('Write a cold outreach email to a program manager at this agency. Make it relevant to their recent spending and not sound like a generic sales pitch.')">Draft outreach email</button>
-          <button class="prompt-chip" onclick="App.sendArtiChat('Generate a 30-60-90 day plan for a new AE taking over this territory. Use actual agencies, incumbents, and dollar figures from this data.')">30-60-90 plan</button>
-          <button class="prompt-chip" onclick="App.sendArtiChat('Recommend 2-3 specific teaming partners that would make us more competitive here.')">Teaming partners</button>
-          <button class="prompt-chip" onclick="App.sendArtiChat('I am prepping for a job interview. Give me 3 highly specific talking points based on this data using exact numbers and contract names.')">Interview prep</button>
+          <button class="prompt-chip" onclick="App.sendArtiChat('Give me 5 Salesforce-ready pipeline opportunities based on this data. Include the contract name, agency, incumbent, expiry, and why we can win.')">Top 5 pipeline opps</button>
+          <button class="prompt-chip" onclick="App.sendArtiChat('Write a cold outreach email to a program manager at the top agency in this market. Make it specific to their recent spending — not a generic pitch.')">Draft outreach email</button>
+          <button class="prompt-chip" onclick="App.sendArtiChat('Generate a 30-60-90 day territory plan for a new AE. Use actual agencies, incumbents, and dollar figures from this data.')">30-60-90 plan</button>
+          <button class="prompt-chip" onclick="App.sendArtiChat('Recommend 2-3 specific teaming partners that would make us more competitive here. Explain why each one.')">Teaming partners</button>
+          <button class="prompt-chip" onclick="App.sendArtiChat('I am prepping for a job interview at a company selling into this market. Give me 3 highly specific talking points using exact numbers and contract names from this data.')">Interview prep</button>
         </div>
       </div>
 
       <!-- Chat history -->
       <div class="chat-history hidden" id="chatHistory"></div>
 
-      <!-- Chat input (shown after brief) -->
-      <div class="hidden" id="chatInputWrap">
+      <!-- Chat input -->
+      <div class="hidden" id="chatInputWrap" style="margin-top:16px;">
         <div class="chat-input-row">
           <input type="text" class="input-field" id="chatInput" placeholder="Ask a follow-up question…" autocomplete="off">
           <button class="chat-send-btn" id="chatSendBtn" onclick="App.sendArtiChatFromInput()">Send</button>
@@ -611,7 +701,7 @@ a, button, input, select { touch-action: manipulation; }
         <div class="chat-counter hidden" id="chatCounter"></div>
       </div>
 
-      <div class="hidden" id="artiDisclaimer" style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:10px;">Always use your own judgment before making strategic decisions.</div>
+      <div class="hidden" id="artiDisclaimer" style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:12px;">Always use your own judgment before making strategic decisions.</div>
     </div>
 
   </div><!-- /results-grid -->
@@ -5046,6 +5136,8 @@ const App = {
 
     // Hide results, show loader
     DOM.hide('resultsGrid');
+    DOM.hide('resultSummary');
+    DOM.hide('artiBridge');
     DOM.hide('searchPills');
     DOM.hide('artiCard');
     DOM.get('aiContentContainer').innerHTML = '';
@@ -5085,12 +5177,40 @@ const App = {
 
       this.searchData = { raw: results, active: filtered, filter: null, loaded: true };
 
+      // Dynamic card title = the search query
+      const label = query.length <= 30 ? query : query.slice(0, 28) + '…';
+      const cap = s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+      document.getElementById('marketCardTitle').textContent = cap(label) + ' Market';
+      document.getElementById('marketCardDesc').textContent = 'Where the money is concentrated. Click any segment to drill in.';
+
+      // Result summary line
+      const topAgency = (() => {
+        const agMap = {};
+        filtered.forEach(c => {
+          const a = c['Awarding Agency'] || 'Unknown';
+          agMap[a] = (agMap[a] || 0) + (parseFloat(c['Award Amount']) || 0);
+        });
+        return Object.entries(agMap).sort((a,b) => b[1]-a[1])[0]?.[0] || '';
+      })();
+      const totalSpendFmt = Utils.money(totalSpend);
+      const agencyCount = new Set(filtered.map(c => c['Awarding Agency'])).size;
+      const summaryEl = DOM.get('resultSummary');
+      if (summaryEl) {
+        summaryEl.innerHTML = `Found <strong>${filtered.length} contracts</strong> worth <strong>${totalSpendFmt}</strong> across <strong>${agencyCount} agencies</strong> in the past 12 months.${topAgency ? ` Top buyer: <strong>${Html.escapeHtml(Utils.cleanAgency ? Utils.cleanAgency(topAgency) : topAgency)}</strong>.` : ''}`;
+        DOM.show('resultSummary');
+      }
+
       // Show results grid
       DOM.show('resultsGrid');
       DOM.show('artiCard');
 
+      // Update Arti card subtitle contextually
+      const artiSub = DOM.get('artiCardSub');
+      if (artiSub) artiSub.textContent = `Arti has read ${filtered.length} contracts worth ${totalSpendFmt} in this market. One click to get your strategy.`;
+
       // Render chart
       this.renderBubbleChart();
+      this.renderBridge();
 
       // SearchPills
       const pillsEl = DOM.get('searchPills');
@@ -5183,6 +5303,15 @@ const App = {
       (a['Awarding Agency'] || '') === name || (a['Awarding Sub Agency'] || '') === name
     );
     DOM.show('resetDrillBtn');
+
+    // Inject agency context into Arti input
+    const ctx = DOM.get('artiContextInput');
+    if (ctx && !ctx.value) {
+      ctx.placeholder = `e.g. I sell to ${Utils.cleanAgency ? Utils.cleanAgency(name) : name}`;
+    }
+    // Update bridge text for the drill
+    this.renderBridge();
+
     if (!preventRender) this.renderBubbleChart();
     this.renderBubbleBreadcrumb();
   },
@@ -5844,15 +5973,54 @@ selectAgencySuggestion(name, inputId, boxId) {
     if (!container) return;
     let recent = [];
     try { recent = JSON.parse(localStorage.getItem('govhoo-recent') || '[]'); } catch(e) {}
-    if (!recent.length) { container.innerHTML = ''; return; }
-    container.innerHTML = recent.map(q =>
-      `<button class="recent-chip" onclick="App.runSearch('${Html.escapeHtml(q)}')">${Html.escapeHtml(q)}</button>`
-    ).join('');
+    if (!recent.length) {
+      // Show example searches on first visit
+      container.innerHTML = `
+        <span class="recent-chip-label">Try →</span>
+        <button class="recent-chip" onclick="App.runSearch('Zero Trust')">Zero Trust</button>
+        <button class="recent-chip" onclick="App.runSearch('Lockheed Martin')">Lockheed Martin</button>
+        <button class="recent-chip" onclick="App.runSearch('541512')">541512</button>
+        <button class="recent-chip" onclick="App.runSearch('Cloud')">Cloud</button>`;
+      return;
+    }
+    container.innerHTML = '<span class="recent-chip-label">Recent →</span>' +
+      recent.map(q =>
+        `<button class="recent-chip" onclick="App.runSearch('${Html.escapeHtml(q)}')">${Html.escapeHtml(q)}</button>`
+      ).join('');
+  },
+
+  triggerArtiFromBridge() {
+    // Scroll to Arti card then trigger
+    const artiCard = DOM.get('artiCard');
+    if (artiCard) artiCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(() => App.runAiActionPlan(), 400);
+  },
+
+  renderBridge() {
+    const bridge = DOM.get('artiBridge');
+    const bridgeText = DOM.get('artiBridgeText');
+    if (!bridge || !bridgeText || !this.searchData.loaded) return;
+
+    const data = this.searchData.active;
+    const total = data.reduce((s,c) => s + (parseFloat(c['Award Amount'])||0), 0);
+    const agencyCount = new Set(data.map(c => c['Awarding Agency'])).size;
+    const topAgency = (() => {
+      const m = {};
+      data.forEach(c => {
+        const a = c['Awarding Agency'] || 'Unknown';
+        m[a] = (m[a]||0) + (parseFloat(c['Award Amount'])||0);
+      });
+      const top = Object.entries(m).sort((a,b)=>b[1]-a[1])[0];
+      return top ? Utils.cleanAgency(top[0]) : '';
+    })();
+
+    bridgeText.innerHTML = `<strong>${Utils.money(total)}</strong> across <strong>${agencyCount} agencies</strong>${topAgency ? ` — top buyer is <strong>${Html.escapeHtml(topAgency)}</strong>` : ''}. Arti has read this data and is ready.`;
+    DOM.show('artiBridge');
   },
 
   resetToSearch() {
     DOM.hide('resultsGrid');
-    DOM.hide('jumpWrap');
+    DOM.hide('resultSummary');
     DOM.get('searchInput').focus();
   },
 
@@ -5903,6 +6071,15 @@ selectAgencySuggestion(name, inputId, boxId) {
 
     // Render recent searches
     this.renderRecentSearches();
+
+    // Re-render treemap on window resize (debounced)
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (App.searchData.loaded) App.renderBubbleChart();
+      }, 150);
+    });
 
     // Preload D3
     LibLoader.preloadWhenIdle();
