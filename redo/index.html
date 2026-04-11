@@ -418,9 +418,16 @@ a, button, input, select { touch-action: manipulation; }
 .strategic-read code { font-size: 0.9em; background: var(--bg); border-radius: 4px; padding: 0.1em 0.35em; }
 
 /* Arti chat */
-.chat-history { display: flex; flex-direction: column; gap: 16px; margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--border); }
-.chat-msg-user { align-self: flex-end; background: var(--bg-hover); border-radius: var(--radius-sm); padding: 8px 14px; font-size: var(--text-sm); color: var(--text-primary); max-width: 85%; }
+.chat-history { display: flex; flex-direction: column; gap: 20px; margin-top: 24px; }
+.chat-msg-user {
+  align-self: flex-end;
+  background: var(--btn-bg); color: var(--btn-text);
+  border-radius: var(--radius-sm); padding: 10px 16px;
+  font-size: var(--text-sm); font-weight: 500;
+  max-width: 85%; line-height: 1.5;
+}
 .chat-msg-arti { align-self: flex-start; max-width: 100%; }
+.arti-thinking { color: var(--text-quaternary); min-height: 1.5em; }
 
 /* Action chips */
 .prompt-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
@@ -534,7 +541,7 @@ a, button, input, select { touch-action: manipulation; }
       </button>
     </div>
   </div>
-
+</header>
 
 <!-- LOADER -->
 <div class="loader-overlay hidden" id="loader">
@@ -4308,6 +4315,7 @@ const Html = {
       requestAnimationFrame(() => {
         renderPending = false;
         if (accumulated && targetEl) {
+          targetEl.classList.remove('arti-thinking');
           targetEl.innerHTML = Html.parseAiMarkdown(accumulated);
         }
       });
@@ -5899,7 +5907,7 @@ selectAgencySuggestion(name, inputId, boxId) {
     const loaderId = 'chat-' + Date.now();
     historyEl.insertAdjacentHTML('beforeend', `
       <div class="chat-msg-arti" id="${loaderId}">
-        <div id="${loaderId}-text" class="strategic-read" style="min-height:1.5em;color:var(--text-quaternary);">Arti is thinking…</div>
+        <div id="${loaderId}-text" class="strategic-read arti-thinking">Arti is thinking…</div>
       </div>`);
     historyEl.scrollTop = historyEl.scrollHeight;
 
