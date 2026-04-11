@@ -5096,7 +5096,7 @@ const App = {
     this.showLoader('Searching USASpending…', `"${query}"`);
 
     // Run SearchPills in background
-    SearchPills.fetchAndRender(query);
+    SearchPills.generate(query);
 
     // Update URL
     try {
