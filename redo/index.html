@@ -169,7 +169,29 @@ a, button, input, select { touch-action: manipulation; }
 
 /* ── SEARCH PILLS + RECENT CHIPS removed ── */
 
-/* ── ARTI INLINE (inside market card) ── */
+/* ── ARTI AVATAR ── */
+.arti-avatar-wrap {
+  flex-shrink: 0;
+}
+.arti-avatar-lg {
+  width: 52px; height: 52px; border-radius: 50%;
+  object-fit: contain; background: var(--bg-app);
+  border: 2px solid var(--border); padding: 3px;
+  box-shadow: var(--shadow);
+}
+.arti-intro { flex: 1; min-width: 0; }
+.arti-intro-name {
+  font-size: var(--text-base); font-weight: 800;
+  color: var(--text-primary); letter-spacing: -0.02em;
+  margin-bottom: 3px;
+}
+.arti-intro-role {
+  font-size: var(--text-xs); font-weight: 500;
+  color: var(--text-quaternary); letter-spacing: 0;
+}
+.arti-ctx-input {
+  margin-bottom: 10px; font-size: var(--text-sm) !important;
+}
 .arti-inline {
   margin-top: 20px; padding: 16px;
   background: var(--bg); border: 1px solid var(--border);
@@ -609,15 +631,19 @@ a, button, input, select { touch-action: manipulation; }
       <!-- Bridge → Arti inline (replaces separate Arti card) -->
       <div class="arti-inline hidden" id="artiBridge">
         <div class="arti-inline-header">
-          <img src="/images/arti.png" alt="" style="width:22px;height:22px;border-radius:50%;object-fit:contain;flex-shrink:0;">
-          <div class="arti-bridge-text" id="artiBridgeText"></div>
+          <div class="arti-avatar-wrap">
+            <img src="/images/arti.png" alt="Arti" class="arti-avatar-lg">
+          </div>
+          <div class="arti-intro">
+            <div class="arti-intro-name">Arti <span class="arti-intro-role">· Your federal BD strategist</span></div>
+            <div class="arti-bridge-text" id="artiBridgeText"></div>
+          </div>
         </div>
-        <input type="text" id="artiContextInput" class="input-field"
-          style="margin-bottom:10px;font-size:var(--text-sm);"
-          placeholder="Optional: who are you? e.g. I sell cloud security to Army and Air Force"
+        <input type="text" id="artiContextInput" class="input-field arti-ctx-input"
+          placeholder="Who are you selling for? e.g. I sell cloud security to Army and Air Force"
           autocomplete="off" autocorrect="off">
         <button class="arti-bridge-btn" id="triggerArtiBtn" onclick="App.runAiActionPlan()">
-          Get my strategy
+          Build my 30-day action plan
         </button>
       </div>
 
@@ -5703,34 +5729,64 @@ selectAgencySuggestion(name, inputId, boxId) {
       if (fill) fill.style.width = pct + '%';
     }, 300);
 
-    // Build the same summary payload as govhoo
+    // Build enriched payload — more data = better strategy
     const data = this.searchData.active;
+    const now = new Date();
     const summaryPayload = (() => {
       const totalVal = data.reduce((s, c) => s + (parseFloat(c['Award Amount']) || 0), 0);
-      const agencies = [...new Set(data.map(a => a['Awarding Agency']).filter(Boolean))];
-      const vendors  = [...new Set(data.map(a => a['Recipient Name']).filter(Boolean))];
+      const agencyMap = {};
+      data.forEach(c => {
+        const a = c['Awarding Agency'] || 'Unknown';
+        agencyMap[a] = (agencyMap[a] || 0) + (parseFloat(c['Award Amount']) || 0);
+      });
+      const topAgencies = Object.entries(agencyMap).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([name,amt])=>({ name, amount: amt }));
+      const vendorMap = {};
+      data.forEach(c => {
+        const v = c['Recipient Name'] || 'Unknown';
+        vendorMap[v] = (vendorMap[v] || 0) + (parseFloat(c['Award Amount']) || 0);
+      });
+      const topVendors = Object.entries(vendorMap).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([name,amt])=>({ name, amount: amt }));
+
+      // Expiring in 90 days — highest urgency opps
+      const expiring = data
+        .filter(c => { const e = new Date(c['End Date']); const d = (e - now)/86400000; return d > 0 && d <= 90; })
+        .sort((a,b) => new Date(a['End Date']) - new Date(b['End Date']))
+        .slice(0, 8)
+        .map(c => ({
+          vendor: c['Recipient Name'],
+          agency: c['Awarding Sub Agency'] || c['Awarding Agency'],
+          amount: c['Award Amount'],
+          end_date: c['End Date'],
+          days_left: Math.ceil((new Date(c['End Date']) - now) / 86400000),
+          description: (c['Description'] || '').slice(0, 120)
+        }));
+
       return {
         query: this.currentQuery,
         total_value: totalVal,
         contract_count: data.length,
-        agency_count: agencies.length,
-        top_agencies: agencies.slice(0, 10),
-        top_vendors:  vendors.slice(0, 10),
-        sample_contracts: data.slice(0, 15).map(c => ({
+        top_agencies: topAgencies,
+        top_vendors: topVendors,
+        expiring_soon: expiring,
+        sample_contracts: data.slice(0, 20).map(c => ({
           'Recipient Name': c['Recipient Name'],
-          'Awarding Agency': c['Awarding Agency'],
+          'Awarding Agency': c['Awarding Sub Agency'] || c['Awarding Agency'],
           'Award Amount': c['Award Amount'],
           'End Date': c['End Date'],
+          'Start Date': c['Start Date'],
+          'Description': (c['Description'] || '').slice(0, 100),
           'NAICS': c['NAICS'],
           'PSC': c['PSC']
         }))
       };
     })();
 
-    const territoryPrefix = this.territory && this.SECTORS[this.territory]
-      ? `This analysis is scoped to ${this.SECTORS[this.territory].label} agencies only. All recommendations must be relevant to this territory. `
+    const userContext = (this.artiContext || '').trim();
+    const territoryScope = this.territory && this.SECTORS[this.territory]
+      ? `Territory: ${this.SECTORS[this.territory].label} agencies only. `
       : '';
-    const objective = territoryPrefix + (this.artiContext || 'a federal sales leader');
+    // Sharp directive — always ask for 30-day action plan with specifics
+    const objective = `${territoryScope}${userContext ? `Seller context: ${userContext}. ` : ''}Give me a concrete 30-day action plan to move on the highest-value opportunities in this market. Use real agency names, real incumbent names, and real dollar figures from the data. Include: (1) the top 3 contracts to pursue and why, (2) the key decision-makers to target at each agency, (3) the competitive angle to displace incumbents, (4) specific outreach actions to take in the next 30 days. Be direct and specific — no fluff, no generic advice.`;
 
     try {
       const res = await fetch(this.AI_ENDPOINT, {
@@ -5747,9 +5803,12 @@ selectAgencySuggestion(name, inputId, boxId) {
       // Set up streaming target
       const contentEl = DOM.get('aiContentContainer');
       contentEl.innerHTML = `
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
-          <img src="/images/arti.png" style="width:28px;height:28px;border-radius:50%;object-fit:contain;">
-          <span style="font-size:var(--text-sm);font-weight:600;color:var(--text-primary);">Arti</span>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border-inner);">
+          <img src="/images/arti.png" style="width:44px;height:44px;border-radius:50%;object-fit:contain;background:var(--bg-app);border:2px solid var(--border);padding:3px;box-shadow:var(--shadow-sm);flex-shrink:0;">
+          <div>
+            <div style="font-size:var(--text-base);font-weight:800;color:var(--text-primary);letter-spacing:-0.02em;">Arti</div>
+            <div style="font-size:var(--text-xs);color:var(--text-quaternary);">Your 30-day action plan</div>
+          </div>
         </div>
         <div id="artiStreamTarget" class="strategic-read" style="min-height:2em;"></div>`;
 
@@ -5772,14 +5831,14 @@ selectAgencySuggestion(name, inputId, boxId) {
           DOM.show('artiDisclaimer');
           DOM.text('chatCounter', `${this.aiState.max} follow-up questions remaining.`);
           DOM.show('chatCounter');
-          if (btn) { btn.disabled = false; btn.textContent = 'Get my strategy'; }
+          if (btn) { btn.disabled = false; btn.textContent = 'Build my 30-day action plan'; }
         },
         (msg) => {
           clearInterval(progTimer);
           DOM.hide('artiProgress');
           DOM.show('artiBridge');
           contentEl.innerHTML = `<p style="color:var(--crit-text);font-size:var(--text-sm);padding:1rem 0;">${Html.escapeHtml(msg)}</p>`;
-          if (btn) { btn.disabled = false; btn.textContent = 'Get my strategy'; }
+          if (btn) { btn.disabled = false; btn.textContent = 'Build my 30-day action plan'; }
         }
       );
 
@@ -5791,7 +5850,7 @@ selectAgencySuggestion(name, inputId, boxId) {
         ? 'Arti took too long — try a more focused search.'
         : (e.message || 'Something went wrong. Try again.');
       this.toast(msg, 'error');
-      if (btn) { btn.disabled = false; btn.textContent = 'Get my strategy'; }
+      if (btn) { btn.disabled = false; btn.textContent = 'Build my 30-day action plan'; }
     }
   },
 
@@ -5957,11 +6016,7 @@ selectAgencySuggestion(name, inputId, boxId) {
         const url = c['generated_internal_id']
           ? `https://www.usaspending.gov/award/${c['generated_internal_id']}`
           : c['Award ID'] ? `https://www.usaspending.gov/search/?hash=&keyword=${encodeURIComponent(c['Award ID'])}` : '';
-        const raw = String((typeof c['NAICS']==='object' ? c['NAICS'].code : c['NAICS'])||'');
-        const isSaaS = /^5112|^5182/.test(raw) || /(subscription|renewal|saas|license)/i.test(desc);
-        const badge = isSaaS ? ['Renewal','badge-renewal'] : days <= 30 ? ['Expiring','badge-expiring'] : ['Maturing','badge-expiring'];
         return `<div class="contract-row">
-          <span class="contract-badge ${badge[1]}">${badge[0]}</span>
           <div class="contract-body">
             <div class="contract-vendor">${Html.escapeHtml(vendor)}</div>
             <div class="contract-agency">${Html.escapeHtml(agency)}</div>
@@ -6018,7 +6073,6 @@ selectAgencySuggestion(name, inputId, boxId) {
           ? `https://www.usaspending.gov/award/${c['generated_internal_id']}`
           : c['Award ID'] ? `https://www.usaspending.gov/search/?hash=&keyword=${encodeURIComponent(c['Award ID'])}` : '';
         return `<div class="contract-row">
-          <span class="contract-badge badge-recent">New Award</span>
           <div class="contract-body">
             <div class="contract-vendor">${Html.escapeHtml(vendor)}</div>
             <div class="contract-agency">${Html.escapeHtml(agency)}</div>
