@@ -11379,10 +11379,12 @@ const SearchPills = {
     }
 
     const company = Html.escapeHtml(kw.company || '');
-    const searchAllTerms = [query, ...pills.filter(p => p.cls === 'search-pill-comp' || p.cls === 'search-pill-brand').map(p => p.term)].join(', ');
+    // Don't include query itself — just the brand/competitor pills — so clicking
+    // "Search all names" repeatedly doesn't accumulate previous queries.
+    const searchAllTerms = pills.filter(p => p.cls === 'search-pill-comp' || p.cls === 'search-pill-brand').map(p => p.term).join(', ');
     container.innerHTML = '<span style="font-size:0.65rem;color:var(--text-quaternary);font-weight:500;padding:4px 2px;white-space:nowrap;">Also try</span>' + pills.map(p =>
       `<button class="search-pill ${p.cls}" onclick="SearchPills.clickPill('${Html.escapeHtml(p.term)}', '${company}')">${Html.escapeHtml(p.term)}</button>`
-    ).join('') + `<button onclick="App.runSearch('${Html.escapeHtml(searchAllTerms)}')" style="display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:var(--radius);background:var(--accent);color:#fff;font-size:0.75rem;font-weight:700;border:none;cursor:pointer;white-space:nowrap;flex-shrink:0;">Search all names ›</button>`;
+    ).join('') + `<button class="search-pill" onclick="App.runSearch('${Html.escapeHtml(searchAllTerms)}')" style="color:var(--accent);font-weight:600;border:1px solid var(--accent-dim);">Search all ›</button>`;
     container.classList.add('active');
   },
 
