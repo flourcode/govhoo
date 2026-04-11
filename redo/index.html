@@ -526,14 +526,6 @@ a, button, input, select { touch-action: manipulation; }
         <div class="breadcrumb-row" id="bubbleBreadcrumbInner"></div>
       </div>
 
-      <!-- Stats row -->
-      <div class="metrics" style="margin-top:16px;" id="marketStats">
-        <div class="metric"><div class="m-val" id="bubble-stat-vol">—</div><div class="m-lbl">Total Spend</div></div>
-        <div class="metric"><div class="m-val" id="bubble-stat-agencies">—</div><div class="m-lbl">Agencies</div></div>
-        <div class="metric"><div class="m-val" id="bubble-stat-count">—</div><div class="m-lbl">Contracts</div></div>
-        <div class="metric"><div class="m-val" id="bubble-stat-vendors">—</div><div class="m-lbl">Primes</div></div>
-      </div>
-
       <!-- Chart -->
       <div id="bubbleChartContainer">
         <div class="bubble-tooltip" id="bubbleTooltip"></div>
@@ -5116,7 +5108,6 @@ const App = {
     DOM.show('marketCard');
     const container = DOM.get('bubbleChartContainer');
     DOM.show('marketEmpty');
-    DOM.hide('marketStats');
     DOM.hide('bubbleToggleRow');
     document.getElementById('marketCardTitle').textContent = `No results for "${query}"`;
     document.getElementById('marketCardDesc').textContent = 'Try a different keyword, company name, or NAICS code. Keep it literal — this is a database, not Google.';
@@ -5298,17 +5289,7 @@ const App = {
     const uniqueAgencies = new Set(data.map(a => a['Awarding Agency'])).size;
     const uniqueVendors = new Set(data.map(a => a['Recipient Name'])).size;
     
-    Utils.countUp(DOM.get('bubble-stat-vol'), totalSpend, Utils.money);
-    Utils.countUp(DOM.get('bubble-stat-agencies'), uniqueAgencies);
-    Utils.countUp(DOM.get('bubble-stat-count'), data.length);
-    Utils.countUp(DOM.get('bubble-stat-vendors'), uniqueVendors);
     
-    const subtitleEl = null // subtitle unused;
-    if (subtitleEl) {
-      const query = this.currentQuery ? '"' + this.currentQuery + '" · ' : '';
-      const modeLabel = { agencies: 'Agencies', subagencies: 'Offices', vendors: 'Primes' };
-      subtitleEl.textContent = query + 'Concentration by ' + (modeLabel[effective] || 'vendor').toLowerCase() + ' · Funded value';
-    }
     
     const tooltip = DOM.get('bubbleTooltip');
     if (tooltip) tooltip.classList.remove('visible'); // Dismiss stale tooltip from prior render
