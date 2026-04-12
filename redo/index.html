@@ -1657,6 +1657,178 @@ buyingOffices: {},
     'nga': 'National Geospatial-Intelligence Agency', 'nro': 'National Reconnaissance Office', 'dia': 'Defense Intelligence Agency'
   },
 
+  // Speech-to-text brand name fixes — maps how STT hears it to how USASpending files it
+  // Add any brand your sellers commonly speak that STT splits or mishears
+  speechAliases: {
+    // ── Cybersecurity ────────────────────────────────────────
+    'sentinel one': 'SentinelOne',
+    'sentinal one': 'SentinelOne',
+    'sentinel 1': 'SentinelOne',
+    'crowd strike': 'CrowdStrike',
+    'crowdstrike falcon': 'CrowdStrike',
+    'palo alto networks': 'Palo Alto Networks',
+    'palo alto': 'Palo Alto Networks',
+    'dark trace': 'Darktrace',
+    'dark trays': 'Darktrace',
+    'cyber ark': 'CyberArk',
+    'cyber reason': 'Cybereason',
+    'rapid seven': 'Rapid7',
+    'rapid 7': 'Rapid7',
+    'tenable': 'Tenable',
+    'qualys': 'Qualys',
+    'vectra': 'Vectra',
+    'exabeam': 'Exabeam',
+    'log rhythm': 'LogRhythm',
+    'log rhythms': 'LogRhythm',
+    'recorded future': 'Recorded Future',
+    'tanium': 'Tanium',
+    'illumio': 'Illumio',
+    'zero scaler': 'Zscaler',
+    'z scaler': 'Zscaler',
+    'zed scaler': 'Zscaler',
+    'z scalar': 'Zscaler',
+    'okta': 'Okta',
+    'sailpoint': 'SailPoint',
+    'sail point': 'SailPoint',
+    'beyond trust': 'BeyondTrust',
+    'beyond truss': 'BeyondTrust',
+    'delinea': 'Delinea',
+    'thales': 'Thales',
+    'entrust': 'Entrust',
+    'forcepoint': 'Forcepoint',
+    'force point': 'Forcepoint',
+    'trellix': 'Trellix',
+    'trek licks': 'Trellix',
+    'carbon black': 'Carbon Black',
+    'axonius': 'Axonius',
+    'ax onius': 'Axonius',
+    'claroty': 'Claroty',
+    'clear oti': 'Claroty',
+    'nozomi': 'Nozomi Networks',
+    'nozomi networks': 'Nozomi Networks',
+    'armis': 'Armis',
+    // ── DevSecOps / AppSec ──────────────────────────────────
+    'sonatype': 'Sonatype',
+    'sona type': 'Sonatype',
+    'sonatype nexus': 'Sonatype',
+    'snyk': 'Snyk',
+    'snick': 'Snyk',
+    'check marx': 'Checkmarx',
+    'checkmarks': 'Checkmarx',
+    'vera code': 'Veracode',
+    'veer a code': 'Veracode',
+    'black duck': 'Black Duck',
+    'j frog': 'JFrog',
+    'jay frog': 'JFrog',
+    'jfrog': 'JFrog',
+    'harness': 'Harness',
+    'git hub actions': 'GitHub',
+    'git hub': 'GitHub',
+    'git lab': 'GitLab',
+    'gitlab': 'GitLab',
+    'aqua security': 'Aqua Security',
+    'aqua sec': 'Aqua Security',
+    'twistlock': 'Twistlock',
+    'anchore': 'Anchore',
+    'code dx': 'CodeDx',
+    // ── Cloud / Infra / Observability ───────────────────────
+    'data dog': 'Datadog',
+    'data dawg': 'Datadog',
+    'snow flake': 'Snowflake',
+    'dynatrace': 'Dynatrace',
+    'dyna trace': 'Dynatrace',
+    'new relic': 'New Relic',
+    'service now': 'ServiceNow',
+    'service now dot com': 'ServiceNow',
+    'sales force': 'Salesforce',
+    'hash i corp': 'HashiCorp',
+    'hash e corp': 'HashiCorp',
+    'terraform': 'Terraform',
+    'mongo db': 'MongoDB',
+    'elastic search': 'Elastic',
+    'elastic': 'Elastic',
+    'confluent': 'Confluent',
+    'red is': 'Redis',
+    'redis': 'Redis',
+    'splunk': 'Splunk',
+    'sum o logic': 'Sumo Logic',
+    'sumo logic': 'Sumo Logic',
+    'appd': 'AppDynamics',
+    'app dynamics': 'AppDynamics',
+    'v mware': 'VMware',
+    'vee mware': 'VMware',
+    'nutanix': 'Nutanix',
+    'new tanix': 'Nutanix',
+    'pure storage': 'Pure Storage',
+    'net app': 'NetApp',
+    'netapp': 'NetApp',
+    // ── Federal SIs / Primes ────────────────────────────────
+    'booz allen hamilton': 'Booz Allen Hamilton',
+    'booz allen': 'Booz Allen Hamilton',
+    'booze allen': 'Booz Allen Hamilton',
+    'leidos': 'Leidos',
+    'peraton': 'Peraton',
+    'peer aton': 'Peraton',
+    'j d it': 'GDIT',
+    'g d i t': 'GDIT',
+    'general dynamics it': 'General Dynamics Information Technology',
+    'general dynamics information technology': 'General Dynamics Information Technology',
+    'man tech': 'ManTech',
+    'mantek': 'ManTech',
+    'caci': 'CACI',
+    'kay see eye': 'CACI',
+    'l three technologies': 'L3Harris',
+    'l 3 harris': 'L3Harris',
+    'l three harris': 'L3Harris',
+    'science applications': 'SAIC',
+    'torch on': 'Telos',
+    'telos': 'Telos',
+    'in lexa': 'Inlexa',
+    'amentum': 'Amentum',
+    'a mentum': 'Amentum',
+    'chenega': 'Chenega',
+    'chin ega': 'Chenega',
+    'ceva': 'KEYW',
+    'key w': 'KEYW',
+    // ── Networking / Comms ──────────────────────────────────
+    'cisco systems': 'Cisco',
+    'juniper networks': 'Juniper Networks',
+    'juniper': 'Juniper Networks',
+    'aruba networks': 'Aruba Networks',
+    'aruba': 'Aruba Networks',
+    'f five': 'F5',
+    'f 5': 'F5',
+    'ribbon communications': 'Ribbon Communications',
+    'calix': 'Calix',
+    'extreme networks': 'Extreme Networks',
+    // ── Common mishears / expansions ────────────────────────
+    'amazon web services': 'Amazon',
+    'amazon web service': 'Amazon',
+    'microsoft azure': 'Microsoft',
+    'microsoft 365': 'Microsoft',
+    'google cloud platform': 'Google Cloud',
+    'google workspace': 'Google',
+    'red hat': 'Red Hat',
+    'red hat incorporated': 'Red Hat',
+    'ibm cloud': 'IBM',
+    'oracle cloud': 'Oracle',
+    'a w s': 'Amazon',
+  },
+
+  normalizeSpeech(transcript) {
+    if (!transcript) return transcript;
+    let t = transcript.toLowerCase().trim();
+    // Try longest match first so "palo alto networks" beats "palo alto"
+    const sorted = Object.keys(this.speechAliases).sort((a, b) => b.length - a.length);
+    for (const phrase of sorted) {
+      if (t.includes(phrase)) {
+        t = t.replace(new RegExp(phrase, 'gi'), this.speechAliases[phrase]);
+      }
+    }
+    // Capitalize first letter
+    return t.charAt(0).toUpperCase() + t.slice(1);
+  },
+
 // NEW: A memory bank for agencies found via the API
   dynamicAgencies: {}, 
 resolveAgencyAlias(term) {
@@ -4497,7 +4669,10 @@ selectAgencySuggestion(name, inputId, boxId) {
         if (e.results[i].isFinal) finalTranscript += t;
         else interim += t;
       }
-      if (input) input.value = finalTranscript || interim;
+      // Show raw interim while speaking, normalize only on final
+      if (input) input.value = finalTranscript
+        ? Utils.normalizeSpeech(finalTranscript)
+        : interim;
     };
 
     sr.onerror = (e) => {
