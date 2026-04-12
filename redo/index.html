@@ -6561,6 +6561,14 @@ selectAgencySuggestion(name, inputId, boxId) {
     }, { passive: true });
   },
 
+  _cleanVendorName(name) {
+    // Strip legal suffixes, normalize spacing — makes search queries tighter
+    return name
+      .replace(/,?\s*(LLC|INC|CORP|CORPORATION|INCORPORATED|L\.L\.C\.|L\.P\.|LP|LTD|LIMITED|CO\.|PC|DBA)\.?\s*$/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  },
+
   renderPrimes() {
     const data = this.searchData.active;
     const list = DOM.get('primesList');
@@ -6589,11 +6597,16 @@ selectAgencySuggestion(name, inputId, boxId) {
       const agencyCount = d.agencies.size;
       const saLabel = VehicleDetector.getSetAsideLabel(d.setAside);
 
-      // Build search URLs — pure URL construction, no AI
-      const enc = encodeURIComponent(name);
-      const liPeople = `https://www.linkedin.com/search/results/people/?keywords=${enc}+federal+government+business+development`;
-      const liJobs   = `https://www.linkedin.com/jobs/search/?keywords=${enc}+federal&f_C=`;
-      const news     = `https://news.google.com/search?q=${enc}+federal+contract+government`;
+      // Universal URL pattern — quoted name works for any company, known or unknown
+      const clean = this._cleanVendorName(name);
+      const quoted = encodeURIComponent(`"${clean}"`);
+      const plain  = encodeURIComponent(clean);
+      // People: quoted name finds profiles that mention the company — works even without a company page
+      const liPeople = `https://www.linkedin.com/search/results/people/?keywords=${quoted}&origin=GLOBAL_SEARCH_HEADER`;
+      // Jobs: keyword search scoped to company name — no company ID needed
+      const liJobs   = `https://www.linkedin.com/jobs/search/?keywords=${plain}&location=United+States`;
+      // News: Google News with quoted name for precision
+      const news     = `https://news.google.com/search?q=${quoted}+federal+contract`;
 
       return `<div class="prime-row">
         <span class="prime-rank">${i + 1}</span>
