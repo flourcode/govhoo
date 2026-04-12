@@ -3684,9 +3684,6 @@ const App = {
     DOM.show('bubbleToggleRow');
     DOM.show('chartTabs');
     DOM.show('chartDots');
-    // Sub-sankey tab stays hidden until subaward data loads
-    DOM.get('tabSubSankey')?.classList.add('hidden');
-    DOM.get('dotSubSankey')?.classList.add('hidden');
     this.updateBubbleToggles();
     this.renderBubbleBreadcrumb();
 
