@@ -5588,7 +5588,7 @@ const App = {
     path.forEach((step, i) => {
       html += `<span class="breadcrumb-sep">›</span>`;
       const isLast = i === path.length - 1;
-      html += `<button class="breadcrumb-item ${isLast ? 'active' : ''}" ${isLast ? '' : `onclick="App.drillToLevel(${i + 1})"`}>${Html.escapeHtml(Utils.titleIfCaps(step.name))}</button>`;
+      html += `<button class="breadcrumb-item ${isLast ? 'active' : ''}" ${isLast ? '' : `onclick="App.drillToLevel(${i + 1})"`}>${Html.escapeHtml(step.name)}</button>`;
     });
     inner.innerHTML = html;
   },
@@ -5625,7 +5625,7 @@ const App = {
       const amount = parseFloat(award['Award Amount']) || 0;
       
       if (!entityMap[key]) {
-        entityMap[key] = { name: Utils.titleIfCaps(key), spend: 0, count: 0, agencies: new Set(), subAgencies: new Set(), vendors: new Set() };
+        entityMap[key] = { name: key, spend: 0, count: 0, agencies: new Set(), subAgencies: new Set(), vendors: new Set() };
       }
       entityMap[key].spend += amount;
       entityMap[key].count++;
@@ -5648,7 +5648,7 @@ const App = {
     if (descEl) {
       const drill = this.drillState || {};
       if (drill.level > 0 && drill.path.length > 0) {
-        const scopeName = Utils.titleIfCaps(drill.path[drill.path.length - 1].name);
+        const scopeName = drill.path[drill.path.length - 1].name;
         descEl.textContent = `Spend within ${scopeName}. Click a segment to go deeper.`;
       } else {
         descEl.textContent = 'Where the money is concentrated. Click any segment to drill in.';
@@ -6311,7 +6311,7 @@ selectAgencySuggestion(name, inputId, boxId) {
       list.innerHTML = items.map(c => {
         const end = new Date(c['End Date']);
         const days = Math.ceil((end - now) / 86400000);
-        const vendor = Utils.titleIfCaps(c['Recipient Name'] || 'Unknown Vendor');
+        const vendor = c['Recipient Name'] || 'Unknown Vendor';
         const agency = Utils.cleanAgency(c['Awarding Sub Agency'] || c['Awarding Agency'] || '');
         const desc = (c['Description'] || '').slice(0, 120);
         const url = c['generated_internal_id']
@@ -6367,7 +6367,7 @@ selectAgencySuggestion(name, inputId, boxId) {
         const ago = daysAgo === 0 ? 'Today' : daysAgo === 1 ? 'Yesterday'
           : daysAgo <= 7 ? `${daysAgo}d ago` : daysAgo <= 30 ? `${Math.ceil(daysAgo/7)}w ago`
           : `${Math.floor(daysAgo/30)}mo ago`;
-        const vendor = Utils.titleIfCaps(c['Recipient Name'] || 'Unknown Vendor');
+        const vendor = c['Recipient Name'] || 'Unknown Vendor';
         const agency = Utils.cleanAgency(c['Awarding Sub Agency'] || c['Awarding Agency'] || '');
         const desc = (c['Description'] || '').slice(0, 120);
         const url = c['generated_internal_id']
@@ -6467,12 +6467,12 @@ selectAgencySuggestion(name, inputId, boxId) {
     data.forEach(d => {
       if (d['Award Amount'] <= 0) return;
       const amt = d['Award Amount'];
-      const vendor = Utils.titleIfCaps(d['Recipient Name'] || 'Unknown Vendor');
-      const agency = Utils.titleIfCaps(d['Awarding Agency'] || 'Unknown Agency');
-      let sub = Utils.titleIfCaps(d['Awarding Sub Agency'] || d['Awarding Agency'] || agency);
+      const vendor = d['Recipient Name'] || 'Unknown Vendor';
+      const agency = d['Awarding Agency'] || 'Unknown Agency';
+      let sub = d['Awarding Sub Agency'] || d['Awarding Agency'] || agency;
       const agencyUp = (d['Awarding Agency'] || '').toUpperCase().split('(')[0].trim();
       const subUp = (d['Awarding Sub Agency'] || '').toUpperCase().split('(')[0].trim();
-      if (agencyUp === subUp && d['Awarding Office']) sub = Utils.titleIfCaps(d['Awarding Office']);
+      if (agencyUp === subUp && d['Awarding Office']) sub = d['Awarding Office'];
 
       let key;
       if (mobileOfficeView) {
@@ -6593,7 +6593,7 @@ selectAgencySuggestion(name, inputId, boxId) {
     card.classList.remove('hidden');
 
     list.innerHTML = primes.map(([rawName, d], i) => {
-      const name = Utils.titleIfCaps(rawName);
+      const name = rawName;
       const agencyCount = d.agencies.size;
       const saLabel = VehicleDetector.getSetAsideLabel(d.setAside);
 
@@ -6606,7 +6606,7 @@ selectAgencySuggestion(name, inputId, boxId) {
       // Jobs: keyword search scoped to company name — no company ID needed
       const liJobs   = `https://www.linkedin.com/jobs/search/?keywords=${plain}&location=United+States`;
       // News: Google News with quoted name for precision
-      const news     = `https://news.google.com/search?q=${quoted}+federal+contract`;
+      const news     = `https://news.google.com/search?q=${quoted}`;
 
       return `<div class="prime-row">
         <span class="prime-rank">${i + 1}</span>
@@ -6646,7 +6646,7 @@ selectAgencySuggestion(name, inputId, boxId) {
     });
     const agencySorted = Object.entries(agencyMap).sort((a,b)=>b[1]-a[1]);
     const topAgencyRaw = agencySorted[0]?.[0] || '';
-    const topAgency = Utils.titleIfCaps(Utils.cleanAgency(topAgencyRaw));
+    const topAgency = Utils.cleanAgency(topAgencyRaw);
     const topAgencyAmt = agencySorted[0]?.[1] || 0;
     const topAgencyPct = total > 0 ? Math.round(topAgencyAmt / total * 100) : 0;
 
@@ -6657,7 +6657,7 @@ selectAgencySuggestion(name, inputId, boxId) {
       vendorMap[v] = (vendorMap[v]||0) + (parseFloat(c['Award Amount'])||0);
     });
     const vendorSorted = Object.entries(vendorMap).sort((a,b)=>b[1]-a[1]);
-    const topVendor = Utils.titleIfCaps(vendorSorted[0]?.[0] || '');
+    const topVendor = vendorSorted[0]?.[0] || '';
     const topVendorAmt = vendorSorted[0]?.[1] || 0;
     const topVendorPct = total > 0 ? Math.round(topVendorAmt / total * 100) : 0;
     const top3Spend = vendorSorted.slice(0,3).reduce((s,[,v])=>s+v,0);
@@ -6672,7 +6672,7 @@ selectAgencySuggestion(name, inputId, boxId) {
       .sort((a,b) => new Date(a['End Date']) - new Date(b['End Date']));
     const hottestExpiry = expiring[0];
     const hotDays = hottestExpiry ? Math.ceil((new Date(hottestExpiry['End Date']) - now) / 86400000) : null;
-    const hotVendor = hottestExpiry ? Utils.titleIfCaps(hottestExpiry['Recipient Name'] || '') : null;
+    const hotVendor = hottestExpiry ? (hottestExpiry['Recipient Name'] || '') : null;
     const hotAmt = hottestExpiry ? parseFloat(hottestExpiry['Award Amount'])||0 : 0;
 
     // ── Pick the lead signal — most actionable fact first ────────
