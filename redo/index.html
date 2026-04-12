@@ -661,13 +661,12 @@ a, button, input, select { touch-action: manipulation; }
 .chart-tab:hover:not(.active) { color: var(--text-secondary); }
 .chart-viewport { position: relative; margin-top: 10px; overflow: hidden; }
 .chart-track {
-  display: flex; width: 200%;
+  display: flex; width: 300%;
   transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
   will-change: transform;
 }
 .chart-panel {
-  width: 50%; flex-shrink: 0;
-  /* inactive panel is visually clipped by chart-viewport overflow:hidden */
+  width: 33.333%; flex-shrink: 0;
 }
 /* The inactive panel must not add height to the track row.
    We achieve this by making the viewport only as tall as the active panel
@@ -1188,6 +1187,7 @@ a, button, input, select { touch-action: manipulation; }
       <div class="chart-tabs" id="chartTabs">
         <button class="chart-tab active" id="tabTreemap" onclick="App.switchChartView('treemap')">Treemap</button>
         <button class="chart-tab" id="tabSankey" onclick="App.switchChartView('sankey')">Agency → Vendor Flow</button>
+        <button class="chart-tab hidden" id="tabSubSankey" onclick="App.switchChartView('subsankey')">Prime → Sub Flow</button>
       </div>
 
       <!-- Dual-view swipeable container -->
@@ -1203,6 +1203,10 @@ a, button, input, select { touch-action: manipulation; }
           <div class="chart-panel" id="panelSankey">
             <div id="sankeyContainer" style="width:100%;"></div>
           </div>
+          <!-- View 2: Prime → Sub Sankey -->
+          <div class="chart-panel" id="panelSubSankey">
+            <div id="subSankeyContainer" style="width:100%;"></div>
+          </div>
         </div>
       </div>
 
@@ -1210,6 +1214,7 @@ a, button, input, select { touch-action: manipulation; }
       <div class="chart-dots" id="chartDots">
         <span class="chart-dot active" id="dotTreemap" onclick="App.switchChartView('treemap')"></span>
         <span class="chart-dot" id="dotSankey" onclick="App.switchChartView('sankey')"></span>
+        <span class="chart-dot hidden" id="dotSubSankey" onclick="App.switchChartView('subsankey')"></span>
       </div>
 
       <!-- Toggle row (treemap modes, hidden when sankey active) -->
@@ -3487,6 +3492,10 @@ const App = {
     DOM.hide('pipelineCard');
     DOM.hide('subawardsCard');
     DOM.hide('artiFab');
+    // Hide third tab
+    DOM.get('tabSubSankey')?.classList.add('hidden');
+    DOM.get('dotSubSankey')?.classList.add('hidden');
+    this._subawardData = null;
     DOM.hide('bubbleToggleRow');
     DOM.hide('bubbleBreadcrumb');
     DOM.hide('chartTabs');   // hide Treemap / Sankey tabs, nothing to switch to
@@ -3675,6 +3684,9 @@ const App = {
     DOM.show('bubbleToggleRow');
     DOM.show('chartTabs');
     DOM.show('chartDots');
+    // Sub-sankey tab stays hidden until subaward data loads
+    DOM.get('tabSubSankey')?.classList.add('hidden');
+    DOM.get('dotSubSankey')?.classList.add('hidden');
     this.updateBubbleToggles();
     this.renderBubbleBreadcrumb();
 
@@ -4549,6 +4561,11 @@ selectAgencySuggestion(name, inputId, boxId) {
     if (!subs.length) { card.classList.add('hidden'); return; }
     card.classList.remove('hidden');
 
+    // Cache for sub-sankey and reveal the third chart tab
+    this._subawardData = subs;
+    DOM.get('tabSubSankey')?.classList.remove('hidden');
+    DOM.get('dotSubSankey')?.classList.remove('hidden');
+
     const SHOW = 8;
     const render = (all) => {
       const items = all ? subs : subs.slice(0, SHOW);
@@ -4587,29 +4604,36 @@ selectAgencySuggestion(name, inputId, boxId) {
     sc.innerHTML = '';
     delete sc.dataset.rendered;
     if (this._chartView === 'sankey') this.renderSankey();
+    const ssc = DOM.get('subSankeyContainer');
+    if (!ssc) return;
+    ssc.innerHTML = '';
+    delete ssc.dataset.rendered;
+    if (this._chartView === 'subsankey') this.renderSubSankey();
   },
 
   // ── Chart view switcher ─────────────────────────────────────
-  _chartView: 'treemap', // 'treemap' | 'sankey'
+  _chartView: 'treemap', // 'treemap' | 'sankey' | 'subsankey'
 
   switchChartView(view) {
     this._chartView = view;
     const track = DOM.get('chartTrack');
     const viewport = DOM.get('chartViewport');
-    if (track) track.style.transform = view === 'sankey' ? 'translateX(-50%)' : 'translateX(0)';
+    const offset = view === 'sankey' ? '-33.333%' : view === 'subsankey' ? '-66.666%' : '0%';
+    if (track) track.style.transform = `translateX(${offset})`;
 
     // Tabs
     DOM.get('tabTreemap')?.classList.toggle('active', view === 'treemap');
     DOM.get('tabSankey')?.classList.toggle('active', view === 'sankey');
+    DOM.get('tabSubSankey')?.classList.toggle('active', view === 'subsankey');
     // Dots
     DOM.get('dotTreemap')?.classList.toggle('active', view === 'treemap');
     DOM.get('dotSankey')?.classList.toggle('active', view === 'sankey');
+    DOM.get('dotSubSankey')?.classList.toggle('active', view === 'subsankey');
     // Mode toggles visibility
     const toggleRow = DOM.get('bubbleToggleRow');
-    if (toggleRow) toggleRow.style.visibility = view === 'sankey' ? 'hidden' : '';
+    if (toggleRow) toggleRow.style.visibility = view === 'treemap' ? '' : 'hidden';
 
     if (view === 'sankey') {
-      // Lazy render Sankey, then fit viewport to its height
       if (this.searchData.loaded) {
         const c = DOM.get('sankeyContainer');
         if (c && !c.dataset.rendered) this.renderSankey();
@@ -4618,9 +4642,16 @@ selectAgencySuggestion(name, inputId, boxId) {
           if (viewport && panel) viewport.style.height = panel.scrollHeight + 'px';
         }, 370);
       }
+    } else if (view === 'subsankey') {
+      if (this.searchData.loaded) {
+        const c = DOM.get('subSankeyContainer');
+        if (c && !c.dataset.rendered) this.renderSubSankey();
+        setTimeout(() => {
+          const panel = DOM.get('panelSubSankey');
+          if (viewport && panel) viewport.style.height = panel.scrollHeight + 'px';
+        }, 370);
+      }
     } else {
-      // Treemap: wait for slide transition, then re-render at correct width
-      // renderBubbleChart sets viewport height directly using h
       setTimeout(() => {
         if (this.searchData.loaded) this.renderBubbleChart();
       }, 360);
@@ -4726,6 +4757,66 @@ selectAgencySuggestion(name, inputId, boxId) {
     });
   },
 
+  renderSubSankey() {
+    const container = DOM.get('subSankeyContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    container.dataset.rendered = '1';
+
+    const subs = this._subawardData;
+    if (!subs || !subs.length) {
+      container.innerHTML = '<div style="text-align:center;padding:4rem;color:var(--text-tertiary);font-size:var(--text-sm);">No subaward data available for this market.</div>';
+      return;
+    }
+
+    // Build Agency → Prime → Sub paths, top 50 by value
+    const pathMap = {};
+    subs.forEach(s => {
+      const agency = Utils.cleanAgency(s['Awarding Agency'] || 'Unknown Agency');
+      const prime  = s['Prime Recipient Name'] || 'Unknown Prime';
+      const sub    = s['Sub-Awardee Name'] || 'Unknown Sub';
+      const amt    = parseFloat(s['Sub-Award Amount']) || 0;
+      if (amt <= 0 || prime === sub) return;
+      const key = `${agency} ||| ${prime} ||| ${sub}`;
+      pathMap[key] = (pathMap[key] || 0) + amt;
+    });
+
+    const allPaths = Object.entries(pathMap).sort((a, b) => b[1] - a[1]).slice(0, 40);
+    if (!allPaths.length) {
+      container.innerHTML = '<div style="text-align:center;padding:4rem;color:var(--text-tertiary);font-size:var(--text-sm);">No subaward relationships found.</div>';
+      return;
+    }
+
+    const nodesSet = new Set();
+    const linksMap = {};
+    const addLink = (s, t, v) => {
+      nodesSet.add(s); nodesSet.add(t);
+      const k = `${s}:::${t}`;
+      linksMap[k] = (linksMap[k] || 0) + v;
+    };
+    allPaths.forEach(([k, v]) => {
+      const [agency, prime, sub] = k.split(' ||| ');
+      addLink(agency, prime, v);
+      addLink(prime, sub, v);
+    });
+
+    const links = Object.entries(linksMap).map(([k, v]) => {
+      const [source, target] = k.split(':::');
+      return { source, target, value: v };
+    });
+    const nodes = Array.from(nodesSet).map(n => ({ name: n }));
+
+    const svg = d3.select(container).append('svg').attr('id', 'subSankeySvg');
+    ChartUtils.drawSankey(svg, {
+      nodes, links,
+      gradientPrefix: 'sub-grad',
+      heightPerNode: 28,
+      isDrillable: () => false,
+      isActive: () => false,
+      onNodeClick: () => {}
+    });
+  },
+
   _initSwipe() {
     const viewport = DOM.get('chartViewport');
     if (!viewport) return;
@@ -4740,9 +4831,15 @@ selectAgencySuggestion(name, inputId, boxId) {
       isDragging = false;
       const dx = e.changedTouches[0].clientX - startX;
       const dy = e.changedTouches[0].clientY - startY;
-      if (Math.abs(dx) < 30 || Math.abs(dx) < Math.abs(dy)) return; // too short or more vertical
-      if (dx < 0 && this._chartView === 'treemap') this.switchChartView('sankey');
-      else if (dx > 0 && this._chartView === 'sankey') this.switchChartView('treemap');
+      if (Math.abs(dx) < 30 || Math.abs(dx) < Math.abs(dy)) return;
+      const hasSubData = !!(this._subawardData && this._subawardData.length);
+      if (dx < 0) {
+        if (this._chartView === 'treemap') this.switchChartView('sankey');
+        else if (this._chartView === 'sankey' && hasSubData) this.switchChartView('subsankey');
+      } else {
+        if (this._chartView === 'subsankey') this.switchChartView('sankey');
+        else if (this._chartView === 'sankey') this.switchChartView('treemap');
+      }
     }, { passive: true });
   },
 
