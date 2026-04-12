@@ -5438,6 +5438,7 @@ const App = {
     if (!silent && this.searchData.loaded) {
       this.searchData.active = this.searchData.baseline || Utils.filterActiveContracts(this.searchData.raw);
       this.renderBubbleChart();
+      this._syncSankey();
     }
     DOM.hide('resetDrillBtn');
     DOM.hide('bubbleBreadcrumb');
@@ -5462,6 +5463,8 @@ const App = {
 
     if (!preventRender) this.renderBubbleChart();
     this.renderBubbleBreadcrumb();
+    // Keep Sankey in sync with drill state
+    this._syncSankey();
   },
 
   drillToSubAgency(name) {
@@ -5474,6 +5477,8 @@ const App = {
     );
     if (!preventRender) this.renderBubbleChart();
     this.renderBubbleBreadcrumb();
+    // Keep Sankey in sync with drill state
+    this._syncSankey();
   },
 
   drillToLevel(n) {
@@ -6312,6 +6317,15 @@ selectAgencySuggestion(name, inputId, boxId) {
     };
     this._renderRecentAll = () => render(true);
     render(false);
+  },
+
+  // Invalidate Sankey cache on drill — re-render immediately if Sankey is active
+  _syncSankey() {
+    const sc = DOM.get('sankeyContainer');
+    if (!sc) return;
+    sc.innerHTML = '';
+    delete sc.dataset.rendered;
+    if (this._chartView === 'sankey') this.renderSankey();
   },
 
   // ── Chart view switcher ─────────────────────────────────────
