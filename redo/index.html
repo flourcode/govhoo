@@ -5273,7 +5273,7 @@ const App = {
         return;
       }
 
-      this.searchData = { raw: results, active: filtered, filter: null, loaded: true };
+      this.searchData = { raw: results, active: filtered, baseline: filtered, filter: null, loaded: true };
 
       // Card title = title-cased search query, no "Market" suffix
       const rawForTitle = (DOM.get('searchInput')?.value || query).trim();
@@ -5357,7 +5357,7 @@ const App = {
     this.drillState = { level: 0, path: [], currentAgency: null, currentSubAgency: null };
     this.searchData.filter = null;
     if (!silent && this.searchData.loaded) {
-      this.searchData.active = Utils.filterActiveContracts(this.searchData.raw);
+      this.searchData.active = this.searchData.baseline || Utils.filterActiveContracts(this.searchData.raw);
       this.renderBubbleChart();
     }
     DOM.hide('resetDrillBtn');
@@ -5368,7 +5368,7 @@ const App = {
     this.drillState.level = 1;
     this.drillState.currentAgency = name;
     this.drillState.path = [{ name, type: 'agency' }];
-    this.searchData.active = this.searchData.raw.filter(a =>
+    this.searchData.active = (this.searchData.baseline || this.searchData.raw).filter(a =>
       (a['Awarding Agency'] || '') === name || (a['Awarding Sub Agency'] || '') === name
     );
     DOM.show('resetDrillBtn');
@@ -5390,7 +5390,7 @@ const App = {
     this.drillState.currentSubAgency = name;
     this.drillState.path = this.drillState.path.slice(0, 1);
     this.drillState.path.push({ name, type: 'subagency' });
-    this.searchData.active = this.searchData.raw.filter(a =>
+    this.searchData.active = (this.searchData.baseline || this.searchData.raw).filter(a =>
       (a['Awarding Sub Agency'] || '') === name || (a['Awarding Office'] || '') === name
     );
     if (!preventRender) this.renderBubbleChart();
