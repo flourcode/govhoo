@@ -5362,6 +5362,12 @@ const App = {
       this.renderBridge();
       this.renderExpiring();
       this.renderRecent();
+      // Sync viewport height after initial render
+      requestAnimationFrame(() => {
+        const vp = DOM.get('chartViewport');
+        const panel = DOM.get('panelTreemap');
+        if (vp && panel) vp.style.height = panel.scrollHeight + 'px';
+      });
 
       // SearchPills
 
@@ -5818,12 +5824,6 @@ if (this.bubbleChartType === 'treemap') {
         }, 450);
       }));
     }
-    // Sync viewport height to treemap content after render
-    requestAnimationFrame(() => {
-      const vp = DOM.get('chartViewport');
-      const panel = DOM.get('panelTreemap');
-      if (vp && panel && this._chartView !== 'sankey') vp.style.height = panel.scrollHeight + 'px';
-    });
   },
   showLoader(text, subtext) {
     // Clear any previous rotation
@@ -6317,36 +6317,37 @@ selectAgencySuggestion(name, inputId, boxId) {
     const viewport = DOM.get('chartViewport');
     if (track) track.style.transform = view === 'sankey' ? 'translateX(-50%)' : 'translateX(0)';
 
-    // Update tabs
+    // Tabs
     DOM.get('tabTreemap')?.classList.toggle('active', view === 'treemap');
     DOM.get('tabSankey')?.classList.toggle('active', view === 'sankey');
-
-    // Update dots
+    // Dots
     DOM.get('dotTreemap')?.classList.toggle('active', view === 'treemap');
     DOM.get('dotSankey')?.classList.toggle('active', view === 'sankey');
-
-    // Show/hide treemap toggles
+    // Mode toggles visibility
     const toggleRow = DOM.get('bubbleToggleRow');
     if (toggleRow) toggleRow.style.visibility = view === 'sankey' ? 'hidden' : '';
 
-    // Render Sankey on first switch (lazy)
-    if (view === 'sankey' && this.searchData.loaded) {
-      const c = DOM.get('sankeyContainer');
-      if (c && !c.dataset.rendered) this.renderSankey();
-    }
-
-    // Resize treemap on switch back
-    if (view === 'treemap' && this.searchData.loaded) {
-      requestAnimationFrame(() => this.renderBubbleChart());
-    }
-
-    // After transition, lock viewport height to active panel so no dead space
-    setTimeout(() => {
-      const activePanel = DOM.get(view === 'sankey' ? 'panelSankey' : 'panelTreemap');
-      if (viewport && activePanel) {
-        viewport.style.height = activePanel.scrollHeight + 'px';
+    if (view === 'sankey') {
+      // Lazy render Sankey, then fit viewport to its height
+      if (this.searchData.loaded) {
+        const c = DOM.get('sankeyContainer');
+        if (c && !c.dataset.rendered) this.renderSankey();
+        setTimeout(() => {
+          const panel = DOM.get('panelSankey');
+          if (viewport && panel) viewport.style.height = panel.scrollHeight + 'px';
+        }, 370);
       }
-    }, 370); // slightly after the 350ms CSS transition
+    } else {
+      // Treemap: wait for slide transition to finish, then re-render at correct width, then size viewport
+      setTimeout(() => {
+        if (!this.searchData.loaded) return;
+        this.renderBubbleChart(); // draws SVG at correct width now that panel is visible
+        requestAnimationFrame(() => {
+          const panel = DOM.get('panelTreemap');
+          if (viewport && panel) viewport.style.height = panel.scrollHeight + 'px';
+        });
+      }, 360);
+    }
   },
 
   renderSankey() {
