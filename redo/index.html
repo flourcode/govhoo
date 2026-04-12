@@ -290,7 +290,7 @@ a, button, input, select { touch-action: manipulation; }
   transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
   will-change: transform;
 }
-.chart-panel { width: 50%; flex-shrink: 0; min-height: 400px; }
+.chart-panel { width: 50%; flex-shrink: 0; }
 .chart-dots { display: none; justify-content: center; gap: 6px; margin-top: 10px; }
 .chart-dot {
   width: 6px; height: 6px; border-radius: 9999px;
@@ -5517,8 +5517,7 @@ const App = {
     DOM.show('marketCard');
     DOM.show('bubbleToggleRow');
     this.updateBubbleToggles();
-    this.renderBubbleBreadcrumb();
-    
+    this.renderBubbleBreadcrumb();    
     const drill = this.drillState || {};
     const effective = this.getEffectiveBubbleMode();
     
@@ -5819,6 +5818,12 @@ if (this.bubbleChartType === 'treemap') {
         }, 450);
       }));
     }
+    // Sync viewport height to treemap content after render
+    requestAnimationFrame(() => {
+      const vp = DOM.get('chartViewport');
+      const panel = DOM.get('panelTreemap');
+      if (vp && panel && this._chartView !== 'sankey') vp.style.height = panel.scrollHeight + 'px';
+    });
   },
   showLoader(text, subtext) {
     // Clear any previous rotation
@@ -6309,6 +6314,7 @@ selectAgencySuggestion(name, inputId, boxId) {
   switchChartView(view) {
     this._chartView = view;
     const track = DOM.get('chartTrack');
+    const viewport = DOM.get('chartViewport');
     if (track) track.style.transform = view === 'sankey' ? 'translateX(-50%)' : 'translateX(0)';
 
     // Update tabs
@@ -6329,10 +6335,18 @@ selectAgencySuggestion(name, inputId, boxId) {
       if (c && !c.dataset.rendered) this.renderSankey();
     }
 
-    // Resize treemap on switch back (container may have changed)
+    // Resize treemap on switch back
     if (view === 'treemap' && this.searchData.loaded) {
       requestAnimationFrame(() => this.renderBubbleChart());
     }
+
+    // After transition, lock viewport height to active panel so no dead space
+    setTimeout(() => {
+      const activePanel = DOM.get(view === 'sankey' ? 'panelSankey' : 'panelTreemap');
+      if (viewport && activePanel) {
+        viewport.style.height = activePanel.scrollHeight + 'px';
+      }
+    }, 370); // slightly after the 350ms CSS transition
   },
 
   renderSankey() {
@@ -6542,13 +6556,16 @@ selectAgencySuggestion(name, inputId, boxId) {
       }, { passive: true });
     }
 
-    // Re-render treemap on window resize (debounced)
-    let resizeTimer;
+    // Re-render treemap on resize — only if WIDTH changed (ignore mobile chrome height changes)
+    let resizeTimer, lastW = window.innerWidth;
     window.addEventListener('resize', () => {
+      const w = window.innerWidth;
+      if (w === lastW) return; // height-only resize = iOS/Android URL bar — skip
+      lastW = w;
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
-        if (App.searchData.loaded) App.renderBubbleChart();
-      }, 150);
+        if (App.searchData.loaded && App._chartView !== 'sankey') App.renderBubbleChart();
+      }, 200);
     });
 
     // Preload D3
