@@ -972,7 +972,7 @@ a, button, input, select { touch-action: manipulation; }
       </div>
       <div class="arti-hero-input-wrap">
         <input type="text" id="artiContextInput" class="arti-hero-input"
-          placeholder="e.g. I sell cloud security to Army and Air Force"
+          placeholder="e.g. I sell to VA, competing against Leidos"
           autocomplete="off" autocorrect="off"
           onkeypress="if(event.key==='Enter') App.runAiActionPlan()">
         <button class="arti-hero-send" onclick="App.runAiActionPlan()" aria-label="Build plan">
@@ -994,11 +994,11 @@ a, button, input, select { touch-action: manipulation; }
         <button class="copy-btn" id="copyArtiBtn" onclick="App.copyArtiBrief()" style="margin-left:auto;">Copy brief</button>
       </div>
       <div class="prompt-chips" id="artiPromptChips">
-        <button class="prompt-chip" onclick="App.sendArtiChat('Give me 5 Salesforce-ready pipeline opportunities based on this data. Include the contract name, agency, incumbent, expiry, and why we can win.')">Top 5 pipeline opps</button>
-        <button class="prompt-chip" onclick="App.sendArtiChat('Write a cold outreach email to a program manager at the top agency in this market. Make it specific to their recent spending — not a generic pitch.')">Draft outreach email</button>
-        <button class="prompt-chip" onclick="App.sendArtiChat('Generate a 30-60-90 day territory plan for a new AE. Use actual agencies, incumbents, and dollar figures from this data.')">30-60-90 plan</button>
-        <button class="prompt-chip" onclick="App.sendArtiChat('Recommend 2-3 specific teaming partners that would make us more competitive here. Explain why each one.')">Teaming partners</button>
-        <button class="prompt-chip" onclick="App.sendArtiChat('I am prepping for a job interview at a company selling into this market. Give me 3 highly specific talking points using exact numbers and contract names from this data.')">Interview prep</button>
+        <button class="prompt-chip" onclick="App.sendArtiChat('Who is the dominant incumbent in this market and what would it take to displace them? Be specific.')">Who owns this?</button>
+        <button class="prompt-chip" onclick="App.sendArtiChat('What is the single best near-term opportunity in this data — the contract most likely to recompete and where we have a real shot? One paragraph.')">Best opening</button>
+        <button class="prompt-chip" onclick="App.sendArtiChat('Write one cold outreach message to the top contracting office. 4 sentences. Reference their actual spending.')">Draft outreach</button>
+        <button class="prompt-chip" onclick="App.sendArtiChat('What are 3 things I should know walking into a meeting with the top agency in this market? Bullet points, just the facts.')">Meeting prep</button>
+        <button class="prompt-chip" onclick="App.sendArtiChat('Who should I team with to be more competitive here? Name 2 specific companies already winning in this data and why they would make a good partner.')">Who to team with</button>
       </div>
     </div>
 
@@ -6131,11 +6131,13 @@ selectAgencySuggestion(name, inputId, boxId) {
       return;
     }
 
-    const btn = DOM.get('triggerArtiBtn');
-    if (btn) { btn.disabled = true; btn.textContent = 'Reading data…'; }
-
-    // Capture context before async
-    this.artiContext = (DOM.get('artiContextInput')?.value || '').trim();
+    // Don't auto-fire on empty input — focus the input instead
+    const inputEl = DOM.get('artiContextInput');
+    this.artiContext = (inputEl?.value || '').trim();
+    if (!this.artiContext) {
+      if (inputEl) { inputEl.focus(); inputEl.placeholder = 'Tell me your angle first…'; }
+      return;
+    }
 
     // Hide trigger panel, keep artiBridge container open
     DOM.hide('artiTrigger');
@@ -6152,10 +6154,10 @@ selectAgencySuggestion(name, inputId, boxId) {
 
     const userContext = (this.artiContext || '').trim();
     const territoryScope = this.territory && this.SECTORS[this.territory]
-      ? `Territory: ${this.SECTORS[this.territory].label} agencies only. `
+      ? `This market is scoped to ${this.SECTORS[this.territory].label} agencies only. `
       : '';
-    // Sharp directive — always ask for 30-day action plan with specifics
-    const objective = `${territoryScope}${userContext ? `Seller context: ${userContext}. ` : ''}Give me a concrete 30-day action plan to move on the highest-value opportunities in this market. Use real agency names, real incumbent names, and real dollar figures from the data. Include: (1) the top 3 contracts to pursue and why, (2) the key decision-makers to target at each agency, (3) the competitive angle to displace incumbents, (4) specific outreach actions to take in the next 30 days. Be direct and specific — no fluff, no generic advice.`;
+    // Crisp briefing prompt — compass heading, not a GTM plan
+    const objective = `${territoryScope}${userContext ? `The seller says: "${userContext}". ` : ''}You are a sharp federal BD analyst giving a 60-second pre-meeting briefing. Respond in 3-5 sentences maximum. Lead with the single most important fact about this market — the biggest opportunity, the dominant incumbent, or the most urgent recompete. Then give one specific recommended move. Use real names and real dollar figures. No headers, no bullet points, no plans — just a direct briefing like a colleague who pulled the file before the meeting.`;
 
     try {
       const res = await fetch(this.AI_ENDPOINT, {
@@ -6176,7 +6178,7 @@ selectAgencySuggestion(name, inputId, boxId) {
           <img src="/images/arti.png" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;">
           <div>
             <div style="font-size:var(--text-sm);font-weight:800;color:var(--text-primary);letter-spacing:-0.02em;">Arti</div>
-            <div style="font-size:var(--text-xs);color:var(--text-quaternary);">Your 30-day action plan</div>
+            <div style="font-size:var(--text-xs);color:var(--text-quaternary);">Pre-meeting briefing</div>
           </div>
         </div>
         <div id="artiStreamTarget" class="strategic-read" style="min-height:2em;"></div>`;
