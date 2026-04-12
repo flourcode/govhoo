@@ -72,11 +72,7 @@ a, button, input, select { touch-action: manipulation; }
 
 /* ── HEADER (minitools exact) ── */
 .site-header {
-  position: sticky; top: 0; z-index: 200;
-  background: rgba(247,247,245,0.9);
-  backdrop-filter: saturate(160%) blur(16px);
-  -webkit-backdrop-filter: saturate(160%) blur(16px);
-  border-bottom: 1px solid var(--border);
+  background: rgba(247,247,245,0.95);
   padding: max(10px, var(--safe-top)) 20px 0;
 }
 .header-top {
@@ -251,7 +247,28 @@ a, button, input, select { touch-action: manipulation; }
   font-size: var(--text-sm); color: var(--text-tertiary);
   line-height: 1.5; margin-bottom: 0;
 }
-/* ── MARKET HERO NUMBER ── */
+/* ── SCROLL TO TOP ── */
+.scroll-top-btn {
+  position: fixed;
+  bottom: calc(24px + var(--safe-bottom));
+  right: 20px;
+  width: 40px; height: 40px;
+  background: var(--bg-app); border: 1px solid var(--border);
+  border-radius: 50%; box-shadow: var(--shadow);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text-secondary);
+  transition: opacity 0.2s ease, transform 0.2s ease, background 0.16s;
+  z-index: 300;
+  opacity: 0; pointer-events: none;
+}
+.scroll-top-btn:not(.hidden) { opacity: 1; pointer-events: auto; }
+.scroll-top-btn:hover { background: var(--bg-hover); color: var(--text-primary); transform: translateY(-2px); }
+.scroll-top-btn:active { transform: scale(0.93); }
+@media (max-width: 640px) {
+  .scroll-top-btn { right: 50%; transform: translateX(50%); bottom: calc(20px + var(--safe-bottom)); }
+  .scroll-top-btn:hover { transform: translateX(50%) translateY(-2px); }
+  .scroll-top-btn:active { transform: translateX(50%) scale(0.93); }
+}
 .market-hero-number {
   font-size: clamp(2rem, 5vw, 3rem);
   font-weight: 900; letter-spacing: -0.04em;
@@ -284,13 +301,6 @@ a, button, input, select { touch-action: manipulation; }
   outline: none; min-width: 0;
 }
 .search-input::placeholder { color: var(--text-quaternary); font-size: 0.95em; }
-.search-icon-btn {
-  flex-shrink: 0; width: 44px; border: none; background: transparent;
-  color: var(--text-quaternary); cursor: pointer; display: flex;
-  align-items: center; justify-content: center; transition: var(--transition);
-  padding: 0;
-}
-.search-icon-btn:hover { color: var(--text-primary); }
 
 /* Territory dropdown */
 .territory-dropdown {
@@ -596,6 +606,12 @@ a, button, input, select { touch-action: manipulation; }
 </div>
 
 <!-- TOAST -->
+<button class="scroll-top-btn hidden" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top">
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <path d="M8 12V4M4 8l4-4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</button>
+
 <div class="toast-wrap" id="toastWrap"></div>
 
 <!-- MAIN -->
@@ -616,9 +632,6 @@ a, button, input, select { touch-action: manipulation; }
           placeholder="Search a company, keyword, or NAICS code…"
           autocomplete="off" autocorrect="off" autocapitalize="none"
           enterkeyhint="search">
-        <button class="search-icon-btn" id="searchBtn" aria-label="Search">
-          <svg width="16" height="16" viewBox="0 0 640 640" fill="currentColor" aria-hidden="true"><use href="#icon-search"/></svg>
-        </button>
       </div>
 
       <!-- Territory dropdown -->
@@ -752,18 +765,18 @@ a, button, input, select { touch-action: manipulation; }
       </div>
     </div><!-- /marketCard -->
 
-    <!-- EXPIRING SOON CARD -->
-    <div class="app-card wide hidden" id="expiringCard">
-      <h2 class="card-title">Expiring in the Next 90 Days</h2>
-      <p class="card-desc">Highest-urgency recompete opportunities — ranked by value × days remaining. These are the contracts to pursue now.</p>
-      <div class="contract-list" id="expiringList"></div>
-    </div>
-
     <!-- RECENT AWARDS CARD -->
     <div class="app-card wide hidden" id="recentCard">
       <h2 class="card-title">Recent Awards</h2>
       <p class="card-desc">Contracts awarded in the past 90 days. Know who's winning, at which agencies, and at what price.</p>
       <div class="contract-list" id="recentList"></div>
+    </div>
+
+    <!-- EXPIRING SOON CARD -->
+    <div class="app-card wide hidden" id="expiringCard">
+      <h2 class="card-title">Expiring in the Next 90 Days</h2>
+      <p class="card-desc">Highest-urgency recompete opportunities — ranked by value × days remaining. These are the contracts to pursue now.</p>
+      <div class="contract-list" id="expiringList"></div>
     </div>
 
   </div><!-- /tools-grid -->
@@ -6262,7 +6275,6 @@ selectAgencySuggestion(name, inputId, boxId) {
         if (e.key === 'Escape') DOM.get('territoryDropdown')?.classList.remove('open');
       });
     }
-    if (btn) btn.addEventListener('click', () => App.runSearch(DOM.get('searchInput')?.value));
 
     // Wire chat input Enter key
     const chatInput = DOM.get('chatInput');
@@ -6294,6 +6306,14 @@ selectAgencySuggestion(name, inputId, boxId) {
     } catch(e) {}
 
     // Render recent searches
+
+    // Scroll-to-top button — appears after 400px scroll
+    const scrollBtn = DOM.get('scrollTopBtn');
+    if (scrollBtn) {
+      window.addEventListener('scroll', () => {
+        scrollBtn.classList.toggle('hidden', window.scrollY < 400);
+      }, { passive: true });
+    }
 
     // Re-render treemap on window resize (debounced)
     let resizeTimer;
