@@ -576,22 +576,6 @@ a, button, input, select { touch-action: manipulation; }
   white-space: nowrap;
 }
 .pipeline-export-btn:hover { background: var(--accent-dim); color: var(--btn-bg); border-color: var(--accent-dim); }
-.mic-btn {
-  width: 32px; height: 32px; flex-shrink: 0;
-  border: none; border-radius: var(--radius-xs);
-  background: transparent; color: var(--text-quaternary);
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  transition: var(--transition); padding: 0;
-}
-.mic-btn:hover { color: var(--accent-mid); background: var(--bg-hover); }
-.mic-btn.listening {
-  color: #E05555; background: rgba(224,85,85,0.10);
-  animation: micPulse 1s ease-in-out infinite;
-}
-@keyframes micPulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.5; }
-}
 
 .export-btn {
   font-size: var(--text-xs); font-weight: 600;
@@ -1095,9 +1079,6 @@ a, button, input, select { touch-action: manipulation; }
         placeholder="Company, keyword, or NAICS code…"
         autocomplete="off" autocorrect="off" autocapitalize="none"
         enterkeyhint="search">
-      <button class="mic-btn" id="searchMicBtn" onclick="App.toggleSpeech('searchInput','searchMicBtn',true)" aria-label="Voice search" title="Speak to search">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-      </button>
     </div>
     <div class="territory-dropdown" id="territoryDropdown">
       <button class="territory-opt active" data-key="" onclick="App.setTerritory(null)">
@@ -1306,9 +1287,6 @@ a, button, input, select { touch-action: manipulation; }
           placeholder="e.g. who are the key primes, what's expiring, where do I start"
           autocomplete="off" autocorrect="off"
           onkeypress="if(event.key==='Enter') App.runAiActionPlan()">
-        <button class="mic-btn" id="artiMicBtn" onclick="App.toggleSpeech('artiContextInput','artiMicBtn')" aria-label="Voice input" title="Speak your question">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-        </button>
         <button class="arti-hero-send" onclick="App.runAiActionPlan()" aria-label="Send">
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 15V3M3 9l6-6 6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
@@ -1343,9 +1321,6 @@ a, button, input, select { touch-action: manipulation; }
     <div class="hidden" id="chatInputWrap">
       <div class="chat-input-row">
         <input type="text" class="input-field" id="chatInput" placeholder="Ask a follow-up question…" autocomplete="off">
-        <button class="mic-btn" id="chatMicBtn" onclick="App.toggleSpeech('chatInput','chatMicBtn')" aria-label="Voice input" title="Speak your question">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-        </button>
         <button class="chat-send-btn" id="chatSendBtn">Send</button>
       </div>
       <div class="chat-counter hidden" id="chatCounter"></div>
@@ -1798,176 +1773,6 @@ buyingOffices: {},
     'united states marine corps': 'Marine Corps',
     'cia': 'Central Intelligence Agency', 'nsa': 'National Security Agency',
     'nga': 'National Geospatial-Intelligence Agency', 'nro': 'National Reconnaissance Office', 'dia': 'Defense Intelligence Agency'
-  },
-
-  // Speech-to-text brand name fixes — maps how STT hears it to how USASpending files it
-  // Add any brand your sellers commonly speak that STT splits or mishears
-  speechAliases: {
-    // ── Cybersecurity ────────────────────────────────────────
-    'sentinel one': 'SentinelOne',
-    'sentinal one': 'SentinelOne',
-    'sentinel 1': 'SentinelOne',
-    'crowd strike': 'CrowdStrike',
-    'crowdstrike falcon': 'CrowdStrike',
-    'palo alto networks': 'Palo Alto Networks',
-    'palo alto': 'Palo Alto Networks',
-    'dark trace': 'Darktrace',
-    'dark trays': 'Darktrace',
-    'cyber ark': 'CyberArk',
-    'cyber reason': 'Cybereason',
-    'rapid seven': 'Rapid7',
-    'rapid 7': 'Rapid7',
-    'tenable': 'Tenable',
-    'qualys': 'Qualys',
-    'vectra': 'Vectra',
-    'exabeam': 'Exabeam',
-    'log rhythm': 'LogRhythm',
-    'log rhythms': 'LogRhythm',
-    'recorded future': 'Recorded Future',
-    'tanium': 'Tanium',
-    'illumio': 'Illumio',
-    'zero scaler': 'Zscaler',
-    'z scaler': 'Zscaler',
-    'zed scaler': 'Zscaler',
-    'z scalar': 'Zscaler',
-    'okta': 'Okta',
-    'sailpoint': 'SailPoint',
-    'sail point': 'SailPoint',
-    'beyond trust': 'BeyondTrust',
-    'beyond truss': 'BeyondTrust',
-    'delinea': 'Delinea',
-    'thales': 'Thales',
-    'entrust': 'Entrust',
-    'forcepoint': 'Forcepoint',
-    'force point': 'Forcepoint',
-    'trellix': 'Trellix',
-    'trek licks': 'Trellix',
-    'carbon black': 'Carbon Black',
-    'axonius': 'Axonius',
-    'ax onius': 'Axonius',
-    'claroty': 'Claroty',
-    'clear oti': 'Claroty',
-    'nozomi': 'Nozomi Networks',
-    'nozomi networks': 'Nozomi Networks',
-    'armis': 'Armis',
-    // ── DevSecOps / AppSec ──────────────────────────────────
-    'sonatype': 'Sonatype',
-    'sona type': 'Sonatype',
-    'sonatype nexus': 'Sonatype',
-    'snyk': 'Snyk',
-    'snick': 'Snyk',
-    'check marx': 'Checkmarx',
-    'checkmarks': 'Checkmarx',
-    'vera code': 'Veracode',
-    'veer a code': 'Veracode',
-    'black duck': 'Black Duck',
-    'j frog': 'JFrog',
-    'jay frog': 'JFrog',
-    'jfrog': 'JFrog',
-    'harness': 'Harness',
-    'git hub actions': 'GitHub',
-    'git hub': 'GitHub',
-    'git lab': 'GitLab',
-    'gitlab': 'GitLab',
-    'aqua security': 'Aqua Security',
-    'aqua sec': 'Aqua Security',
-    'twistlock': 'Twistlock',
-    'anchore': 'Anchore',
-    'code dx': 'CodeDx',
-    // ── Cloud / Infra / Observability ───────────────────────
-    'data dog': 'Datadog',
-    'data dawg': 'Datadog',
-    'snow flake': 'Snowflake',
-    'dynatrace': 'Dynatrace',
-    'dyna trace': 'Dynatrace',
-    'new relic': 'New Relic',
-    'service now': 'ServiceNow',
-    'service now dot com': 'ServiceNow',
-    'sales force': 'Salesforce',
-    'hash i corp': 'HashiCorp',
-    'hash e corp': 'HashiCorp',
-    'terraform': 'Terraform',
-    'mongo db': 'MongoDB',
-    'elastic search': 'Elastic',
-    'elastic': 'Elastic',
-    'confluent': 'Confluent',
-    'red is': 'Redis',
-    'redis': 'Redis',
-    'splunk': 'Splunk',
-    'sum o logic': 'Sumo Logic',
-    'sumo logic': 'Sumo Logic',
-    'appd': 'AppDynamics',
-    'app dynamics': 'AppDynamics',
-    'v mware': 'VMware',
-    'vee mware': 'VMware',
-    'nutanix': 'Nutanix',
-    'new tanix': 'Nutanix',
-    'pure storage': 'Pure Storage',
-    'net app': 'NetApp',
-    'netapp': 'NetApp',
-    // ── Federal SIs / Primes ────────────────────────────────
-    'booz allen hamilton': 'Booz Allen Hamilton',
-    'booz allen': 'Booz Allen Hamilton',
-    'booze allen': 'Booz Allen Hamilton',
-    'leidos': 'Leidos',
-    'peraton': 'Peraton',
-    'peer aton': 'Peraton',
-    'j d it': 'GDIT',
-    'g d i t': 'GDIT',
-    'general dynamics it': 'General Dynamics Information Technology',
-    'general dynamics information technology': 'General Dynamics Information Technology',
-    'man tech': 'ManTech',
-    'mantek': 'ManTech',
-    'caci': 'CACI',
-    'kay see eye': 'CACI',
-    'l three technologies': 'L3Harris',
-    'l 3 harris': 'L3Harris',
-    'l three harris': 'L3Harris',
-    'science applications': 'SAIC',
-    'torch on': 'Telos',
-    'telos': 'Telos',
-    'in lexa': 'Inlexa',
-    'amentum': 'Amentum',
-    'a mentum': 'Amentum',
-    'chenega': 'Chenega',
-    'chin ega': 'Chenega',
-    'ceva': 'KEYW',
-    'key w': 'KEYW',
-    // ── Networking / Comms ──────────────────────────────────
-    'cisco systems': 'Cisco',
-    'juniper networks': 'Juniper Networks',
-    'juniper': 'Juniper Networks',
-    'aruba networks': 'Aruba Networks',
-    'aruba': 'Aruba Networks',
-    'f five': 'F5',
-    'f 5': 'F5',
-    'ribbon communications': 'Ribbon Communications',
-    'calix': 'Calix',
-    'extreme networks': 'Extreme Networks',
-    // ── Common mishears / expansions ────────────────────────
-    'amazon web services': 'Amazon',
-    'amazon web service': 'Amazon',
-    'microsoft azure': 'Microsoft',
-    'microsoft 365': 'Microsoft',
-    'google cloud platform': 'Google Cloud',
-    'google workspace': 'Google',
-    'red hat': 'Red Hat',
-    'red hat incorporated': 'Red Hat',
-    'ibm cloud': 'IBM',
-    'oracle cloud': 'Oracle',
-    'a w s': 'Amazon',
-  },
-
-  normalizeSpeech(transcript) {
-    if (!transcript) return transcript;
-    let t = transcript.toLowerCase().trim();
-    const sorted = Object.keys(this.speechAliases).sort((a, b) => b.length - a.length);
-    for (const phrase of sorted) {
-      if (t.includes(phrase)) {
-        t = t.replace(new RegExp(phrase, 'gi'), this.speechAliases[phrase]);
-      }
-    }
-    return t.charAt(0).toUpperCase() + t.slice(1);
   },
 
   // ── Contract vehicle detection ─────────────────────────────
@@ -4971,73 +4776,6 @@ selectAgencySuggestion(name, inputId, boxId) {
         ? '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>'
         : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
     }
-  },
-
-  // ── Speech to text ───────────────────────────────────────────
-  _speechRecognition: null,
-  _speechActive: false,
-
-  toggleSpeech(inputId, btnId, autoSearch = false) {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      this.toast('Speech recognition is not supported in this browser. Try Chrome or Safari.', 'warning');
-      return;
-    }
-
-    const input = DOM.get(inputId);
-    const btn   = DOM.get(btnId);
-
-    if (this._speechActive && this._speechRecognition) {
-      this._speechRecognition.stop();
-      return;
-    }
-
-    const sr = new SpeechRecognition();
-    sr.lang = 'en-US';
-    sr.continuous = false;
-    sr.interimResults = true;
-    sr.maxAlternatives = 1;
-    this._speechRecognition = sr;
-    this._speechActive = true;
-    if (btn) btn.classList.add('listening');
-
-    let finalTranscript = '';
-
-    sr.onresult = (e) => {
-      let interim = '';
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const t = e.results[i][0].transcript;
-        if (e.results[i].isFinal) finalTranscript += t;
-        else interim += t;
-      }
-      // Show raw interim while speaking, normalize only on final
-      if (input) input.value = finalTranscript
-        ? Utils.normalizeSpeech(finalTranscript)
-        : interim;
-    };
-
-    sr.onerror = (e) => {
-      if (e.error !== 'aborted') this.toast('Microphone error: ' + e.error, 'warning');
-      this._cleanup(btn);
-    };
-
-    sr.onend = () => {
-      this._cleanup(btn);
-      if (!finalTranscript.trim()) return;
-      if (autoSearch && inputId === 'searchInput') {
-        setTimeout(() => this.runSearch(finalTranscript.trim()), 200);
-      } else if (inputId === 'artiContextInput') {
-        setTimeout(() => this.runAiActionPlan(), 300);
-      }
-    };
-
-    sr.start();
-  },
-
-  _cleanup(btn) {
-    this._speechActive = false;
-    this._speechRecognition = null;
-    if (btn) btn.classList.remove('listening');
   },
 
   triggerArtiFromBridge() {
