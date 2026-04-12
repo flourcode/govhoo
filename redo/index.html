@@ -5970,9 +5970,9 @@ const App = {
     
     
     const tooltip = DOM.get('bubbleTooltip');
-    if (tooltip) tooltip.classList.remove('visible'); // Dismiss stale tooltip from prior render
-    // Use d3.select().remove() — not raw DOM removal — so D3's internal event
-    // listener registry (__on) is properly torn down before the node detaches.
+    if (tooltip) tooltip.classList.remove('visible');
+    // Clear the full container — removes both old SVG and any empty-state div
+    container.innerHTML = '<div class="bubble-tooltip" id="bubbleTooltip"></div>';
     d3.select(container).selectAll('svg').remove();
     
     const rect = container.getBoundingClientRect();
