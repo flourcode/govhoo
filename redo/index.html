@@ -6606,7 +6606,7 @@ selectAgencySuggestion(name, inputId, boxId) {
       // Jobs: keyword search scoped to company name — no company ID needed
       const liJobs   = `https://www.linkedin.com/jobs/search/?keywords=${plain}&location=United+States`;
       // News: Google News with quoted name for precision
-      const news     = `https://news.google.com/search?q=${quoted}`;
+      const news     = `https://www.linkedin.com/search/results/content/?keywords=${quoted}`;
 
       return `<div class="prime-row">
         <span class="prime-rank">${i + 1}</span>
