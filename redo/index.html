@@ -164,6 +164,70 @@ a, button, input, select { touch-action: manipulation; }
 
 /* ── SEARCH PILLS + RECENT CHIPS removed ── */
 
+/* ── ARTI FLOATING BUTTON ── */
+.arti-fab {
+  position: fixed; bottom: calc(28px + var(--safe-bottom)); right: 20px;
+  display: none; align-items: center; gap: 10px;
+  background: var(--btn-bg); color: var(--btn-text);
+  border: none; border-radius: 9999px;
+  padding: 0 20px 0 6px; height: 52px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18), 0 1px 4px rgba(0,0,0,0.12);
+  cursor: pointer; font-family: var(--font);
+  font-size: var(--text-sm); font-weight: 700;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  z-index: 400;
+}
+.arti-fab:not(.hidden) { display: flex; }
+.arti-fab:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.22); }
+.arti-fab:active { transform: scale(0.96); }
+.arti-fab-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.arti-fab-label { letter-spacing: -0.01em; }
+.arti-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+  z-index: 500; backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+  opacity: 0; transition: opacity 0.25s ease; pointer-events: none;
+}
+.arti-backdrop.open { opacity: 1; pointer-events: auto; }
+.arti-sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 501;
+  background: var(--bg-app); border-radius: 20px 20px 0 0;
+  box-shadow: 0 -4px 32px rgba(0,0,0,0.14);
+  max-height: 88dvh; display: flex; flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 0.32s cubic-bezier(0.4,0,0.2,1);
+  padding-bottom: var(--safe-bottom);
+}
+.arti-sheet.open { transform: translateY(0); }
+@media (min-width: 640px) {
+  .arti-sheet {
+    left: 50%; right: auto; bottom: auto; top: 50%;
+    transform: translate(-50%, -40%); opacity: 0;
+    width: min(600px, 92vw); border-radius: 16px; max-height: 80dvh;
+    transition: transform 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.28s ease;
+  }
+  .arti-sheet.open { transform: translate(-50%, -50%); opacity: 1; }
+}
+.arti-sheet-header {
+  display: flex; align-items: center; justify-content: flex-end;
+  padding: 12px 16px 4px; flex-shrink: 0; position: relative;
+}
+.arti-sheet-drag {
+  position: absolute; left: 50%; top: 10px; transform: translateX(-50%);
+  width: 36px; height: 4px; background: var(--border); border-radius: 9999px;
+}
+@media (min-width: 640px) { .arti-sheet-drag { display: none; } }
+.arti-sheet-close {
+  width: 28px; height: 28px; border-radius: 50%; border: none;
+  background: var(--bg); color: var(--text-tertiary); font-size: 14px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: var(--transition); font-family: var(--font);
+}
+.arti-sheet-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+.arti-sheet-body {
+  flex: 1; overflow-y: auto; padding: 4px 20px 20px;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* ── ARTI AVATAR ── */
 .arti-avatar-wrap {
   flex-shrink: 0;
@@ -190,13 +254,8 @@ a, button, input, select { touch-action: manipulation; }
   background: var(--bg); border: 1px solid var(--border);
   border-radius: var(--radius-sm); overflow: hidden;
 }
-#artiTrigger { padding: 16px; }
-#artiProgress { margin: 0; }
-#aiContentContainer { padding: 0 16px 4px; }
-#artiActions { padding: 0 16px 8px; }
-#chatHistory { padding: 0 16px; }
-#chatInputWrap { padding: 12px 16px !important; border-top: 1px solid var(--border-inner); margin-top: 0 !important; }
-#artiDisclaimer { padding: 0 16px 14px !important; }
+/* Sheet body provides padding — individual section overrides removed */
+#chatInputWrap { border-top: 1px solid var(--border-inner); padding-top: 12px; margin-top: 8px; }
 .arti-inline-header {
   display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px;
 }
@@ -250,7 +309,7 @@ a, button, input, select { touch-action: manipulation; }
 /* ── SCROLL TO TOP ── */
 .scroll-top-btn {
   position: fixed;
-  bottom: calc(24px + var(--safe-bottom));
+  bottom: calc(88px + var(--safe-bottom));
   right: 20px;
   width: 40px; height: 40px;
   background: var(--bg-app); border: 1px solid var(--border);
@@ -802,69 +861,7 @@ a, button, input, select { touch-action: manipulation; }
         <button class="bubble-toggle-btn" data-mode="vendors" id="bubbleToggleVendors">Prime</button>
       </div>
 
-      <!-- Arti — one persistent surface: trigger → response → chat -->
-      <div class="arti-inline hidden" id="artiBridge">
-
-        <!-- Pre-trigger: warm editorial greeting -->
-        <div id="artiTrigger">
-          <div class="arti-greeting">
-            <div class="arti-greeting-avatar">
-              <img src="/images/arti.png" alt="Arti">
-            </div>
-            <div class="arti-greeting-body">
-              <div class="arti-greeting-text">
-                Hi, I'm <span class="arti-tag">Arti 👋</span><br>
-                your <span class="arti-tag">Artificial Sales Guy</span>
-              </div>
-              <p class="arti-greeting-sub" id="artiBridgeText">I've read this market data and I'm ready to build your <strong>30-day action plan</strong> — tell me who you're selling for.</p>
-            </div>
-          </div>
-          <input type="text" id="artiContextInput" class="input-field arti-ctx-input"
-            placeholder="e.g. I sell cloud security to Army and Air Force"
-            autocomplete="off" autocorrect="off">
-          <button class="arti-bridge-btn" id="triggerArtiBtn" onclick="App.runAiActionPlan()">
-            Build my 30-day action plan
-          </button>
-        </div>
-
-        <!-- Post-trigger: stays inside the same surface -->
-        <div class="arti-progress hidden" id="artiProgress">
-          <div class="arti-progress-fill" id="artiProgressFill"></div>
-        </div>
-        <div id="aiContentContainer"></div>
-
-        <!-- Follow-up chips -->
-        <div class="hidden" id="artiActions">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:12px;border-top:1px solid var(--border-inner);padding-top:12px;margin-top:16px;">
-            <span style="font-size:var(--text-xs);font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.05em;">Ask a follow-up</span>
-            <button class="copy-btn" id="copyArtiBtn" onclick="App.copyArtiBrief()" style="margin-left:auto;">Copy brief</button>
-          </div>
-          <div class="prompt-chips" id="artiPromptChips">
-            <button class="prompt-chip" onclick="App.sendArtiChat('Give me 5 Salesforce-ready pipeline opportunities based on this data. Include the contract name, agency, incumbent, expiry, and why we can win.')">Top 5 pipeline opps</button>
-            <button class="prompt-chip" onclick="App.sendArtiChat('Write a cold outreach email to a program manager at the top agency in this market. Make it specific to their recent spending — not a generic pitch.')">Draft outreach email</button>
-            <button class="prompt-chip" onclick="App.sendArtiChat('Generate a 30-60-90 day territory plan for a new AE. Use actual agencies, incumbents, and dollar figures from this data.')">30-60-90 plan</button>
-            <button class="prompt-chip" onclick="App.sendArtiChat('Recommend 2-3 specific teaming partners that would make us more competitive here. Explain why each one.')">Teaming partners</button>
-            <button class="prompt-chip" onclick="App.sendArtiChat('I am prepping for a job interview at a company selling into this market. Give me 3 highly specific talking points using exact numbers and contract names from this data.')">Interview prep</button>
-          </div>
-        </div>
-
-        <!-- Chat history -->
-        <div class="chat-history hidden" id="chatHistory"></div>
-
-        <!-- Chat input -->
-        <div class="hidden" id="chatInputWrap">
-          <div class="chat-input-row">
-            <input type="text" class="input-field" id="chatInput" placeholder="Ask a follow-up question…" autocomplete="off">
-            <button class="chat-send-btn" id="chatSendBtn">Send</button>
-          </div>
-          <div class="chat-counter hidden" id="chatCounter"></div>
-        </div>
-
-        <div class="hidden" id="artiDisclaimer" style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:12px;">Always use your own judgment before making strategic decisions.</div>
-
-      </div><!-- /artiBridge -->
-
-      <div style="font-size:var(--text-xs);color:var(--text-quaternary);margin-top:12px;">
+      <div style="font-size:var(--text-xs);color:var(--text-quaternary);margin-top:14px;">
         Top 100 contracts by obligated value · active funding past 12 months · USASpending.gov
       </div>
     </div><!-- /marketCard -->
@@ -895,6 +892,81 @@ a, button, input, select { touch-action: manipulation; }
     </div>
 
   </div><!-- /tools-grid -->
+
+<!-- ARTI FLOATING BUTTON — shown after search loads -->
+<button class="arti-fab hidden" id="artiFab" onclick="App.openArtiSheet()" aria-label="Ask Arti">
+  <img src="/images/arti.png" alt="Arti" class="arti-fab-avatar">
+  <span class="arti-fab-label" id="artiFabLabel">Ask Arti</span>
+</button>
+
+<!-- ARTI BOTTOM SHEET MODAL -->
+<div class="arti-backdrop hidden" id="artiBackdrop" onclick="App.closeArtiSheet()"></div>
+<div class="arti-sheet hidden" id="artiSheet">
+  <div class="arti-sheet-header">
+    <div class="arti-sheet-drag"></div>
+    <button class="arti-sheet-close" onclick="App.closeArtiSheet()" aria-label="Close">✕</button>
+  </div>
+  <div class="arti-sheet-body" id="artiSheetBody">
+
+    <!-- Pre-trigger -->
+    <div id="artiTrigger">
+      <div class="arti-greeting">
+        <div class="arti-greeting-avatar">
+          <img src="/images/arti.png" alt="Arti">
+        </div>
+        <div class="arti-greeting-body">
+          <div class="arti-greeting-text">
+            Hi, I'm <span class="arti-tag">Arti 👋</span><br>
+            your <span class="arti-tag">Artificial Sales Guy</span>
+          </div>
+          <p class="arti-greeting-sub" id="artiBridgeText">I've read this market data and I'm ready to build your <strong>30-day action plan</strong> — tell me who you're selling for.</p>
+        </div>
+      </div>
+      <input type="text" id="artiContextInput" class="input-field arti-ctx-input"
+        placeholder="e.g. I sell cloud security to Army and Air Force"
+        autocomplete="off" autocorrect="off">
+      <button class="arti-bridge-btn" id="triggerArtiBtn" onclick="App.runAiActionPlan()">
+        Build my 30-day action plan
+      </button>
+    </div>
+
+    <!-- Post-trigger output -->
+    <div class="arti-progress hidden" id="artiProgress">
+      <div class="arti-progress-fill" id="artiProgressFill"></div>
+    </div>
+    <div id="aiContentContainer"></div>
+
+    <!-- Follow-up chips -->
+    <div class="hidden" id="artiActions">
+      <div style="display:flex;align-items:center;gap:8px;padding:12px 0;border-top:1px solid var(--border-inner);margin-top:16px;">
+        <span style="font-size:var(--text-xs);font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.05em;">Ask a follow-up</span>
+        <button class="copy-btn" id="copyArtiBtn" onclick="App.copyArtiBrief()" style="margin-left:auto;">Copy brief</button>
+      </div>
+      <div class="prompt-chips" id="artiPromptChips">
+        <button class="prompt-chip" onclick="App.sendArtiChat('Give me 5 Salesforce-ready pipeline opportunities based on this data. Include the contract name, agency, incumbent, expiry, and why we can win.')">Top 5 pipeline opps</button>
+        <button class="prompt-chip" onclick="App.sendArtiChat('Write a cold outreach email to a program manager at the top agency in this market. Make it specific to their recent spending — not a generic pitch.')">Draft outreach email</button>
+        <button class="prompt-chip" onclick="App.sendArtiChat('Generate a 30-60-90 day territory plan for a new AE. Use actual agencies, incumbents, and dollar figures from this data.')">30-60-90 plan</button>
+        <button class="prompt-chip" onclick="App.sendArtiChat('Recommend 2-3 specific teaming partners that would make us more competitive here. Explain why each one.')">Teaming partners</button>
+        <button class="prompt-chip" onclick="App.sendArtiChat('I am prepping for a job interview at a company selling into this market. Give me 3 highly specific talking points using exact numbers and contract names from this data.')">Interview prep</button>
+      </div>
+    </div>
+
+    <!-- Chat history -->
+    <div class="chat-history hidden" id="chatHistory"></div>
+
+    <!-- Chat input -->
+    <div class="hidden" id="chatInputWrap">
+      <div class="chat-input-row">
+        <input type="text" class="input-field" id="chatInput" placeholder="Ask a follow-up question…" autocomplete="off">
+        <button class="chat-send-btn" id="chatSendBtn">Send</button>
+      </div>
+      <div class="chat-counter hidden" id="chatCounter"></div>
+    </div>
+
+    <div class="hidden" id="artiDisclaimer" style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:12px;">Always use your own judgment before making strategic decisions.</div>
+
+  </div><!-- /arti-sheet-body -->
+</div><!-- /arti-sheet -->
 
 <footer class="site-footer">
   <a href="https://calendly.com/markflournoy/govhoo" target="_blank" class="footer-back">Book a session →</a>
@@ -5381,7 +5453,8 @@ const App = {
 
     // Hide results, show loader
     DOM.hide('resultsGrid');
-    DOM.hide('artiBridge');
+    DOM.hide('artiFab'); DOM.get('artiBridge') && DOM.hide('artiBridge');
+    this.closeArtiSheet();
     DOM.hide('expiringCard');
     DOM.hide('recentCard');
     DOM.hide('primesCard');
@@ -6624,14 +6697,35 @@ selectAgencySuggestion(name, inputId, boxId) {
     }).join('');
   },
 
+  openArtiSheet() {
+    DOM.get('artiBackdrop')?.classList.remove('hidden');
+    requestAnimationFrame(() => {
+      DOM.get('artiBackdrop')?.classList.add('open');
+      DOM.get('artiSheet')?.classList.remove('hidden');
+      requestAnimationFrame(() => DOM.get('artiSheet')?.classList.add('open'));
+    });
+    // Focus context input if trigger is showing
+    setTimeout(() => DOM.get('artiContextInput')?.focus(), 350);
+  },
+
+  closeArtiSheet() {
+    const sheet = DOM.get('artiSheet');
+    const backdrop = DOM.get('artiBackdrop');
+    sheet?.classList.remove('open');
+    backdrop?.classList.remove('open');
+    setTimeout(() => {
+      sheet?.classList.add('hidden');
+      backdrop?.classList.add('hidden');
+    }, 320);
+  },
+
   triggerArtiFromBridge() {
     App.runAiActionPlan();
   },
 
   renderBridge() {
-    const bridge = DOM.get('artiBridge');
     const bridgeText = DOM.get('artiBridgeText');
-    if (!bridge || !bridgeText || !this.searchData.loaded) return;
+    if (!bridgeText || !this.searchData.loaded) return;
 
     const data = this.searchData.active;
     const now = new Date();
@@ -6699,7 +6793,16 @@ selectAgencySuggestion(name, inputId, boxId) {
     }
 
     bridgeText.innerHTML = `${insight} Tell me who you're selling for and I'll build your <strong>30-day action plan</strong>.`;
-    DOM.show('artiBridge');
+
+    // FAB label teaser — short version of the insight
+    const fabLabel = DOM.get('artiFabLabel');
+    if (fabLabel) {
+      if (hotDays !== null && hotDays <= 30) fabLabel.textContent = `${hotDays}d recompete window`;
+      else if (topVendorPct >= 40) fabLabel.textContent = `${topVendor.split(' ')[0]} owns ${topVendorPct}%`;
+      else if (hotDays !== null) fabLabel.textContent = `${hotDays}d to recompete`;
+      else fabLabel.textContent = 'Ask Arti';
+    }
+    DOM.show('artiFab');
   },
 
   resetToSearch() {
@@ -6752,6 +6855,22 @@ selectAgencySuggestion(name, inputId, boxId) {
     } catch(e) {}
 
     // Render recent searches
+
+    // Close Arti sheet on Escape
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') App.closeArtiSheet();
+    });
+
+    // Swipe down to dismiss sheet on mobile
+    const sheet = DOM.get('artiSheet');
+    if (sheet) {
+      let swipeStartY = 0;
+      sheet.addEventListener('touchstart', e => { swipeStartY = e.touches[0].clientY; }, { passive: true });
+      sheet.addEventListener('touchend', e => {
+        const dy = e.changedTouches[0].clientY - swipeStartY;
+        if (dy > 60) App.closeArtiSheet(); // 60px swipe down = dismiss
+      }, { passive: true });
+    }
 
     // Init swipe gesture for chart panel
     this._initSwipe();
