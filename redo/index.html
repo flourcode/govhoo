@@ -80,9 +80,16 @@ a, button, input, select { touch-action: manipulation; }
   padding: max(10px, var(--safe-top)) 16px 10px;
 }
 .header-top {
-  display: flex; align-items: center; gap: 8px;
-  max-width: min(96vw, 1920px); margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; margin-bottom: 8px;
+  max-width: min(96vw, 1920px); margin-left: auto; margin-right: auto;
 }
+.header-search-row {
+  max-width: min(96vw, 1920px); margin: 0 auto;
+  position: relative;
+}
+.header-search-row .search-bar-inner { height: 38px; }
+.header-search-row .territory-dropdown { top: calc(100% + 6px); left: 0; min-width: 260px; }
 .logo-link {
   font-size: 0.95rem; font-weight: 800; letter-spacing: -0.01em;
   color: var(--text-primary); text-decoration: none;
@@ -94,17 +101,6 @@ a, button, input, select { touch-action: manipulation; }
 }
 .logo-link:hover { background: var(--bg-hover); }
 .header-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-/* Header integrated search */
-.header-search-wrap {
-  flex: 1; min-width: 0; position: relative;
-  max-width: 520px;
-}
-.header-search-wrap .search-bar-inner {
-  height: 38px;
-}
-.header-search-wrap .territory-dropdown {
-  top: calc(100% + 6px); left: 0; min-width: 260px;
-}
 .hdr-btn {
   background: var(--bg-app); border: 1px solid var(--border);
   border-radius: var(--radius-sm); padding: 0 14px; height: 34px;
@@ -787,58 +783,55 @@ a, button, input, select { touch-action: manipulation; }
 
 <!-- HEADER -->
 <header class="site-header">
+  <!-- Row 1: logo + actions -->
   <div class="header-top">
     <a class="logo-link" href="/" onclick="App.resetToSearch(); return false;">Fedhoo.</a>
-
-    <!-- Search bar lives in header -->
-    <div class="header-search-wrap">
-      <div class="search-bar-inner" id="searchBarInner">
-        <button class="search-territory-btn" id="territoryBtn" onclick="App.toggleTerritoryMenu()">
-          <span class="territory-dot-sm" id="territoryDot"></span>
-          <span id="territoryLabel">All</span>
-          <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M5 6L0 0h10z" fill="currentColor"/></svg>
-        </button>
-        <input type="search" id="searchInput" class="search-input"
-          placeholder="Company, keyword, or NAICS…"
-          autocomplete="off" autocorrect="off" autocapitalize="none"
-          enterkeyhint="search">
-      </div>
-
-      <!-- Territory dropdown -->
-      <div class="territory-dropdown" id="territoryDropdown">
-        <button class="territory-opt active" data-key="" onclick="App.setTerritory(null)">
-          <span class="territory-opt-dot" style="background:var(--border)"></span>
-          <span><div class="territory-opt-name">All Agencies</div><div class="territory-opt-desc">No filter — full results</div></span>
-          <span class="territory-opt-check">✓</span>
-        </button>
-        <div class="territory-divider"></div>
-        <button class="territory-opt" data-key="dod" onclick="App.setTerritory('dod')">
-          <span class="territory-opt-dot" style="background:#7CA8C4"></span>
-          <span><div class="territory-opt-name" style="color:#7CA8C4">DoD</div><div class="territory-opt-desc">Army, Navy, Air Force, DISA, DARPA…</div></span>
-          <span class="territory-opt-check">✓</span>
-        </button>
-        <button class="territory-opt" data-key="fedciv" onclick="App.setTerritory('fedciv')">
-          <span class="territory-opt-dot" style="background:#E8934A"></span>
-          <span><div class="territory-opt-name" style="color:#E8934A">FedCiv</div><div class="territory-opt-desc">GSA, DHS, DOJ, State, Commerce…</div></span>
-          <span class="territory-opt-check">✓</span>
-        </button>
-        <button class="territory-opt" data-key="fedhealth" onclick="App.setTerritory('fedhealth')">
-          <span class="territory-opt-dot" style="background:#D4A0B0"></span>
-          <span><div class="territory-opt-name" style="color:#D4A0B0">FedHealth</div><div class="territory-opt-desc">VA, HHS, CMS, CDC, FDA, NIH…</div></span>
-          <span class="territory-opt-check">✓</span>
-        </button>
-        <button class="territory-opt" data-key="fedfin" onclick="App.setTerritory('fedfin')">
-          <span class="territory-opt-dot" style="background:#5DBFB0"></span>
-          <span><div class="territory-opt-name" style="color:#5DBFB0">FedFin</div><div class="territory-opt-desc">Treasury, IRS, SEC, FDIC, Fed…</div></span>
-          <span class="territory-opt-check">✓</span>
-        </button>
-      </div>
-    </div>
-
     <div class="header-actions">
       <a href="/tools/" class="hdr-btn">Tools</a>
       <button class="hdr-btn" id="shareBtn" onclick="App.shareSearch()" title="Share">
         <svg width="14" height="14" viewBox="0 0 640 640" fill="currentColor" aria-hidden="true"><use href="#icon-slack"/></svg>
+      </button>
+    </div>
+  </div>
+  <!-- Row 2: full-width search -->
+  <div class="header-search-row">
+    <div class="search-bar-inner" id="searchBarInner">
+      <button class="search-territory-btn" id="territoryBtn" onclick="App.toggleTerritoryMenu()">
+        <span class="territory-dot-sm" id="territoryDot"></span>
+        <span id="territoryLabel">All</span>
+        <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M5 6L0 0h10z" fill="currentColor"/></svg>
+      </button>
+      <input type="search" id="searchInput" class="search-input"
+        placeholder="Company, keyword, or NAICS code…"
+        autocomplete="off" autocorrect="off" autocapitalize="none"
+        enterkeyhint="search">
+    </div>
+    <div class="territory-dropdown" id="territoryDropdown">
+      <button class="territory-opt active" data-key="" onclick="App.setTerritory(null)">
+        <span class="territory-opt-dot" style="background:var(--border)"></span>
+        <span><div class="territory-opt-name">All Agencies</div><div class="territory-opt-desc">No filter — full results</div></span>
+        <span class="territory-opt-check">✓</span>
+      </button>
+      <div class="territory-divider"></div>
+      <button class="territory-opt" data-key="dod" onclick="App.setTerritory('dod')">
+        <span class="territory-opt-dot" style="background:#7CA8C4"></span>
+        <span><div class="territory-opt-name" style="color:#7CA8C4">DoD</div><div class="territory-opt-desc">Army, Navy, Air Force, DISA, DARPA…</div></span>
+        <span class="territory-opt-check">✓</span>
+      </button>
+      <button class="territory-opt" data-key="fedciv" onclick="App.setTerritory('fedciv')">
+        <span class="territory-opt-dot" style="background:#E8934A"></span>
+        <span><div class="territory-opt-name" style="color:#E8934A">FedCiv</div><div class="territory-opt-desc">GSA, DHS, DOJ, State, Commerce…</div></span>
+        <span class="territory-opt-check">✓</span>
+      </button>
+      <button class="territory-opt" data-key="fedhealth" onclick="App.setTerritory('fedhealth')">
+        <span class="territory-opt-dot" style="background:#D4A0B0"></span>
+        <span><div class="territory-opt-name" style="color:#D4A0B0">FedHealth</div><div class="territory-opt-desc">VA, HHS, CMS, CDC, FDA, NIH…</div></span>
+        <span class="territory-opt-check">✓</span>
+      </button>
+      <button class="territory-opt" data-key="fedfin" onclick="App.setTerritory('fedfin')">
+        <span class="territory-opt-dot" style="background:#5DBFB0"></span>
+        <span><div class="territory-opt-name" style="color:#5DBFB0">FedFin</div><div class="territory-opt-desc">Treasury, IRS, SEC, FDIC, Fed…</div></span>
+        <span class="territory-opt-check">✓</span>
       </button>
     </div>
   </div>
