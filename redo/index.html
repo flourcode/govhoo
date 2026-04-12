@@ -220,7 +220,44 @@ a, button, input, select { touch-action: manipulation; }
 .arti-bridge-btn:hover { background: var(--btn-hover); }
 .arti-bridge-btn:active { transform: scale(0.97); }
 
-/* ── SEARCH HERO TITLE — two lines ── */
+/* ── ARTI GREETING (inline-tag editorial style) ── */
+.arti-greeting {
+  display: flex; gap: 18px; align-items: flex-start;
+  margin-bottom: 20px;
+}
+.arti-greeting-avatar {
+  flex-shrink: 0; margin-top: 4px;
+}
+.arti-greeting-avatar img {
+  width: 72px; height: 72px; border-radius: 50%; object-fit: cover; display: block;
+}
+.arti-greeting-body {
+  flex: 1; min-width: 0;
+}
+.arti-greeting-text {
+  font-size: var(--text-xl); font-weight: 800;
+  color: var(--text-primary); letter-spacing: -0.025em;
+  line-height: 1.3; margin-bottom: 12px;
+}
+/* The inline pill-border tag — matches the reference screenshot exactly */
+.arti-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  border: 1.5px solid var(--text-primary); border-radius: 9999px;
+  padding: 1px 10px 2px; font-size: inherit; font-weight: inherit;
+  letter-spacing: inherit; line-height: inherit;
+  vertical-align: baseline; white-space: nowrap;
+}
+.arti-greeting-sub {
+  font-size: var(--text-sm); color: var(--text-tertiary);
+  line-height: 1.5; margin-bottom: 0;
+}
+/* ── MARKET HERO NUMBER ── */
+.market-hero-number {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 900; letter-spacing: -0.04em;
+  color: var(--text-primary); line-height: 1;
+  margin: 6px 0 4px; font-variant-numeric: tabular-nums;
+}
 .search-hero-title { line-height: 1.05; }
 .search-hero { margin-bottom: 32px; }
 .search-hero-title { font-size: var(--text-hero); font-weight: 800; color: var(--text-primary); letter-spacing: -0.03em; line-height: 1; margin-bottom: 6px; }
@@ -625,6 +662,7 @@ a, button, input, select { touch-action: manipulation; }
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:4px;">
         <div>
           <h2 class="card-title" id="marketCardTitle">Market Signals</h2>
+          <div class="market-hero-number" id="marketHeroNumber"></div>
           <p class="card-desc" style="margin-bottom:0;" id="marketCardDesc">Where the money is concentrated. Click any segment to drill in.</p>
         </div>
         <button class="btn-secondary hidden" id="resetDrillBtn" onclick="App.resetDrill()">↑ Back</button>
@@ -650,19 +688,22 @@ a, button, input, select { touch-action: manipulation; }
       <!-- Arti — one persistent surface: trigger → response → chat -->
       <div class="arti-inline hidden" id="artiBridge">
 
-        <!-- Pre-trigger: avatar + context + button -->
+        <!-- Pre-trigger: warm editorial greeting -->
         <div id="artiTrigger">
-          <div class="arti-inline-header">
-            <div class="arti-avatar-wrap">
-              <img src="/images/arti.png" alt="Arti" class="arti-avatar-lg">
+          <div class="arti-greeting">
+            <div class="arti-greeting-avatar">
+              <img src="/images/arti.png" alt="Arti">
             </div>
-            <div class="arti-intro">
-              <div class="arti-intro-name">Arti <span class="arti-intro-role">· Your federal BD strategist</span></div>
-              <div class="arti-bridge-text" id="artiBridgeText"></div>
+            <div class="arti-greeting-body">
+              <div class="arti-greeting-text">
+                Hi, I'm <span class="arti-tag">Arti 👋</span><br>
+                your <span class="arti-tag">Artificial Sales Guy</span>
+              </div>
+              <p class="arti-greeting-sub" id="artiBridgeText">I've read this market data and I'm ready to build your <strong>30-day action plan</strong> — tell me who you're selling for.</p>
             </div>
           </div>
           <input type="text" id="artiContextInput" class="input-field arti-ctx-input"
-            placeholder="Who are you selling for? e.g. I sell cloud security to Army and Air Force"
+            placeholder="e.g. I sell cloud security to Army and Air Force"
             autocomplete="off" autocorrect="off">
           <button class="arti-bridge-btn" id="triggerArtiBtn" onclick="App.runAiActionPlan()">
             Build my 30-day action plan
@@ -5425,6 +5466,23 @@ const App = {
     let entities = Object.values(entityMap).filter(e => e.spend > 0).sort((a, b) => b.spend - a.spend).slice(0, 50);
     if (entities.length === 0) { DOM.hide('marketCard'); return; }
 
+    // Update hero number — changes on drill-down
+    const heroEl = DOM.get('marketHeroNumber');
+    if (heroEl) {
+      Utils.countUp(heroEl, totalSpend, Utils.money);
+    }
+    // Update desc to reflect drill level
+    const descEl = DOM.get('marketCardDesc');
+    if (descEl) {
+      const drill = this.drillState || {};
+      if (drill.level > 0 && drill.path.length > 0) {
+        const scopeName = Utils.titleIfCaps(drill.path[drill.path.length - 1].name);
+        descEl.textContent = `Spend within ${scopeName}. Click a segment to go deeper.`;
+      } else {
+        descEl.textContent = 'Where the money is concentrated. Click any segment to drill in.';
+      }
+    }
+
     entities.forEach(e => {
       e.agencyCount = e.agencies ? e.agencies.size : 0;
       e.subAgencyCount = e.subAgencies ? e.subAgencies.size : 0;
@@ -6181,7 +6239,7 @@ selectAgencySuggestion(name, inputId, boxId) {
       return top ? Utils.titleIfCaps(Utils.cleanAgency(top[0])) : '';
     })();
 
-    bridgeText.innerHTML = `<strong>${Utils.money(total)}</strong> across <strong>${agencyCount} agencies</strong>${topAgency ? ` — top buyer is <strong>${Html.escapeHtml(topAgency)}</strong>` : ''}. Arti has read this data and is ready.`;
+    bridgeText.innerHTML = `I've read <strong>${Utils.money(total)}</strong> across <strong>${agencyCount} agencies</strong>${topAgency ? ` — top buyer is <strong>${Html.escapeHtml(topAgency)}</strong>` : ''}. Tell me who you're selling for and I'll build your <strong>30-day action plan</strong>.`;
     DOM.show('artiBridge');
   },
 
