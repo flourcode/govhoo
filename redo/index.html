@@ -5734,9 +5734,9 @@ const App = {
     const container = DOM.get('bubbleChartContainer');
     if (container) container.innerHTML = `
       <div class="empty-state">
-        <div class="empty-shrug">🤷</div>
-        <h3 class="empty-title">Nothing for "<strong>${Html.escapeHtml(query)}</strong>"${territoryNote}</h3>
-        <p class="empty-desc">This is a strict government database — brand names, abbreviations, and nicknames often don't match how contracts are filed. A few things to try:</p>
+        <img src="/images/arti.png" alt="Arti" style="width:100px;height:100px;border-radius:50%;object-fit:cover;margin:0 auto 16px;display:block;">
+        <h3 class="empty-title">Well, this is awkward.</h3>
+        <p class="empty-desc">Nothing came back for "<strong>${Html.escapeHtml(query)}</strong>"${territoryNote}. This is a strict government database — brand names, abbreviations, and nicknames often don't match how contracts are filed. A few things to try:</p>
         <ul class="empty-tips">
           <li><strong>Use the legal entity name</strong> — "Primer Federal" not "Primer.ai"</li>
           <li><strong>Search what they sell</strong> — try a keyword like <code>Zero Trust</code> or <code>Cloud Migration</code> and find them in the treemap</li>
