@@ -62,9 +62,8 @@
   --text-hero: clamp(2rem, 4.5vw, 2.75rem);
 }
 
-/* ── DARK MODE — auto via system preference ── */
-@media (prefers-color-scheme: dark) {
-  :root {
+/* ── DARK MODE — system preference OR manual toggle ── */
+@media (prefers-color-scheme: dark) { :root:not(.light) {
     --bg:        #0F0E13;
     --bg-app:    #1A1820;
     --bg-hover:  rgba(180,175,220,0.07);
@@ -89,10 +88,39 @@
     --shadow:    0 1px 3px rgba(0,0,0,0.3);
     --shadow-sm: 0 1px 2px rgba(0,0,0,0.25);
   }
-  .site-header { background: rgba(15,14,19,0.96) !important; }
-  .arti-sheet  { background: #0F0E13 !important; }
-  .arti-fab    { box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+  .site-header:not(.light *) { background: rgba(15,14,19,0.96) !important; }
+  .arti-sheet:not(.light *)  { background: #0F0E13 !important; }
 }
+
+/* Manual .dark class — overrides system preference */
+:root.dark {
+    --bg:        #0F0E13;
+    --bg-app:    #1A1820;
+    --bg-hover:  rgba(180,175,220,0.07);
+    --bg-active: rgba(180,175,220,0.13);
+    --text-primary:    #E8E6F0;
+    --text-secondary:  #B8B5C8;
+    --text-tertiary:   #9B98C8;
+    --text-quaternary: #5A5870;
+    --border:       #2E2B3A;
+    --border-inner: #252233;
+    --btn-bg:    #7572B7;
+    --btn-text:  #FFFFFF;
+    --btn-hover: #8885C8;
+    --chip-bg:   #252233;
+    --chip-hover:#302D42;
+    --go-bg:    rgba(52,199,89,0.12);   --go-text:   #4ADA7A;
+    --warn-bg:  rgba(200,160,0,0.12);   --warn-text: #E0B840;
+    --crit-bg:  rgba(200,50,30,0.12);   --crit-text: #F07060;
+    --accent:     #9B98C8;
+    --accent-mid: #7572B7;
+    --accent-dim: #252233;
+    --shadow:    0 1px 3px rgba(0,0,0,0.3);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.25);
+}
+.dark .site-header { background: rgba(15,14,19,0.96) !important; }
+.dark .arti-sheet  { background: #0F0E13 !important; }
+.dark .arti-fab    { box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
 
 /* ── RESET (minitools exact) ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font); -webkit-tap-highlight-color: transparent; }
@@ -940,6 +968,9 @@ a, button, input, select { touch-action: manipulation; }
     <a class="logo-link" href="/" onclick="App.resetToSearch(); return false;">Fedhoo.</a>
     <div class="header-actions">
       <a href="/tools/" class="hdr-btn">Tools</a>
+      <button class="hdr-btn" id="darkToggleBtn" onclick="App.toggleDarkMode()" title="Toggle dark mode" aria-label="Toggle dark mode">
+        <svg id="darkToggleIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
       <button class="hdr-btn" id="shareBtn" onclick="App.shareSearch()" title="Share">
         <svg width="14" height="14" viewBox="0 0 640 640" fill="currentColor" aria-hidden="true"><use href="#icon-slack"/></svg>
       </button>
@@ -957,6 +988,9 @@ a, button, input, select { touch-action: manipulation; }
         placeholder="Company, keyword, or NAICS code…"
         autocomplete="off" autocorrect="off" autocapitalize="none"
         enterkeyhint="search">
+      <button class="mic-btn" id="searchMicBtn" onclick="App.toggleSpeech('searchInput','searchMicBtn',true)" aria-label="Voice search" title="Speak to search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      </button>
     </div>
     <div class="territory-dropdown" id="territoryDropdown">
       <button class="territory-opt active" data-key="" onclick="App.setTerritory(null)">
@@ -4413,11 +4447,24 @@ selectAgencySuggestion(name, inputId, boxId) {
     this.toast('CSV exported.', 'ok');
   },
 
+  // ── Dark mode toggle ─────────────────────────────────────────
+  toggleDarkMode() {
+    const isDark = document.documentElement.classList.toggle('dark');
+    localStorage.setItem('fedhoo_dark', isDark ? '1' : '0');
+    const icon = DOM.get('darkToggleIcon');
+    if (icon) {
+      // Moon = dark mode available, Sun = currently dark (click to go light)
+      icon.innerHTML = isDark
+        ? '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>'
+        : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+    }
+  },
+
   // ── Speech to text ───────────────────────────────────────────
   _speechRecognition: null,
   _speechActive: false,
 
-  toggleSpeech(inputId, btnId) {
+  toggleSpeech(inputId, btnId, autoSearch = false) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       this.toast('Speech recognition is not supported in this browser. Try Chrome or Safari.', 'warning');
@@ -4427,7 +4474,6 @@ selectAgencySuggestion(name, inputId, boxId) {
     const input = DOM.get(inputId);
     const btn   = DOM.get(btnId);
 
-    // If already listening, stop
     if (this._speechActive && this._speechRecognition) {
       this._speechRecognition.stop();
       return;
@@ -4461,8 +4507,10 @@ selectAgencySuggestion(name, inputId, boxId) {
 
     sr.onend = () => {
       this._cleanup(btn);
-      // Auto-submit if we got a result in the Arti hero input
-      if (inputId === 'artiContextInput' && finalTranscript.trim()) {
+      if (!finalTranscript.trim()) return;
+      if (autoSearch && inputId === 'searchInput') {
+        setTimeout(() => this.runSearch(finalTranscript.trim()), 200);
+      } else if (inputId === 'artiContextInput') {
         setTimeout(() => this.runAiActionPlan(), 300);
       }
     };
@@ -4648,6 +4696,17 @@ selectAgencySuggestion(name, inputId, boxId) {
         App.renderBubbleChart();
       });
     });
+
+    // Restore dark mode preference
+    try {
+      const dark = localStorage.getItem('fedhoo_dark');
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (dark === '1' || (dark === null && systemDark)) {
+        document.documentElement.classList.add('dark');
+        const icon = DOM.get('darkToggleIcon');
+        if (icon) icon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+      }
+    } catch(e) {}
 
     // Restore from URL params → last saved query → default
     const DEFAULT_QUERY = 'Cloud'; // ← change this anytime
