@@ -72,12 +72,15 @@ a, button, input, select { touch-action: manipulation; }
 
 /* ── HEADER (minitools exact) ── */
 .site-header {
-  background: rgba(247,247,245,0.95);
-  padding: max(10px, var(--safe-top)) 20px 0;
+  position: sticky; top: 0; z-index: 200;
+  background: rgba(247,247,245,0.96);
+  backdrop-filter: saturate(160%) blur(16px);
+  -webkit-backdrop-filter: saturate(160%) blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: max(10px, var(--safe-top)) 16px 10px;
 }
 .header-top {
-  display: flex; align-items: center; justify-content: space-between;
-  padding-bottom: 10px; gap: 10px;
+  display: flex; align-items: center; gap: 8px;
   max-width: min(96vw, 1920px); margin: 0 auto;
 }
 .logo-link {
@@ -90,7 +93,18 @@ a, button, input, select { touch-action: manipulation; }
   cursor: pointer;
 }
 .logo-link:hover { background: var(--bg-hover); }
-.header-actions { display: flex; align-items: center; gap: 8px; }
+.header-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+/* Header integrated search */
+.header-search-wrap {
+  flex: 1; min-width: 0; position: relative;
+  max-width: 520px;
+}
+.header-search-wrap .search-bar-inner {
+  height: 38px;
+}
+.header-search-wrap .territory-dropdown {
+  top: calc(100% + 6px); left: 0; min-width: 260px;
+}
 .hdr-btn {
   background: var(--bg-app); border: 1px solid var(--border);
   border-radius: var(--radius-sm); padding: 0 14px; height: 34px;
@@ -464,10 +478,8 @@ a, button, input, select { touch-action: manipulation; }
   color: var(--text-primary); line-height: 1;
   margin: 6px 0 4px; font-variant-numeric: tabular-nums;
 }
-.search-hero-title { line-height: 1.05; }
-.search-hero { margin-bottom: 32px; }
-.search-hero-title { font-size: var(--text-hero); font-weight: 800; color: var(--text-primary); letter-spacing: -0.03em; line-height: 1; margin-bottom: 6px; }
-.search-hero-sub { font-size: var(--text-base); color: var(--text-tertiary); font-weight: 400; margin-bottom: 20px; }
+.search-hero { padding: 14px 0 8px; }
+.search-hero-sub { font-size: var(--text-sm); color: var(--text-tertiary); }
 .search-bar-wrap { position: relative; max-width: 680px; }
 .search-bar-inner {
   display: flex; align-items: stretch;
@@ -777,40 +789,9 @@ a, button, input, select { touch-action: manipulation; }
 <header class="site-header">
   <div class="header-top">
     <a class="logo-link" href="/" onclick="App.resetToSearch(); return false;">Fedhoo.</a>
-    <div class="header-actions">
-      <a href="/tools/" class="hdr-btn">Tools</a>
-      <button class="hdr-btn" id="shareBtn" onclick="App.shareSearch()" title="Share">
-        <svg width="14" height="14" viewBox="0 0 640 640" fill="currentColor" aria-hidden="true"><use href="#icon-slack"/></svg>
-      </button>
-    </div>
-  </div>
-</header>
 
-<!-- LOADER -->
-<div class="loader-overlay hidden" id="loader">
-  <div class="spinner"></div>
-  <p class="loader-text" id="loaderText">Searching…</p>
-  <p class="loader-sub" id="loaderSubtext"></p>
-  <div class="loader-bar"><div class="loader-bar-fill"></div></div>
-</div>
-
-<!-- TOAST -->
-<button class="scroll-top-btn hidden" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top">
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-    <path d="M8 12V4M4 8l4-4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>
-</button>
-
-<div class="toast-wrap" id="toastWrap"></div>
-
-<!-- MAIN -->
-<div class="page-wrap">
-
-  <!-- SEARCH HERO -->
-  <div class="search-hero" id="searchHero">
-    <h1 class="search-hero-title">Search any federal market.</h1>
-    <p class="search-hero-sub">See who's buying, who's winning, and what to do next.</p>
-    <div class="search-bar-wrap">
+    <!-- Search bar lives in header -->
+    <div class="header-search-wrap">
       <div class="search-bar-inner" id="searchBarInner">
         <button class="search-territory-btn" id="territoryBtn" onclick="App.toggleTerritoryMenu()">
           <span class="territory-dot-sm" id="territoryDot"></span>
@@ -818,7 +799,7 @@ a, button, input, select { touch-action: manipulation; }
           <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M5 6L0 0h10z" fill="currentColor"/></svg>
         </button>
         <input type="search" id="searchInput" class="search-input"
-          placeholder="Search a company, keyword, or NAICS code…"
+          placeholder="Company, keyword, or NAICS…"
           autocomplete="off" autocorrect="off" autocapitalize="none"
           enterkeyhint="search">
       </div>
@@ -854,6 +835,38 @@ a, button, input, select { touch-action: manipulation; }
       </div>
     </div>
 
+    <div class="header-actions">
+      <a href="/tools/" class="hdr-btn">Tools</a>
+      <button class="hdr-btn" id="shareBtn" onclick="App.shareSearch()" title="Share">
+        <svg width="14" height="14" viewBox="0 0 640 640" fill="currentColor" aria-hidden="true"><use href="#icon-slack"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- LOADER -->
+<div class="loader-overlay hidden" id="loader">
+  <div class="spinner"></div>
+  <p class="loader-text" id="loaderText">Searching…</p>
+  <p class="loader-sub" id="loaderSubtext"></p>
+  <div class="loader-bar"><div class="loader-bar-fill"></div></div>
+</div>
+
+<!-- TOAST -->
+<button class="scroll-top-btn hidden" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top">
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <path d="M8 12V4M4 8l4-4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</button>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- MAIN -->
+<div class="page-wrap">
+
+  <!-- LANDING PROMPT — shown only before first search -->
+  <div class="search-hero" id="searchHero">
+    <p class="search-hero-sub" style="color:var(--text-quaternary);font-size:var(--text-sm);margin:0;">Search a company, keyword, or NAICS code to see who's buying and who's winning.</p>
   </div><!-- /search-hero -->
 
   <!-- RESULTS GRID -->
@@ -5557,6 +5570,7 @@ const App = {
 
       // Show results grid
       DOM.show('resultsGrid');
+      DOM.hide('searchHero');
 
       // Render chart
       this.renderBubbleChart();
@@ -6856,7 +6870,9 @@ selectAgencySuggestion(name, inputId, boxId) {
 
   resetToSearch() {
     DOM.hide('resultsGrid');
-    DOM.get('searchInput').focus();
+    DOM.show('searchHero');
+    const input = DOM.get('searchInput');
+    if (input) { input.value = ''; input.focus(); }
   },
 
   // ── Init ─────────────────────────────────────────────────────
