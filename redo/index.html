@@ -12,15 +12,15 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='96 96 448 448'%3E%3Cstyle%3Epath%7Bfill:%232C2B28%7D .arrow%7Bfill:%23FFFFFF%7D%3C/style%3E%3Cpath d='M480 96C515.3 96 544 124.7 544 160L544 480C544 515.3 515.3 544 480 544L160 544C124.7 544 96 515.3 96 480L96 160C96 124.7 124.7 96 160 96L480 96z'/%3E%3Cpath class='arrow' d='M368 360C368 373.3 378.7 384 392 384C405.3 384 416 373.3 416 360L416 248C416 234.7 405.3 224 392 224L280 224C266.7 224 256 234.7 256 248C256 261.3 266.7 272 280 272L334.1 272L231.1 375C221.7 384.4 221.7 399.6 231.1 408.9C240.5 418.2 255.7 418.3 265 408.9L368 305.9L368 360z'/%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<title>Fedhoo — Federal Market Intelligence</title>
-<meta name="description" content="Know any federal market before the meeting starts. Who's buying, who's winning, what's expiring — in one search.">
+<title>Fedhoo, Federal Market Intelligence</title>
+<meta name="description" content="Know any federal market before the meeting starts. Who's buying, who's winning, what's expiring, in one search.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-T343V4RFHV"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-T343V4RFHV');</script>
 <style>
-/* ── TOKENS — vocaLICIOUS exact ── */
+/* ── TOKENS, vocaLICIOUS exact ── */
 :root {
   --bg:        #FDFCFF;
   --bg-app:    #FFFFFF;
@@ -109,7 +109,7 @@ a, button, input, select { touch-action: manipulation; }
   gap: 6px; transition: var(--transition);
 }
 .hdr-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
-.jump-select:focus { outline: none; } /* stub — jump nav removed */
+.jump-select:focus { outline: none; } /* stub, jump nav removed */
 
 /* ── PAGE LAYOUT (minitools exact) ── */
 .page-wrap { max-width: min(96vw, 1920px); margin: 0 auto; padding: 36px 20px calc(4rem + var(--safe-bottom)); }
@@ -313,7 +313,7 @@ a, button, input, select { touch-action: manipulation; }
   background: var(--bg); border: 1px solid var(--border);
   border-radius: var(--radius-sm); overflow: hidden;
 }
-/* Sheet body provides padding — individual section overrides removed */
+/* Sheet body provides padding, individual section overrides removed */
 #chatInputWrap { border-top: 1px solid var(--border-inner); padding-top: 12px; margin-top: 8px; }
 .arti-inline-header {
   display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px;
@@ -353,7 +353,7 @@ a, button, input, select { touch-action: manipulation; }
   color: var(--text-primary); letter-spacing: -0.025em;
   line-height: 1.3; margin-bottom: 12px;
 }
-/* The inline pill-border tag — matches the reference screenshot exactly */
+/* The inline pill-border tag, matches the reference screenshot exactly */
 .arti-tag {
   display: inline-flex; align-items: center; gap: 4px;
   border: 1.5px solid var(--text-primary); border-radius: 9999px;
@@ -506,7 +506,7 @@ a, button, input, select { touch-action: manipulation; }
 }
 /* The inactive panel must not add height to the track row.
    We achieve this by making the viewport only as tall as the active panel
-   via JS — but we also set the SVG container to not have a min-height */
+   via JS, but we also set the SVG container to not have a min-height */
 .chart-dots { display: none; justify-content: center; gap: 6px; margin-top: 10px; }
 .chart-dot {
   width: 6px; height: 6px; border-radius: 9999px;
@@ -800,37 +800,36 @@ a, button, input, select { touch-action: manipulation; }
 .site-footer { padding: 8px 20px calc(2rem + var(--safe-bottom)); max-width: min(96vw, 1920px); margin: 0 auto; }
 .bio-card {
   background: var(--bg-app); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 24px;
-  display: flex; gap: 20px; align-items: flex-start;
+  border-radius: var(--radius); padding: 32px;
+}
+.bio-header {
+  display: flex; align-items: center; gap: 16px; margin-bottom: 20px;
 }
 .bio-avatar {
-  width: 72px; height: 72px; border-radius: 50%;
+  width: 64px; height: 64px; border-radius: 50%;
   object-fit: cover; flex-shrink: 0;
   border: 2px solid var(--border);
 }
-.bio-body { flex: 1; min-width: 0; }
+.bio-header-text {}
 .bio-name {
   font-size: var(--text-lg); font-weight: 700;
   color: var(--text-primary); letter-spacing: -0.02em;
   margin-bottom: 2px;
 }
-.bio-title {
-  font-size: var(--text-sm); color: var(--text-tertiary);
-  font-weight: 500; margin-bottom: 10px;
-}
+.bio-body { }
 .bio-text {
   font-size: var(--text-sm); color: var(--text-secondary);
-  line-height: 1.6; margin-bottom: 16px;
+  line-height: 1.75; margin-bottom: 12px;
 }
 .bio-cta {
-  display: inline-flex; align-items: center;
+  display: flex; align-items: center; justify-content: center;
   background: var(--btn-bg); color: var(--btn-text);
   border: none; border-radius: var(--radius-sm);
-  padding: 0 20px; height: 44px;
+  padding: 0 20px; height: 44px; margin-top: 8px;
   font-size: var(--text-sm); font-weight: 600;
   text-decoration: none; cursor: pointer;
   font-family: var(--font); transition: var(--transition);
-  width: 100%; justify-content: center;
+  width: 100%;
 }
 .bio-cta:hover { background: var(--btn-hover); }
 .footer-explainer {
@@ -911,7 +910,7 @@ a, button, input, select { touch-action: manipulation; }
     <div class="territory-dropdown" id="territoryDropdown">
       <button class="territory-opt active" data-key="" onclick="App.setTerritory(null)">
         <span class="territory-opt-dot" style="background:var(--border)"></span>
-        <span><div class="territory-opt-name">All Agencies</div><div class="territory-opt-desc">No filter — full results</div></span>
+        <span><div class="territory-opt-name">All Agencies</div><div class="territory-opt-desc">No filter, full results</div></span>
         <span class="territory-opt-check">✓</span>
       </button>
       <div class="territory-divider"></div>
@@ -959,7 +958,7 @@ a, button, input, select { touch-action: manipulation; }
 <!-- MAIN -->
 <div class="page-wrap">
 
-  <!-- LANDING PROMPT — shown only before first search -->
+  <!-- LANDING PROMPT, shown only before first search -->
   <div class="search-hero" id="searchHero">
     <p class="search-hero-sub" style="color:var(--text-quaternary);font-size:var(--text-sm);margin:0;">Search a company, keyword, or NAICS code to see who's buying and who's winning.</p>
   </div><!-- /search-hero -->
@@ -1011,7 +1010,7 @@ a, button, input, select { touch-action: manipulation; }
         <span class="chart-dot" id="dotSankey" onclick="App.switchChartView('sankey')"></span>
       </div>
 
-      <!-- Toggle row (treemap modes — hidden when sankey active) -->
+      <!-- Toggle row (treemap modes, hidden when sankey active) -->
       <div class="bubble-toggle-row" id="bubbleToggleRow" style="margin-top:10px;">
         <button class="bubble-toggle-btn active" data-mode="agencies" id="bubbleToggleAgencies">Agency</button>
         <button class="bubble-toggle-btn" data-mode="subagencies" id="bubbleToggleSubAgencies">Office</button>
@@ -1052,7 +1051,7 @@ a, button, input, select { touch-action: manipulation; }
 
   </div><!-- /tools-grid -->
 
-<!-- ARTI FLOATING BUTTON — shown after search loads -->
+<!-- ARTI FLOATING BUTTON, shown after search loads -->
 <button class="arti-fab hidden" id="artiFab" onclick="App.openArtiSheet()" aria-label="Ask Arti">
   <img src="/images/arti.png" alt="Arti" class="arti-fab-avatar">
   <span class="arti-fab-label" id="artiFabLabel">Ask Arti</span>
@@ -1099,7 +1098,7 @@ a, button, input, select { touch-action: manipulation; }
       </div>
       <div class="prompt-chips" id="artiPromptChips">
         <button class="prompt-chip" onclick="App.sendArtiChat('Who is the dominant incumbent in this market and what would it take to displace them? Be specific.')">Who owns this?</button>
-        <button class="prompt-chip" onclick="App.sendArtiChat('What is the single best near-term opportunity in this data — the contract most likely to recompete and where we have a real shot? One paragraph.')">Best opening</button>
+        <button class="prompt-chip" onclick="App.sendArtiChat('What is the single best near-term opportunity in this data, the contract most likely to recompete and where we have a real shot? One paragraph.')">Best opening</button>
         <button class="prompt-chip" onclick="App.sendArtiChat('Write one cold outreach message to the top contracting office. 4 sentences. Reference their actual spending.')">Draft outreach</button>
         <button class="prompt-chip" onclick="App.sendArtiChat('What are 3 things I should know walking into a meeting with the top agency in this market? Bullet points, just the facts.')">Meeting prep</button>
         <button class="prompt-chip" onclick="App.sendArtiChat('Who should I team with to be more competitive here? Name 2 specific companies already winning in this data and why they would make a good partner.')">Who to team with</button>
@@ -1127,12 +1126,19 @@ a, button, input, select { touch-action: manipulation; }
 
   <!-- Bio card -->
   <div class="bio-card">
-    <img src="/images/oldmark.jpg" alt="Mark Flournoy" class="bio-avatar">
+    <div class="bio-header">
+      <img src="/images/oldmark.jpg" alt="Mark Flournoy" class="bio-avatar">
+      <div class="bio-header-text">
+        <div class="bio-name">Hi, I'm Mark.</div>
+      </div>
+    </div>
     <div class="bio-body">
-      <div class="bio-name">Hi, I'm Mark.</div>
-      <div class="bio-title">Retired federal sales guy · Builder of Fedhoo</div>
-      <p class="bio-text">I built Fedhoo because I got tired of spending hours before every pipeline review digging through FPDS, USASpending, and SAM.gov just to answer three basic questions: how big is this market, who owns the workshare, and is there actually an opening. I've sold at AWS, F5, and Red Hat, served as a DISA COTR, and spent 20 years in the Marines. This is the tool I wished I had at every one of those jobs.</p>
-      <a href="https://calendly.com/markflournoy/chat-with-mark" target="_blank" rel="noopener" class="bio-cta">Let's look at your territory together</a>
+      <p class="bio-text">I'm a retired federal sales guy, and I built Fedhoo.</p>
+      <p class="bio-text">I spent a lot of years getting ready for pipeline reviews the hard way, pulling data from FPDS, USASpending, and SAM.gov to answer a few simple questions: How big is the market? Who's doing the work? And is there room for someone new?</p>
+      <p class="bio-text">After a while, I figured there had to be a better way, so I built the tool I always wished I had.</p>
+      <p class="bio-text">I've worked in sales at Amazon Web Services, F5, and Red Hat, spent time as a DISA COTR, and before that, 20 years in the Marines. This is really just a simple way to make sense of a complicated market.</p>
+      <p class="bio-text">There's no pitch here. If you'd like, we can take a few minutes and look at your territory together, see where the money is flowing, who's established, and where things might be opening up. You'll get a clearer picture. I'll get a better sense of what's useful and what's not.</p>
+      <a href="https://calendly.com/markflournoy/chat-with-mark" target="_blank" rel="noopener" class="bio-cta">Grab time on my calendar</a>
     </div>
   </div>
 
@@ -1140,21 +1146,21 @@ a, button, input, select { touch-action: manipulation; }
   <div class="footer-explainer">
     <div class="footer-explainer-col">
       <div class="footer-section-title">How it works</div>
-      <p class="footer-section-text">Type a keyword, company, agency, or NAICS code. Use AND to intersect (e.g. DHS AND Splunk), commas for OR (Cloud, Cyber). Keep terms exact — this is a live database, not a search engine. In seconds you'll see who's buying, who's winning, and what's expiring. Tap Ask Arti for a pre-meeting briefing based on the data.</p>
+      <p class="footer-section-text">Type a keyword, company, agency, or NAICS code. Use AND to intersect (e.g. DHS AND Splunk), commas for OR (Cloud, Cyber). Keep terms exact, this is a live database, not a search engine. In seconds you'll see who's buying, who's winning, and what's expiring. Tap Ask Arti for a pre-meeting briefing based on the data.</p>
     </div>
     <div class="footer-explainer-col">
       <div class="footer-section-title">About the data</div>
-      <p class="footer-section-text">Every search queries the USASpending.gov API v2 in real time — no cache, no stale snapshots. Dollar figures reflect full lifetime obligated value of multi-year contracts. Only active contracts with funding actions in the past 12 months are shown. Searches are routed through Fedhoo's proxy to USASpending and are not stored or logged. Fedhoo is not an opportunity tracker or RFP database. It's market intelligence so you can decide where to focus.</p>
+      <p class="footer-section-text">Every search queries the USASpending.gov API v2 in real time, no cache, no stale snapshots. Dollar figures reflect full lifetime obligated value of multi-year contracts. Only active contracts with funding actions in the past 12 months are shown. Searches are routed through Fedhoo's proxy to USASpending and are not stored or logged. Fedhoo is not an opportunity tracker or RFP database. It's market intelligence so you can decide where to focus.</p>
     </div>
   </div>
 
-  <div class="footer-copy">© 2026 Fedhoo.com — Data via USASpending.gov · Not affiliated with the U.S. government</div>
+  <div class="footer-copy">© 2026 Fedhoo.com, Data via USASpending.gov · Not affiliated with the U.S. government</div>
   <div class="footer-legal">Fedhoo uses Google Analytics to understand site usage and improve the product. We do not collect personal information or sell data. <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">Opt out using Google's Analytics Opt-out Browser Add-on</a>.</div>
 </footer>
 
 <script>
 // ════════════════════════════════════════════════════════════
-// GOVHOO — Federal Market Intelligence
+// GOVHOO, Federal Market Intelligence
 // Architecture: minitools shell + govhoo search/treemap/arti
 // ════════════════════════════════════════════════════════════
 
@@ -1315,7 +1321,7 @@ const Utils = {
   },
   
   getColor: (() => {
-    // Crayon construction paper — matte, chalky, diffused
+    // Crayon construction paper, matte, chalky, diffused
     const palette = ['#7CA8C4', '#D4A0B0', '#638E6E', '#E8A468', '#8888B8', '#D8CFC2', '#9878A0', '#C75268', '#80C0B0', '#A07860'];
     const assigned = new Map();
     let nextIdx = 0;
@@ -1690,14 +1696,14 @@ normalizeVendorName(vendorName) {
        }
     }
 
-    // 5. Prefix consolidation — collapses name variants that share the same root.
+    // 5. Prefix consolidation, collapses name variants that share the same root.
     // USASpending files the same company under many suffix variants:
     //   "BOOZ ALLEN HAMILTON INC" vs "BOOZ ALLEN HAMILTON HOLDING CORP" etc.
     // Suffix stripping in step 3 doesn't catch everything, so we do a starts-with
     // check against known canonical prefixes and snap them to the clean name.
     // Order matters: longer prefixes must come before shorter ones.
     const prefixMap = [
-      // Systems integrators — highest frequency of variant filings
+      // Systems integrators, highest frequency of variant filings
       ['BOOZ ALLEN HAMILTON', 'BOOZ ALLEN HAMILTON'],
       ['SCIENCE APPLICATIONS INTERNATIONAL', 'SAIC'],
       ['LEIDOS', 'LEIDOS'],
@@ -1741,7 +1747,7 @@ normalizeVendorName(vendorName) {
       ['SPLUNK', 'SPLUNK'],
       ['PALO ALTO NETWORKS', 'PALO ALTO NETWORKS'],
       ['CROWDSTRIKE', 'CROWDSTRIKE'],
-      // PALANTIR intentionally excluded — Palantir USG and Palantir Technologies
+      // PALANTIR intentionally excluded, Palantir USG and Palantir Technologies
       // are separate legal entities with separate contract vehicles. Keep them distinct.
     ];
 
@@ -2068,7 +2074,7 @@ drawSankey(svgEl, { nodes, links, gradientPrefix, isDrillable, isActive, onNodeC
       .on('mouseout', function() { d3.select(this).attr('opacity', 1); })
       .append('title').text(d => `${d.name}\n${Utils.money(d.value)}`);
 
-    // Labels — flat text outside nodes, left-anchored on left column, right-anchored on right.
+    // Labels, flat text outside nodes, left-anchored on left column, right-anchored on right.
     // Dark mode aware. Font weight tracks node height so dominant flows read boldest.
     const textColor = App.darkMode ? '#F0EFEC' : '#2C2B28';
     svgEl.append('g').style('pointer-events', 'none').selectAll('text').data(gn).join('text')
@@ -2108,14 +2114,14 @@ const Html = {
     if (!rawText) return '';
     let text = rawText
       .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '')
-      .replace(/<mark>/gi, '').replace(/<\/mark>/gi, '') // Lambda highlight tags — strip silently
+      .replace(/<mark>/gi, '').replace(/<\/mark>/gi, '') // Lambda highlight tags, strip silently
       .trim();
     // Use marked if loaded; otherwise fall back to inline mini-parser
     if (typeof marked !== 'undefined') {
       marked.setOptions({ breaks: true, gfm: true });
       return marked.parse(text);
     }
-    // Inline mini-parser — handles bold, italic, headers, lists, line breaks
+    // Inline mini-parser, handles bold, italic, headers, lists, line breaks
     return text
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
       .replace(/^### (.+)$/gm, '<h3>$1</h3>')
@@ -2137,10 +2143,10 @@ const Html = {
   // We accumulate raw text and re-render markdown on every chunk so the user
   // sees words appearing live, not a spinner for 15 seconds then a wall of text.
   //
-  // targetEl    — the element whose innerHTML we update
-  // response    — the fetch() Response object (must have a readable body)
-  // onDone      — called with the final accumulated text string on success
-  // onError     — called with an error message string on failure
+  // targetEl   , the element whose innerHTML we update
+  // response   , the fetch() Response object (must have a readable body)
+  // onDone     , called with the final accumulated text string on success
+  // onError    , called with an error message string on failure
   async streamInto(targetEl, response, onDone, onError) {
     if (!response.body) {
       onError('No response stream available.');
@@ -2152,7 +2158,7 @@ const Html = {
     let buffer = '';
     let accumulated = '';
 
-    // Throttle DOM updates — re-render at most every 80ms so we don't thrash
+    // Throttle DOM updates, re-render at most every 80ms so we don't thrash
     // layout on fast connections where chunks arrive many times per second.
     let renderPending = false;
     const scheduleRender = () => {
@@ -2194,11 +2200,11 @@ const Html = {
               return;
             }
           } catch {
-            // malformed SSE line — skip
+            // malformed SSE line, skip
           }
         }
       }
-      // Stream ended without explicit done signal — treat accumulated text as complete
+      // Stream ended without explicit done signal, treat accumulated text as complete
       if (accumulated) {
         if (targetEl) targetEl.innerHTML = Html.parseAiMarkdown(accumulated);
         onDone(accumulated);
@@ -2269,7 +2275,7 @@ async _post(endpoint, body) {
     }).then(r => r.json()).catch(e => { if (e.name === 'AbortError') throw e; return {}; });
 
     try {
-      // Fire both endpoints in parallel — recipient call rides free inside the same debounce window
+      // Fire both endpoints in parallel, recipient call rides free inside the same debounce window
       const [agencyData, recipientData] = await Promise.all([
         proxyFetch('/autocomplete/awarding_agency/', { search_text: searchText, limit: 7 }),
         proxyFetch('/autocomplete/recipient/',       { search_text: searchText, limit: 5 })
@@ -2548,10 +2554,10 @@ const PipelineEngine = {
         scoreBoost = 15;
       } else if (durationYears <= 3.0) {
         // Fix: Short-duration SERVICE contracts are urgency signals, not low-value ones.
-        // A bridge or base-only award means the agency is in transition — exactly when to engage.
+        // A bridge or base-only award means the agency is in transition, exactly when to engage.
         const isService = ['D','R','J','S'].includes(rawPsc.slice(0, 1));
         targetType = 'Short-Term Pattern';
-        rationale = `Contract duration is short (${durationYears.toFixed(1)} years), indicating a bridge contract, base-only award, or truncated funding window. ${isService ? 'Service contract — high probability of a full recompete follow-on.' : 'High probability of transition or re-solicitation.'}`;
+        rationale = `Contract duration is short (${durationYears.toFixed(1)} years), indicating a bridge contract, base-only award, or truncated funding window. ${isService ? 'Service contract, high probability of a full recompete follow-on.' : 'High probability of transition or re-solicitation.'}`;
         // Urgency bonus replaces penalty: short + expiring soon = act now
         scoreBoost = daysUntil <= 180 ? 15 : daysUntil <= 365 ? 5 : -5;
       } else {
@@ -2676,7 +2682,7 @@ const PipelineEngine = {
     const seenAdjacencyOffices = new Set();
 
     majorProductBuys.forEach(buy => {
-      // Fix: Remove hard cap of 3 — allow as many as the data supports, capped only by final slice(0,20)
+      // Fix: Remove hard cap of 3, allow as many as the data supports, capped only by final slice(0,20)
       const office = buy['Awarding Sub Agency'] || buy['Awarding Agency'] || 'Unknown';
       if (seenAdjacencyOffices.has(office)) return;
       seenAdjacencyOffices.add(office);
@@ -2758,7 +2764,7 @@ const JobLinks = {
   },
   getLinkedInPeopleUrl(vendorName, roleKeywords = '') {
     const clean = this.cleanVendorName(vendorName);
-    // Quoted company name for precision — lands the seller at the right company,
+    // Quoted company name for precision, lands the seller at the right company,
     // they know how to find the right person from there
     const searchQuery = roleKeywords ? `"${clean}" ${roleKeywords}` : `"${clean}"`;
     return `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(searchQuery)}&origin=GLOBAL_SEARCH_HEADER`;
@@ -2775,7 +2781,7 @@ const THEME_META = document.querySelector('meta[name="theme-color"]');
 // ========================================
 
 // ════════════════════════════════════════════════════════════
-// APP — Main controller (slim: search, treemap, arti, territory)
+// APP, Main controller (slim: search, treemap, arti, territory)
 // ════════════════════════════════════════════════════════════
 const VehicleDetector = {
   patterns: [
@@ -2809,7 +2815,7 @@ const App = {
   searchData: { raw: [], active: [], filter: null, loaded: false },
   drillState: { level: 0, path: [], currentAgency: null, currentSubAgency: null },
   bubbleMode: 'agencies',
-  bubbleChartType: 'treemap', // always treemap — bubble option removed
+  bubbleChartType: 'treemap', // always treemap, bubble option removed
   aiState: { history: [], count: 0, max: 5 },
 
   SECTORS: {
@@ -2818,7 +2824,7 @@ const App = {
       color: '#7CA8C4',
       key: 'dod',
       // Toptier codes verified against USASpending canonical agency list
-      // 097 = DoD umbrella (Army, Navy, Air Force are subtiers — covered by 097)
+      // 097 = DoD umbrella (Army, Navy, Air Force are subtiers, covered by 097)
       // 096 = Corps of Engineers - Civil Works (Army Civil Works, $14.5B)
       // 347 = Defense Nuclear Facilities Safety Board ($16M)
       // 084 = Armed Forces Retirement Home ($60M)
@@ -2869,7 +2875,7 @@ const App = {
       label: 'FedHealth',
       color: '#D4A0B0',
       key: 'fedhealth',
-      // 075 = HHS umbrella — CMS, CDC, FDA, NIH, HRSA, SAMHSA, AHRQ, IHS are ALL subtiers
+      // 075 = HHS umbrella, CMS, CDC, FDA, NIH, HRSA, SAMHSA, AHRQ, IHS are ALL subtiers
       // 036 = VA ($189B)
       // 345 = US Court of Appeals for Veterans Claims ($25M, VA system)
       // 579 = Patient-Centered Outcomes Research Trust Fund ($741M)
@@ -2885,7 +2891,7 @@ const App = {
       label: 'FedFin',
       color: '#5DBFB0',
       key: 'fedfin',
-      // 020 = Treasury ($799B — largest single agency by obligation)
+      // 020 = Treasury ($799B, largest single agency by obligation)
       // 1602 = Pension Benefit Guaranty Corporation ($4.1B)
       // 051 = FDIC ($2.2B)
       // 581 = CFPB ($187M)
@@ -2916,7 +2922,7 @@ const App = {
   },
 
   // --- Initialization & Event Binding ---
-  // old init() removed — see init() below
+  // old init() removed, see init() below
 
   // =============================================
   // TERRITORY / SECTOR FILTER METHODS
@@ -3117,7 +3123,7 @@ const App = {
     DOM.hide('artiFab');
     DOM.hide('bubbleToggleRow');
     DOM.hide('bubbleBreadcrumb');
-    DOM.hide('chartTabs');   // hide Treemap / Sankey tabs — nothing to switch to
+    DOM.hide('chartTabs');   // hide Treemap / Sankey tabs, nothing to switch to
     DOM.hide('chartDots');   // hide swipe dots too
 
     // Remove viewport height clipping so empty state isn't cut off
@@ -3150,13 +3156,13 @@ const App = {
       <div class="empty-state">
         <img src="/images/arti.png" alt="Arti" style="width:100px;height:100px;border-radius:50%;object-fit:cover;margin:0 auto 16px;display:block;">
         <h3 class="empty-title">Well, this is awkward.</h3>
-        <p class="empty-desc">Nothing came back for "<strong>${Html.escapeHtml(query)}</strong>"${territoryNote}. This is a strict government database — brand names, abbreviations, and nicknames often don't match how contracts are filed. A few things to try:</p>
+        <p class="empty-desc">Nothing came back for "<strong>${Html.escapeHtml(query)}</strong>"${territoryNote}. This is a strict government database, brand names, abbreviations, and nicknames often don't match how contracts are filed. A few things to try:</p>
         <ul class="empty-tips">
-          <li><strong>Use the legal entity name</strong> — "Primer Federal" not "Primer.ai"</li>
-          <li><strong>Search what they sell</strong> — try a keyword like <code>Zero Trust</code> or <code>Cloud Migration</code> and find them in the treemap</li>
-          <li><strong>Intersect with an agency</strong> — <code>DHS AND Splunk</code> narrows it down</li>
-          <li><strong>Use a NAICS code</strong> — 6 digits catches contracts regardless of how the vendor name is spelled</li>
-          <li><strong>AND searches are strict</strong> — both terms must appear in the same contract description</li>
+          <li><strong>Use the legal entity name</strong>, "Primer Federal" not "Primer.ai"</li>
+          <li><strong>Search what they sell</strong>, try a keyword like <code>Zero Trust</code> or <code>Cloud Migration</code> and find them in the treemap</li>
+          <li><strong>Intersect with an agency</strong>, <code>DHS AND Splunk</code> narrows it down</li>
+          <li><strong>Use a NAICS code</strong>, 6 digits catches contracts regardless of how the vendor name is spelled</li>
+          <li><strong>AND searches are strict</strong>, both terms must appear in the same contract description</li>
         </ul>
         <div class="empty-chips">${chips}</div>
       </div>`;
@@ -3306,7 +3312,7 @@ const App = {
     this.updateBubbleToggles();
     this.renderBubbleBreadcrumb();
 
-    // First-use tap hint — show once, dismiss on first interaction
+    // First-use tap hint, show once, dismiss on first interaction
     if (!localStorage.getItem('fedhoo_treemap_hint_seen')) {
       const existing = DOM.get('treemapHint');
       if (!existing) {
@@ -3357,7 +3363,7 @@ const App = {
     let entities = Object.values(entityMap).filter(e => e.spend > 0).sort((a, b) => b.spend - a.spend).slice(0, 50);
     if (entities.length === 0) { DOM.hide('marketCard'); return; }
 
-    // Update hero number — changes on drill-down
+    // Update hero number, changes on drill-down
     const heroEl = DOM.get('marketHeroNumber');
     if (heroEl) {
       Utils.countUp(heroEl, totalSpend, Utils.money);
@@ -3387,7 +3393,7 @@ const App = {
     
     const tooltip = DOM.get('bubbleTooltip');
     if (tooltip) tooltip.classList.remove('visible');
-    // Clear the full container — removes both old SVG and any empty-state div
+    // Clear the full container, removes both old SVG and any empty-state div
     container.innerHTML = '<div class="bubble-tooltip" id="bubbleTooltip"></div>';
     d3.select(container).selectAll('svg').remove();
     
@@ -3642,7 +3648,7 @@ if (this.bubbleChartType === 'treemap') {
     DOM.text('loaderSubtext', subtext || '');
     DOM.show('loader');
 
-    // Message rotation — cycles every 2.5s so users know something is happening.
+    // Message rotation, cycles every 2.5s so users know something is happening.
     // Subtext appears at 4s to reset expectations on slow USASpending responses.
     const messages = [
       { main: text,                          sub: '' },
@@ -3719,11 +3725,11 @@ selectAgencySuggestion(name, inputId, boxId) {
   // ── Arti + Chat ─────────────────────────────────────────────
   async runAiActionPlan() {
     if (!this.searchData.loaded || this.searchData.active.length === 0) {
-      this.toast('Run a search first — Arti needs market data to work with.', 'warning');
+      this.toast('Run a search first, Arti needs market data to work with.', 'warning');
       return;
     }
 
-    // Don't auto-fire on empty input — focus the input instead
+    // Don't auto-fire on empty input, focus the input instead
     const inputEl = DOM.get('artiContextInput');
     this.artiContext = (inputEl?.value || '').trim();
     if (!this.artiContext) {
@@ -3741,15 +3747,15 @@ selectAgencySuggestion(name, inputId, boxId) {
       if (fill) fill.style.width = pct + '%';
     }, 300);
 
-    // Use pre-built payload cache — built at search time so send is instant
+    // Use pre-built payload cache, built at search time so send is instant
     const summaryPayload = this._artiPayloadCache || this._buildArtiPayload();
 
     const userContext = (this.artiContext || '').trim();
     const territoryScope = this.territory && this.SECTORS[this.territory]
       ? `This market is scoped to ${this.SECTORS[this.territory].label} agencies only. `
       : '';
-    // Crisp briefing prompt — compass heading, not a GTM plan
-    const objective = `${territoryScope}${userContext ? `The seller says: "${userContext}". ` : ''}You are a sharp federal BD analyst giving a 60-second pre-meeting briefing. Respond in 3-5 sentences maximum. Lead with the single most important fact about this market — the biggest opportunity, the dominant incumbent, or the most urgent recompete. Then give one specific recommended move. Use real names and real dollar figures. No headers, no bullet points, no plans — just a direct briefing like a colleague who pulled the file before the meeting.`;
+    // Crisp briefing prompt, compass heading, not a GTM plan
+    const objective = `${territoryScope}${userContext ? `The seller says: "${userContext}". ` : ''}You are a sharp federal BD analyst giving a 60-second pre-meeting briefing. Respond in 3-5 sentences maximum. Lead with the single most important fact about this market, the biggest opportunity, the dominant incumbent, or the most urgent recompete. Then give one specific recommended move. Use real names and real dollar figures. No headers, no bullet points, no plans, just a direct briefing like a colleague who pulled the file before the meeting.`;
 
     try {
       const artiAbort = new AbortController();
@@ -3814,7 +3820,7 @@ selectAgencySuggestion(name, inputId, boxId) {
       DOM.hide('artiProgress');
       DOM.show('artiTrigger');
       const msg = (e.name === 'AbortError' || (e.message||'').includes('timed'))
-        ? 'Arti took too long — try a more focused search.'
+        ? 'Arti took too long, try a more focused search.'
         : (e.message || 'Something went wrong. Try again.');
       this.toast(msg, 'error');
       
@@ -4071,7 +4077,7 @@ selectAgencySuggestion(name, inputId, boxId) {
     render(false);
   },
 
-  // Invalidate Sankey cache on drill — re-render immediately if Sankey is active
+  // Invalidate Sankey cache on drill, re-render immediately if Sankey is active
   _syncSankey() {
     const sc = DOM.get('sankeyContainer');
     if (!sc) return;
@@ -4238,7 +4244,7 @@ selectAgencySuggestion(name, inputId, boxId) {
   },
 
   _cleanVendorName(name) {
-    // Strip legal suffixes, normalize spacing — makes search queries tighter
+    // Strip legal suffixes, normalize spacing, makes search queries tighter
     return name
       .replace(/,?\s*(LLC|INC|CORP|CORPORATION|INCORPORATED|L\.L\.C\.|L\.P\.|LP|LTD|LIMITED|CO\.|PC|DBA)\.?\s*$/gi, '')
       .replace(/\s+/g, ' ')
@@ -4273,13 +4279,13 @@ selectAgencySuggestion(name, inputId, boxId) {
       const agencyCount = d.agencies.size;
       const saLabel = VehicleDetector.getSetAsideLabel(d.setAside);
 
-      // Universal URL pattern — quoted name works for any company, known or unknown
+      // Universal URL pattern, quoted name works for any company, known or unknown
       const clean = this._cleanVendorName(name);
       const quoted = encodeURIComponent(`"${clean}"`);
       const plain  = encodeURIComponent(clean);
-      // People: quoted name finds profiles that mention the company — works even without a company page
+      // People: quoted name finds profiles that mention the company, works even without a company page
       const liPeople = `https://www.linkedin.com/search/results/people/?keywords=${quoted}&origin=GLOBAL_SEARCH_HEADER`;
-      // Jobs: keyword search scoped to company name — no company ID needed
+      // Jobs: keyword search scoped to company name, no company ID needed
       const liJobs   = `https://www.linkedin.com/jobs/search/?keywords=${plain}&location=United+States`;
       // News: Google News with quoted name for precision
       const news     = `https://www.linkedin.com/search/results/content/?keywords=${quoted}`;
@@ -4324,7 +4330,7 @@ selectAgencySuggestion(name, inputId, boxId) {
 
   exportCSV() {
     const data = this.searchData.raw;
-    if (!data || !data.length) { this.toast('No data to export — run a search first.', 'warning'); return; }
+    if (!data || !data.length) { this.toast('No data to export, run a search first.', 'warning'); return; }
     const headers = ['Award ID','Recipient Name','Awarding Agency','Awarding Sub Agency','Awarding Office','Award Amount','Start Date','End Date','Description','NAICS','PSC','Contract Award Type','Type of Set Aside','pop_city_name','pop_state_code','USASpending URL'];
     const esc = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
     const rows = data.map(c => {
@@ -4449,26 +4455,26 @@ selectAgencySuggestion(name, inputId, boxId) {
     const hotVendor = hottestExpiry ? (hottestExpiry['Recipient Name'] || '') : null;
     const hotAmt = hottestExpiry ? parseFloat(hottestExpiry['Award Amount'])||0 : 0;
 
-    // ── Pick the lead signal — most actionable fact first ────────
+    // ── Pick the lead signal, most actionable fact first ────────
     let insight = '';
 
     if (hotDays !== null && hotDays <= 30) {
-      // Urgent expiry in under 30 days — always lead here
+      // Urgent expiry in under 30 days, always lead here
       insight = `<strong>${hotVendor}</strong> has a <strong>${Utils.money(hotAmt)}</strong> contract expiring in <strong>${hotDays} days</strong>.`;
     } else if (topVendorPct >= 40) {
-      // One vendor owns the market — that's a big strategic fact
+      // One vendor owns the market, that's a big strategic fact
       insight = `<strong>${topVendor}</strong> holds <strong>${topVendorPct}%</strong> of this market.`;
     } else if (top3Pct <= 35 && vendorSorted.length >= 5) {
-      // Fragmented — multiple entry points
-      insight = `Top 3 vendors share <strong>${top3Pct}%</strong> — no single dominant incumbent.`;
+      // Fragmented, multiple entry points
+      insight = `Top 3 vendors share <strong>${top3Pct}%</strong>, no single dominant incumbent.`;
     } else if (topAgencyPct >= 50) {
-      // One agency dominates — focus message
+      // One agency dominates, focus message
       insight = `<strong>${topAgency}</strong> is <strong>${topAgencyPct}%</strong> of this market.`;
     } else if (hotDays !== null) {
-      // Expiry exists but not urgent — still worth flagging
+      // Expiry exists but not urgent, still worth flagging
       insight = `<strong>${hotVendor}</strong> has a <strong>${Utils.money(hotAmt)}</strong> contract expiring in <strong>${hotDays} days</strong>.`;
     } else {
-      // Fallback — size and top buyer
+      // Fallback, size and top buyer
       insight = `<strong>${Utils.money(total)}</strong> market, top buyer is <strong>${topAgency}</strong>${topAgencyPct > 0 ? ` at ${topAgencyPct}%` : ''}.`;
     }
 
@@ -4536,7 +4542,7 @@ selectAgencySuggestion(name, inputId, boxId) {
       this.runSearch(startQuery);
     } catch(e) {}
 
-    // Auto-focus search on load — keyboard ready on iPhone
+    // Auto-focus search on load, keyboard ready on iPhone
     setTimeout(() => {
       const si = DOM.get('searchInput');
       if (si && !si.value) si.focus();
@@ -4544,7 +4550,7 @@ selectAgencySuggestion(name, inputId, boxId) {
 
     // Render recent searches
 
-    // Anchor FAB to visual viewport on mobile — prevents it sliding under browser chrome
+    // Anchor FAB to visual viewport on mobile, prevents it sliding under browser chrome
     if (window.visualViewport) {
       const fab = DOM.get('artiFab');
       const syncFab = () => {
@@ -4575,7 +4581,7 @@ selectAgencySuggestion(name, inputId, boxId) {
     // Init swipe gesture for chart panel
     this._initSwipe();
 
-    // Scroll-to-top button — appears after 400px scroll
+    // Scroll-to-top button, appears after 400px scroll
     const scrollBtn = DOM.get('scrollTopBtn');
     if (scrollBtn) {
       window.addEventListener('scroll', () => {
@@ -4583,11 +4589,11 @@ selectAgencySuggestion(name, inputId, boxId) {
       }, { passive: true });
     }
 
-    // Re-render treemap on resize — only if WIDTH changed (ignore mobile chrome height changes)
+    // Re-render treemap on resize, only if WIDTH changed (ignore mobile chrome height changes)
     let resizeTimer, lastW = window.innerWidth;
     window.addEventListener('resize', () => {
       const w = window.innerWidth;
-      if (w === lastW) return; // height-only resize = iOS/Android URL bar — skip
+      if (w === lastW) return; // height-only resize = iOS/Android URL bar, skip
       lastW = w;
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
@@ -4606,7 +4612,7 @@ selectAgencySuggestion(name, inputId, boxId) {
 
 const SearchPills = {
   _cache: {
-    // Static pills for default onload search — no Gemini call
+    // Static pills for default onload search, no Gemini call
     'cloud': {
       company: 'CLOUD',
       summary: '',
@@ -4618,7 +4624,7 @@ const SearchPills = {
   },
   _current: null,
 
-  /** Called after every App.runSearch — fires Gemini in background */
+  /** Called after every App.runSearch, fires Gemini in background */
   generate(query) {
     if (!query || query.length < 2) return;
     if (this._current === query) return;
@@ -4629,7 +4635,7 @@ const SearchPills = {
       this.render(kw, query);
       const artiInput = DOM.get('artiContextInput');
       if (artiInput && kw.summary) {
-        artiInput.value = `I sell ${kw.company || query} — ${kw.summary}`;
+        artiInput.value = `I sell ${kw.company || query}, ${kw.summary}`;
         App.artiContext = artiInput.value;
       }
       return;
@@ -4647,12 +4653,12 @@ const SearchPills = {
       if (!res.ok) return;
       const kw = await res.json();
       this._cache[query.toLowerCase()] = kw;
-      // Always render — even if _current changed, stale pills are better than
+      // Always render, even if _current changed, stale pills are better than
       // silently dropping the result. Cache means repeat searches are instant.
       this.render(kw, query);
       const artiInput = DOM.get('artiContextInput');
       if (artiInput && kw.summary) {
-        artiInput.value = `I sell ${kw.company || query} — ${kw.summary}`;
+        artiInput.value = `I sell ${kw.company || query}, ${kw.summary}`;
         App.artiContext = artiInput.value;
       }
       // If empty state is showing, refresh it with pill-based suggestions
@@ -4661,7 +4667,7 @@ const SearchPills = {
         App._refreshEmptyState && App._refreshEmptyState();
       }
     } catch (e) {
-      // Silent failure — pills are supplementary
+      // Silent failure, pills are supplementary
     }
   },
 
@@ -4696,7 +4702,7 @@ const SearchPills = {
     }
 
     const company = Html.escapeHtml(kw.company || '');
-    // Don't include query itself — just the brand/competitor pills — so clicking
+    // Don't include query itself, just the brand/competitor pills, so clicking
     // "Search all names" repeatedly doesn't accumulate previous queries.
     const searchAllTerms = pills.filter(p => p.cls === 'search-pill-comp' || p.cls === 'search-pill-brand').map(p => p.term).join(', ');
     container.innerHTML = '<span style="font-size:0.65rem;color:var(--text-quaternary);font-weight:500;padding:4px 2px;white-space:nowrap;">Also try</span>' + pills.map(p =>
@@ -4718,7 +4724,7 @@ const SearchPills = {
     const artiInput = DOM.get('artiContextInput');
     if (artiInput && company) {
       const cached = this._cache[company.toLowerCase()];
-      artiInput.value = `I sell ${company}${cached?.summary ? ' — ' + cached.summary : ''} — currently researching ${term}`;
+      artiInput.value = `I sell ${company}${cached?.summary ? ', ' + cached.summary : ''}, currently researching ${term}`;
       App.artiContext = artiInput.value;
     }
     App.runSearch(term);
