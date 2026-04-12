@@ -269,6 +269,40 @@ a, button, input, select { touch-action: manipulation; }
   .scroll-top-btn:hover { transform: translateX(50%) translateY(-2px); }
   .scroll-top-btn:active { transform: translateX(50%) scale(0.93); }
 }
+/* ── DUAL-VIEW CHART PANEL ── */
+.chart-tabs {
+  display: flex; gap: 2px; margin-top: 16px;
+  background: var(--bg); border-radius: var(--radius-sm);
+  padding: 3px; width: fit-content;
+}
+.chart-tab {
+  padding: 6px 16px; font-size: var(--text-xs); font-weight: 600;
+  border: none; border-radius: calc(var(--radius-sm) - 2px);
+  background: transparent; color: var(--text-tertiary);
+  cursor: pointer; transition: var(--transition); font-family: var(--font);
+  white-space: nowrap;
+}
+.chart-tab.active { background: var(--bg-app); color: var(--text-primary); box-shadow: var(--shadow-sm); }
+.chart-tab:hover:not(.active) { color: var(--text-secondary); }
+.chart-viewport { overflow: hidden; position: relative; margin-top: 10px; touch-action: pan-y; }
+.chart-track {
+  display: flex; width: 200%;
+  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+  will-change: transform;
+}
+.chart-panel { width: 50%; flex-shrink: 0; min-height: 400px; }
+.chart-dots { display: none; justify-content: center; gap: 6px; margin-top: 10px; }
+.chart-dot {
+  width: 6px; height: 6px; border-radius: 9999px;
+  background: var(--border); cursor: pointer;
+  transition: background 0.2s, width 0.2s;
+}
+.chart-dot.active { background: var(--text-primary); width: 18px; }
+@media (max-width: 640px) {
+  .chart-tabs { display: none; }
+  .chart-dots { display: flex; }
+}
+
 .market-hero-number {
   font-size: clamp(2rem, 5vw, 3rem);
   font-weight: 900; letter-spacing: -0.04em;
@@ -686,12 +720,35 @@ a, button, input, select { touch-action: manipulation; }
         <div class="breadcrumb-row" id="bubbleBreadcrumbInner"></div>
       </div>
 
-      <!-- Chart -->
-      <div id="bubbleChartContainer">
-        <div class="bubble-tooltip" id="bubbleTooltip"></div>
+      <!-- View switcher tabs (desktop) -->
+      <div class="chart-tabs" id="chartTabs">
+        <button class="chart-tab active" id="tabTreemap" onclick="App.switchChartView('treemap')">Treemap</button>
+        <button class="chart-tab" id="tabSankey" onclick="App.switchChartView('sankey')">Agency → Vendor Flow</button>
       </div>
 
-      <!-- Toggle row -->
+      <!-- Dual-view swipeable container -->
+      <div class="chart-viewport" id="chartViewport">
+        <div class="chart-track" id="chartTrack">
+          <!-- View 0: Treemap -->
+          <div class="chart-panel" id="panelTreemap">
+            <div id="bubbleChartContainer">
+              <div class="bubble-tooltip" id="bubbleTooltip"></div>
+            </div>
+          </div>
+          <!-- View 1: Sankey -->
+          <div class="chart-panel" id="panelSankey">
+            <div id="sankeyContainer" style="width:100%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Swipe indicator dots (mobile) -->
+      <div class="chart-dots" id="chartDots">
+        <span class="chart-dot active" id="dotTreemap" onclick="App.switchChartView('treemap')"></span>
+        <span class="chart-dot" id="dotSankey" onclick="App.switchChartView('sankey')"></span>
+      </div>
+
+      <!-- Toggle row (treemap modes — hidden when sankey active) -->
       <div class="bubble-toggle-row" id="bubbleToggleRow" style="margin-top:10px;">
         <button class="bubble-toggle-btn active" data-mode="agencies" id="bubbleToggleAgencies">Agency</button>
         <button class="bubble-toggle-btn" data-mode="subagencies" id="bubbleToggleSubAgencies">Office</button>
@@ -804,12 +861,18 @@ const DOM = {
 const LibLoader = {
   _p: null,
   loadD3() {
-    if (window.d3) return Promise.resolve();
+    if (window.d3 && window.d3.sankey) return Promise.resolve();
     if (this._p) return this._p;
     this._p = new Promise((resolve, reject) => {
       const s1 = document.createElement('script');
       s1.src = 'https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js';
-      s1.onload = resolve;
+      s1.onload = () => {
+        const s2 = document.createElement('script');
+        s2.src = 'https://cdnjs.cloudflare.com/ajax/libs/d3-sankey/0.12.3/d3-sankey.min.js';
+        s2.onload = resolve;
+        s2.onerror = reject;
+        document.head.appendChild(s2);
+      };
       s1.onerror = reject;
       document.head.appendChild(s1);
     });
@@ -5247,7 +5310,17 @@ const App = {
     DOM.hide('chatInputWrap');
     DOM.hide('artiDisclaimer');
     DOM.hide('artiProgress');
-    DOM.show('artiTrigger'); // ensure trigger is visible for next search
+    DOM.show('artiTrigger');
+    // Reset to treemap view on new search
+    this._chartView = 'treemap';
+    const track = DOM.get('chartTrack');
+    if (track) track.style.transform = 'translateX(0)';
+    const sc = DOM.get('sankeyContainer');
+    if (sc) { sc.innerHTML = ''; delete sc.dataset.rendered; }
+    DOM.get('tabTreemap')?.classList.add('active');
+    DOM.get('tabSankey')?.classList.remove('active');
+    DOM.get('dotTreemap')?.classList.add('active');
+    DOM.get('dotSankey')?.classList.remove('active');
     this.showLoader('Searching USASpending…', `"${query}"`);
 
     // Update URL
@@ -6230,6 +6303,157 @@ selectAgencySuggestion(name, inputId, boxId) {
     render(false);
   },
 
+  // ── Chart view switcher ─────────────────────────────────────
+  _chartView: 'treemap', // 'treemap' | 'sankey'
+
+  switchChartView(view) {
+    this._chartView = view;
+    const track = DOM.get('chartTrack');
+    if (track) track.style.transform = view === 'sankey' ? 'translateX(-50%)' : 'translateX(0)';
+
+    // Update tabs
+    DOM.get('tabTreemap')?.classList.toggle('active', view === 'treemap');
+    DOM.get('tabSankey')?.classList.toggle('active', view === 'sankey');
+
+    // Update dots
+    DOM.get('dotTreemap')?.classList.toggle('active', view === 'treemap');
+    DOM.get('dotSankey')?.classList.toggle('active', view === 'sankey');
+
+    // Show/hide treemap toggles
+    const toggleRow = DOM.get('bubbleToggleRow');
+    if (toggleRow) toggleRow.style.visibility = view === 'sankey' ? 'hidden' : '';
+
+    // Render Sankey on first switch (lazy)
+    if (view === 'sankey' && this.searchData.loaded) {
+      const c = DOM.get('sankeyContainer');
+      if (c && !c.dataset.rendered) this.renderSankey();
+    }
+
+    // Resize treemap on switch back (container may have changed)
+    if (view === 'treemap' && this.searchData.loaded) {
+      requestAnimationFrame(() => this.renderBubbleChart());
+    }
+  },
+
+  renderSankey() {
+    const container = DOM.get('sankeyContainer');
+    if (!container || !this.searchData.loaded) return;
+    container.innerHTML = '';
+    container.dataset.rendered = '1';
+    this._renderSankeyInner(container);
+  },
+
+  _renderSankeyInner(container) {
+    const data = this.searchData.active;
+    if (!data || data.length === 0) {
+      container.innerHTML = '<div style="text-align:center;padding:4rem;color:var(--text-tertiary)">No data for this view.</div>';
+      return;
+    }
+
+    const containerW = container.offsetWidth || 600;
+    const isLvl0 = this.drillState.level === 0;
+    const effective = this.getEffectiveBubbleMode();
+    const useOfficeView = isLvl0 && effective === 'subagencies';
+    const mobileOfficeView = useOfficeView && containerW < 600;
+
+    const pathMap = {};
+    data.forEach(d => {
+      if (d['Award Amount'] <= 0) return;
+      const amt = d['Award Amount'];
+      const vendor = Utils.titleIfCaps(d['Recipient Name'] || 'Unknown Vendor');
+      const agency = Utils.titleIfCaps(d['Awarding Agency'] || 'Unknown Agency');
+      let sub = Utils.titleIfCaps(d['Awarding Sub Agency'] || d['Awarding Agency'] || agency);
+      const agencyUp = (d['Awarding Agency'] || '').toUpperCase().split('(')[0].trim();
+      const subUp = (d['Awarding Sub Agency'] || '').toUpperCase().split('(')[0].trim();
+      if (agencyUp === subUp && d['Awarding Office']) sub = Utils.titleIfCaps(d['Awarding Office']);
+
+      let key;
+      if (mobileOfficeView) {
+        const safeSub = sub === agency ? sub + ' (HQ)' : sub;
+        key = `${safeSub} ||| ${vendor}`;
+      } else if (useOfficeView) {
+        const safeSub = sub === agency ? sub + ' (HQ)' : sub;
+        key = `${agency} ||| ${safeSub} ||| ${vendor}`;
+      } else {
+        const source = isLvl0 ? agency : sub;
+        key = `${source} ||| ${vendor}`;
+      }
+      pathMap[key] = (pathMap[key] || 0) + amt;
+    });
+
+    const allPaths = Object.entries(pathMap).sort((a, b) => b[1] - a[1]);
+    const totalSpend = allPaths.reduce((s, [, v]) => s + v, 0);
+    let cumulative = 0, limit = 8;
+    for (let i = 0; i < Math.min(allPaths.length, 40); i++) {
+      cumulative += allPaths[i][1];
+      limit = i + 1;
+      if (cumulative / totalSpend >= 0.92 && limit >= 8) break;
+    }
+    const topPaths = allPaths.slice(0, limit);
+    const tailPaths = allPaths.slice(limit);
+
+    const nodesSet = new Set();
+    const linksMap = {};
+    const addLink = (s, t, v) => {
+      nodesSet.add(s); nodesSet.add(t);
+      const k = s + ':::' + t;
+      linksMap[k] = (linksMap[k] || 0) + v;
+    };
+
+    topPaths.forEach(([k, v]) => {
+      const parts = k.split(' ||| ');
+      if (parts.length === 3) { addLink(parts[0], parts[1], v); addLink(parts[1], parts[2], v); }
+      else { addLink(parts[0], parts[1], v); }
+    });
+
+    if (tailPaths.length > 0) {
+      const aggs = {};
+      tailPaths.forEach(([k, v]) => {
+        const parts = k.split(' ||| ');
+        const attach = parts.length === 3 ? parts[1] : parts[0];
+        if (nodesSet.has(attach)) aggs[attach] = (aggs[attach] || 0) + v;
+        else if (parts.length === 3 && nodesSet.has(parts[0])) aggs[parts[0]] = (aggs[parts[0]] || 0) + v;
+      });
+      Object.entries(aggs).forEach(([s, v]) => addLink(s, `Other (${tailPaths.length} contracts)`, v));
+    }
+
+    const links = Object.entries(linksMap).map(([k, v]) => {
+      const [source, target] = k.split(':::');
+      return { source, target, value: v };
+    });
+    const nodes = Array.from(nodesSet).map(n => ({ name: n }));
+
+    const svg = d3.select(container).append('svg').attr('id', 'sankeySvg');
+    ChartUtils.drawSankey(svg, {
+      nodes, links,
+      gradientPrefix: 'flow-grad',
+      heightPerNode: 28,
+      isDrillable: () => false, // no drill from sankey in new UI
+      isActive: () => false,
+      onNodeClick: () => {}
+    });
+  },
+
+  _initSwipe() {
+    const viewport = DOM.get('chartViewport');
+    if (!viewport) return;
+    let startX = 0, startY = 0, isDragging = false;
+    viewport.addEventListener('touchstart', e => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      isDragging = true;
+    }, { passive: true });
+    viewport.addEventListener('touchend', e => {
+      if (!isDragging) return;
+      isDragging = false;
+      const dx = e.changedTouches[0].clientX - startX;
+      const dy = e.changedTouches[0].clientY - startY;
+      if (Math.abs(dx) < 30 || Math.abs(dx) < Math.abs(dy)) return; // too short or more vertical
+      if (dx < 0 && this._chartView === 'treemap') this.switchChartView('sankey');
+      else if (dx > 0 && this._chartView === 'sankey') this.switchChartView('treemap');
+    }, { passive: true });
+  },
+
   triggerArtiFromBridge() {
     App.runAiActionPlan();
   },
@@ -6306,6 +6530,9 @@ selectAgencySuggestion(name, inputId, boxId) {
     } catch(e) {}
 
     // Render recent searches
+
+    // Init swipe gesture for chart panel
+    this._initSwipe();
 
     // Scroll-to-top button — appears after 400px scroll
     const scrollBtn = DOM.get('scrollTopBtn');
