@@ -6206,14 +6206,14 @@ selectAgencySuggestion(name, inputId, boxId) {
           DOM.show('artiDisclaimer');
           DOM.text('chatCounter', `${this.aiState.max} follow-up questions remaining.`);
           DOM.show('chatCounter');
-          if (btn) { btn.disabled = false; btn.textContent = 'Build an action plan'; }
+          
         },
         (msg) => {
           clearInterval(progTimer);
           DOM.hide('artiProgress');
           DOM.show('artiTrigger');
           contentEl.innerHTML = `<p style="color:var(--crit-text);font-size:var(--text-sm);padding:1rem 0;">${Html.escapeHtml(msg)}</p>`;
-          if (btn) { btn.disabled = false; btn.textContent = 'Build an action plan'; }
+          
         }
       );
 
@@ -6225,7 +6225,7 @@ selectAgencySuggestion(name, inputId, boxId) {
         ? 'Arti took too long — try a more focused search.'
         : (e.message || 'Something went wrong. Try again.');
       this.toast(msg, 'error');
-      if (btn) { btn.disabled = false; btn.textContent = 'Build an action plan'; }
+      
     }
   },
 
@@ -6856,13 +6856,6 @@ selectAgencySuggestion(name, inputId, boxId) {
 
     // Pre-build payload cache so send is instant
     this._artiPayloadCache = this._buildArtiPayload();
-
-    // Pre-warm the Lambda — fire-and-forget ping so container is hot when user clicks
-    fetch(this.AI_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ request_type: 'ping' })
-    }).catch(() => {});
 
     DOM.show('artiFab');
   },
