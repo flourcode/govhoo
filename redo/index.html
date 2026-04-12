@@ -6901,13 +6901,20 @@ selectAgencySuggestion(name, inputId, boxId) {
       });
     });
 
-    // Restore from URL params
+    // Restore from URL params — or fire default query on fresh load
+    const DEFAULT_QUERY = 'Cloud'; // ← change this anytime
     try {
       const params = new URLSearchParams(window.location.search);
       const q = params.get('q');
       const t = params.get('territory');
       if (t && this.SECTORS[t]) this.setTerritory(t);
-      if (q) { DOM.get('searchInput').value = q; this.runSearch(q); }
+      if (q) {
+        DOM.get('searchInput').value = q;
+        this.runSearch(q);
+      } else {
+        DOM.get('searchInput').value = DEFAULT_QUERY;
+        this.runSearch(DEFAULT_QUERY);
+      }
     } catch(e) {}
 
     // Render recent searches
