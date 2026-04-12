@@ -153,14 +153,13 @@ a, button, input, select { touch-action: manipulation; }
 .header-search-row .territory-dropdown { top: calc(100% + 6px); left: 0; min-width: 260px; }
 .logo-link {
   font-size: 0.95rem; font-weight: 800; letter-spacing: -0.01em;
-  color: var(--text-primary); text-decoration: none;
-  background: var(--bg-app); border: 1px solid var(--border);
+  color: #FFFFFF; text-decoration: none;
+  background: var(--btn-bg); border: 1px solid transparent;
   border-radius: var(--radius-sm); padding: 0 14px; height: 36px;
   display: inline-flex; align-items: center;
-  box-shadow: var(--shadow-sm); transition: var(--transition);
-  cursor: pointer;
+  transition: var(--transition); cursor: pointer;
 }
-.logo-link:hover { background: var(--bg-hover); }
+.logo-link:hover { background: var(--btn-hover); }
 .header-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .hdr-btn {
   background: var(--bg-app); border: 1px solid var(--border);
@@ -3473,6 +3472,13 @@ const App = {
       this.renderPipeline();
       this.renderExpiring();
       this.renderRecent();
+
+      // Clear sub-sankey stale state before async fetch
+      this._subawardData = null;
+      const ssc = DOM.get('subSankeyContainer');
+      if (ssc) { ssc.innerHTML = ''; delete ssc.dataset.rendered; }
+      if (this._chartView === 'subsankey') this.switchChartView('treemap');
+
       this.renderSubawards();
 
       // SearchPills
