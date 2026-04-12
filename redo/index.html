@@ -1037,6 +1037,7 @@ a, button, input, select { touch-action: manipulation; }
 @media (max-width: 640px) {
   .footer-explainer { grid-template-columns: 1fr; }
   .bio-card { flex-direction: column; align-items: center; text-align: center; }
+  .site-footer { padding-left: 16px; padding-right: 16px; }
   .bio-avatar { width: 80px; height: 80px; }
 }
 .footer-copy { font-size: var(--text-xs); color: var(--text-quaternary); text-align: center; margin-top: 12px; }
@@ -1046,7 +1047,7 @@ a, button, input, select { touch-action: manipulation; }
 
 /* ── MOBILE ── */
 @media (max-width: 640px) {
-  .page-wrap { padding: 20px 12px calc(3rem + var(--safe-bottom)); }
+  .page-wrap { padding: 20px 16px calc(3rem + var(--safe-bottom)); }
   .tools-grid { column-gap: 10px; }
   .app-card { padding: 20px 16px; }
   .search-input { font-size: 16px; }
