@@ -604,7 +604,7 @@ a, button, input, select { touch-action: manipulation; }
   color: var(--text-primary); line-height: 1;
   margin: 6px 0 4px; font-variant-numeric: tabular-nums;
 }
-.search-hero { padding: 32px 0 8px; }
+.search-hero { padding: 12px 0 8px; }
 .search-hero-sub { font-size: var(--text-sm); color: var(--text-tertiary); }
 .hero-headline {
   font-size: clamp(1.6rem, 3.5vw, 2.2rem); font-weight: 800;
@@ -4849,9 +4849,10 @@ selectAgencySuggestion(name, inputId, boxId) {
         DOM.get('searchInput').value = lastQuery;
         this.runSearch(lastQuery);
       } else {
-        // Cold visitor — show the hero, wait for them to search
+        // Cold visitor — show hero AND fire default search so there's something to see
         DOM.show('searchHero');
-        setTimeout(() => { const si = DOM.get('searchInput'); if (si) si.focus(); }, 400);
+        DOM.get('searchInput').value = DEFAULT_QUERY;
+        this.runSearch(DEFAULT_QUERY);
       }
     } catch(e) {
       DOM.show('searchHero');
