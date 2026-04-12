@@ -6766,14 +6766,19 @@ selectAgencySuggestion(name, inputId, boxId) {
   exportCSV() {
     const data = this.searchData.raw;
     if (!data || !data.length) { this.toast('No data to export — run a search first.', 'warning'); return; }
-    const headers = ['Award ID','Recipient Name','Awarding Agency','Awarding Sub Agency','Awarding Office','Award Amount','Start Date','End Date','Description','NAICS','PSC','Contract Award Type','Type of Set Aside','pop_city_name','pop_state_code'];
+    const headers = ['Award ID','Recipient Name','Awarding Agency','Awarding Sub Agency','Awarding Office','Award Amount','Start Date','End Date','Description','NAICS','PSC','Contract Award Type','Type of Set Aside','pop_city_name','pop_state_code','USASpending URL'];
     const esc = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
-    const rows = data.map(c => headers.map(h => {
-      const v = c[h];
-      if (h === 'NAICS' && v && typeof v === 'object') return esc(v.code || '');
-      if (h === 'PSC'  && v && typeof v === 'object') return esc(v.code || '');
-      return esc(v);
-    }).join(','));
+    const rows = data.map(c => {
+      const url = c['generated_internal_id']
+        ? `https://www.usaspending.gov/award/${c['generated_internal_id']}`
+        : c['Award ID'] ? `https://www.usaspending.gov/search/?hash=&keyword=${encodeURIComponent(c['Award ID'])}` : '';
+      return [...headers.slice(0, -1).map(h => {
+        const v = c[h];
+        if (h === 'NAICS' && v && typeof v === 'object') return esc(v.code || '');
+        if (h === 'PSC'  && v && typeof v === 'object') return esc(v.code || '');
+        return esc(v);
+      }), esc(url)].join(',');
+    });
     const csv = [headers.map(h => `"${h}"`).join(','), ...rows].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
