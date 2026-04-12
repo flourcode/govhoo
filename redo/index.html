@@ -6495,19 +6495,71 @@ selectAgencySuggestion(name, inputId, boxId) {
     if (!bridge || !bridgeText || !this.searchData.loaded) return;
 
     const data = this.searchData.active;
+    const now = new Date();
     const total = data.reduce((s,c) => s + (parseFloat(c['Award Amount'])||0), 0);
-    const agencyCount = new Set(data.map(c => c['Awarding Agency'])).size;
-    const topAgency = (() => {
-      const m = {};
-      data.forEach(c => {
-        const a = c['Awarding Agency'] || 'Unknown';
-        m[a] = (m[a]||0) + (parseFloat(c['Award Amount'])||0);
-      });
-      const top = Object.entries(m).sort((a,b)=>b[1]-a[1])[0];
-      return top ? Utils.titleIfCaps(Utils.cleanAgency(top[0])) : '';
-    })();
 
-    bridgeText.innerHTML = `I've read <strong>${Utils.money(total)}</strong> across <strong>${agencyCount} agencies</strong>${topAgency ? ` — top buyer is <strong>${Html.escapeHtml(topAgency)}</strong>` : ''}. Tell me who you're selling for and I'll build your <strong>30-day action plan</strong>.`;
+    // ── Compute signals ──────────────────────────────────────────
+    // 1. Top agency and its share
+    const agencyMap = {};
+    data.forEach(c => {
+      const a = c['Awarding Agency'] || 'Unknown';
+      agencyMap[a] = (agencyMap[a]||0) + (parseFloat(c['Award Amount'])||0);
+    });
+    const agencySorted = Object.entries(agencyMap).sort((a,b)=>b[1]-a[1]);
+    const topAgencyRaw = agencySorted[0]?.[0] || '';
+    const topAgency = Utils.titleIfCaps(Utils.cleanAgency(topAgencyRaw));
+    const topAgencyAmt = agencySorted[0]?.[1] || 0;
+    const topAgencyPct = total > 0 ? Math.round(topAgencyAmt / total * 100) : 0;
+
+    // 2. Top vendor and concentration
+    const vendorMap = {};
+    data.forEach(c => {
+      const v = c['Recipient Name'] || 'Unknown';
+      vendorMap[v] = (vendorMap[v]||0) + (parseFloat(c['Award Amount'])||0);
+    });
+    const vendorSorted = Object.entries(vendorMap).sort((a,b)=>b[1]-a[1]);
+    const topVendor = Utils.titleIfCaps(vendorSorted[0]?.[0] || '');
+    const topVendorAmt = vendorSorted[0]?.[1] || 0;
+    const topVendorPct = total > 0 ? Math.round(topVendorAmt / total * 100) : 0;
+    const top3Spend = vendorSorted.slice(0,3).reduce((s,[,v])=>s+v,0);
+    const top3Pct = total > 0 ? Math.round(top3Spend / total * 100) : 0;
+
+    // 3. Most urgent expiring contract (soonest, > $1M)
+    const expiring = data
+      .filter(c => {
+        const d = (new Date(c['End Date']) - now) / 86400000;
+        return d > 0 && d <= 90 && (parseFloat(c['Award Amount'])||0) > 1000000;
+      })
+      .sort((a,b) => new Date(a['End Date']) - new Date(b['End Date']));
+    const hottestExpiry = expiring[0];
+    const hotDays = hottestExpiry ? Math.ceil((new Date(hottestExpiry['End Date']) - now) / 86400000) : null;
+    const hotVendor = hottestExpiry ? Utils.titleIfCaps(hottestExpiry['Recipient Name'] || '') : null;
+    const hotAmt = hottestExpiry ? parseFloat(hottestExpiry['Award Amount'])||0 : 0;
+
+    // ── Pick the lead signal — most actionable fact first ────────
+    let insight = '';
+
+    if (hotDays !== null && hotDays <= 30) {
+      // Urgent expiry in under 30 days — always lead here
+      insight = `<strong>${hotVendor}</strong> holds a <strong>${Utils.money(hotAmt)}</strong> contract expiring in <strong>${hotDays} days</strong> — that recompete window is open right now.`;
+    } else if (topVendorPct >= 40) {
+      // One vendor owns the market — that's a big strategic fact
+      insight = `<strong>${topVendor}</strong> owns <strong>${topVendorPct}%</strong> of this market. Displacing them is the path, or you need a teaming strategy.`;
+    } else if (top3Pct <= 35 && vendorSorted.length >= 5) {
+      // Fragmented — multiple entry points
+      insight = `This market is fragmented — the top 3 vendors share only <strong>${top3Pct}%</strong>. Multiple entry points, no dominant incumbent to lock you out.`;
+    } else if (topAgencyPct >= 50) {
+      // One agency dominates — focus message
+      insight = `<strong>${topAgency}</strong> controls <strong>${topAgencyPct}%</strong> of this market. One relationship, one contracting office, one place to focus.`;
+    } else if (hotDays !== null) {
+      // Expiry exists but not urgent — still worth flagging
+      insight = `<strong>${hotVendor}</strong>'s <strong>${Utils.money(hotAmt)}</strong> contract expires in <strong>${hotDays} days</strong>. That's your near-term opening.`;
+    } else {
+      // Fallback — size and top buyer
+      insight = `<strong>${Utils.money(total)}</strong> market, top buyer is <strong>${topAgency}</strong>${topAgencyPct > 0 ? ` at ${topAgencyPct}%` : ''}.`;
+    }
+
+    bridgeText.innerHTML = `${insight} Tell me who you're selling for and I'll build your <strong>30-day action plan</strong>.`;
     DOM.show('artiBridge');
   },
 
