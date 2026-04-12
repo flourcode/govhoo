@@ -604,8 +604,30 @@ a, button, input, select { touch-action: manipulation; }
   color: var(--text-primary); line-height: 1;
   margin: 6px 0 4px; font-variant-numeric: tabular-nums;
 }
-.search-hero { padding: 14px 0 8px; }
+.search-hero { padding: 32px 0 8px; }
 .search-hero-sub { font-size: var(--text-sm); color: var(--text-tertiary); }
+.hero-headline {
+  font-size: clamp(1.6rem, 3.5vw, 2.2rem); font-weight: 800;
+  color: var(--text-primary); letter-spacing: -0.03em;
+  line-height: 1.2; margin-bottom: 10px;
+}
+.hero-sub {
+  font-size: var(--text-sm); color: var(--text-secondary);
+  line-height: 1.6; max-width: 520px; margin-bottom: 24px;
+}
+.hero-examples {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;
+}
+.hero-example-chip {
+  background: var(--bg-app); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 6px 14px;
+  font-size: var(--text-sm); font-weight: 500; color: var(--text-secondary);
+  cursor: pointer; font-family: var(--font); transition: var(--transition);
+}
+.hero-example-chip:hover { background: var(--accent-dim); color: var(--btn-bg); border-color: var(--accent-dim); }
+.hero-example-label {
+  font-size: var(--text-xs); color: var(--text-quaternary); margin-bottom: 8px;
+}
 .search-bar-wrap { position: relative; max-width: 680px; }
 .search-bar-inner {
   display: flex; align-items: stretch;
@@ -1044,8 +1066,17 @@ a, button, input, select { touch-action: manipulation; }
 <div class="page-wrap">
 
   <!-- LANDING PROMPT, shown only before first search -->
-  <div class="search-hero" id="searchHero">
-    <p class="search-hero-sub" style="color:var(--text-quaternary);font-size:var(--text-sm);margin:0;">Search a company, keyword, or NAICS code to see who's buying and who's winning.</p>
+  <div class="search-hero hidden" id="searchHero">
+    <h1 class="hero-headline">Know any federal market<br>before the meeting starts.</h1>
+    <p class="hero-sub">Search any agency, company, keyword, or NAICS code. See who's buying, who's winning, what's expiring, and where you have a shot — in seconds.</p>
+    <p class="hero-example-label">Try a search</p>
+    <div class="hero-examples">
+      <button class="hero-example-chip" onclick="App.runSearch('Cloud')">Cloud</button>
+      <button class="hero-example-chip" onclick="App.runSearch('Zero Trust')">Zero Trust</button>
+      <button class="hero-example-chip" onclick="App.runSearch('Cybersecurity')">Cybersecurity</button>
+      <button class="hero-example-chip" onclick="App.runSearch('541512')">NAICS 541512</button>
+      <button class="hero-example-chip" onclick="App.runSearch('DHS AND Splunk')">DHS AND Splunk</button>
+    </div>
   </div><!-- /search-hero -->
 
   <!-- RESULTS GRID -->
@@ -4800,24 +4831,31 @@ selectAgencySuggestion(name, inputId, boxId) {
       }
     } catch(e) {}
 
-    // Restore from URL params → last saved query → default
-    const DEFAULT_QUERY = 'Cloud'; // ← change this anytime
+    // Restore from URL params → last saved query → show hero for cold visitors
+    const DEFAULT_QUERY = 'Cloud'; // ← fallback if hero chip isn't used
     try {
       const params = new URLSearchParams(window.location.search);
       const q = params.get('q');
       const t = params.get('territory');
       if (t && this.SECTORS[t]) this.setTerritory(t);
       const lastQuery = localStorage.getItem('fedhoo_last_query');
-      const startQuery = q || lastQuery || DEFAULT_QUERY;
-      DOM.get('searchInput').value = startQuery;
-      this.runSearch(startQuery);
-    } catch(e) {}
 
-    // Auto-focus search on load, keyboard ready on iPhone
-    setTimeout(() => {
-      const si = DOM.get('searchInput');
-      if (si && !si.value) si.focus();
-    }, 600);
+      if (q) {
+        // URL param — fire immediately (shared link)
+        DOM.get('searchInput').value = q;
+        this.runSearch(q);
+      } else if (lastQuery) {
+        // Returning visitor — auto-fire their last search, skip hero
+        DOM.get('searchInput').value = lastQuery;
+        this.runSearch(lastQuery);
+      } else {
+        // Cold visitor — show the hero, wait for them to search
+        DOM.show('searchHero');
+        setTimeout(() => { const si = DOM.get('searchInput'); if (si) si.focus(); }, 400);
+      }
+    } catch(e) {
+      DOM.show('searchHero');
+    }
 
     // Render recent searches
 
