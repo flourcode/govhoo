@@ -284,13 +284,19 @@ a, button, input, select { touch-action: manipulation; }
 }
 .chart-tab.active { background: var(--bg-app); color: var(--text-primary); box-shadow: var(--shadow-sm); }
 .chart-tab:hover:not(.active) { color: var(--text-secondary); }
-.chart-viewport { overflow: hidden; position: relative; margin-top: 10px; touch-action: pan-y; }
+.chart-viewport { position: relative; margin-top: 10px; overflow: hidden; }
 .chart-track {
   display: flex; width: 200%;
   transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
   will-change: transform;
 }
-.chart-panel { width: 50%; flex-shrink: 0; }
+.chart-panel {
+  width: 50%; flex-shrink: 0;
+  /* inactive panel is visually clipped by chart-viewport overflow:hidden */
+}
+/* The inactive panel must not add height to the track row.
+   We achieve this by making the viewport only as tall as the active panel
+   via JS — but we also set the SVG container to not have a min-height */
 .chart-dots { display: none; justify-content: center; gap: 6px; margin-top: 10px; }
 .chart-dot {
   width: 6px; height: 6px; border-radius: 9999px;
@@ -454,7 +460,7 @@ a, button, input, select { touch-action: manipulation; }
 }
 .bubble-toggle-btn.active { background: var(--bg-active); color: var(--text-primary); font-weight: 600; }
 
-#bubbleChartContainer { width: 100%; min-height: 400px; position: relative; margin-top: 14px; }
+#bubbleChartContainer { width: 100%; position: relative; margin-top: 14px; }
 #bubbleChartContainer svg { width: 100%; height: auto; display: block; }
 .bubble-tooltip {
   position: absolute; background: var(--bg-app); border: 1px solid var(--border);
@@ -653,8 +659,8 @@ a, button, input, select { touch-action: manipulation; }
 
   <!-- SEARCH HERO -->
   <div class="search-hero" id="searchHero">
-    <h1 class="search-hero-title">Know any federal market<br>before the meeting starts.</h1>
-    <p class="search-hero-sub">Search a company, keyword, or NAICS code → see who's buying and who's winning → get AI strategy in seconds.</p>
+    <h1 class="search-hero-title">Know the federal market<br>before the meeting.</h1>
+    <p class="search-hero-sub">See who's buying, who's winning, and what to do next.</p>
     <div class="search-bar-wrap">
       <div class="search-bar-inner" id="searchBarInner">
         <button class="search-territory-btn" id="territoryBtn" onclick="App.toggleTerritoryMenu()">
@@ -5362,12 +5368,6 @@ const App = {
       this.renderBridge();
       this.renderExpiring();
       this.renderRecent();
-      // Sync viewport height after initial render
-      requestAnimationFrame(() => {
-        const vp = DOM.get('chartViewport');
-        const panel = DOM.get('panelTreemap');
-        if (vp && panel) vp.style.height = panel.scrollHeight + 'px';
-      });
 
       // SearchPills
 
@@ -5633,6 +5633,12 @@ const App = {
     }
 
     const svg = d3.select(container).append('svg').attr('width', w).attr('height', h).attr('viewBox', `0 0 ${w} ${h}`);
+
+    // Sync viewport height using h (known exactly) so inactive Sankey panel never bloats the container
+    if (this._chartView !== 'sankey') {
+      const vp = DOM.get('chartViewport');
+      if (vp) vp.style.height = (container.offsetTop + h + 2) + 'px';
+    }
 
 if (this.bubbleChartType === 'treemap') {
       const hierarchy = d3.hierarchy({ children: entities }).sum(d => d.spend).sort((a, b) => b.value - a.value);
@@ -6338,14 +6344,10 @@ selectAgencySuggestion(name, inputId, boxId) {
         }, 370);
       }
     } else {
-      // Treemap: wait for slide transition to finish, then re-render at correct width, then size viewport
+      // Treemap: wait for slide transition, then re-render at correct width
+      // renderBubbleChart sets viewport height directly using h
       setTimeout(() => {
-        if (!this.searchData.loaded) return;
-        this.renderBubbleChart(); // draws SVG at correct width now that panel is visible
-        requestAnimationFrame(() => {
-          const panel = DOM.get('panelTreemap');
-          if (viewport && panel) viewport.style.height = panel.scrollHeight + 'px';
-        });
+        if (this.searchData.loaded) this.renderBubbleChart();
       }, 360);
     }
   },
