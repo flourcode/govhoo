@@ -1070,7 +1070,7 @@ a, button, input, select { touch-action: manipulation; }
     <div id="artiTrigger">
       <div class="arti-hero">
         <img src="/images/arti.png" alt="Arti" class="arti-hero-avatar">
-        <h2 class="arti-hero-question">What do you<br>want to know?</h2>
+        <h2 class="arti-hero-question">Let's make sense of this.</h2>
         <p class="arti-hero-insight" id="artiBridgeText">I've read the data and I'm ready.</p>
       </div>
       <div class="arti-hero-input-wrap">
@@ -4479,7 +4479,7 @@ selectAgencySuggestion(name, inputId, boxId) {
     }
 
     const queryLabel = Utils.titleCase((this.currentQuery || 'this market').trim());
-    bridgeText.innerHTML = `How can I help with <strong>${Html.escapeHtml(queryLabel)}</strong>?`;
+    bridgeText.innerHTML = `Ask about incumbents, expiring contracts, partners, or where you have a shot in <strong>${Html.escapeHtml(queryLabel)}</strong>.`;
 
     // Pre-build payload cache so send is instant
     this._artiPayloadCache = this._buildArtiPayload();
