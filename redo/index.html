@@ -860,12 +860,24 @@ const Utils = {
   
   titleCase: s => {
     if (!s) return '';
-    const small = new Set(['AND','OR','OF','THE','FOR','IN','ON','AT','TO','BY','AN','A','LLC','INC','CORP','LTD','LP','LLP','PC','PA','NA','DBA']);
+    // Known acronyms that should always be fully uppercased
+    const ACRONYMS = new Set([
+      'VA','DHS','DOD','DOJ','DOE','DOT','DOL','DOS','HHS','GSA','NASA','NSA','CIA','FBI',
+      'DISA','DARPA','SOCOM','JSOC','DLA','DFAS','AAFES','NIH','CDC','FDA','CMS','DEA',
+      'ATF','CBP','ICE','TSA','FEMA','USCIS','USCG','USMC','USAF','USA','USN','SOCOM',
+      'NSF','NRC','SEC','IRS','OPM','OMB','GAO','CBO','DIA','NGA','NRO','NIST','NOAA',
+      'EPA','FCC','FTC','FDIC','CISA','CYBERCOM','STRATCOM','INDOPACOM','CENTCOM','EUCOM',
+      'NORTHCOM','TRANSCOM','NAVSEA','NAVAIR','SPAWAR','AFSPC','AFMC','AMC','FORSCOM',
+      'LLC','INC','CORP','LTD','LP','LLP','PC','SBA','USDA','HUD','SSA','OPM',
+      'AI','IT','HR','BD','AE','PM','CO','PO','ID','US','UK',
+    ]);
+    const SMALL = new Set(['AND','OR','OF','THE','FOR','IN','ON','AT','TO','BY','AN','A','DBA']);
     return s.toLowerCase().replace(/\b\w+/g, (w, i) => {
       const up = w.toUpperCase();
-      if (i > 0 && small.has(up) && up.length <= 3) return w;
+      if (ACRONYMS.has(up)) return up;
+      if (i > 0 && SMALL.has(up)) return w;
       return w.charAt(0).toUpperCase() + w.slice(1);
-    }).replace(/,\s*llc|,\s*inc|,\s*corp/gi, m => m.toUpperCase());
+    });
   },
 
   date: s => s ? new Date(s).toLocaleDateString() : '—',
@@ -5209,10 +5221,10 @@ const App = {
 
       this.searchData = { raw: results, active: filtered, filter: null, loaded: true };
 
-      // Dynamic card title = the search query
-      const label = query.length <= 30 ? query : query.slice(0, 28) + '…';
-      const cap = s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
-      document.getElementById('marketCardTitle').textContent = cap(label) + ' Market';
+      // Dynamic card title — properly title-cased, handles comma lists
+      const titleLabel = query.split(/,\s*/).map(t => Utils.titleCase(t.trim())).join(', ');
+      const displayLabel = titleLabel.length <= 40 ? titleLabel : titleLabel.slice(0, 38) + '…';
+      document.getElementById('marketCardTitle').textContent = displayLabel + ' Market';
       document.getElementById('marketCardDesc').textContent = 'Where the money is concentrated. Click any segment to drill in.';
 
       // Show results grid
@@ -5362,7 +5374,7 @@ const App = {
     path.forEach((step, i) => {
       html += `<span class="breadcrumb-sep">›</span>`;
       const isLast = i === path.length - 1;
-      html += `<button class="breadcrumb-item ${isLast ? 'active' : ''}" ${isLast ? '' : `onclick="App.drillToLevel(${i + 1})"`}>${Html.escapeHtml(step.name)}</button>`;
+      html += `<button class="breadcrumb-item ${isLast ? 'active' : ''}" ${isLast ? '' : `onclick="App.drillToLevel(${i + 1})"`}>${Html.escapeHtml(Utils.titleIfCaps(step.name))}</button>`;
     });
     inner.innerHTML = html;
   },
@@ -5400,7 +5412,7 @@ const App = {
       const amount = parseFloat(award['Award Amount']) || 0;
       
       if (!entityMap[key]) {
-        entityMap[key] = { name: key, spend: 0, count: 0, agencies: new Set(), subAgencies: new Set(), vendors: new Set() };
+        entityMap[key] = { name: Utils.titleIfCaps(key), spend: 0, count: 0, agencies: new Set(), subAgencies: new Set(), vendors: new Set() };
       }
       entityMap[key].spend += amount;
       entityMap[key].count++;
@@ -6166,7 +6178,7 @@ selectAgencySuggestion(name, inputId, boxId) {
         m[a] = (m[a]||0) + (parseFloat(c['Award Amount'])||0);
       });
       const top = Object.entries(m).sort((a,b)=>b[1]-a[1])[0];
-      return top ? Utils.cleanAgency(top[0]) : '';
+      return top ? Utils.titleIfCaps(Utils.cleanAgency(top[0])) : '';
     })();
 
     bridgeText.innerHTML = `<strong>${Utils.money(total)}</strong> across <strong>${agencyCount} agencies</strong>${topAgency ? ` — top buyer is <strong>${Html.escapeHtml(topAgency)}</strong>` : ''}. Arti has read this data and is ready.`;
