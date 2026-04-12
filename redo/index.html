@@ -949,7 +949,7 @@ a, button, input, select { touch-action: manipulation; }
 </button>
 
 <!-- ARTI BOTTOM SHEET MODAL -->
-<div class="arti-backdrop hidden" id="artiBackdrop" onclick="App.closeArtiSheet()"></div>
+<div class="arti-backdrop hidden" id="artiBackdrop"></div>
 <div class="arti-sheet hidden" id="artiSheet">
   <div class="arti-sheet-header">
     <div class="arti-sheet-drag"></div>
@@ -5269,6 +5269,7 @@ const VehicleDetector = {
 const App = {
   currentQuery: '',
   artiContext: '',
+  _artiPayloadCache: null, // pre-built at search time, attached to send
   territory: null,
   _searchId: 0,
   _territoryAgencyOverride: null,
@@ -5499,6 +5500,7 @@ const App = {
     // Hide results, show loader
     DOM.hide('resultsGrid');
     DOM.hide('artiFab'); DOM.get('artiBridge') && DOM.hide('artiBridge');
+    this._artiPayloadCache = null;
     this.closeArtiSheet();
     DOM.hide('expiringCard');
     DOM.hide('recentCard');
@@ -6138,57 +6140,8 @@ selectAgencySuggestion(name, inputId, boxId) {
       if (fill) fill.style.width = pct + '%';
     }, 300);
 
-    // Build enriched payload — more data = better strategy
-    const data = this.searchData.active;
-    const now = new Date();
-    const summaryPayload = (() => {
-      const totalVal = data.reduce((s, c) => s + (parseFloat(c['Award Amount']) || 0), 0);
-      const agencyMap = {};
-      data.forEach(c => {
-        const a = c['Awarding Agency'] || 'Unknown';
-        agencyMap[a] = (agencyMap[a] || 0) + (parseFloat(c['Award Amount']) || 0);
-      });
-      const topAgencies = Object.entries(agencyMap).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([name,amt])=>({ name, amount: amt }));
-      const vendorMap = {};
-      data.forEach(c => {
-        const v = c['Recipient Name'] || 'Unknown';
-        vendorMap[v] = (vendorMap[v] || 0) + (parseFloat(c['Award Amount']) || 0);
-      });
-      const topVendors = Object.entries(vendorMap).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([name,amt])=>({ name, amount: amt }));
-
-      // Expiring in 90 days — highest urgency opps
-      const expiring = data
-        .filter(c => { const e = new Date(c['End Date']); const d = (e - now)/86400000; return d > 0 && d <= 90; })
-        .sort((a,b) => new Date(a['End Date']) - new Date(b['End Date']))
-        .slice(0, 8)
-        .map(c => ({
-          vendor: c['Recipient Name'],
-          agency: c['Awarding Sub Agency'] || c['Awarding Agency'],
-          amount: c['Award Amount'],
-          end_date: c['End Date'],
-          days_left: Math.ceil((new Date(c['End Date']) - now) / 86400000),
-          description: (c['Description'] || '').slice(0, 120)
-        }));
-
-      return {
-        query: this.currentQuery,
-        total_value: totalVal,
-        contract_count: data.length,
-        top_agencies: topAgencies,
-        top_vendors: topVendors,
-        expiring_soon: expiring,
-        sample_contracts: data.slice(0, 20).map(c => ({
-          'Recipient Name': c['Recipient Name'],
-          'Awarding Agency': c['Awarding Sub Agency'] || c['Awarding Agency'],
-          'Award Amount': c['Award Amount'],
-          'End Date': c['End Date'],
-          'Start Date': c['Start Date'],
-          'Description': (c['Description'] || '').slice(0, 100),
-          'NAICS': c['NAICS'],
-          'PSC': c['PSC']
-        }))
-      };
-    })();
+    // Use pre-built payload cache — built at search time so send is instant
+    const summaryPayload = this._artiPayloadCache || this._buildArtiPayload();
 
     const userContext = (this.artiContext || '').trim();
     const territoryScope = this.territory && this.SECTORS[this.territory]
@@ -6768,6 +6721,55 @@ selectAgencySuggestion(name, inputId, boxId) {
     App.runAiActionPlan();
   },
 
+  _buildArtiPayload() {
+    const data = this.searchData.active;
+    if (!data || !data.length) return null;
+    const now = new Date();
+    const totalVal = data.reduce((s, c) => s + (parseFloat(c['Award Amount']) || 0), 0);
+    const agencyMap = {};
+    data.forEach(c => {
+      const a = c['Awarding Agency'] || 'Unknown';
+      agencyMap[a] = (agencyMap[a] || 0) + (parseFloat(c['Award Amount']) || 0);
+    });
+    const topAgencies = Object.entries(agencyMap).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([name,amt])=>({ name, amount: amt }));
+    const vendorMap = {};
+    data.forEach(c => {
+      const v = c['Recipient Name'] || 'Unknown';
+      vendorMap[v] = (vendorMap[v] || 0) + (parseFloat(c['Award Amount']) || 0);
+    });
+    const topVendors = Object.entries(vendorMap).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([name,amt])=>({ name, amount: amt }));
+    const expiring = data
+      .filter(c => { const e = new Date(c['End Date']); const d = (e - now)/86400000; return d > 0 && d <= 90; })
+      .sort((a,b) => new Date(a['End Date']) - new Date(b['End Date']))
+      .slice(0, 8)
+      .map(c => ({
+        vendor: c['Recipient Name'],
+        agency: c['Awarding Sub Agency'] || c['Awarding Agency'],
+        amount: c['Award Amount'],
+        end_date: c['End Date'],
+        days_left: Math.ceil((new Date(c['End Date']) - now) / 86400000),
+        description: (c['Description'] || '').slice(0, 120)
+      }));
+    return {
+      query: this.currentQuery,
+      total_value: totalVal,
+      contract_count: data.length,
+      top_agencies: topAgencies,
+      top_vendors: topVendors,
+      expiring_soon: expiring,
+      sample_contracts: data.slice(0, 20).map(c => ({
+        'Recipient Name': c['Recipient Name'],
+        'Awarding Agency': c['Awarding Sub Agency'] || c['Awarding Agency'],
+        'Award Amount': c['Award Amount'],
+        'End Date': c['End Date'],
+        'Start Date': c['Start Date'],
+        'Description': (c['Description'] || '').slice(0, 100),
+        'NAICS': c['NAICS'],
+        'PSC': c['PSC']
+      }))
+    };
+  },
+
   renderBridge() {
     const bridgeText = DOM.get('artiBridgeText');
     if (!bridgeText || !this.searchData.loaded) return;
@@ -6838,6 +6840,16 @@ selectAgencySuggestion(name, inputId, boxId) {
     }
 
     bridgeText.innerHTML = `${insight} Tell me who you're selling for and I'll build your <strong>30-day action plan</strong>.`;
+
+    // Pre-build payload cache so send is instant
+    this._artiPayloadCache = this._buildArtiPayload();
+
+    // Pre-warm the Lambda — fire-and-forget ping so container is hot when user clicks
+    fetch(this.AI_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ request_type: 'ping' })
+    }).catch(() => {});
 
     DOM.show('artiFab');
   },
