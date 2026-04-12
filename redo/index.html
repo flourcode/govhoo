@@ -6160,11 +6160,15 @@ selectAgencySuggestion(name, inputId, boxId) {
     const objective = `${territoryScope}${userContext ? `The seller says: "${userContext}". ` : ''}You are a sharp federal BD analyst giving a 60-second pre-meeting briefing. Respond in 3-5 sentences maximum. Lead with the single most important fact about this market — the biggest opportunity, the dominant incumbent, or the most urgent recompete. Then give one specific recommended move. Use real names and real dollar figures. No headers, no bullet points, no plans — just a direct briefing like a colleague who pulled the file before the meeting.`;
 
     try {
+      const artiAbort = new AbortController();
+      const artiTimeout = setTimeout(() => artiAbort.abort(), 25000);
       const res = await fetch(this.AI_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ request_type: 'govhoo_action_plan', market_data: summaryPayload, objective })
+        body: JSON.stringify({ request_type: 'govhoo_brief', market_data: summaryPayload, objective }),
+        signal: artiAbort.signal
       });
+      clearTimeout(artiTimeout);
 
       if (!res.ok) throw new Error(`Error ${res.status}`);
 
