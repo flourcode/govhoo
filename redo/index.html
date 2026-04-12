@@ -6848,6 +6848,18 @@ selectAgencySuggestion(name, inputId, boxId) {
 
     // Render recent searches
 
+    // Anchor FAB to visual viewport on mobile — prevents it sliding under browser chrome
+    if (window.visualViewport) {
+      const fab = DOM.get('artiFab');
+      const syncFab = () => {
+        if (!fab || fab.classList.contains('hidden')) return;
+        const vv = window.visualViewport;
+        fab.style.bottom = (window.innerHeight - vv.height - vv.offsetTop + 28) + 'px';
+      };
+      window.visualViewport.addEventListener('resize', syncFab, { passive: true });
+      window.visualViewport.addEventListener('scroll', syncFab, { passive: true });
+    }
+
     // Close Arti sheet on Escape
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') App.closeArtiSheet();
