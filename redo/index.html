@@ -5221,10 +5221,10 @@ const App = {
 
       this.searchData = { raw: results, active: filtered, filter: null, loaded: true };
 
-      // Dynamic card title — properly title-cased, handles comma lists
-      const titleLabel = query.split(/,\s*/).map(t => Utils.titleCase(t.trim())).join(', ');
-      const displayLabel = titleLabel.length <= 40 ? titleLabel : titleLabel.slice(0, 38) + '…';
-      document.getElementById('marketCardTitle').textContent = displayLabel + ' Market';
+      // Card title = title-cased search query, no "Market" suffix
+      const rawForTitle = (DOM.get('searchInput')?.value || query).trim();
+      const titleLabel = rawForTitle.split(/,\s*/).map(t => Utils.titleCase(t.trim())).join(', ');
+      document.getElementById('marketCardTitle').textContent = titleLabel;
       document.getElementById('marketCardDesc').textContent = 'Where the money is concentrated. Click any segment to drill in.';
 
       // Show results grid
