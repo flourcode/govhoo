@@ -6794,14 +6794,6 @@ selectAgencySuggestion(name, inputId, boxId) {
 
     bridgeText.innerHTML = `${insight} Tell me who you're selling for and I'll build your <strong>30-day action plan</strong>.`;
 
-    // FAB label teaser — short version of the insight
-    const fabLabel = DOM.get('artiFabLabel');
-    if (fabLabel) {
-      if (hotDays !== null && hotDays <= 30) fabLabel.textContent = `${hotDays}d recompete window`;
-      else if (topVendorPct >= 40) fabLabel.textContent = `${topVendor.split(' ')[0]} owns ${topVendorPct}%`;
-      else if (hotDays !== null) fabLabel.textContent = `${hotDays}d to recompete`;
-      else fabLabel.textContent = 'Ask Arti';
-    }
     DOM.show('artiFab');
   },
 
