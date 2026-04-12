@@ -395,6 +395,40 @@ a, button, input, select { touch-action: manipulation; }
   margin-bottom: 10px;
 }
 .calendly-inline-widget { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); }
+/* ── EMPTY STATE ── */
+.empty-state {
+  padding: 40px 24px 32px; text-align: center;
+}
+.empty-shrug { font-size: 2.5rem; margin-bottom: 12px; }
+.empty-title {
+  font-size: var(--text-xl); font-weight: 700;
+  color: var(--text-primary); letter-spacing: -0.02em;
+  margin-bottom: 10px;
+}
+.empty-desc {
+  font-size: var(--text-sm); color: var(--text-secondary);
+  line-height: 1.6; max-width: 480px; margin: 0 auto 20px;
+}
+.empty-tips {
+  text-align: left; max-width: 460px; margin: 0 auto 24px;
+  padding-left: 20px; display: flex; flex-direction: column; gap: 8px;
+}
+.empty-tips li { font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.5; }
+.empty-tips strong { color: var(--text-primary); }
+.empty-tips code {
+  background: var(--accent-dim); color: var(--btn-bg);
+  padding: 1px 6px; border-radius: 4px;
+  font-size: var(--text-xs); font-weight: 600; font-family: var(--font);
+}
+.empty-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.empty-chip {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 6px 14px;
+  font-size: var(--text-sm); font-weight: 500; color: var(--text-secondary);
+  cursor: pointer; font-family: var(--font); transition: var(--transition);
+}
+.empty-chip:hover { background: var(--accent-dim); color: var(--btn-bg); border-color: var(--accent-dim); }
+
 .export-btn {
   font-size: var(--text-xs); font-weight: 600;
   padding: 5px 12px; border-radius: var(--radius-xs);
@@ -5668,13 +5702,50 @@ const App = {
   },
 
   showEmptyState(query) {
+    // Hide all result panels so old data doesn't bleed through
+    DOM.hide('primesCard');
+    DOM.hide('recentCard');
+    DOM.hide('expiringCard');
+    DOM.hide('artiFab');
+    DOM.hide('bubbleToggleRow');
+    DOM.hide('bubbleBreadcrumb');
+
     DOM.show('resultsGrid');
     DOM.show('marketCard');
+
+    document.getElementById('marketCardTitle').textContent = '';
+    document.getElementById('marketHeroNumber').textContent = '';
+
+    const territoryNote = this.territory && this.SECTORS[this.territory]
+      ? ` in <strong>${this.SECTORS[this.territory].label}</strong>` : '';
+
+    const suggestions = [
+      { label: 'Cloud', q: 'Cloud' },
+      { label: 'Zero Trust', q: 'Zero Trust' },
+      { label: 'NAICS 541512', q: '541512' },
+      { label: 'Cybersecurity', q: 'Cybersecurity' },
+      { label: 'DHS AND Splunk', q: 'DHS AND Splunk' },
+    ];
+
+    const chips = suggestions.map(s =>
+      `<button class="empty-chip" onclick="App.runSearch('${Html.escapeHtml(s.q)}')">${Html.escapeHtml(s.label)}</button>`
+    ).join('');
+
     const container = DOM.get('bubbleChartContainer');
-    DOM.show('marketEmpty');
-    DOM.hide('bubbleToggleRow');
-    document.getElementById('marketCardTitle').textContent = `No results for "${query}"`;
-    document.getElementById('marketCardDesc').textContent = 'Try a different keyword, company name, or NAICS code. Keep it literal — this is a database, not Google.';
+    if (container) container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-shrug">🤷</div>
+        <h3 class="empty-title">Nothing for "<strong>${Html.escapeHtml(query)}</strong>"${territoryNote}</h3>
+        <p class="empty-desc">This is a strict government database — brand names, abbreviations, and nicknames often don't match how contracts are filed. A few things to try:</p>
+        <ul class="empty-tips">
+          <li><strong>Use the legal entity name</strong> — "Primer Federal" not "Primer.ai"</li>
+          <li><strong>Search what they sell</strong> — try a keyword like <code>Zero Trust</code> or <code>Cloud Migration</code> and find them in the treemap</li>
+          <li><strong>Intersect with an agency</strong> — <code>DHS AND Splunk</code> narrows it down</li>
+          <li><strong>Use a NAICS code</strong> — 6 digits catches contracts regardless of how the vendor name is spelled</li>
+          <li><strong>AND searches are strict</strong> — both terms must appear in the same contract description</li>
+        </ul>
+        <div class="empty-chips">${chips}</div>
+      </div>`;
   },
 
   // ── Territory ───────────────────────────────────────────────
