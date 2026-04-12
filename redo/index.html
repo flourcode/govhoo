@@ -388,7 +388,17 @@ a, button, input, select { touch-action: manipulation; }
   .scroll-top-btn:hover { transform: translateX(50%) translateY(-2px); }
   .scroll-top-btn:active { transform: translateX(50%) scale(0.93); }
 }
-/* ── TOP PRIMES CARD ── */
+/* ── EXPORT BUTTON ── */
+.export-btn {
+  font-size: var(--text-xs); font-weight: 600;
+  padding: 5px 12px; border-radius: var(--radius-xs);
+  border: 1px solid var(--border); background: var(--bg);
+  color: var(--text-tertiary); cursor: pointer;
+  font-family: var(--font); transition: var(--transition);
+  white-space: nowrap; flex-shrink: 0;
+}
+.export-btn:hover { background: var(--accent-dim); color: var(--btn-bg); border-color: var(--accent-dim); }
+.primes-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
 .primes-list { display: flex; flex-direction: column; margin-top: 4px; }
 .prime-row {
   display: flex; align-items: center; gap: 12px;
@@ -872,7 +882,7 @@ a, button, input, select { touch-action: manipulation; }
         <div>
           <h2 class="card-title" id="marketCardTitle">Market Signals</h2>
           <div class="market-hero-number" id="marketHeroNumber"></div>
-          <p class="card-desc" style="margin-bottom:0;" id="marketCardDesc">Where the money is concentrated. Click any segment to drill in.</p>
+          <p class="card-desc" style="margin-bottom:0;display:none;" id="marketCardDesc"></p>
         </div>
         <button class="btn-secondary hidden" id="resetDrillBtn" onclick="App.resetDrill()">↑ Back</button>
       </div>
@@ -927,23 +937,25 @@ a, button, input, select { touch-action: manipulation; }
       <div class="primes-header">
         <div>
           <h2 class="card-title">Top Primes</h2>
-          <p class="card-desc">Who's winning — ranked by total obligated spend. Find their people, track their jobs, follow their news.</p>
         </div>
+        <button class="export-btn" onclick="App.exportCSV()" title="Export all search data as CSV">Export CSV</button>
       </div>
       <div class="primes-list" id="primesList"></div>
     </div>
 
     <!-- RECENT AWARDS CARD -->
     <div class="app-card wide hidden" id="recentCard">
-      <h2 class="card-title">Recent Awards</h2>
-      <p class="card-desc">Contracts awarded in the past 90 days. Know who's winning, at which agencies, and at what price.</p>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;">
+        <h2 class="card-title" style="margin:0;">Recent Awards</h2>
+      </div>
       <div class="contract-list" id="recentList"></div>
     </div>
 
     <!-- EXPIRING SOON CARD -->
     <div class="app-card wide hidden" id="expiringCard">
-      <h2 class="card-title">Expiring in the Next 90 Days</h2>
-      <p class="card-desc">Highest-urgency recompete opportunities — ranked by value × days remaining. These are the contracts to pursue now.</p>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;">
+        <h2 class="card-title" style="margin:0;">Expiring Soon</h2>
+      </div>
       <div class="contract-list" id="expiringList"></div>
     </div>
 
@@ -5502,6 +5514,7 @@ const App = {
     }
 
     this.currentQuery = query;
+    try { localStorage.setItem('fedhoo_last_query', query); } catch(e) {}
     const thisSearch = ++this._searchId;
 
     // Hide results, show loader
@@ -5732,7 +5745,26 @@ const App = {
     DOM.show('marketCard');
     DOM.show('bubbleToggleRow');
     this.updateBubbleToggles();
-    this.renderBubbleBreadcrumb();    
+    this.renderBubbleBreadcrumb();
+
+    // First-use tap hint — show once, dismiss on first interaction
+    if (!localStorage.getItem('fedhoo_treemap_hint_seen')) {
+      const existing = DOM.get('treemapHint');
+      if (!existing) {
+        const hint = document.createElement('div');
+        hint.id = 'treemapHint';
+        hint.style.cssText = 'text-align:center;font-size:var(--text-xs);color:var(--text-quaternary);padding:6px 0 2px;letter-spacing:0.02em;';
+        hint.textContent = 'Tap any segment to drill in';
+        const container = DOM.get('bubbleChartContainer');
+        if (container) container.insertAdjacentElement('afterend', hint);
+        const dismiss = () => {
+          hint.remove();
+          localStorage.setItem('fedhoo_treemap_hint_seen', '1');
+          document.removeEventListener('click', dismiss);
+        };
+        setTimeout(() => document.addEventListener('click', dismiss, { passive: true }), 1000);
+      }
+    }    
     const drill = this.drillState || {};
     const effective = this.getEffectiveBubbleMode();
     
@@ -6731,6 +6763,29 @@ selectAgencySuggestion(name, inputId, boxId) {
     }, 320);
   },
 
+  exportCSV() {
+    const data = this.searchData.raw;
+    if (!data || !data.length) { this.toast('No data to export — run a search first.', 'warning'); return; }
+    const headers = ['Award ID','Recipient Name','Awarding Agency','Awarding Sub Agency','Awarding Office','Award Amount','Start Date','End Date','Description','NAICS','PSC','Contract Award Type','Type of Set Aside','pop_city_name','pop_state_code'];
+    const esc = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const rows = data.map(c => headers.map(h => {
+      const v = c[h];
+      if (h === 'NAICS' && v && typeof v === 'object') return esc(v.code || '');
+      if (h === 'PSC'  && v && typeof v === 'object') return esc(v.code || '');
+      return esc(v);
+    }).join(','));
+    const csv = [headers.map(h => `"${h}"`).join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `fedhoo_${(this.currentQuery || 'export').replace(/\s+/g, '_')}_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    this.toast('CSV exported.', 'ok');
+  },
+
   triggerArtiFromBridge() {
     App.runAiActionPlan();
   },
@@ -6904,21 +6959,24 @@ selectAgencySuggestion(name, inputId, boxId) {
       });
     });
 
-    // Restore from URL params — or fire default query on fresh load
+    // Restore from URL params → last saved query → default
     const DEFAULT_QUERY = 'Cloud'; // ← change this anytime
     try {
       const params = new URLSearchParams(window.location.search);
       const q = params.get('q');
       const t = params.get('territory');
       if (t && this.SECTORS[t]) this.setTerritory(t);
-      if (q) {
-        DOM.get('searchInput').value = q;
-        this.runSearch(q);
-      } else {
-        DOM.get('searchInput').value = DEFAULT_QUERY;
-        this.runSearch(DEFAULT_QUERY);
-      }
+      const lastQuery = localStorage.getItem('fedhoo_last_query');
+      const startQuery = q || lastQuery || DEFAULT_QUERY;
+      DOM.get('searchInput').value = startQuery;
+      this.runSearch(startQuery);
     } catch(e) {}
+
+    // Auto-focus search on load — keyboard ready on iPhone
+    setTimeout(() => {
+      const si = DOM.get('searchInput');
+      if (si && !si.value) si.focus();
+    }, 600);
 
     // Render recent searches
 
