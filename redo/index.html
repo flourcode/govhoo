@@ -730,6 +730,7 @@ a, button, input, select { touch-action: manipulation; }
   background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
   padding: 0 12px; height: 32px; font-size: var(--text-xs); font-weight: 600;
   color: var(--text-secondary); cursor: pointer; transition: var(--transition); font-family: var(--font);
+  white-space: nowrap; flex-shrink: 0;
 }
 .copy-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
 .copy-btn.copied { background: var(--go-bg); color: var(--go-text); border-color: transparent; }
@@ -1314,26 +1315,14 @@ const Utils = {
   copyAndAnimate(text, btnElement, successMessage) {
     const onSuccess = () => {
       if (btnElement) {
-        const origHtml = btnElement.innerHTML;
-        const origColor = btnElement.style.color;
-        const origBorder = btnElement.style.borderColor;
-
-        // FIX: Check for undefined instead of falsy. This allows empty strings to pass through!
-        const msg = successMessage !== undefined ? successMessage : 'Copied';
-        const textPart = msg ? ` ${msg}` : '';
-
-        // Injecting just the SVG with the "icon" class ensures it matches the exact size of the Slack/Pres icons
-        btnElement.innerHTML = `<svg class="icon" aria-hidden="true"><use href="#icon-check"></use></svg>${textPart}`;
-        btnElement.style.color = 'var(--success)';
-        btnElement.style.borderColor = 'var(--success)';
-        
+        const origText = btnElement.textContent;
+        const msg = (successMessage !== undefined && successMessage !== '') ? successMessage : 'Copied';
+        btnElement.textContent = msg;
+        btnElement.classList.add('copied');
         setTimeout(() => {
-          btnElement.innerHTML = origHtml;
-          btnElement.style.color = origColor;
-          btnElement.style.borderColor = origBorder;
+          btnElement.textContent = origText;
+          btnElement.classList.remove('copied');
         }, 2000);
-      } else {
-        App.toast('Copied to clipboard', 'success');
       }
     };
 
@@ -4678,7 +4667,10 @@ const Html = {
 
   parseAiMarkdown(rawText) {
     if (!rawText) return '';
-    let text = rawText.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '').trim();
+    let text = rawText
+      .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '')
+      .replace(/<mark>/gi, '').replace(/<\/mark>/gi, '') // Lambda highlight tags — strip silently
+      .trim();
     // Use marked if loaded; otherwise fall back to inline mini-parser
     if (typeof marked !== 'undefined') {
       marked.setOptions({ breaks: true, gfm: true });
