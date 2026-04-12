@@ -966,12 +966,12 @@ a, button, input, select { touch-action: manipulation; }
     <div id="artiTrigger">
       <div class="arti-hero">
         <img src="/images/arti.png" alt="Arti" class="arti-hero-avatar">
-        <h2 class="arti-hero-question">How do you win<br>in this market?</h2>
+        <h2 class="arti-hero-question">What do you<br>want to know?</h2>
         <p class="arti-hero-insight" id="artiBridgeText">I've read the data and I'm ready.</p>
       </div>
       <div class="arti-hero-input-wrap">
         <input type="text" id="artiContextInput" class="arti-hero-input"
-          placeholder="e.g. I sell to VA, competing against Leidos"
+          placeholder="e.g. who are the key primes, what's expiring, where do I start"
           autocomplete="off" autocorrect="off"
           onkeypress="if(event.key==='Enter') App.runAiActionPlan()">
         <button class="arti-hero-send" onclick="App.runAiActionPlan()" aria-label="Build plan">
@@ -6833,25 +6833,26 @@ selectAgencySuggestion(name, inputId, boxId) {
 
     if (hotDays !== null && hotDays <= 30) {
       // Urgent expiry in under 30 days — always lead here
-      insight = `<strong>${hotVendor}</strong> holds a <strong>${Utils.money(hotAmt)}</strong> contract expiring in <strong>${hotDays} days</strong> — that recompete window is open right now.`;
+      insight = `<strong>${hotVendor}</strong> has a <strong>${Utils.money(hotAmt)}</strong> contract expiring in <strong>${hotDays} days</strong>.`;
     } else if (topVendorPct >= 40) {
       // One vendor owns the market — that's a big strategic fact
-      insight = `<strong>${topVendor}</strong> owns <strong>${topVendorPct}%</strong> of this market. Displacing them is the path, or you need a teaming strategy.`;
+      insight = `<strong>${topVendor}</strong> holds <strong>${topVendorPct}%</strong> of this market.`;
     } else if (top3Pct <= 35 && vendorSorted.length >= 5) {
       // Fragmented — multiple entry points
-      insight = `This market is fragmented — the top 3 vendors share only <strong>${top3Pct}%</strong>. Multiple entry points, no dominant incumbent to lock you out.`;
+      insight = `Top 3 vendors share <strong>${top3Pct}%</strong> — no single dominant incumbent.`;
     } else if (topAgencyPct >= 50) {
       // One agency dominates — focus message
-      insight = `<strong>${topAgency}</strong> controls <strong>${topAgencyPct}%</strong> of this market. One relationship, one contracting office, one place to focus.`;
+      insight = `<strong>${topAgency}</strong> is <strong>${topAgencyPct}%</strong> of this market.`;
     } else if (hotDays !== null) {
       // Expiry exists but not urgent — still worth flagging
-      insight = `<strong>${hotVendor}</strong>'s <strong>${Utils.money(hotAmt)}</strong> contract expires in <strong>${hotDays} days</strong>. That's your near-term opening.`;
+      insight = `<strong>${hotVendor}</strong> has a <strong>${Utils.money(hotAmt)}</strong> contract expiring in <strong>${hotDays} days</strong>.`;
     } else {
       // Fallback — size and top buyer
       insight = `<strong>${Utils.money(total)}</strong> market, top buyer is <strong>${topAgency}</strong>${topAgencyPct > 0 ? ` at ${topAgencyPct}%` : ''}.`;
     }
 
-    bridgeText.innerHTML = `${insight} Tell me who you're selling for and I'll build your <strong>30-day action plan</strong>.`;
+    const queryLabel = Utils.titleCase((this.currentQuery || 'this market').trim());
+    bridgeText.innerHTML = `How can I help with <strong>${Html.escapeHtml(queryLabel)}</strong>?`;
 
     // Pre-build payload cache so send is instant
     this._artiPayloadCache = this._buildArtiPayload();
