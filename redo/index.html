@@ -4442,6 +4442,23 @@ selectAgencySuggestion(name, inputId, boxId) {
     const toggleRow = DOM.get('bubbleToggleRow');
     if (toggleRow) toggleRow.style.visibility = view === 'treemap' ? '' : 'hidden';
 
+    // Hero number — update to reflect what the view is actually showing
+    const heroEl = DOM.get('marketHeroNumber');
+    const titleEl = DOM.get('marketCardTitle');
+    if (view === 'subsankey') {
+      // Show subaward total — different subset from main search
+      const subs = this._subawardData || [];
+      const subTotal = subs.reduce((s, r) => s + (parseFloat(r['Sub-Award Amount']) || 0), 0);
+      if (heroEl) Utils.countUp(heroEl, subTotal, Utils.money);
+      if (titleEl) titleEl.textContent = `${this.currentQuery || 'Market'} · Subawards`;
+    } else {
+      // Restore main search total
+      const mainTotal = (this.searchData.active || []).reduce((s, c) => s + (parseFloat(c['Award Amount']) || 0), 0);
+      if (heroEl) Utils.countUp(heroEl, mainTotal, Utils.money);
+      const rawForTitle = (DOM.get('searchInput')?.value || this.currentQuery || '').trim();
+      if (titleEl) titleEl.textContent = rawForTitle.split(/,\s*/).map(t => Utils.titleCase(t.trim())).join(', ');
+    }
+
     if (view === 'sankey') {
       if (this.searchData.loaded) {
         const c = DOM.get('sankeyContainer');
