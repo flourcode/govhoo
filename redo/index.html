@@ -4369,12 +4369,20 @@ selectAgencySuggestion(name, inputId, boxId) {
           ? `https://www.usaspending.gov/award/${c['generated_internal_id']}`
           : c['Award ID'] ? `https://www.usaspending.gov/search/?hash=&keyword=${encodeURIComponent(c['Award ID'])}` : '';
         const vehicle = Utils.detectVehicle(c);
+        const naics = c['NAICS'] ? (typeof c['NAICS'] === 'object' ? c['NAICS'].code : c['NAICS']) : '';
+        const state = c['pop_state_code'] || '';
+        const city  = c['pop_city_name'] ? Utils.titleCase(c['pop_city_name']) : '';
+        const place = [city, state].filter(Boolean).join(', ');
+        const setAside = VehicleDetector.getSetAsideLabel(c['Type of Set Aside'] || '');
+        const meta = [place, naics ? `NAICS ${naics}` : ''].filter(Boolean).join(' · ');
         return `<div class="contract-row">
           <div class="contract-body">
             <div class="contract-vendor">${Html.escapeHtml(vendor)}</div>
             <div class="contract-agency">${Html.escapeHtml(agency)}</div>
             ${vehicle ? `<span class="vehicle-tag">${Html.escapeHtml(vehicle)}</span>` : ''}
+            ${setAside ? `<span class="vehicle-tag" style="background:var(--go-bg);color:var(--go-text);">${Html.escapeHtml(setAside)}</span>` : ''}
             ${desc ? `<div class="contract-desc">${Html.escapeHtml(desc)}</div>` : ''}
+            ${meta ? `<div class="contract-agency" style="margin-top:2px;">${Html.escapeHtml(meta)}</div>` : ''}
           </div>
           <div class="contract-right">
             <span class="contract-amount">${Utils.money(c['Award Amount'])}</span>
@@ -4487,7 +4495,7 @@ selectAgencySuggestion(name, inputId, boxId) {
         subawards: true, filters,
         fields: ['Sub-Award ID','Sub-Awardee Name','Sub-Award Amount','Sub-Award Date',
                  'Prime Award ID','Prime Recipient Name','Awarding Agency','Awarding Sub Agency',
-                 'prime_award_generated_internal_id'],
+                 'prime_award_generated_internal_id','Description','pop_state_code','NAICS'],
         limit: 100, sort: 'Sub-Award Amount', order: 'desc'
       });
       subs = (res.results || []).map(s => {
@@ -4515,14 +4523,22 @@ selectAgencySuggestion(name, inputId, boxId) {
         const url = s['prime_award_generated_internal_id']
           ? `https://www.usaspending.gov/award/${s['prime_award_generated_internal_id']}`
           : '';
+        const subDate = s['Sub-Award Date'] ? new Date(s['Sub-Award Date']).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+        const subDesc = (s['Description'] || '').slice(0, 100);
+        const subState = s['pop_state_code'] || '';
+        const subNaics = s['NAICS'] ? (typeof s['NAICS'] === 'object' ? s['NAICS'].code : s['NAICS']) : '';
+        const subMeta = [subState, subNaics ? `NAICS ${subNaics}` : ''].filter(Boolean).join(' · ');
         return `<div class="subaward-row">
           <div class="subaward-body">
             <div class="subaward-prime">${Html.escapeHtml(prime)}</div>
             <div class="subaward-sub">${Html.escapeHtml(sub)}</div>
             <div class="contract-agency">${Html.escapeHtml(agency)}</div>
+            ${subDesc ? `<div class="contract-desc">${Html.escapeHtml(subDesc)}</div>` : ''}
+            ${subMeta ? `<div class="contract-agency" style="margin-top:2px;">${Html.escapeHtml(subMeta)}</div>` : ''}
           </div>
           <div class="subaward-right">
             <span class="contract-amount">${Utils.money(s['Sub-Award Amount'])}</span>
+            ${subDate ? `<span class="contract-date">${subDate}</span>` : ''}
             ${url ? `<a href="${url}" target="_blank" rel="noopener" class="contract-view">View →</a>` : ''}
           </div>
         </div>`;
