@@ -455,7 +455,30 @@ a, button, input, select { touch-action: manipulation; }
   margin-bottom: 10px;
 }
 .calendly-inline-widget { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); }
-/* ── EMPTY STATE ── */
+/* ── AUTOCOMPLETE DROPDOWN ── */
+.autocomplete-dropdown {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+  background: var(--bg-app); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  z-index: 400; max-height: 280px; overflow-y: auto;
+}
+.autocomplete-dropdown.hidden { display: none !important; pointer-events: none; }
+.suggestion-item {
+  padding: 10px 14px; cursor: pointer;
+  font-size: var(--text-sm); color: var(--text-primary);
+  border-bottom: 1px solid var(--border-inner);
+  transition: background 0.1s ease;
+  display: flex; align-items: baseline; gap: 6px;
+}
+.suggestion-item:last-child { border-bottom: none; }
+.suggestion-item:hover { background: var(--bg-hover); }
+.suggestion-item strong { font-weight: 700; color: var(--text-primary); }
+.suggestion-tier {
+  font-size: 0.72rem; color: var(--text-quaternary);
+  font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+.suggestion-type-company { color: var(--text-tertiary); }
 .empty-state {
   padding: 40px 24px 32px; text-align: center;
 }
@@ -1080,6 +1103,7 @@ a, button, input, select { touch-action: manipulation; }
         autocomplete="off" autocorrect="off" autocapitalize="none"
         enterkeyhint="search">
     </div>
+    <div class="autocomplete-dropdown hidden" id="searchSuggestions"></div>
     <div class="territory-dropdown" id="territoryDropdown">
       <button class="territory-opt active" data-key="" onclick="App.setTerritory(null)">
         <span class="territory-opt-dot" style="background:var(--border)"></span>
@@ -2551,6 +2575,37 @@ async _post(endpoint, body) {
     }
   },
 
+  async fetchAgencySuggestions(searchText) {
+    if (!searchText || searchText.length < 2) return [];
+    this._autocompleteController.abort();
+    this._autocompleteController = new AbortController();
+    const signal = this._autocompleteController.signal;
+    const proxyFetch = (endpoint, payload) => fetch(App.PROXY_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ request_type: 'usaspending_proxy', endpoint, payload }),
+      signal
+    }).then(r => r.json()).catch(e => { if (e.name === 'AbortError') throw e; return {}; });
+    try {
+      const [agencyData, recipientData] = await Promise.all([
+        proxyFetch('/autocomplete/awarding_agency/', { search_text: searchText, limit: 6 }),
+        proxyFetch('/autocomplete/recipient/',       { search_text: searchText, limit: 4 })
+      ]);
+      const agencyResults    = (agencyData.results   || []).map(r => ({ ...r, _type: 'agency' }));
+      const recipientResults = (recipientData.results || []).map(r => ({ ...r, _type: 'recipient' }));
+      const agencyNames = new Set(agencyResults.map(r =>
+        (r.subtier_agency?.name || r.toptier_agency?.name || '').toLowerCase()
+      ));
+      const filteredRecipients = recipientResults.filter(r =>
+        !agencyNames.has((r.recipient_name || '').toLowerCase())
+      );
+      return [...agencyResults, ...filteredRecipients];
+    } catch(e) {
+      if (e.name === 'AbortError') return [];
+      return [];
+    }
+  },
+
 async searchAwards(keywords) {
     // Lazy-load buying offices before processing results
     await Utils.loadBuyingOffices();
@@ -3207,6 +3262,9 @@ const App = {
 
     this.currentQuery = query;
     try { localStorage.setItem('fedhoo_last_query', query); } catch(e) {}
+    // Dismiss autocomplete
+    const _sb = DOM.get('searchSuggestions');
+    if (_sb) { _sb.innerHTML = ''; _sb.classList.add('hidden'); }
     const thisSearch = ++this._searchId;
 
     // Hide results, show loader
@@ -4795,6 +4853,14 @@ selectAgencySuggestion(name, inputId, boxId) {
     }
   },
 
+  selectAgencySuggestion(name, boxId) {
+    const input = DOM.get('searchInput');
+    const box   = DOM.get(boxId);
+    if (input) { input.value = name; input.blur(); }
+    if (box)   { box.innerHTML = ''; box.classList.add('hidden'); }
+    this.runSearch(name, true);
+  },
+
   triggerArtiFromBridge() {
     App.runAiActionPlan();
   },
@@ -4935,17 +5001,64 @@ selectAgencySuggestion(name, inputId, boxId) {
 
   // ── Init ─────────────────────────────────────────────────────
   init() {
-    // Wire search input
+    // Wire search input + autocomplete
     const input = DOM.get('searchInput');
-    const btn   = DOM.get('searchBtn');
+    const sugBox = DOM.get('searchSuggestions');
     if (input) {
+      let acTimer;
+      const hideBox = () => { if (sugBox) { sugBox.innerHTML = ''; sugBox.classList.add('hidden'); } };
+
       input.addEventListener('keypress', e => {
-        if (e.key === 'Enter') { e.target.blur(); App.runSearch(e.target.value); }
+        if (e.key === 'Enter') { hideBox(); e.target.blur(); App.runSearch(e.target.value); }
       });
-      // Close territory dropdown on Escape
       input.addEventListener('keydown', e => {
-        if (e.key === 'Escape') DOM.get('territoryDropdown')?.classList.remove('open');
+        if (e.key === 'Escape') {
+          hideBox();
+          DOM.get('territoryDropdown')?.classList.remove('open');
+        }
       });
+      input.addEventListener('input', e => {
+        clearTimeout(acTimer);
+        const val = e.target.value.trim();
+        if (val.length < 2) { hideBox(); return; }
+        acTimer = setTimeout(async () => {
+          const suggestions = await API.fetchAgencySuggestions(val);
+          if (!suggestions || !suggestions.length) { hideBox(); return; }
+          // Only show if input still focused or dropdown hovered
+          if (document.activeElement !== input && !sugBox?.matches(':hover')) return;
+          sugBox.innerHTML = suggestions.map(s => {
+            if (s._type === 'recipient') {
+              const name = Html.escapeHtml(s.recipient_name || '');
+              const safe = (s.recipient_name || '').replace(/'/g, "\\'");
+              return `<div class="suggestion-item" onclick="App.selectAgencySuggestion('${safe}','searchSuggestions')">
+                <strong>${name}</strong><span class="suggestion-tier">Company</span>
+              </div>`;
+            }
+            const sub = s.subtier_agency?.name || '';
+            const top = s.toptier_agency?.name || '';
+            const display = sub || top;
+            const safe = display.replace(/'/g, "\\'");
+            const tierHtml = (sub && top && sub !== top)
+              ? `<span class="suggestion-tier">${Html.escapeHtml(top)}</span>` : '';
+            // Cache in dynamicAgencies for resolveAgencyAlias
+            if (s.subtier_agency && s.toptier_agency) {
+              Utils.dynamicAgencies[sub.toLowerCase()] = { tier: 'subtier', name: sub, toptier_name: top };
+            }
+            if (s.toptier_agency) {
+              Utils.dynamicAgencies[top.toLowerCase()] = { tier: 'toptier', name: top };
+            }
+            return `<div class="suggestion-item" onclick="App.selectAgencySuggestion('${safe}','searchSuggestions')">
+              <strong>${Html.escapeHtml(display)}</strong>${tierHtml}
+            </div>`;
+          }).join('');
+          sugBox.classList.remove('hidden');
+        }, 280);
+      });
+
+      // Dismiss on outside click
+      document.addEventListener('click', e => {
+        if (!input.contains(e.target) && !sugBox?.contains(e.target)) hideBox();
+      }, { passive: true });
     }
 
     // Wire chat input Enter key
