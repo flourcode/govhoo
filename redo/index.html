@@ -1257,10 +1257,10 @@ a, button, input, select { touch-action: manipulation; }
     <div class="app-card wide hidden" id="pipelineCard">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;">
         <div>
-          <h2 class="card-title">Pipeline Patterns</h2>
-          <p class="card-desc" style="margin:0;font-size:var(--text-xs);color:var(--text-tertiary);">Recompetes, renewals, and adjacencies ranked by urgency score.</p>
+          <h2 class="card-title">Expiring Contract Patterns</h2>
+          <p class="card-desc" style="margin:0;font-size:var(--text-xs);color:var(--text-tertiary);">Recompetes, renewals, and adjacencies ranked by urgency.</p>
         </div>
-        <button class="pipeline-export-btn" onclick="App.exportPipelineCSV()" title="Export pipeline to CSV">Export CSV</button>
+        <button class="pipeline-export-btn" onclick="App.exportPipelineCSV()" title="Export expiring contract patterns to CSV">Export CSV</button>
       </div>
       <div class="contract-list" id="pipelineList"></div>
     </div>
@@ -1274,13 +1274,6 @@ a, button, input, select { touch-action: manipulation; }
       <div class="contract-list" id="subawardsList"></div>
     </div>
 
-    <!-- EXPIRING SOON CARD -->
-    <div class="app-card wide hidden" id="expiringCard">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;">
-        <h2 class="card-title" style="margin:0;">Expiring Soon</h2>
-      </div>
-      <div class="contract-list" id="expiringList"></div>
-    </div>
 
   </div><!-- /tools-grid -->
 
@@ -3392,7 +3385,6 @@ const App = {
       this.renderBridge();
       this.renderPrimes();
       this.renderPipeline();
-      this.renderExpiring();
       this.renderRecent();
 
       // Clear sub-sankey stale state before async fetch
@@ -3418,6 +3410,7 @@ const App = {
     DOM.hide('recentCard');
     DOM.hide('expiringCard');
     DOM.hide('pipelineCard');
+    DOM.hide('expiringCard');
     DOM.hide('subawardsCard');
     DOM.hide('artiFab');
     // Hide third tab
@@ -4437,7 +4430,7 @@ selectAgencySuggestion(name, inputId, boxId) {
       }).join('');
       if (!all && targets.length > SHOW) {
         list.insertAdjacentHTML('beforeend',
-          `<button class="contract-show-more" onclick="App._renderPipelineAll()">Show all ${targets.length} patterns</button>`);
+          `<button class="contract-show-more" onclick="App._renderPipelineAll()">Show all ${targets.length} expiring patterns</button>`);
       }
     };
     this._renderPipelineAll = () => render(true);
