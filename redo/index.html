@@ -1180,7 +1180,7 @@ a, button, input, select { touch-action: manipulation; }
           <h2 class="card-title">Expiring Contract Patterns</h2>
           <p class="card-desc" style="margin:0;font-size:var(--text-xs);color:var(--text-tertiary);">Sorted by days remaining. Renewal and bridge contracts flagged.</p>
         </div>
-        <button class="pipeline-export-btn" onclick="App.exportPipelineCSV()" title="Export expiring contract patterns to CSV">Export CSV</button>
+        <button class="export-btn" onclick="App.exportPipelineCSV()" title="Export expiring contract patterns to CSV">Export CSV</button>
       </div>
       <div class="contract-list" id="pipelineList"></div>
     </div>
@@ -1244,7 +1244,7 @@ a, button, input, select { touch-action: manipulation; }
       </div>
       <div class="prompt-chips" id="artiPromptChips">
         <button class="prompt-chip" onclick="App.sendArtiChat('Who is the dominant incumbent in this market and what would it take to displace them? Be specific.')">Who owns this?</button>
-        <button class="prompt-chip" onclick="App.sendArtiChat('What is the single best near-term opportunity in this data, the contract most likely to recompete and where we have a real shot? One paragraph.')">Best opening</button>
+        <button class="prompt-chip" onclick="App.sendArtiChat('What is the single best near-term opportunity in this data, the contract most likely to open up and where we have a real shot? One paragraph.')">Best opening</button>
         <button class="prompt-chip" onclick="App.sendArtiChat('Write one cold outreach message to the top contracting office. 4 sentences. Reference their actual spending.')">Draft outreach</button>
         <button class="prompt-chip" onclick="App.sendArtiChat('What are 3 things I should know walking into a meeting with the top agency in this market? Bullet points, just the facts.')">Meeting prep</button>
         <button class="prompt-chip" onclick="App.sendArtiChat('Who should I team with to be more competitive here? Name 2 specific companies already winning in this data and why they would make a good partner.')">Who to team with</button>
@@ -2751,12 +2751,12 @@ const PipelineEngine = {
         // A bridge or base-only award means the agency is in transition, exactly when to engage.
         const isService = ['D','R','J','S'].includes(rawPsc.slice(0, 1));
         targetType = 'Short-Term Pattern';
-        rationale = `Contract duration is short (${durationYears.toFixed(1)} years), indicating a bridge contract, base-only award, or truncated funding window. ${isService ? 'Service contract, high probability of a full recompete follow-on.' : 'High probability of transition or re-solicitation.'}`;
+        rationale = `Contract duration is short (${durationYears.toFixed(1)} years), indicating a bridge contract, base-only award, or truncated funding window. ${isService ? 'Service contract, high probability of a follow-on solicitation.' : 'High probability of transition or re-solicitation.'}`;
         // Urgency bonus replaces penalty: short + expiring soon = act now
         scoreBoost = daysUntil <= 180 ? 15 : daysUntil <= 365 ? 5 : -5;
       } else {
         targetType = 'Maturing Pattern';
-        rationale = `Analytical match for standard 3.5 to 5-year lifecycle maturity. High probability of recompete or new solicitation.`;
+        rationale = `Analytical match for standard 3.5 to 5-year lifecycle maturity. High probability of a new solicitation.`;
         scoreBoost = 20;
       }
 
@@ -2832,7 +2832,7 @@ const PipelineEngine = {
       const dominantNaics = Object.entries(p.naicsCodes).sort((a,b) => b[1]-a[1])[0];
       const inferredNaics = dominantNaics ? dominantNaics[0] : (topNaics ? topNaics.code : '');
 
-      const overlapNote = hasExpiring ? ' Also flagged as an active recompete.' : '';
+      const overlapNote = hasExpiring ? ' Also has an active expiring contract.' : '';
 
       targets.push({
         type: 'Spending Pattern',
@@ -3978,7 +3978,7 @@ selectAgencySuggestion(name, inputId, boxId) {
       ? `This market is scoped to ${this.SECTORS[this.territory].label} agencies only. `
       : '';
     // Crisp briefing prompt, compass heading, not a GTM plan
-    const objective = `${territoryScope}${userContext ? `The seller says: "${userContext}". ` : ''}You are a sharp federal BD analyst giving a 60-second pre-meeting briefing. Respond in 3-5 sentences maximum. Lead with the single most important fact about this market, the biggest opportunity, the dominant incumbent, or the most urgent recompete. Then give one specific recommended move. Use real names and real dollar figures. No headers, no bullet points, no plans, just a direct briefing like a colleague who pulled the file before the meeting.`;
+    const objective = `${territoryScope}${userContext ? `The seller says: "${userContext}". ` : ''}You are a sharp federal BD analyst giving a 60-second pre-meeting briefing. Respond in 3-5 sentences maximum. Lead with the single most important fact about this market, the biggest opportunity, the dominant incumbent, or the most urgent expiring contract. Then give one specific recommended move. Use real names and real dollar figures. No headers, no bullet points, no plans, just a direct briefing like a colleague who pulled the file before the meeting.`;
 
     try {
       const artiAbort = new AbortController();
@@ -4330,40 +4330,42 @@ selectAgencySuggestion(name, inputId, boxId) {
     card.classList.remove('hidden');
 
     this._pipelineTargets = targets;
-    const query = (this.currentQuery || '').toLowerCase();
-    const queryWord = query.split(/[\s,]+/)[0];
+    const queryWords = (this.currentQuery || '').toLowerCase().split(/[\s,&]+/).filter(w => w.length > 2);
     const SHOW = 8;
 
     const badgeMap = {
-      'Renewal Pattern':  { bg: 'rgba(91,75,168,0.10)',   color: 'var(--btn-bg)',      label: 'Renewal' },
-      'Short-Term Pattern': { bg: 'rgba(200,100,60,0.10)', color: 'rgb(160,60,20)',     label: 'Short-Term' },
-      'Maturing Pattern': { bg: 'rgba(52,160,100,0.10)',  color: 'rgb(20,110,60)',      label: 'Recompete' },
-      'Spending Pattern': { bg: 'rgba(43,108,176,0.10)',  color: 'rgb(30,80,140)',      label: 'Recurring' },
+      'Renewal Pattern':    { color: 'var(--btn-bg)',    label: 'Renewal' },
+      'Short-Term Pattern': { color: 'rgb(160,60,20)',   label: 'Short-Term' },
+      'Maturing Pattern':   { color: 'rgb(20,110,60)',   label: 'Maturing' },
+      'Spending Pattern':   { color: 'rgb(30,80,140)',   label: 'Recurring' },
     };
 
     const render = (all) => {
       const items = all ? targets : targets.slice(0, SHOW);
       list.innerHTML = items.map(t => {
         const days = Math.ceil((t.closeDate - now) / 86400000);
-        const daysLabel = days <= 30 ? `${days}d` : days <= 90 ? `${days}d`
+        const daysLabel = days <= 30 ? `${days}d`
+          : days <= 90 ? `${days}d`
           : t.closeDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
         const urgencyStyle = days <= 30
           ? 'color:rgb(160,60,20);font-weight:700;'
-          : days <= 90 ? 'color:var(--warn-text);font-weight:600;' : '';
+          : days <= 90 ? 'color:var(--warn-text);font-weight:600;' : 'color:var(--text-quaternary);';
         const url = t.awardId ? `https://www.usaspending.gov/award/${t.awardId}` : '';
         const name = Utils.titleIfCaps(t.name).slice(0, 120);
         const agency = Utils.cleanAgency(t.account);
-        const incumbentName = Utils.titleIfCaps(t.incumbent || '');
-        const showIncumbent = t.incumbent && t.incumbent !== 'Multiple'
-          && !incumbentName.toLowerCase().includes(queryWord);
         const b = badgeMap[t.type];
         const badgeHtml = b
-          ? `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:9999px;background:${b.bg};color:${b.color};margin-left:5px;vertical-align:middle;">${b.label}</span>`
+          ? `<span style="font-size:10px;font-weight:700;color:${b.color};text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:3px;">${b.label}</span>`
           : '';
-        return `<div class="contract-row">
+        const incumbentName = Utils.titleIfCaps(t.incumbent || '');
+        const incumbentMatches = queryWords.some(w => incumbentName.toLowerCase().includes(w));
+        const showIncumbent = t.incumbent && t.incumbent !== 'Multiple' && !incumbentMatches;
+
+        return `<div class="contract-row" style="align-items:flex-start;">
           <div class="contract-body">
+            ${badgeHtml}
             <div class="contract-vendor">${Html.escapeHtml(name)}</div>
-            <div class="contract-agency">${Html.escapeHtml(agency)}${badgeHtml}</div>
+            <div class="contract-agency">${Html.escapeHtml(agency)}</div>
             ${showIncumbent ? `<div class="contract-agency" style="margin-top:1px;">Incumbent: ${Html.escapeHtml(incumbentName)}</div>` : ''}
           </div>
           <div class="contract-right">
