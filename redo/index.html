@@ -1258,7 +1258,7 @@ a, button, input, select { touch-action: manipulation; }
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;">
         <div>
           <h2 class="card-title">Expiring Contract Patterns</h2>
-          <p class="card-desc" style="margin:0;font-size:var(--text-xs);color:var(--text-tertiary);">Recompetes, renewals, and adjacencies ranked by urgency.</p>
+          <p class="card-desc" style="margin:0;font-size:var(--text-xs);color:var(--text-tertiary);">Sorted by days remaining. Renewal and bridge contracts flagged.</p>
         </div>
         <button class="pipeline-export-btn" onclick="App.exportPipelineCSV()" title="Export expiring contract patterns to CSV">Export CSV</button>
       </div>
@@ -4399,7 +4399,14 @@ selectAgencySuggestion(name, inputId, boxId) {
     if (!card || !list || !this.searchData.loaded) return;
 
     const recompetes = ForecastEngine.detectRecompetes(this.searchData.active);
-    const targets = PipelineEngine.generate(this.searchData.active, recompetes);
+    const raw = PipelineEngine.generate(this.searchData.active, recompetes);
+
+    // Drop inferred Adjacent Patterns — those aren't real expiration dates
+    // Sort by days remaining, soonest first
+    const now = new Date();
+    const targets = raw
+      .filter(t => t.type !== 'Adjacent Pattern' && t.closeDate && t.closeDate > now)
+      .sort((a, b) => a.closeDate - b.closeDate);
 
     if (!targets.length) { card.classList.add('hidden'); return; }
     card.classList.remove('hidden');
@@ -4409,28 +4416,27 @@ selectAgencySuggestion(name, inputId, boxId) {
     const render = (all) => {
       const items = all ? targets : targets.slice(0, SHOW);
       list.innerHTML = items.map(t => {
-        const closeStr = t.closeDate
-          ? t.closeDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-          : '';
+        const days = Math.ceil((t.closeDate - now) / 86400000);
+        const daysLabel = days <= 30 ? `${days}d` : days <= 90 ? `${days}d` : t.closeDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        const urgencyColor = days <= 30 ? 'color:rgb(160,60,20);' : days <= 90 ? 'color:var(--warn-text);' : '';
         const url = t.awardId ? `https://www.usaspending.gov/award/${t.awardId}` : '';
         return `<div class="pipeline-row">
           <div class="pipeline-body">
             ${PipelineEngine.getTypeBadge(t.type)}
             <div class="pipeline-name" style="margin-top:4px;">${Html.escapeHtml(Utils.titleIfCaps(t.name).slice(0, 100))}</div>
             <div class="pipeline-account">${Html.escapeHtml(Utils.cleanAgency(t.account))}</div>
-            <div class="pipeline-rationale">${Html.escapeHtml(t.rationale)}</div>
+            ${t.incumbent && t.incumbent !== 'Multiple' ? `<div class="contract-agency" style="margin-top:2px;">Incumbent: ${Html.escapeHtml(Utils.titleIfCaps(t.incumbent))}</div>` : ''}
           </div>
           <div class="pipeline-right">
             <span class="pipeline-amount">${Utils.money(t.amount)}</span>
-            ${closeStr ? `<span class="pipeline-close">${closeStr}</span>` : ''}
+            <span class="contract-urgency" style="${urgencyColor}">${daysLabel}</span>
             ${url ? `<a href="${url}" target="_blank" rel="noopener" class="contract-view">View →</a>` : ''}
-            <span class="pipeline-score">Score ${Math.round(t.score)}</span>
           </div>
         </div>`;
       }).join('');
       if (!all && targets.length > SHOW) {
         list.insertAdjacentHTML('beforeend',
-          `<button class="contract-show-more" onclick="App._renderPipelineAll()">Show all ${targets.length} expiring patterns</button>`);
+          `<button class="contract-show-more" onclick="App._renderPipelineAll()">Show all ${targets.length} expiring contracts</button>`);
       }
     };
     this._renderPipelineAll = () => render(true);
